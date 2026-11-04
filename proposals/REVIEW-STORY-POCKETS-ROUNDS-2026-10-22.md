@@ -2303,3 +2303,97 @@ The score held at 8.5. Again the reviewer found the code correct, with no new ro
 Mutation testing: 50 mutants on rounds 16–21's code, 48 killed by the tests, the splice check or the targets check, among them the round-21 reviewer's three message mutants (the clause looking at the eligible reading only; the clause always naming the eligible pockets; a single run in a median-holding pocket not enough to name it). The two survivors are the equivalent ones from rounds 18 and 19.
 
 Result: STORY 1, STORY (PROXY) 1, NO STORY 3, UNRESOLVED 26, NO ENGINE 1, OUT OF SCOPE 1 (unchanged). WP1's whole target is met by none: it fails at 16 scored scenarios (by cause: the story 4, a band 15, a carrier share 5, oversize 0) and is open at 16. No protagonist has a size entry. No generated block changed. Tests 134 (unchanged; the new cases sit in existing tests).
+
+## Round 22 — 8.5/10 (on 9d415a45)
+
+One reviewer, under the standing rule (no cap on rounds; stop at 9/10 or when nothing must be fixed).
+
+### The report
+
+> 9d415a45 does what it says. Every new figure reproduces exactly, the new tests pin what they claim, and no earlier route has reopened. But the pass-side cost it now states is not a cost of the proxy hedge's premises. It comes from reading one fleet two incompatible ways at once, it brings back round 15's single-giant hold, and a one-line change removes it while keeping the shield. §4 therefore puts the wrong choice to the boss.
+>
+> I edited nothing in the repository. The tree is clean at 9d415a45 and the .local-evidence hashes are unchanged. Scratch files are in `review22\` (scripts w\a1–a6, mut.mjs, m-*.json).
+>
+> **MUST-FIX**
+>
+> 1. **The proxy hedge's pass-side holds come from answering "span or length?" both ways inside one reading. They are separable from the shield, but §4 presents them as part of it.**
+>    - **Where:** lib:681 (`else if (r.size <= target.q90) fav = r.size;`, which gives no vote against). Texts: §4 PROPOSAL:1686–1699, §1.3:353, `size_check` (targets.mjs:75), lib:650–656, REVIEW:2297.
+>    - **Why it is wrong:**
+>      - In the reading against the protagonist, a carrier hidden by a pocket below the proxy's q25 is read at the span: short of the proxy, so an accessory with no vote. Meanwhile a giant hidden in a pocket short of the median is read at its length, past the range.
+>      - In the pockets that hold the median, "against" always means "at its length", because every hidden crystal there is a giant. So the default does not do what its own text says ("read as the eligible ones are").
+>      - §4 calls the narrow other way inexact because "it mixes readings across pockets". The default mixes them too.
+>    - **Evidence:**
+>      - The pass-side departures are 216 at seed 47 and 256 at seed 5. In every one of them, neither consistent reading puts the typical voter past q90: not "the span judges everywhere" (shorts as accessories), and not "the length judges everywhere". Each has a giant hidden in a pocket short of the median (`a4-premise.mjs`).
+>      - Single giant: 20 carriers at 100 mm in 45 mm pockets plus one 1 m stilbite in a 60 mm pocket. Both anchors pass. The default says "stilbite may be oversize: past its display range in 1 of the 1 runs that vote, read against it…".
+>      - That is round 15's hold, which round 16 fixed ("the carriers had no vote against it, so the giant was the whole reading", REVIEW:1801), now back for proxies.
+>    - **False response claim:** REVIEW:2297 says "The single-giant case is held open under both: … the giant is the one eligible voter." That is false for round 21's actual case. There all 21 runs sit in 45 mm pockets, so no pocket is eligible; the whole version passes it and only the default holds it open. The response tested a giant in a 300 mm pocket instead.
+>    - **Fix (one line):** at lib:681 also set `against = r.size`. On a scratch copy:
+>      - pass-side departures fall from 216 and 256 to 0;
+>      - the shield is kept exactly (106 and 103);
+>      - the stilbite at its median passes 89.3 % (the same as both anchors) instead of 78.5 %;
+>      - at 2× and 3× its median it is still never failed (the shield);
+>      - the census is identical in all 32 scored scenarios;
+>      - 133 of 134 tests pass. Only test.ts:489 fails, and it pins the mix.
+>
+>      The hedge's one cost is then the shield. Restate §4, §1.3, `size_check` and the lib doc. "Every other reading lies between them" becomes "every reading that answers the span question one way for the fleet". Correct REVIEW:2297.
+>
+>      If the default is kept as it is, §4 must say these holds come from the mix, not the hedge, and offer this version as a third option with the figures above.
+>
+> **SHOULD-FIX**
+>
+> 1. **Two places still state only the shield.** WP9's "What it does to WP1's size test" (PROPOSAL:1594–1601, which round 21 listed) and the generated WP1 line (scoreboard.mjs:532 → PROPOSAL:1209, "so every such pocket shields it (§4)"). This is moot if MUST-FIX 1 is adopted.
+> 2. **The parser reads a diameter as a crystal length when the diameter word comes first.**
+>    - The registered rule (lib:77–80, :273; test.ts:105–112) classes "N mm Durchmesser" as a width. But "Durchmesser des größten Kristalls 12 mm" comes out as a crystal length, because the nearest cue is "Kristalls".
+>    - One such row reaches a target: 1489477717 (appendix line 205; captured cut, as "hmesser…").
+>    - It is the ninth length of Grimsel's fluorite. That lifts its carrier share to 0.156, over the 21-run limit of 0.1546 — the generated "nearest share above the limit" — so the fluorite fails "below its share".
+>    - Without it, n = 8 and the share is 0.1517, which 21 runs cannot fail; the fluorite becomes open within noise. Grimsel still fails on its quartz.
+>    - The other three captions of the form "width word + des/der" in the capture reach no target.
+>    - Fix the rule, or state the case beside the knife-edge.
+> 3. **§4:1695 lists only two of the four tests the whole version would flip.** It says "Adopting it would flip the tests that pin the shield and Naica's selenite". Under the whole version four tests fail: also the readings test (test.ts:480–489) and the round-13 messages (test.ts:1447–1456).
+> 4. **Nits:**
+>    - No test bounds the pass-side figure; the shield has one (test.ts:1427–1429).
+>    - The size verdict's noise edge is unpinned: `s <= edge` → `s < edge` (lib:704) survives all 134 tests.
+>    - §4:1683 "a third of its 21 runs (7 of 21; 1 of 7, 13 of 36…)" reads as if 1 of 7 were a third. Say "the share needed is …".
+>
+> **Verified and correct**
+>
+> - **Checks:**
+>   - Tests: 134/134 under vitest, and 134/134 on my own stand-in harness.
+>   - Targets `--check` matches a rebuild. Splice blocks match: 13/13 scoreboard, 2/2 substrate. The size-evidence tool runs.
+>   - The comparison tool is unchanged since afbe687f, and its output is byte-identical.
+>   - Nothing under js/ or data/ changed in f49c1804^..HEAD.
+> - **Round-21 figures, all exact:**
+>   - Shield thresholds: 1/7, 7/21, 13/36, 91/210 (43.3 %), 470/1,000 (47.0 %).
+>   - Random proxies: 322 = 216 + 106 at seed 47; 359 = 256 + 103 at seed 5. The whole version departs in 0 of 60,000.
+>   - Stilbite at 73 mm: 78.5 / 89.3 / 10.8 %; WP1 met 49.6 against 50.5 %.
+>   - The whole version fails 14.4 / 85.3 %; the default fails 0. It fails none at the proxy's median.
+>   - The concrete case is open under the default and met under the whole version.
+> - **Round-21 should-fixes:** S1–S4 are in. I checked the three new test messages by hand. The removed `one ? [] :` was equivalent.
+> - **Mutants:** 52 of my own, 46 killed. The 6 survivors:
+>   - 3 are equivalent: the clause order, the `favour` tie, and round 18's `one`;
+>   - 2 sit at exact-equality gates (could-reach, share noise);
+>   - 1 is the unpinned edge in nit 4.
+> - **Earlier routes stay closed:** dust, proxy short, unclassed pockets, hidden proxy, too-small pockets, the crystal-target cross-pocket mix, and the could-carry route. The tests' copies of the committed targets are exact.
+> - **Census:** STORY 1, STORY (PROXY) 1, NO STORY 3, UNRESOLVED 26, NO ENGINE 1, OUT OF SCOPE 1. WP1 is met 0, failed 16, open 16. Only Bisbee's malachite is ever longer than its cavity, and it is in range there.
+> - **Parser and joins:** I read all 100 lengths behind the ten crystal targets that have an engine; the only error is SHOULD-FIX 2. The joins I sampled are correct.
+> - **Attribution and incentives:** attributions are correct, and the review's lean toward the whole version is recorded. Two perverse incentives remain, both stated:
+>   - the shield: giants moved into small pockets turn a fail into open;
+>   - the proxy could-carry rule: a proxy's giant in a pocket below its q25 counts as a run it could still carry.
+>
+> **Ready for the boss?** Not yet. Make the proxy's reading against it consistent (one line), or offer that version in §4, and correct REVIEW:2297. The rest is text and tests.
+
+### The response
+
+The score held at 8.5 for a third round. The reviewer found that the pass-side cost round 21 stated is not a cost of the hedge's premises. It came from a mix inside one reading, and one line removes it. I took that fix, and the parser fix.
+
+| # | finding | what changed | evidence |
+|---|---|---|---|
+| M1 | the pass-side holds came from answering "span or length?" both ways inside the reading against a proxy | **Code:** in `assessSize`, a proxy's crystal that is in its range on its length but hidden by a pocket below the proxy's lower quartile now votes at its length against the protagonist (`fav = against = r.size`). Every other crystal hidden there already did. **Effect:** the shield is now the hedge's only cost; the hedge passes exactly where both anchors pass. **Texts:** §4, §1.3, `size_check` and the lib say so, and the lib's `least`/`most` doc names which readings lie between them. **Correction:** round 21's response said the single-giant case was held open under both versions. It tested a giant in a 300 mm pocket, not the reviewer's case, where all 21 runs are short of the median. Under the old reading only the default held the reviewer's case open; now neither does. | Reproduced on the working tree. **Random proxies** (30,000 each, seeds 47 and 5): the default had departed from the anchors in 322 and 359 fleets, 216 and 256 of them on the pass side. Now 106 and 103 depart, all on the fail side: the shield, unchanged. None falls outside the anchors' bounds. **Deccan's stilbite** at its proxy's median, 7 of 21 runs in 45 mm pockets, 2,000 fleets: 89.3 % pass, the anchors' own figure (it was 78.5 %). At two and three times its median it still fails none. **The reviewer's single giant** (20 carriers at 100 mm in 45 mm pockets, one 1 m crystal in a 60 mm pocket): no oversize entry, where it had been "may be oversize … 1 of the 1". **Round 21's concrete case:** met. **Tests:** the bound test now asserts that a proxy passes wherever both anchors pass, and tests pin both cases. This fix alone leaves the census unchanged. |
+| S1 | two places stated only the shield | Moot after M1: the shield is now the hedge's only cost, so WP9 and the WP1 line are complete. | — |
+| S2 | the parser read a diameter as a crystal length when the diameter word came first | In `parseSizeStatements`, a diameter word before the measure and governing it is now a width, as "12 mm Durchmesser" already was. This covers "Durchmesser des größten Kristalls 12 mm" and a caption cut at its start ("hmesser des …"). A tabular crystal's or a rounded aggregate's diameter is still its size. Tests pin the whole form, the cut form and the tabular exception. The size evidence, its appendix and the targets are regenerated from the unchanged capture. | **The one affected target:** Grimsel's fluorite drops from 9 lengths to 8 (median 12 → 14 mm), and its carrier share from 0.156 to 0.1517, under the 21-run limit. Its share now cannot fail ("short of its share within noise"). **WP1 counts:** failed for a carrier share, 5 → 4; share missed within noise, 2 → 3. The limit alone now holds open three shares (Deccan's apophyllite and calcite, Grimsel's fluorite), and the nearest share above it is Ouro Preto's hematite (0.1625). **Record spread:** the median crystal-length spread is now 70 % (was 75). **Story verdicts:** unchanged; Grimsel is NO STORY on its quartz. |
+| S3 | §4 listed only two of the tests the whole version would flip | §4 now says the whole version would move eleven expectations in four tests: the shield, Naica's selenite, the readings of a proxy's hidden crystals, and round 13's proxy messages. | Run on a scratch copy with the whole version. |
+| S4 | nits | The pass-side figure is moot now that there is no pass-side departure; the bound test pins the pass side instead. The size verdict's noise edge is pinned: a crystal exactly at q75 is on the window's side. §4 words the shield's threshold as "the share needed": a third at 21 runs, 1 of 7, 13 of 36, 43 % of 210 and 47 % of 1,000. | — |
+
+Mutation testing: 55 mutants on rounds 16–22's code, 53 killed by the tests, the splice check or the targets check. Round 22's: the reading against a proxy's hidden in-range crystal reverted (round 21's mix), the diameter word first not read, a cut diameter word not read, a tabular crystal's diameter first read as a width, and the size verdict's noise edge excluding a crystal at it — all killed. The two survivors are the equivalent ones from rounds 18 and 19.
+
+Result: STORY 1, STORY (PROXY) 1, NO STORY 3, UNRESOLVED 26, NO ENGINE 1, OUT OF SCOPE 1 (unchanged). WP1's whole target is met by none: it fails at 16 scored scenarios (by cause: the story 4, a band 15, a carrier share 4, oversize 0) and is open at 16. No protagonist has a size entry. Tests 134 (unchanged; the new cases sit in existing tests).

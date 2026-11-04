@@ -106,6 +106,11 @@ describe('caption sizes (Mineralienatlas wording)', () => {
     expect(kinds('; rhomboedrische Krisalle bis 1cm auf Matrix; Fu')).toEqual([['crystal', 10]]);
     expect(kinds('Calcit auf Fluorit ; Größe: 17 x 14 x 8 cm, Calcit-XX max. 45 mm Durchmesser; F')).toEqual([['specimen', 170], ['width', 45]]);
     expect(kinds('er mit gekrümmten Flächen bis 1 cm Durchmesser; d')).toEqual([['width', 10]]);
+    // The diameter word first, governing the measure after it: still a diameter (round 22: the nearest cue,
+    // "Kristalls", had made Grimsel's fluorite caption a crystal's length) — whole, or cut at the caption's start.
+    expect(kinds('Fluorit; Durchmesser des größten Kristalls 12 mm. Unbearbeitet')).toEqual([['width', 12]]);
+    expect(kinds('hmesser des größten Kristalls 12 mm. Unbearbeitete')).toEqual([['width', 12]]);
+    expect(kinds('Durchmesser der tafeligen Kristalle 5 mm')).toEqual([['crystal', 5]]);
     expect(kinds('Calcit-XX bis 45 mm Ø; F')).toEqual([['width', 45]]);
     expect(kinds('calcite crystals to 45 mm diameter; F')).toEqual([['width', 45]]);
     expect(kinds('be tafelige Kristalle bis ca. 2 mm Durchmesser, auf Quarz')).toEqual([['crystal', 2]]);
@@ -485,14 +490,17 @@ describe('size, conditional on occurrence and on the pocket', () => {
     expect(assessSize([run(true, 40, 200), run(true, 140, 200)], proxyT).display).toEqual(both(r(2, 1, 90, false), r(1, 0, 140, true), 2));
     expect(assessSize([run(true, 300, 40)], proxyT).display).toEqual(both(r(1, 1, 40, false), r(1, 0, 300, true), 0, none));
     // A proxy's crystal in the range on its length (100 mm), hidden by a cavity below the proxy's range: within in
-    // its favour, and at the span, short of the proxy, no vote against it.
-    expect(assessSize([run(true, 100, 40), run(true, 300, 40)], proxyT).display).toEqual(both(r(2, 2, 70, false), r(1, 0, 300, true), 0, none));
+    // its favour, at the span short of the proxy, and within against it at its own length, as the reading against it
+    // takes every crystal the cavity hides (round 22: it had had no vote there while the 300 mm giant kept its own).
+    expect(assessSize([run(true, 100, 40), run(true, 300, 40)], proxyT).display).toEqual(both(r(2, 2, 70, false), r(2, 1, 200, true), 0, none));
     // A crystal target's crystal between q10 and q25 is an accessory too; a median exactly at q90 is not past it,
     // and one past it by less than a summary's rounding is (round 15) — the reported verdict too (round 16).
     expect(assessSize([run(true, 13), run(true, 14.9)], crystalT).display.every.most).toEqual(r(0, 0, null, false));
     expect(assessSize([run(true, 40), run(true, 60)], crystalT).display.every.most).toEqual(r(2, 1, 50, false));
     expect(assessSize([run(true, 50.0004)], crystalT).display.every.most.past).toBe(true);
     expect(assessSize([run(true, 50.0004), run(true, 50.0004), run(true, 20)], crystalT).verdict).toBe('OVERSIZE');
+    // A crystal exactly at q75 (40) is within the window's edge when the runs' noise is judged (round 22).
+    expect(assessSize([run(true, 40), run(true, 40), run(true, 45), run(true, 45), run(true, 45)], crystalT)).toMatchObject({ verdict: 'LARGE', noise: true });
   });
   it('the readings bound every other: WP1\'s size test fails or passes only where a cavity that hides nothing, and the boss\'s size rule (only pockets that hold the characteristic crystal), would too (rounds 14–16)', () => {
     // Random protagonists in mixed cavities, crystal targets and proxies, giants of up to 31 times q90; the size
@@ -515,10 +523,11 @@ describe('size, conditional on occurrence and on the pocket', () => {
       seen[here as 'fail' | 'open' | 'pass']++;
       // A crystal target's every-pocket reading is the cavity that hid nothing, its eligible one the boss's rule, so
       // its verdict is theirs: failed where both fail, passed where both pass, open otherwise (round 18).
-      if (tg.basis === 'crystal') {
-        const [twin, boss] = [decide(assessSize(runs.map((x) => ({ ...x, span: 1e7 })), tg).display), decide(assessSize(runs.filter((x) => fits(x.span, tg) === true), tg).display)];
-        expect(here, `crystal target, trial ${trial}`).toBe(twin === 'fail' && boss === 'fail' ? 'fail' : twin === 'pass' && boss === 'pass' ? 'pass' : 'open');
-      }
+      const [twin, boss] = [decide(assessSize(runs.map((x) => ({ ...x, span: 1e7 })), tg).display), decide(assessSize(runs.filter((x) => fits(x.span, tg) === true), tg).display)];
+      if (tg.basis === 'crystal') expect(here, `crystal target, trial ${trial}`).toBe(twin === 'fail' && boss === 'fail' ? 'fail' : twin === 'pass' && boss === 'pass' ? 'pass' : 'open');
+      // A proxy's reading against it takes every crystal the cavity hides at its length, so it passes wherever both
+      // anchors pass (round 22); only the shield, on the fail side, departs from them.
+      else if (twin === 'pass' && boss === 'pass') expect(here, `proxy, trial ${trial}`).toBe('pass');
       for (const [label, other] of [['nothing hidden', runs.map((x) => ({ ...x, span: 1e7 }))], ['only the pockets that hold the median', runs.filter((x) => fits(x.span, tg) === true)]] as [string, any[]][]) {
         const there = decide(assessSize(other, tg).display);
         if (here !== 'open') expect(there, `${label}, trial ${trial}`).toBe(here);
@@ -1424,6 +1433,13 @@ describe('WP1\'s whole target', () => {
       }
       return c;
     };
+    // The pass side is the anchors': 20 carriers hidden in 45 mm pockets and one 1 m crystal in a 60 mm one is no
+    // oversize (round 22: the carriers had had no vote against it, so the one giant was the whole reading, round
+    // 15's hold back for a proxy); round 21's case — 7 carriers in 300 mm pockets, 6 at 100 mm in 45 mm and 8 at
+    // 200 mm in 60 mm — is met.
+    const list = (spec: [number, number, number][]) => spec.flatMap(([k, size, span]) => Array.from({ length: k }, () => ({ span, species: { apophyllite: { occurs: true, size: 26.5 }, stilbite: { occurs: true, size } } })));
+    expect(dW(list([[20, 100, 45], [1, 1000, 60]])).open.filter((y: string) => y.startsWith('stilbite may be oversize'))).toEqual([]);
+    expect(dW(list([[7, 100, 300], [6, 100, 45], [8, 200, 60]])).met).toBe(true);
     const shield = fleets(st, 219, 45, 7);
     expect(shield.here).toBe(0);
     expect(Math.min(shield.twin, shield.boss)).toBeGreaterThan(200);

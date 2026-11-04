@@ -78,6 +78,11 @@ const AFTER_IGNORE = /^\s*(?:macro|makro|objektiv|lens\b|f\/\d|mächtig)/iu;
 // tabular crystal ("tafelige Kristalle bis 2 mm Durchmesser") or a rounded aggregate ("Eisenrosen von bis
 // zu 19 mm Durchmesser"), whose diameter is its size.
 const AFTER_DIAMETER = /^\s*(?:durchmesser|diameter|ø)/iu;
+// "Durchmesser des größten Kristalls 12 mm": the diameter word first, governing the measure after it, is a diameter
+// too (round 22: the nearest cue, "Kristalls", had made it a crystal's length). A caption cut at its start may keep
+// only the word's tail ("hmesser des …").
+const BEFORE_DIAMETER = new RegExp(String.raw`(?:^|[^${L}])(?:durchmesser|diameter)\s+(?:des|der|eines|einer|of)(?!${L})[^;,]*$`, 'iu');
+const BEFORE_DIAMETER_CUT = new RegExp(String.raw`^\s*${L}*messer\s+(?:des|der|eines|einer)(?!${L})[^;,]*$`, 'iu');
 const DIAMETER_IS_SIZE = new RegExp(String.raw`tafel|plättch|tabular|rose|rosette|kugel|sphär|sphere|scheibe|disc|disk|^\s*(?:o?s)?etten?(?!${L})`, 'iu');
 const AFTER_FOV = new RegExp(String.raw`^\s*(?:bildbreite|bildbr|bildhöhe|bb\b|breite[rns]?\s+aus|aus?schnitt)`, 'iu');
 const AFTER_CRYSTAL = new RegExp(String.raw`^\s*(?:kl\b|kantenl|kristall(?!${L}*${NOT_ONE_CRYSTAL})|crystal\b|(?:hohe|lange|große|grosse)[rns]?\s+kristal(?!${L}*${NOT_ONE_CRYSTAL}))`, 'iu');
@@ -270,9 +275,10 @@ export function parseSizeStatements(raw) {
     const parenMineral = paren ? mineralOfWord(paren[1]) : null;
     let kind, named = null, why;
     // "7 cm breit", "3 mm dick": a width or thickness, said of whatever the clause names.
-    const predicativeWidth = (adj && !adj[2] && /^(?:breit|dick)$/iu.test(adj[1])) || (AFTER_DIAMETER.test(after) && !DIAMETER_IS_SIZE.test(before));
+    const diameterFirst = before.match(BEFORE_DIAMETER) ?? (firstClause && cutStart ? before.match(BEFORE_DIAMETER_CUT) : null);
+    const predicativeWidth = (adj && !adj[2] && /^(?:breit|dick)$/iu.test(adj[1])) || ((AFTER_DIAMETER.test(after) || diameterFirst) && !DIAMETER_IS_SIZE.test(before));
     if (AFTER_FOV.test(after)) { kind = 'fov'; why = after.match(AFTER_FOV)[0].trim(); }
-    else if (predicativeWidth) { kind = 'width'; why = (after.match(AFTER_DIAMETER) ?? adj)[0].trim(); }
+    else if (predicativeWidth) { kind = 'width'; why = (after.match(AFTER_DIAMETER) ?? adj ?? diameterFirst)[0].trim(); }
     else if (AFTER_CRYSTAL.test(after)) {
       kind = 'crystal'; why = after.match(AFTER_CRYSTAL)[0].trim();
       if (cue?.kind === 'crystal') named = cueMineral(before, cue);
@@ -651,11 +657,12 @@ const lengthAndSpanAgree = (size, span, t) => !(span != null && size > span) || 
  * counted, since the protagonist's own crystal, smaller than the proxy, may fit it: there a crystal it hides is
  * read at the span too — in the range, or below it and so short of the proxy — so every such pocket shields the
  * proxy from the fail: with 7 of 21 runs in them (a share rising toward one half with more runs), the interval of
- * the reading most in its favour cannot fall below one half. And a crystal in the range on its length, short of
- * the proxy at the span, has no vote against it there, so the reading also holds open fleets the two anchors pass
- * (rounds 19–21; the proposal's §4 states both costs and the other way).
+ * the reading most in its favour cannot fall below one half. Read against the protagonist, every crystal the
+ * cavity hides is taken at its own length, so the reading passes exactly where the two anchors pass (rounds 19–22;
+ * the proposal's §4 states the cost and the other way).
  * In each, `least` reads them the way least likely to make the typical crystal oversize and `most` the way most
- * likely, and every other reading lies between them: { n, within (at or below q90), median, past (the exact
+ * likely — the span judging every crystal the cavity hides, then its length — and every reading that answers that
+ * question one way for the whole fleet lies between them: { n, within (at or below q90), median, past (the exact
  * median past q90) }. `held` counts its runs in pockets that hold its median.
  *   runs: [{ occurs, size, span }]
  */
@@ -678,7 +685,7 @@ export function assessSize(runs, target, z = 1.96) {
         fav = r.size; // short of a proxy
       } else if ((whole && !proxy) || lengthAndSpanAgree(r.size, r.span, target)) fav = against = r.size;
       else if (rangeSide(r.span, target) === 1) { fav = r.span; against = r.size; } // past on its length, in the range on the span
-      else if (r.size <= target.q90) fav = r.size; // a proxy's: in the range on its length, short of the proxy on the span
+      else if (r.size <= target.q90) fav = against = r.size; // a proxy's: in the range on its length, short of the proxy on the span — against it, at its length, as every crystal hidden there is (round 22)
       else { fav = r.span; against = r.size; } // a proxy's: past on its length, short of the proxy on the span
       if (fav != null) least.push(fav);
       if (against != null) most.push(against);
