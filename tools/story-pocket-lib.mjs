@@ -593,11 +593,11 @@ export function assessOccurrence(k, n, band, z = 1.96) {
 
 /**
  * Does a crystal of the target's characteristic (median) length fit a cavity whose longest interior
- * span is spanMm? true / false; null when it cannot be told — no target, or a specimen proxy the
- * cavity is smaller than (the crystal itself may be smaller still).
+ * span is spanMm? true / false; null when it cannot be told — no target, no known span, or a specimen
+ * proxy the cavity is smaller than (the crystal itself may be smaller still).
  */
 export function fits(spanMm, target) {
-  if (!target || target.basis === 'unknown') return null;
+  if (!target || target.basis === 'unknown' || spanMm == null || Number.isNaN(spanMm)) return null;
   if (spanMm >= target.median) return true;
   return target.basis === 'crystal' ? false : null;
 }
@@ -634,25 +634,39 @@ const lengthAndSpanAgree = (size, span, t) => !(span != null && size > span) || 
  * told from the window — even none of them past its edge would be noise (k ≤ z², 3 at z 1.96) — so they
  * can neither fail the size nor confirm it. The interval models the runs' noise only, not the record's:
  * the window is the record's own middle half, itself uncertain for a small record.
- * share = eligible runs whose crystal lies in the record's display range, q25–q90; `within` = eligible runs
- * at or below q90, which WP1's oversize test counts (the same sign test, against q90). `atLength` = the
- * median over every occurrence at its own length, as the verdict would read it in a cavity that hid nothing,
- * and whether it is past q90 (WP1's may-be test): a cavity short of the median keeps every run from the
- * verdict, and one short of q90 the crystals grown past it.
+ * share = eligible runs whose crystal lies in the record's display range, q25–q90.
+ * `display`: what WP1's oversize test reads (wp1Target). Only crystals at or past the start of the display
+ * range vote — one below it is an accessory, which the boss exempted from showcase size on 2026-11-03, so it
+ * neither passes the test nor offsets a giant — over every occurrence, whatever its cavity; and each crystal
+ * the cavity hides (longer than its span, the two on different sides of the range) is read both ways: at its
+ * own length, and at the span (in the range there, or below it: an accessory). `least` reads each hidden one
+ * the way least likely to make the typical crystal oversize, `most` the way most likely, and every other
+ * reading lies between them: { n, within (at or below q90), median, past (the median past q90) }. `hidden`
+ * counts the crystals read both ways.
  *   runs: [{ occurs, size, span }]
  */
 export function assessSize(runs, target, z = 1.96) {
   if (!target || target.basis === 'unknown') return { verdict: 'UNKNOWN' };
   const occurring = runs.filter((r) => r.occurs);
   if (!occurring.length) return { verdict: 'NEVER OCCURS', occurring: 0, eligible: 0 };
-  const lengths = summarize(occurring.map((r) => r.size));
-  const atLength = { n: occurring.length, median: lengths.median, past: lengths.median > target.q90 };
+  const least = [], most = [];
+  let hidden = 0;
+  for (const r of occurring) {
+    if (r.size < target.q25) continue;
+    if (lengthAndSpanAgree(r.size, r.span, target)) { least.push(r.size); most.push(r.size); continue; }
+    hidden++;
+    if (rangeSide(r.span, target) === 1) { least.push(r.span); most.push(r.size); } // past on its length, in the range on the span
+    else if (r.size <= target.q90) least.push(r.size); // in the range on its length, an accessory on the span
+    else most.push(r.size); // past on its length, an accessory on the span
+  }
+  const reading = (v) => { const s = summarize(v); return { n: v.length, within: v.filter((x) => x <= target.q90).length, median: s.median ?? null, past: s.median > target.q90 }; };
+  const display = { least: reading(least), most: reading(most), hidden };
   const fitting = occurring.filter((r) => fits(r.span, target) === true);
   const beyond = fitting.filter((r) => !lengthAndSpanAgree(r.size, r.span, target)).length;
   const eligible = fitting.filter((r) => lengthAndSpanAgree(r.size, r.span, target));
   if (!eligible.length) {
     const verdict = fitting.length ? 'LONGER THAN THE CAVITY' : target.basis === 'crystal' ? 'NO ELIGIBLE POCKET' : 'ELIGIBILITY UNKNOWN';
-    return { verdict, occurring: occurring.length, eligible: 0, beyond, atLength };
+    return { verdict, occurring: occurring.length, eligible: 0, beyond, display };
   }
   const inRange = eligible.filter((r) => r.size >= target.q25 && r.size <= target.q90).length;
   const sizes = summarize(eligible.map((r) => r.size));
@@ -664,8 +678,7 @@ export function assessSize(runs, target, z = 1.96) {
   const edge = target.basis === 'crystal' ? target.q75 : target.q90;
   const noise = verdict === 'BELOW' ? reaches((s) => s >= target.q25) : verdict === 'LARGE' || verdict === 'OVERSIZE' ? reaches((s) => s <= edge) : null;
   const few = wilson(0, eligible.length, z)[1] >= 0.5;
-  const within = eligible.filter((r) => r.size <= target.q90).length;
-  return { verdict, ...(noise == null ? {} : { noise }), ...(few ? { few } : {}), share: inRange / eligible.length, inRange, within, eligible: eligible.length, occurring: occurring.length, beyond, atLength, sizes };
+  return { verdict, ...(noise == null ? {} : { noise }), ...(few ? { few } : {}), share: inRange / eligible.length, inRange, eligible: eligible.length, occurring: occurring.length, beyond, display, sizes };
 }
 
 /**
@@ -886,15 +899,15 @@ export function carrierShare(band, target, range, room = Infinity) {
  *   every protagonist with an engine within its band — below it beyond noise fails and within noise leaves
  *     it open; above it within noise counts as within (21 seeds cannot tell "common" from "guaranteed";
  *     §2.5 of the proposal tests the fleet for that);
- *   no protagonist with an engine oversize: its typical crystal past its display range (assessSize's
- *     OVERSIZE) fails where the runs can tell it is — the interval of its eligible runs within q90 stays
- *     below one half — and leaves the target open where they cannot (with 3 eligible runs or fewer they
- *     never can, as assessSize's `few` says): an indistinguishable size miss is never a pass. So does a
- *     typical crystal the cavity may hide: the verdict judges only the runs in a cavity that holds the
- *     median, less the crystals grown past one short of q90 (`beyond`: past the range on their length, in
- *     it on the span), so where it is not OVERSIZE but the median over every occurrence at its own length
- *     (`atLength`: the verdict as it would read in a cavity that hid nothing — the same median, the same
- *     boundary) is past q90, the target is open;
+ *   no protagonist with an engine oversize: only its crystals at or past the start of its display range
+ *     vote — an accessory below it is exempt (the boss's answer), so it neither passes the test nor offsets
+ *     a giant — and each one the cavity hides is read both ways, at its own length and at the span
+ *     (assessSize's `display`). Where every reading puts the typical one past q90 and the runs can tell it —
+ *     the interval of those within q90 stays below one half, which 3 such runs or fewer never can — it fails;
+ *     where any reading puts it past q90 but not every one beyond noise, the target is open: an
+ *     indistinguishable size miss is never a pass. A cavity that hid nothing reads every crystal at its
+ *     length, one of those readings, so the size test fails a fleet only where that cavity would fail it, and
+ *     passes one only where that cavity would pass it;
  *   every protagonist with an engine carrying the story at its own scale in at least its carrier share
  *     (carrierShare) of the scored runs — the boss's obligation, the one test of "if it never does". Short
  *     of it beyond noise fails: even counting every run it could still carry (short of a proxy, longer than
@@ -932,14 +945,13 @@ export function wp1Target(story, protagonists, { scored = 0, z = 1.96 } = {}) {
     else if (o.verdict === 'LOW' && o.k > 0) open.push(`${p.k} below its band, within noise`);
     // Never occurring is the band's to judge, whatever the size target.
     if (o.k === 0) { if (!bandFails) open.push(`${p.k} never occurs, and ${banded ? 'its band cannot tell that from its floor' : 'it has no band to judge that by'}`); continue; }
-    const sz = p.size;
-    if (sz?.verdict === 'OVERSIZE') {
-      const past = `past its display range in ${sz.eligible - sz.within} of ${sz.eligible} eligible runs`;
-      if (wilson(sz.within, sz.eligible, z)[1] < 0.5) { fails.push(`${p.k} oversize: ${past}`); continue; }
-      open.push(`${p.k} oversize within noise: ${past}`);
-    } else if (sz?.atLength?.past) {
-      // The cavity kept crystals from the verdict; at their own length the typical one is past the range.
-      open.push(`${p.k} may be oversize: the median of its ${sz.atLength.n} occurrences at their own length is past its display range, and the size verdict judged ${sz.eligible} of them`);
+    const d = p.size?.display;
+    if (d?.most.past) {
+      const { least, most, hidden } = d;
+      const of = (r) => `past its display range in ${r.n - r.within} of its ${r.n} runs at or past its display scale`;
+      // An interval below one half even in its favour puts that reading's median past q90 too, and every other's.
+      if (wilson(least.within, least.n, z)[1] < 0.5) { fails.push(`${p.k} oversize: ${of(least)}${hidden ? `, with the ${hidden} crystals the cavity hides read in its favour` : ''}`); continue; }
+      open.push(hidden ? `${p.k} may be oversize: ${of(most)}, with the ${hidden} crystals the cavity hides read against it` : `${p.k} oversize within noise: ${of(most)}`);
     }
     if (!scored) continue;
     if (p.why === 'no size target') { open.push(`${p.k} has no size target to show it carrying the story`); continue; }
@@ -957,6 +969,35 @@ export function wp1Target(story, protagonists, { scored = 0, z = 1.96 } = {}) {
   }
   return { met: !fails.length && !open.length, fails, open };
 }
+/**
+ * How the scoreboard sorts wp1Target's entries, by its own wording: WP1_FAILS for the fails and WP1_OPENS for the
+ * open entries ([label, pattern, listed: name the protagonists under it]) — each entry matches exactly one of its
+ * list — and NEVER_CARRY for a protagonist that occurs but never carries the story ([kind, label, pattern]):
+ * neverCarryCause gives the first whose kind's entries for it (fails or open) include a match, -1 where none does.
+ */
+export const WP1_FAILS = [['the story', /^story /], ['a band', / its band$/], ['oversize', / oversize: /], ['a carrier share', / below its share /]];
+export const WP1_OPENS = [
+  ['the story unresolved or short within noise', /^story /], ['a protagonist that could still reach its share (runs short of a proxy or longer than the cavity that could carry it, unclassed pockets that may be small)', / it could still reach its share /],
+  ['a carrier share missed within noise', /short of its share .* within noise$/], ['a band missed below its floor within noise', /below its band, within noise$/],
+  ['an oversize within noise', / oversize within noise: /],
+  ['a typical crystal that may be oversize (past its display range in some reading of the crystals the cavity hides)', / may be oversize: /, true],
+  ['no size target to show it carrying', /no size target to show it carrying/], ['a display range beyond the cavity', /cannot carry the story in this cavity/],
+  ['no band to set its share', /has no band to set its share/, true], ['never occurring where its band cannot fail that', /never occurs, and /, true],
+];
+export const NEVER_CARRY = [
+  ['fail', 'short of its carrier share beyond noise', / below its share /],
+  ['fail', 'oversize', / oversize: /],
+  ['open', 'oversize within noise', / oversize within noise: /],
+  ['open', 'possibly oversize — past its display range in some reading of the crystals the cavity hides', / may be oversize: /],
+  ['open', 'short of a specimen proxy, which is no failure, so crystal lengths decide (WP0)', / short of its proxy/],
+  ['open', 'longer than a cavity whose span is short of its q90 (WP9)', / longer than the cavity/],
+  ['open', 'a display range that starts beyond the cavity, which cannot hold it at its scale (WP9)', /cannot carry the story in this cavity/],
+  ['open', 'in unclassed pockets, which may be small and leave the count', / in unclassed pockets /],
+  ['open', 'no band to set its share', /has no band to set its share/],
+  ['open', 'short of its share within noise', /short of its share .* within noise$/],
+];
+export const neverCarryCause = (wp1, k) => NEVER_CARRY.findIndex(([kind, , re]) => (kind === 'fail' ? wp1.fails : wp1.open).some((x) => x.startsWith(`${k} `) && re.test(x)));
+
 /**
  * WP1's whole target from a scenario's runs and its story verdict: each protagonist's occurrence against
  * its band, its size over every occurrence (assessSize, for the oversize test), and its carrying

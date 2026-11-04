@@ -303,15 +303,18 @@ chord can cross the wall. So SMALL is conclusive and STORY-SCALE is generous.
   stays within the 90th percentile (round 11). Where they fall on different sides it neither carries the
   story nor counts against it: a run the protagonist could still carry, weighing as one carried run would in
   the noise of its share. Where a protagonist's 90th percentile is itself past the span, a crystal grown
-  past the cavity either stays within that percentile, and carries, or passes it and is such a run — so
-  the size verdict never sees a crystal past the range there, and WP1 can never fail it as oversize. Where
-  the span is short of its median as well, the verdict judges none of its runs (no eligible pocket). So
-  WP1 reads every occurrence at its own length, as the verdict would in a cavity that hid nothing, and
-  where that median is past the 90th percentile and the verdict is not OVERSIZE, the target is open:
-  the cavity may hide an oversize (rounds 12 and 13: fleets mostly of giants past a cavity short of the
-  90th percentile, and then of the median, had been met). It is the verdict's own median against its own
-  boundary, so a cavity that hides crystals meets exactly the fleets one that hides none would, and fails
-  only fleets that one fails. The sixth line under §2's table lists those protagonists.
+  past the cavity either stays within that percentile, and carries, or passes it and is such a run. WP1's
+  oversize test reads such a crystal both ways — at its own length, and at the span — and fails a
+  protagonist only where every reading puts its typical crystal at display scale past the range, beyond
+  noise; where some reading does, the target is open. Read at the span, no crystal in such a cavity is past
+  the 90th percentile, so WP1 can never fail it as oversize there, only hold it open (rounds 12 and 13:
+  fleets mostly of giants past a cavity short of the 90th percentile, and then of the median, had been met).
+  A cavity that hid nothing reads every crystal at its length, one of those readings, so WP1's size test
+  fails a fleet only where such a cavity would fail it and passes one only where such a cavity would pass
+  it. In one cavity that holds the primary's median and reaches each protagonist's display range, the whole
+  target is met and failed exactly where such a cavity's is; small pockets or a range beyond the cavity hold
+  it open otherwise, and with cavities that differ from run to run (WP9) small pockets also leave the
+  share's count. The sixth line under §2's table lists those protagonists.
 
 **The story frequency.** A run carries the story when a primary or alternate protagonist is at its
 record's display scale. A scenario should carry it in at least *floor × coverage* of its scored runs,
@@ -383,33 +386,36 @@ It asks for no protagonist in every seed, and no size spread narrower than the r
     the cavity where its length and the span disagree) and leaving out every run in an unclassed pocket —
     which carries the story in no pocket class, but may be a small pocket and so may not count — the 95 %
     interval of its carrying stays below its share. This is the one test of the boss's "if it never does":
-    the North Pennines galena, at 8.6 mm in all 21 runs, fails it (none of 21 against 0.2167). A share at
+    a protagonist below its display range in every run fails it wherever its share is one the runs can fail
+    (the never-carry line under §2's table names those that do). A share at
     or below the top of the interval for none of the runs it is judged on (0.155 for 21) cannot be failed
     even if the protagonist never carries the story; the eighth line under §2's table lists such shares,
     and which of them that limit alone holds open, and §4 puts it to the boss.
-  - None is oversize: a protagonist whose typical crystal is past its display range fails where the runs
-    can tell it — the interval of its eligible runs within the record's 90th percentile stays below one
-    half — and leaves the target open where they cannot, since an indistinguishable size miss is never a
-    pass (the boss's first answer; round 11 found such an oversize counted as met). The size verdict leaves
-    out the runs longer than a cavity short of the 90th percentile, past the range on their length but in
-    it on the span, and judges no run at all in a cavity short of the median; where it is not OVERSIZE but
-    the median of every occurrence at its own length is past the 90th percentile, the typical crystal may
-    be past the range, and the target is open too (round 12: Herkimer's quartz, 16 runs at a metre and 5
-    at 16 mm in its own 59.9 mm cavity, had been met; round 13: so had the North Pennines galena, 16 at a
-    metre and 5 at 19 mm, in an 18.5 mm cavity short of its median). Round 9: a6612fa1 had
-    stopped failing a protagonist grown far past its record. The North Pennines galena (five crystals:
-    median 20 mm, 90th percentile 27.2), its fleet spread as a lognormal
-    of sd 0.6, fails in 12 % of fleets at a median of 30 mm, 71 % at 40, 97 % at 50 and in effect all from
-    60, past the 92 mm cavity too (2,000 fleets each). At 1.5 times its median the runs mostly cannot tell
-    its median from the 90th percentile.
+  - None is oversize. Only its crystals at or past the start of its display range vote: an accessory below
+    it is exempt (the boss's answer), so it neither passes the test nor offsets a giant (round 14: six runs
+    of dust had turned five carriers and ten giants from open to met). Each crystal the cavity hides is read
+    both ways, at its own length and at the span. A protagonist whose typical crystal among these is past
+    its display range fails where every reading puts it there and the runs can tell it — the interval of
+    those within the record's 90th percentile stays below one half — and the target is open where some
+    reading puts it there but not every one beyond noise, since an indistinguishable size miss is never a
+    pass (the boss's first answer; round 11 found such an oversize counted as met; rounds 12 and 13, giants
+    hidden by cavities short of the 90th percentile and of the median: Herkimer's quartz, 16 runs at a metre
+    and 5 at 16 mm in its own 59.9 mm cavity, and the North Pennines galena, 16 at a metre and 5 at 19 mm in
+    an 18.5 mm cavity). Round 9: a6612fa1 had stopped failing a protagonist grown far past its record. The
+    North Pennines galena (five crystals: median 20 mm, 90th percentile 27.2), its fleet spread as a
+    lognormal of sd 0.6 — far wider than its record — fails in 41 % of fleets at a median of 30 mm, 85 % at
+    40, 98 % at 50 and in effect all from 60, past the 92 mm cavity too (2,000 fleets each). At its record's
+    median it is met in 39 % of fleets and failed in 3 %: among its crystals at display scale, giants
+    outnumber carriers in many of them. With a spread like its record's (sd 0.3) it is met in 99 %.
   - In each pocket a protagonist is the story's carrier, an accessory, or absent. An accessory is not
     held to showcase size: the North Pennines galena may be dust in most pockets, so long as it carries
     its share of others. A crystal judged past its range carries nothing, so one giant does not rescue a
-    protagonist that is otherwise dust; one longer than a cavity short of its 90th percentile weighs as one
-    run it could carry would. A specimen proxy is not a size the protagonist must reach:
-    reaching its range counts as carrying (strong evidence); falling short is no failure, and the
-    obligation waits on crystal lengths (WP0) — so the North Pennines calcite, grown to 39 mm (beyond every
-    photographed calcite crystal there, short of its proxy's 64 mm), leaves the target open, not failed.
+    protagonist that is otherwise dust, and dust, which has no vote on oversize, does not rescue a giant;
+    one longer than a cavity short of its 90th percentile weighs as one run it could carry would. A
+    specimen proxy is not a size the protagonist must reach: reaching its range counts as carrying (strong
+    evidence); falling short is no failure, and the obligation waits on crystal lengths (WP0) — so a
+    protagonist grown short of its proxy's range, even past every photographed crystal of its species,
+    leaves the target open, not failed (the sixth line under §2's table names such crystals).
 
   It is met only on what it could judge, so these leave it open, not met and not failed: a protagonist
   whose runs short of a proxy, or longer than the cavity where its length and the span disagree, could still
@@ -423,9 +429,10 @@ It asks for no protagonist in every seed, and no size spread narrower than the r
   and fails wherever its share is one the runs can fail; oversize, it fails where the runs can tell it and
   is open where they cannot; rare, it carries too few or sits below its band; absent, it answers to its
   band (the tests sweep its size and its count, and every split of 21 runs into carriers, giants, dust and
-  absence, in a cavity past the 90th percentile and in one short of it: none with most occurrences past
-  the range, or longer than a cavity short of it, is met, and no move away from carrying improves the
-  outcome). The other size
+  absence, in a cavity past the 90th percentile and in ones short of it and of the median: none with more
+  giants than carriers is met, dust in place of absence changes nothing where the band reads the same, no
+  move away from carrying improves the outcome, and the cavities that hide crystals meet exactly the
+  splits the one that hides none meets). The other size
   verdicts over every occurrence (rule 4) are reported, not required. Earlier rounds asked of WP1 that each
   protagonist's typical crystal lie in the record's middle half; that judged accessories as showcases, and
   a small record's own uncertainty made it fail correct fleets (rounds 7 and 8). Round 9 added a test of a
@@ -442,14 +449,17 @@ It asks for no protagonist in every seed, and no size spread narrower than the r
 
   | correct fleet, two protagonists | records of | 21 seeds: met / failed | 210 seeds | 1,000 seeds |
   |---|---|---|---|---|
-  | in the middle of their bands | 17 | 72 / 0.3 % | 92 / 1.1 % | 94 / 2.5 % |
-  | in the middle of their bands | 5 | 57 / 2.5 % | 65 / 17 % | 66 / 26 % |
+  | in the middle of their bands | 17 | 71 / 0.3 % | 92 / 1.2 % | 94 / 2.7 % |
+  | in the middle of their bands | 5 | 49 / 6.8 % | 57 / 25 % | 56 / 34 % |
   | at their bands' floors | 17 | 11 / 9.5 % | 12 / 27 % | 10 / 47 % |
-  | at their bands' floors | 5 | 10 / 10 % | 10 / 43 % | 9 / 59 % |
+  | at their bands' floors | 5 | 9 / 12 % | 10 / 44 % | 9 / 60 % |
 
-  At the census's 21 seeds a correct fleet is rarely failed in the middle of its bands; at the floors, two
-  thirds of its failures are the bands' own tests at their floors. A fleet with one protagonist behaves
-  alike (at 210 seeds against five crystals: 12 % failed mid-band, 28 % at the floor). More seeds alone
+  At the census's 21 seeds a correct fleet is rarely failed in the middle of its bands against seventeen
+  crystals. Against five it fails in 6.8 % of fleets, most of them as oversize: a five-crystal record's
+  90th percentile can sit low in its own population, and with accessories no longer voting on oversize
+  (round 14; it was 2.5 % with them) the crystals at display scale show it. At the floors, half to two
+  thirds of the failures are the bands' own tests at their floors. A fleet with one protagonist behaves
+  alike (at 210 seeds against five crystals: 15 % failed mid-band, 28 % at the floor). More seeds alone
   would fail correct fleets against small records more often; more crystal lengths (WP0) firm the targets.
 
   The scoreboard reports the whole target, each protagonist's carrying beside its share, and what fails
@@ -566,7 +576,7 @@ The cavity decides who can set the story frequency. These protagonists have an e
 No run can carry the story in its scenario's current cavity, whatever grows, in 10 of 32 scored scenarios. The display range of every protagonist with a size target starts beyond the cavity's span — on crystal targets: none; on specimen proxies, which overstate the crystal: naica_geothermal, searles_lake, ultramafic_supergene; and the other protagonists have no size target: sicily_solfifera. No protagonist with an engine has a size target: amethyst_geode, chiastolite_hornfels, great_salt_plains, porphyry, roughten_gill, sulphur_bank. A crystal target beyond the span waits on bigger pockets (WP9); a proxy on bigger pockets or on crystal lengths that bring it within (WP0); a missing target on crystal lengths.
 Where the captions give a few crystal lengths but too few for a target (25 protagonists), every photographed crystal is longer than every simulated one, enclosed crystals included, in 20: azurite at bisbee (1 length 10 mm; simulated at most 0.8); stilbite at deccan_zeolite (2 lengths 40–62 mm; simulated at most 1.0); heulandite at deccan_zeolite (3 lengths 35–50 mm; simulated at most 3.6); fluorite at elmwood (4 lengths 20–48 mm; simulated at most 10); calcite at elmwood (3 lengths 50–115 mm; simulated at most 15); galena at mvt (2 lengths 12.0–30 mm; simulated at most 11.8); selenite at naica_geothermal (4 lengths 44–226 mm; simulated at most 2.9); topaz at ouro_preto (4 lengths 12–36 mm; simulated at most 5.9); galena at reactive_wall (3 lengths 40–65 mm; simulated at most 4.1); pyromorphite at roughten_gill (1 length 10 mm; simulated at most 6.2); mimetite at roughten_gill (1 length 2.0 mm; simulated at most 0.1); erythrite at schneeberg (2 lengths 4.0–40 mm; simulated at most 0.8); topaz at shigar_pegmatite (2 lengths 13–17 mm; simulated at most 0.7); quartz at shigar_pegmatite (3 lengths 22–80 mm; simulated at most 13); rhodochrosite at sunnyside_american_tunnel (1 length 20 mm; simulated at most 5.2); fluorite at sunnyside_american_tunnel (1 length 80 mm; simulated at most 1.3); smithsonite at supergene_oxidation (4 lengths 5.0–10 mm; simulated at most 3.0); azurite at supergene_oxidation (3 lengths 5.0–25 mm; simulated at most 3.4); mimetite at supergene_oxidation (1 length 20 mm; simulated at most 3.8); titanite at tormiq_alpine_cleft (2 lengths 18–50 mm; simulated at most 5.3); not so for malachite at bisbee, calaverite at epithermal_telluride, calcite at reactivated_fluorite_vein, malachite at supergene_oxidation, epidote at tormiq_alpine_cleft. Too few to set a target, they lean against the simulator; they do not clear it.
 Story checks that 21 seeds cannot fail beyond noise — a frequency at or below 0.155, the top of the interval for 0 of them, where even a fleet that never tells the story is within noise: deccan_zeolite (0.1517), marble_contact_metamorphism (0.1393), schneeberg (0.1517). Where no protagonist with an engine forms in any seed, the verdict carries no noise mark: the mark says chance in which runs carry the story could explain the shortfall, and no run grew a protagonist to carry it.
-Simulated crystals larger than every photographed crystal of their species, where the record gives a few lengths beside a proxy: malachite at bisbee, calaverite at epithermal_telluride, calcite at reactivated_fluorite_vein, malachite at supergene_oxidation, epidote at tormiq_alpine_cleft. Crystals longer than the starting cavity's span: malachite at bisbee (15/21), thenardite at searles_lake (14/21), tincalconite at searles_lake (1/21), calcite at sunnyside_american_tunnel (21/21). Protagonists whose display range ends past the cavity's span, so that WP1 can never fail them as oversize there — a crystal inside the cavity is within the range's top, and one grown past it is past the range on its own length but in it on the span, and left out of the size verdict, as is every run where the cavity is short of the median too; where the median of every occurrence at its own length is past q90, WP1 leaves the target open as possibly oversize: malachite at bisbee (q90 138 mm, span 61); azurite at bisbee (q90 116 mm, span 61); native copper at bisbee (q90 242 mm, span 61); cuprite at bisbee (q90 63 mm, span 61); calcite at bisbee (q90 143 mm, span 61); quartz at cooling (q90 60.4 mm, span 59.9); apophyllite at deccan_zeolite (q90 85 mm, span 66); stilbite at deccan_zeolite (q90 120 mm, span 66); heulandite at deccan_zeolite (q90 160 mm, span 66); chalcedony at deccan_zeolite (q90 155 mm, span 66); fluorite at elmwood (q90 140 mm, span 66); sphalerite at elmwood (q90 145 mm, span 66); calaverite at epithermal_telluride (q90 100 mm, span 57); tourmaline at gem_pegmatite (q90 96 mm, span 68); ruby at marble_contact_metamorphism (q90 72 mm, span 51); tourmaline at marble_contact_metamorphism (q90 57 mm, span 51); galena at mvt (q90 116 mm, span 64); sphalerite at mvt (q90 135 mm, span 64); topaz at ouro_preto (q90 64 mm, span 62); hematite at ouro_preto (q90 95 mm, span 62); calcite at reactivated_fluorite_vein (q90 185 mm, span 92); galena at reactive_wall (q90 88 mm, span 55); erythrite at schneeberg (q90 106 mm, span 79); rhodochrosite at sunnyside_american_tunnel (q90 75 mm, span 66); fluorite at sunnyside_american_tunnel (q90 254 mm, span 66); smithsonite at supergene_oxidation (q90 115 mm, span 65); calcite at supergene_oxidation (q90 127 mm, span 65); azurite at supergene_oxidation (q90 90 mm, span 65); malachite at supergene_oxidation (q90 109 mm, span 65); mimetite at supergene_oxidation (q90 114 mm, span 65).
+Simulated crystals larger than every photographed crystal of their species, where the record gives a few lengths beside a proxy: malachite at bisbee, calaverite at epithermal_telluride, calcite at reactivated_fluorite_vein, malachite at supergene_oxidation, epidote at tormiq_alpine_cleft. Crystals longer than the starting cavity's span: malachite at bisbee (15/21), thenardite at searles_lake (14/21), tincalconite at searles_lake (1/21), calcite at sunnyside_american_tunnel (21/21). Protagonists whose display range ends past the cavity's span, so that WP1 can never fail them as oversize there — a crystal inside the cavity is within the range's top, and one grown past it is past the range on its own length but in it on the span, which WP1 reads both ways; where the reading against the protagonist puts its typical crystal at display scale past q90, WP1 leaves the target open as possibly oversize: malachite at bisbee (q90 138 mm, span 61); azurite at bisbee (q90 116 mm, span 61); native copper at bisbee (q90 242 mm, span 61); cuprite at bisbee (q90 63 mm, span 61); calcite at bisbee (q90 143 mm, span 61); quartz at cooling (q90 60.4 mm, span 59.9); apophyllite at deccan_zeolite (q90 85 mm, span 66); stilbite at deccan_zeolite (q90 120 mm, span 66); heulandite at deccan_zeolite (q90 160 mm, span 66); chalcedony at deccan_zeolite (q90 155 mm, span 66); fluorite at elmwood (q90 140 mm, span 66); sphalerite at elmwood (q90 145 mm, span 66); calaverite at epithermal_telluride (q90 100 mm, span 57); tourmaline at gem_pegmatite (q90 96 mm, span 68); ruby at marble_contact_metamorphism (q90 72 mm, span 51); tourmaline at marble_contact_metamorphism (q90 57 mm, span 51); galena at mvt (q90 116 mm, span 64); sphalerite at mvt (q90 135 mm, span 64); topaz at ouro_preto (q90 64 mm, span 62); hematite at ouro_preto (q90 95 mm, span 62); calcite at reactivated_fluorite_vein (q90 185 mm, span 92); galena at reactive_wall (q90 88 mm, span 55); erythrite at schneeberg (q90 106 mm, span 79); rhodochrosite at sunnyside_american_tunnel (q90 75 mm, span 66); fluorite at sunnyside_american_tunnel (q90 254 mm, span 66); smithsonite at supergene_oxidation (q90 115 mm, span 65); calcite at supergene_oxidation (q90 127 mm, span 65); azurite at supergene_oxidation (q90 90 mm, span 65); malachite at supergene_oxidation (q90 109 mm, span 65); mimetite at supergene_oxidation (q90 114 mm, span 65).
 Crystal targets first moves the story frequency where a crystal target sets it over a proxy that would set a higher one — the primary's too (with proxies competing → as registered): deccan_zeolite (0.3079 → 0.1517: apophyllite, primary, over the proxies of stilbite (alternate), heulandite (alternate), chalcedony (alternate)); jeffrey_mine (0.26 → 0.2321: grossular, primary, over the proxies of vesuvianite (alternate), diopside (alternate), pectolite (alternate)); supergene_oxidation (0.3109 → 0.2167: cerussite, alternate, over the proxies of smithsonite (primary), calcite (alternate), azurite (alternate), malachite (alternate), mimetite (alternate)). There a STORY (PROXY) is judged against the crystal target's expected rate, not a proxy's bar. Verdicts that move with it: none.
 Protagonists with a size target that occur but never carry the story at their own display scale (45). Failing WP1's whole target: short of its carrier share beyond noise (5) — quartz at cooling (primary, 21/21: below its display range 21); quartz at grimsel_alpine_cleft (primary, 21/21: below its display range 21); fluorite at grimsel_alpine_cleft (alternate, 21/21: below its display range 21); grossular at jeffrey_mine (primary, 21/21: below its display range 21); galena at reactivated_fluorite_vein (alternate, 21/21: below its display range 21). Left open: short of a specimen proxy, which is no failure, so crystal lengths decide (WP0) (27) — tigers eye at asbestos_hills_crack_seal (primary, 21/21: short of its proxy 21); tigers eye at asbestos_hills_surficial_alteration (primary, 21/21: short of its proxy 21); stilbite at deccan_zeolite (alternate, 21/21: short of its proxy 21); heulandite at deccan_zeolite (alternate, 21/21: short of its proxy 21); chalcedony at deccan_zeolite (alternate, 21/21: short of its proxy 21); fluorite at elmwood (primary, 21/21: short of its proxy 21); sphalerite at elmwood (alternate, 21/21: short of its proxy 21); calaverite at epithermal_telluride (primary, 21/21: short of its proxy 21); tourmaline at gem_pegmatite (primary, 21/21: short of its proxy 21); vesuvianite at jeffrey_mine (alternate, 21/21: short of its proxy 21); diopside at jeffrey_mine (alternate, 21/21: short of its proxy 21); pectolite at jeffrey_mine (alternate, 21/21: short of its proxy 21); galena at mvt (primary, 21/21: short of its proxy 21); sphalerite at mvt (alternate, 21/21: short of its proxy 21); topaz at ouro_preto (primary, 21/21: short of its proxy 21); calcite at reactivated_fluorite_vein (alternate, 21/21: short of its proxy 21); galena at reactive_wall (alternate, 21/21: short of its proxy 21); erythrite at schneeberg (primary, 21/21: short of its proxy 21); topaz at shigar_pegmatite (alternate, 21/21: short of its proxy 21); quartz at shigar_pegmatite (alternate, 21/21: short of its proxy 21); rhodochrosite at sunnyside_american_tunnel (primary, 21/21: short of its proxy 21); fluorite at sunnyside_american_tunnel (alternate, 21/21: short of its proxy 21); smithsonite at supergene_oxidation (primary, 21/21: short of its proxy 21); azurite at supergene_oxidation (alternate, 21/21: short of its proxy 21); mimetite at supergene_oxidation (alternate, 21/21: short of its proxy 21); epidote at tormiq_alpine_cleft (alternate, 21/21: short of its proxy 21); erythrite at wittichen (primary, 21/21: short of its proxy 21); a display range that starts beyond the cavity, which cannot hold it at its scale (WP9) (6) — calcite at elmwood (alternate, 21/21: short of its proxy 21); selenite at naica_geothermal (primary, 21/21: short of its proxy 21); halite at searles_lake (primary, 21/21: short of its proxy 21); native sulfur at sicily_solfifera (primary, 21/21: short of its proxy 21); celestine at sicily_solfifera (alternate, 21/21: short of its proxy 21); chrysoprase at ultramafic_supergene (primary, 21/21: short of its proxy 21); in unclassed pockets, which may be small and leave the count (1) — cerussite at supergene_oxidation (alternate, 21/21: not carrying in an unclassed pocket, present or absent 21); no band to set its share (4) — azurite at bisbee (alternate, 21/21: short of its proxy 21); native copper at bisbee (alternate, 15/21: short of its proxy 15, not carrying in an unclassed pocket, present or absent 6); cuprite at bisbee (alternate, 21/21: short of its proxy 21); titanite at tormiq_alpine_cleft (primary, 21/21: short of its proxy 21); short of its share within noise (2) — apophyllite at deccan_zeolite (primary, 21/21: below its display range 21); calcite at deccan_zeolite (alternate, 21/21: below its display range 21). A failing protagonist waits on growth to its scale (WP1) or on a decision to downgrade it to a companion; an open one on what holds it open. Carrier shares that the runs they are judged on cannot fail at all — at or below the top of the interval for none of them (0.1546 for 21 runs), where even a protagonist that never carries the story is within noise of its share (7). The limit alone holds open apophyllite at deccan_zeolite (share 0.1517), calcite at deccan_zeolite (share 0.13): there the boss's "if it never does" meets this proposal's extension of the boss's OPEN, from size misses to carrying counts (§4). Other rules decide pectolite at jeffrey_mine (share 0.0563: above its band; carries the story in 0 of 21 scored runs; it could still reach its share 0.0563 if its 21 runs short of its proxy carry it); ruby at marble_contact_metamorphism (share 0.1393: below its band); erythrite at schneeberg (share 0.1517: carries the story in 0 of 21 scored runs; it could still reach its share 0.1517 if its 21 runs short of its proxy carry it); cerussite at supergene_oxidation (share 0.2167: carries the story in 0 of 21 scored runs; it could still reach its share 0.2167 if its 21 runs in unclassed pockets are small pockets, out of the count); calcite at supergene_oxidation (share 0.3109: below its band). The nearest share above the limit: fluorite at grimsel_alpine_cleft, 0.156 against 0.1546.
 Pocket classes against the primary protagonist's characteristic crystal: STORY-SCALE 15, SMALL 0, UNCLASSED 17 of 32 scored scenarios; runs in small pockets 0 (0 of them with a story, reported apart). Every scenario grows in one cavity in all its seeds (861 constructions checked, none differ), so a scenario's fleet holds a single pocket class: no scenario yet has both small pockets and story-scale ones.
@@ -1133,7 +1143,7 @@ without crystal lengths.
 | wittichen | heinrichite | alternate | no engine | size unknown (crystal n 1, specimen n 1) | — | — | — | — | — | — |
 | wittichen | zeunerite | alternate | 0/21 (no band) UNRESOLVED | size unknown (crystal n 1, specimen n 0) | — | — | — | — | UNKNOWN | 0/21 (no share) |
 
-WP1's whole target (the boss's answers of 2026-11-03) — the story frequency met; every protagonist with an engine within its band (below it within noise is open, above it within noise counts as within); none oversize (within noise, or where the cavity may hide it, open); and every protagonist with an engine carrying the story at its own display scale in at least its carrier share of the scored runs (the last column), its accessory occurrences not held to showcase size — is met by 0 of 32 scored scenarios. What fails it, across the scored scenarios: the story 4; a band 15; oversize 0; a carrier share 5. What leaves it open, met only on what it could judge: the story unresolved or short within noise 26; a protagonist that could still reach its share (runs short of a proxy or longer than the cavity that could carry it, unclassed pockets that may be small) 28; a carrier share missed within noise 2; a band missed below its floor within noise 0; an oversize within noise 0; a typical crystal that may be oversize (its median occurrence, at its own length, past its display range, where the cavity kept crystals from the size verdict) 0; no size target to show it carrying 24; a display range beyond the cavity 6; no band to set its share 5 (malachite at bisbee, azurite at bisbee, native copper at bisbee, cuprite at bisbee, titanite at tormiq_alpine_cleft); never occurring where its band cannot fail that 6 (sapphire at marble_contact_metamorphism, tourmaline at marble_contact_metamorphism, calcite at bisbee, chalcopyrite at mvt, hematite at tormiq_alpine_cleft, zeunerite at wittichen). Open scenarios whose story falls short within noise, is UNRESOLVED or has small pockets only — failed under round 8's rule, open under this proposal's choice (§4): 16 (asbestos_hills_crack_seal, asbestos_hills_surficial_alteration, bisbee, chiastolite_hornfels, deccan_zeolite, elmwood, gem_pegmatite, great_salt_plains, porphyry, roughten_gill, schneeberg, searles_lake, sulphur_bank, sunnyside_american_tunnel, tormiq_alpine_cleft, ultramafic_supergene). Where the story verdict passes but the whole target does not: reactivated_fluorite_vein (galena carries the story in 0 of 21 scored runs, below its share 0.2167; quartz below its band; open: calcite carries the story in 0 of 21 scored runs; it could still reach its share 0.1721 if its 21 runs short of its proxy carry it); supergene_oxidation (calcite below its band; open: smithsonite carries the story in 0 of 21 scored runs; it could still reach its share 0.3026 if its 21 runs short of its proxy carry it; open: cerussite carries the story in 0 of 21 scored runs; it could still reach its share 0.2167 if its 21 runs in unclassed pockets are small pockets, out of the count; open: azurite carries the story in 0 of 21 scored runs; it could still reach its share 0.3087 if its 21 runs short of its proxy carry it; open: mimetite carries the story in 0 of 21 scored runs; it could still reach its share 0.1811 if its 21 runs short of its proxy carry it). Every noise interval is the runs' (z 1.96); the record's own noise is the targets' uncertainty, stated in §1.3 and §5. Size verdicts over every occurrence are reported; an OVERSIZE fails the target where the runs can tell it (the interval of eligible runs within q90 stays below one half) and leaves it open where they cannot; where the cavity keeps crystals from the verdict (every run, in a cavity short of the median; those grown past it, past the range on their length and in it on the span, in one short of the range's top), the median of every occurrence at its own length past q90 leaves it open too. After a verdict, "(noise)": the runs cannot tell their median from the target's window; "(too few runs)": so few eligible runs that no miss could be told from it, OVERSIZE included.
+WP1's whole target (the boss's answers of 2026-11-03) — the story frequency met; every protagonist with an engine within its band (below it within noise is open, above it within noise counts as within); none oversize (within noise, or where the cavity may hide it, open); and every protagonist with an engine carrying the story at its own display scale in at least its carrier share of the scored runs (the last column), its accessory occurrences not held to showcase size — is met by 0 of 32 scored scenarios. What fails it, across the scored scenarios: the story 4; a band 15; oversize 0; a carrier share 5. What leaves it open, met only on what it could judge: the story unresolved or short within noise 26; a protagonist that could still reach its share (runs short of a proxy or longer than the cavity that could carry it, unclassed pockets that may be small) 28; a carrier share missed within noise 2; a band missed below its floor within noise 0; an oversize within noise 0; a typical crystal that may be oversize (past its display range in some reading of the crystals the cavity hides) 0; no size target to show it carrying 24; a display range beyond the cavity 6; no band to set its share 5 (malachite at bisbee, azurite at bisbee, native copper at bisbee, cuprite at bisbee, titanite at tormiq_alpine_cleft); never occurring where its band cannot fail that 6 (sapphire at marble_contact_metamorphism, tourmaline at marble_contact_metamorphism, calcite at bisbee, chalcopyrite at mvt, hematite at tormiq_alpine_cleft, zeunerite at wittichen). Open scenarios whose story falls short within noise, is UNRESOLVED or has small pockets only — failed under round 8's rule, open under this proposal's choice (§4): 16 (asbestos_hills_crack_seal, asbestos_hills_surficial_alteration, bisbee, chiastolite_hornfels, deccan_zeolite, elmwood, gem_pegmatite, great_salt_plains, porphyry, roughten_gill, schneeberg, searles_lake, sulphur_bank, sunnyside_american_tunnel, tormiq_alpine_cleft, ultramafic_supergene). Where the story verdict passes but the whole target does not: reactivated_fluorite_vein (galena carries the story in 0 of 21 scored runs, below its share 0.2167; quartz below its band; open: calcite carries the story in 0 of 21 scored runs; it could still reach its share 0.1721 if its 21 runs short of its proxy carry it); supergene_oxidation (calcite below its band; open: smithsonite carries the story in 0 of 21 scored runs; it could still reach its share 0.3026 if its 21 runs short of its proxy carry it; open: cerussite carries the story in 0 of 21 scored runs; it could still reach its share 0.2167 if its 21 runs in unclassed pockets are small pockets, out of the count; open: azurite carries the story in 0 of 21 scored runs; it could still reach its share 0.3087 if its 21 runs short of its proxy carry it; open: mimetite carries the story in 0 of 21 scored runs; it could still reach its share 0.1811 if its 21 runs short of its proxy carry it). Every noise interval is the runs' (z 1.96); the record's own noise is the targets' uncertainty, stated in §1.3 and §5. Size verdicts over every eligible occurrence are reported. WP1's oversize test reads only the crystals at or past the display range's start — an accessory below it is exempt, so it neither passes the test nor offsets a giant — and each crystal the cavity hides both ways, at its own length and at the span: it fails the target where every reading puts the typical one past q90 and the runs can tell it (the interval of those within q90 stays below one half), and leaves it open where any reading puts it past q90. After a verdict, "(noise)": the runs cannot tell their median from the target's window; "(too few runs)": so few eligible runs that no miss could be told from it, OVERSIZE included.
 
 Protagonist size targets (112 primary and alternate slots): crystal (low) 10, crystal (medium) 1, specimen-proxy 55, unknown 46. Size verdicts of protagonists with an engine: UNKNOWN 33, BELOW PROXY 22, ELIGIBILITY UNKNOWN 17, NEVER OCCURS 11, BELOW 8, MEETS 1. "spread" = the interquartile range over the median, of the simulated largest crystal across the seeds and of the record's.
 <!-- /generated:protagonists -->
@@ -1166,10 +1176,10 @@ rate. Quartz grows in 19 scenarios, so a global quartz rate would move all of th
   scale.
 - Each protagonist with an engine occurs within its band (a rate above it that 21 seeds cannot tell from
   the band counts as within; one below it is open).
-- No protagonist with an engine is oversize: its typical crystal past its display range fails where the
-  runs can tell it, and leaves the target open where they cannot — or where the cavity may hide it from
-  the size verdict: every occurrence read at its own length, as in a cavity that hid nothing, has its
-  median past the 90th percentile.
+- No protagonist with an engine is oversize: its typical crystal at or past its display scale (an
+  accessory, below it, has no vote) past its display range fails where every reading of the crystals the
+  cavity hides — at their own length, and at the span — puts it there and the runs can tell it, and leaves
+  the target open where they cannot, or where only some reading does.
 - Each protagonist with an engine carries the story at its own display scale in at least its carrier
   share of the scored runs (the band's floor × the display range's coverage of its record), whatever it
   does in the other pockets: an accessory is not held to showcase size (the boss, 2026-11-03). Short of
@@ -1570,22 +1580,38 @@ leftover components rise. Try it on `gem_pegmatite` against WP1's target before 
      - a rate below the band within noise leaving WP1 open, one above it counting as within;
      - judging a crystal longer than the cavity by its length and the span where they fall on the same
        side of the display range (past it, below it, or in it, carrying the story), and otherwise counting
-       it as a run the protagonist could still carry. Where a protagonist's 90th percentile is past the
-       span, the size verdict never sees a crystal past the range, so WP1 can never fail it as oversize
-       there (the sixth line under §2's table lists such protagonists);
-     - holding WP1 open there where every occurrence, read at its own length as in a cavity that hid
-       nothing, has its median past the 90th percentile — the size verdict's own median against its own
-       boundary, so that a cavity that hides crystals meets exactly the fleets one that hides none would
-       meet, and fails only fleets that one fails. Round 12 counted the hidden runs against "at least
-       half", which met fleets with half their crystals just past the range in one cavity and not the
-       other; round 13 found it counted only the cavities that hold the median, and met fleets mostly of
-       giants in one short of it. The cost: in such a cavity an overgrown protagonist is open, never
-       failed. Herkimer's quartz, WP1's first target, in its own cavity: no fleet fails at any median from
-       16 to 120 mm, where a 92 mm cavity fails 46 % of fleets at 80 mm and 99 % at 120 (2,000 lognormal
-       fleets each); and a crystal grown to a metre in place of dust, counted as a run it could carry,
-       lifts a failing fleet to open in 15 of the moves between its 2,024 splits of 21 runs (none in the
-       92 mm cavity). The other way, judging such a crystal on its length alone, would drop this
-       proposal's premise that the span could be the one to judge;
+       it as a run the protagonist could still carry;
+     - WP1's oversize test reading such a crystal both ways — at its own length and at the span — failing
+       a protagonist only where every reading puts its typical crystal at display scale past the range
+       beyond noise, and holding the target open where some reading does. A cavity that hid nothing reads
+       every crystal at its length, one of those readings, so the size test fails only where such a cavity
+       would fail and passes only where it would pass; in one cavity that holds the primary's median and
+       reaches each protagonist's display range, WP1 meets and fails exactly the fleets such a cavity
+       would. Round 12 counted the hidden runs against "at least half", which met fleets with half their
+       crystals just past the range in one cavity and not the other; round 13 counted only the cavities
+       that hold the median, and met fleets mostly of giants in one short of it. The cost: where a
+       protagonist's 90th percentile is past the span, read at the span no crystal is past it, so WP1 can
+       never fail it as oversize there, only hold it open (the sixth line under §2's table lists such
+       protagonists). Herkimer's quartz, WP1's first target, in its own cavity: no fleet fails at any median
+       from 16 to 120 mm, where a 92 mm cavity fails 46 % of fleets at 80 mm and 99 % at 120 (2,000
+       lognormal fleets each); and a crystal grown to a metre in place of dust, counted as a run it could
+       carry, lifts a failing fleet to open in 15 of the moves between its 2,024 splits of 21 runs (none in
+       the 92 mm cavity). That case rests on a margin: Herkimer's 90th percentile, 60.4 mm, passes its
+       59.94 mm span only on the strength of one 80 mm crystal among five, and a sixth length under about
+       40 mm would bring it inside the span, where the test fails an overgrown quartz again (WP0 can flip
+       it). The other way, judging such a crystal on its length alone, would drop this proposal's premise
+       that the span could be the one to judge;
+     - in applying the boss's accessory answer to the oversize test: only crystals at or past the display
+       range's start vote, so an accessory neither passes the test nor offsets a giant (round 14: dust had
+       turned five carriers and ten giants from open to met, and growing dust in place of absence had
+       improved the outcome in 20 to 37 moves per cavity). The cost: a five-crystal record's 90th
+       percentile can sit low in its own population, and with the dust no longer voting the crystals at
+       display scale show it — a correct fleet against five crystals fails in 6.8 % of fleets of 21 seeds,
+       25 % of 210 and 34 % of 1,000 (it was 2.5, 17 and 26 %), most of it as oversize; against seventeen
+       crystals the change is within a point (§1.3's table). Reading the display-scale crystals' lower
+       third instead — where the record's own median sits among them — would be calibrated to the record,
+       but would meet a protagonist with up to twice as many giants as carriers, which rounds 11 to 13
+       found against;
      - leaving a carrying count the runs cannot tell from the share open. The boss: "If it never does, it
        is not functioning as an alternate and should fail that role". The boss's OPEN was given for a
        size miss the runs cannot tell from the target; this proposal extends it to carrying, so a
@@ -1619,8 +1645,8 @@ leftover components rise. Try it on `gem_pegmatite` against WP1's target before 
          protagonist's crystals, where no other protagonist carries the pocket, are draws from its record —
          and it is the one test here that counts the record's noise;
      - the noise model. Every interval is the runs'; the targets' own noise makes a correct fleet fail
-       more often as seeds are added (§1.3's table: against five-crystal records at the bands' floors, 10 %
-       of fleets of 21 seeds, 43 % of 210, 59 % of 1,000), since a share is a correct fleet's expected rate
+       more often as seeds are added (§1.3's table: against five-crystal records at the bands' floors, 12 %
+       of fleets of 21 seeds, 44 % of 210, 60 % of 1,000), since a share is a correct fleet's expected rate
        at its floor and a five-crystal record's display range is itself uncertain. The options: more
        crystal lengths (WP0); a share set below that expected rate, so a correct fleet at its floor rarely
        falls short of it; or a test that counts the record's noise, as round 9 built (f29c8c8a). A fleet at

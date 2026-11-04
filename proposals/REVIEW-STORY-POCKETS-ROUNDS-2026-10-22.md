@@ -1476,3 +1476,102 @@ One reviewer, under the standing rule (no cap on rounds; stop at 9/10 or when no
 Mutation testing: 12 mutants on round 13's code, 11 killed: the may-be rule ten ways by the tests — among them round 12's rule restored, and the reviewer's population (the cavities that reach q25), which the case of giants in cavities too small for the display range kills — and the registered rule text by the targets check. The survivor breaks the may-be label in the scoreboard's open causes; no protagonist is may-be-oversize in the census, so its output is identical.
 
 Result: STORY 1, STORY (PROXY) 1, NO STORY 3, UNRESOLVED 26, NO ENGINE 1, OUT OF SCOPE 1 (unchanged). WP1's whole target is met by none: it fails at 16 scored scenarios (by cause: the story 4, a band 15, a carrier share 5, oversize 0) and is open at 16. No protagonist is may-be-oversize. Tests 127 (was 124).
+
+## Round 14 — 8/10 (on 8f9985b7)
+
+One reviewer, under the standing rule (no cap on rounds; stop at 9/10 or when nothing must be fixed).
+
+### The report
+
+> 8f9985b7 closes the cavity route. In fleets that grow in one cavity, WP1 no longer meets or fails anything its visible twin would not. The next oversize escape does not go through the cavity: it goes through accessory dust, which offsets giants in the oversize test and in round 13's new may-be test.
+>
+> **MUST-FIX**
+>
+> 1. **Accessory dust offsets giants in WP1's oversize test and in round 13's may-be test.**
+>    - **Where:**
+>      - `tools/story-pocket-lib.mjs:648–649`: `atLength` is taken over every occurrence.
+>      - `:657–667`: the verdict's median and `within` count every eligible occurrence, dust included. Dust counts as "within q90".
+>      - `:936–943`: `wp1Target`.
+>    - **Evidence** (committed lib, scratch scripts):
+>      - **Herkimer quartz, 92 mm cavity** (it hides nothing): 5 × 16 mm + 10 × 1 m + 6 × 0.5 mm dust is **MET**. With the six dust runs absent, the same fleet is open (oversize within noise, 10 of 15). Of the 2,024 splits, 55 are met with more giants than carriers.
+>      - **NP galena** (the test file's targets, 91.93 mm cavity):
+>        - 5 × 20 + 10 × 40 + 6 × 8.6 mm (8.6 mm is the census's own galena dust size) is met; with absences instead of the dust, open.
+>        - 5 × 20 + 14 × 40 + 2 dust is open; with 2 absences instead, failed.
+>      - **Round 13's own rule:** in Herkimer's own cavity, 5 carriers + 6 giants + 1 dust is "may be oversize". One more dust run makes it met.
+>      - **Sweep** (2,000 lognormal fleets in the 92 mm cavity; non-dust median 80 mm, so 68 % of non-dust crystals are past q90):
+>        - no dust: met 4.3 %, failed 47 %;
+>        - 30 % of runs dust: met 41 %, failed 2.6 %.
+>      - 29 absent→dust moves improve the outcome with the band IN on both sides. The tests check only moves away from carrying (test.ts:1008–1013, 1034–1035).
+>    - **Why it matters:**
+>      - The boss's decision (REVIEW:869–878) conditions size on role. Accessories are exempt, and WP1 is "not whether every named protagonist has showcase-sized median growth across all occurrences". Here the exempt dust votes against oversize.
+>      - PROPOSAL:407–408 says one giant does not rescue dust. The mirror is false, so "a protagonist kept … oversize never makes the target met" (PROPOSAL:422, 1188) misleads.
+>      - It is the same failure rounds 11–13 fixed — met with more giants than carriers — reached without the cavity. WP1's growth and WP9's per-seed variation will produce exactly these mixed fleets.
+>    - **Fix:**
+>      - Run WP1's oversize test and `atLength` over the protagonist's non-accessory occurrences only: those at or above q25 at their own length (carriers, giants, beyond). Keep the reported verdict over every occurrence. Alternatively, test the share of occurrences past q90.
+>      - The census is unchanged under this: only 3 protagonists reach q25, all within q90.
+>      - Add a test that an absent→dust move never improves the outcome.
+>      - At minimum, list the dust offset in §4 as a choice, with this cost.
+>
+> **SHOULD-FIX**
+>
+> 1. **The visible-twin claim is overstated.**
+>    - **Where:** `story-pocket-targets.mjs:75` → targets JSON:81 ("WP1 meets exactly the fleets it would meet in one that hides none"); PROPOSAL:312–314 and 1576–1579; the commit message.
+>    - **What holds:** for one cavity, which the scoreboard enforces, "met only if the twin is met; failed only if it fails" survived 20,000 random fleets (1–3 protagonists, crystal and proxy targets, spans 3–253 mm).
+>    - **"Exactly" fails** in 92 of those fleets. Each has a cavity short of the primary's median or of a protagonist's q25:
+>      - Herkimer at 21 × 16 mm in a 15 mm cavity gives SMALL POCKETS ONLY;
+>      - NP galena at 21 × 20 mm in a 17 mm cavity is open (range beyond the cavity);
+>      - both twins are met.
+>    - **With per-run spans** (the lib's input, test.ts:993 and 1087, and WP9's goal) it fails both ways:
+>      - NP galena, 10 × 28 mm in 91.93 mm cavities plus 11 × 20 mm in 19 mm ones, FAILS ("oversize: 10 of 10 eligible"), while its twin is met;
+>      - of 20,000 random mixed fleets, 58 fail where the twin does not, and 101 are met where it is not (small pockets leave the denominators).
+>    - **Fix:** scope the claim to one cavity and to the size test, and say what WP9 will change.
+> 2. **An unknown span is classed SMALL.**
+>    - `fits(null)` is false, so `pocketClass` returns SMALL, the "conclusive" class (lib:599–608). Meanwhile `lengthAndSpanAgree` treats a null span as no limit.
+>    - This contradicts "UNCLASSED when this cannot be told". It is latent: the scoreboard throws without a cavity.
+>    - **Fix:** return null for a non-finite span (or throw), and test it.
+> 3. **§4's Herkimer cost rests on a 0.46 mm margin.**
+>    - The q90 of 60.4 (lengths 7, 11, 16, 31, 80) is past the 59.94 mm span only because of the single 80 mm crystal.
+>    - Any sixth length under about 39.9 mm drops q90 below the span, and the oversize test would then apply in Herkimer's own cavity.
+>    - **Fix:** say beside the cost that WP0 can flip it.
+> 4. **Minor:**
+>    - Typed census results sit outside the markers: PROPOSAL:386 ("8.6 mm in all 21 runs … none of 21 against 0.2167") and :411 ("grown to 39 mm"). This goes against PROPOSAL:38–39; both are correct today.
+>    - The scoreboard's may-be labels have no fixture test; round 13's surviving mutant lives there.
+>
+> **Verified correct**
+> - **Read-only state:**
+>   - HEAD is 8f9985b7 and the tree is clean.
+>   - Only `npm test`'s own outputs changed: the test-quarry ledger and the ignored `dist/.test-bundle.*`.
+>   - Nothing under js/ or data/ changed in f49c1804^..8f9985b7.
+>   - The comparison tool last changed in afbe687f, an ancestor.
+> - **Checks:** the size evidence runs; the targets match a rebuild; 13/13 scoreboard and 2/2 substrate blocks match; 127/127 tests pass; the comparison tool runs.
+> - **Round 13's M1 holds:**
+>   - `atLength` and its gate are as described, and the share is still tested after it.
+>   - All three of the reviewer's cases are now open.
+>   - Met counts are 822/822/802/802 in every cavity: Herkimer at 61/90/106/1,000 mm, and NP galena at 28/34.4/40/1,000 mm in 18.5/25/91.93 mm cavities.
+>   - The hiding cavities fail 99 splits, against the twin's 414.
+>   - The census is unchanged: `atLength` is past q90 nowhere.
+> - **Round 13's should-fixes hold:**
+>   - No stale "at least half" remains.
+>   - In its own cavity Herkimer fails 0 % of fleets at medians of 16–1,000 mm. The 92 mm cavity fails 45.6 % at 80 mm and 98.9 % at 120 mm (2,000 fleets). The 15 lifts are pinned by a test.
+>   - §4's text fixes are present.
+>   - Deccan's stilbite is met at the same rate in 66.41, 80, 130 and 5,000 mm cavities.
+> - **Mutants:** 13 on round 13's code, all killed (population ×5, boundary ×3, the early return, gating ×3, fail vs open). Of 13 elsewhere, 12 were killed; the survivor (`size >= span`) is equivalent. My stand-in harness reproduces 127/127.
+> - **Earlier rounds hold:** there is no size floor; unclassed runs stay out of the count; one giant does not rescue dust where the span is past q90.
+> - **Parser and joins:** 30 random crystal rows were all read right. The 50 joins (33 by caption, 17 by dimensions) are plausible, with no over-join.
+> - **Acceptance items:** present and honest, except as above.
+>
+> **Ready for the boss?** Not yet. First settle MUST-FIX 1: either change the oversize population, or put the dust offset to the boss in §4 with its cost. Then scope the twin claim (SHOULD-FIX 1). The rest is minor.
+
+### The response
+
+| # | finding | what changed | evidence |
+|---|---|---|---|
+| M1 | accessory dust offset giants in WP1's oversize test and in the may-be test | WP1's oversize test now reads only the crystals at or past the display range's start (`assessSize`'s new `display`). An accessory, which the boss exempted from showcase size, neither passes the test nor offsets a giant; the reported size verdict still reads every eligible occurrence. The reviewer proposed reading every non-accessory occurrence at its own length. Instead, each crystal the cavity hides is read both ways, at its own length and at the span. WP1 fails only where every reading puts the typical crystal at display scale past q90 beyond noise, and is open where any reading does; round 13's at-length rule is now one of the two readings. The cost is measured and stated in §1.3, §4 and the tests. A five-crystal record's 90th percentile can sit low in its own population, and with the dust no longer voting, the crystals at display scale show it. Against five crystals a correct fleet now fails in 6.8 / 25 / 34 % of fleets of 21 / 210 / 1,000 seeds (was 2.5 / 17 / 26), most of it as oversize; against seventeen crystals, in 0.3 / 1.2 / 2.7 % (was 0.3 / 1.1 / 2.5). The galena sweep, whose spread (sd 0.6) is wider than its record's, is met in 39 % of fleets at its record's median (was over 60 %) and fails in 41 % at 30 mm (was 12 %); with a spread like its record's (sd 0.3) it is met in 99 %. I considered reading the lower third of the display-scale crystals instead, which is calibrated to the record, and rejected it: it would meet a protagonist with up to twice as many giants as carriers, which rounds 11–13 found against. | The reviewer's cases. Herkimer in 92 mm, 5 × 16 mm + 10 × 1 m + 6 dust: met before; now open (oversize within noise, 10 of 15), the same as with the dust absent. NP galena, 5 × 20 + 14 × 40 + 2 dust: was open; now failed, the same as with the 2 absent. Herkimer in its own cavity with 1 or 2 dust: open both times. Moves from absent to dust that improve the outcome with the band unchanged: 0 in every cavity (were 20–37 per cavity). A test now asserts that dust in place of absence changes nothing where the band reads the same, and that no split with more giants than carriers is met. Over 2,024 splits, with giants of 61 / 90 / 106 / 1,000 mm (28 / 34.4 / 40 / 1,000 for the galena), Herkimer and the galena are met in 752 / 752 / 711 / 711 splits, the same in every cavity (822 / 802 with the dust voting). The census is unchanged: no protagonist gets a size entry. |
+| S1 | the visible-twin claim was overstated | Scoped in `size_check`, §1.3 and §4. A cavity that hid nothing reads every crystal at its length, one of the two readings, so the size test fails a fleet only where such a cavity would fail it and passes one only where such a cavity would pass it. That holds in any fleet, mixed spans included. The whole target is met and failed exactly as such a cavity's only in one cavity that holds the primary's median and reaches each protagonist's display range. Otherwise small pockets, or a range beyond the cavity, hold it open, and with cavities that differ from run to run (WP9) small pockets also leave the share's count. | The reviewer's random search on the new code (20,000 fleets per mode; 1–3 protagonists, crystal and proxy targets, spans 3–253 mm). One cavity: none met where its twin is not, and none failed where it is not. Mixed spans, the size test alone, about 40,000 protagonists: none failed or passed where the twin's was not (the whole target still differs there through small pockets, as stated). The reviewer's mixed fleet, 10 × 28 mm in 91.93 mm cavities and 11 × 20 mm in 19 mm ones, was failed and is now met, like its twin. |
+| S2 | an unknown span was classed SMALL | `fits` returns null for a span that is not known, so `pocketClass` gives UNCLASSED; a cavity without limit (Infinity) still fits. Tested. | — |
+| S3 | §4's Herkimer cost rests on a 0.46 mm margin | Stated beside the cost. Herkimer's q90, 60.4 mm, passes its 59.94 mm span only because of one 80 mm crystal among five. A sixth length under about 40 mm would bring it inside the span, where the test fails an overgrown quartz again (WP0 can flip it). | — |
+| S4 | minor | The typed census results (the galena at 8.6 mm in all 21 runs; the calcite grown to 39 mm) are replaced by general statements that point at the generated lines. The scoreboard's cause tables moved into the lib (`WP1_FAILS`, `WP1_OPENS`, `NEVER_CARRY`, `neverCarryCause`). A test now checks that every entry `wp1Target` writes sorts under exactly one cause, its own, and that a protagonist that never carries sorts under the first cause it has. The label mutant that survived rounds 12 and 13 now dies. | — |
+
+Mutation testing: 19 mutants on round 14's code, 16 killed: the readings eight ways, the gates and the messages three ways, the unknown span, and the cause tables three ways by the tests (among them the label mutant that survived rounds 12 and 13), and the registered rule text by the targets check. The three survivors are equivalent: a guard on the fail that the interval already implies (now removed), '< 0.5' against '<= 0.5', and the oversize fail pattern loosened where fails never carry the open entries' wording.
+
+Result: STORY 1, STORY (PROXY) 1, NO STORY 3, UNRESOLVED 26, NO ENGINE 1, OUT OF SCOPE 1 (unchanged). WP1's whole target is met by none: it fails at 16 scored scenarios (by cause: the story 4, a band 15, a carrier share 5, oversize 0) and is open at 16. No protagonist has a size entry. Tests 128 (was 127).

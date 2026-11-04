@@ -11,6 +11,7 @@ import {
   parseSizeStatements, photoSizes, groupSpecimens, mineralOfWord, summarize, quantile, relativeSpread, deriveRoles,
   protagonistsOf, bandFor, baseClass, sizeTarget, assessOccurrence, fits, pocketClass, assessSize, runStory, scoreStory,
   storyVerdict, storyFrequency, scenarioFrequency, displayCoverage, scenarioVerdict, wp1Target, scenarioWp1, carrierShare, cannotFailBeyondNoise,
+  WP1_FAILS, WP1_OPENS, NEVER_CARRY, neverCarryCause,
   assemblageVariety, everySeedChance, validateSidecar, wilson, largestSeries, isFieldLabel, FIELD_LABELS, UPLOADED_TOGETHER, SERIES_GAP,
 } from '../tools/story-pocket-lib.mjs';
 import { buildSizeEvidence, renderSizeEvidenceMd, APPENDIX_FILE } from '../tools/story-pocket-size-evidence.mjs';
@@ -26,7 +27,7 @@ const keyOf = (n: string) => ({ 'Tigers Eye': 'tigers_eye', 'Rock Crystal': 'qua
 // A seeded generator (mulberry32) and a lognormal population of median 20 mm, skewed as collectors' sizes
 // are; a crystal target from a record drawn from it.
 const rng = (seed: number) => () => { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
-const lognormal = (r: () => number) => () => { let u = 0, v = 0; while (u === 0) u = r(); while (v === 0) v = r(); return Math.exp(Math.log(20) + 0.6 * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v)); };
+const lognormal = (r: () => number, sd = 0.6) => () => { let u = 0, v = 0; while (u === 0) u = r(); while (v === 0) v = r(); return Math.exp(Math.log(20) + sd * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v)); };
 const crystalTarget = (record: number[]) => ({ ...sizeTarget({ crystal: summarize(record), specimen: { n: 0 } }, { minSamples: 5, mediumConfidence: 10, highConfidence: 30 }), provenance: 'test' });
 
 // The JSON Schema keywords proposals/SCHEMA-STORY-POCKET-TARGETS.json uses (a draft 2020-12 subset):
@@ -426,6 +427,11 @@ describe('size, conditional on occurrence and on the pocket', () => {
     expect(pocketClass(17, crystalT)).toBe('STORY-SCALE');
     expect(assessSize([run(true, 5, 16), run(true, 6, 16)], crystalT).verdict).toBe('NO ELIGIBLE POCKET');
     expect(crystalT).toMatchObject({ q25: 15, median: 17 });
+    // A span not known cannot be told either way: unclassed, not small (round 14); a cavity without limit fits.
+    expect(fits(null, crystalT)).toBeNull();
+    expect(fits(NaN, crystalT)).toBeNull();
+    expect(pocketClass(undefined, crystalT)).toBe('UNCLASSED');
+    expect(fits(Infinity, crystalT)).toBe(true);
   });
   it('the share is of the eligible pockets: small pockets leave both sides of it', () => {
     const r = assessSize([run(true, 5, 16), run(true, 6, 16), run(true, 18, 90), run(true, 20, 90)], crystalT);
@@ -437,24 +443,29 @@ describe('size, conditional on occurrence and on the pocket', () => {
     expect(assessSize([run(true, 55, 45), run(true, 18, 45)], crystalT)).toMatchObject({ verdict: 'MEETS', eligible: 1, beyond: 1 });
     expect(assessSize([run(true, 55, 45)], crystalT)).toMatchObject({ verdict: 'LONGER THAN THE CAVITY', beyond: 1 });
     // A 48 mm crystal in the same cavity is in the range on both, so it counts (round 11).
-    expect(assessSize([run(true, 48, 45), run(true, 18, 45)], crystalT)).toMatchObject({ eligible: 2, beyond: 0, within: 2 });
+    expect(assessSize([run(true, 48, 45), run(true, 18, 45)], crystalT)).toMatchObject({ eligible: 2, beyond: 0 });
     expect(assessSize([run(true, 18, 18)], crystalT)).toMatchObject({ verdict: 'MEETS', eligible: 1, beyond: 0 });
     // A span of 90, past q90: its length and the span agree it is past the display range, so it counts
     // (round 9: crystals grown past the cavity had rescued an oversize fleet). A span exactly at q90 does not.
-    expect(assessSize([run(true, 95, 90), run(true, 95, 90), run(true, 18, 90)], crystalT)).toMatchObject({ verdict: 'OVERSIZE', eligible: 3, within: 1, beyond: 0 });
-    // `within` counts the runs at or below q90, the range's top included.
-    expect(assessSize([run(true, 50), run(true, 50), run(true, 60)], crystalT)).toMatchObject({ verdict: 'LARGE', within: 2 });
+    expect(assessSize([run(true, 95, 90), run(true, 95, 90), run(true, 18, 90)], crystalT)).toMatchObject({ verdict: 'OVERSIZE', eligible: 3, beyond: 0 });
     expect(assessSize([run(true, 95, 50)], crystalT)).toMatchObject({ verdict: 'LONGER THAN THE CAVITY', beyond: 1 });
   });
-  it('every occurrence at its own length: the median WP1\'s may-be test reads, whatever the cavity kept from the verdict (round 13)', () => {
-    // A cavity short of the median judges none; the lengths still give the median (R-7, as the verdict's), past q90 or not.
-    expect(assessSize([run(true, 60, 16), run(true, 70, 16)], crystalT)).toMatchObject({ verdict: 'NO ELIGIBLE POCKET', atLength: { n: 2, median: 65, past: true } });
-    expect(assessSize([run(true, 40, 16), run(true, 59, 16)], crystalT).atLength).toEqual({ n: 2, median: 49.5, past: false });
-    expect(assessSize([run(true, 50, 16)], crystalT).atLength).toEqual({ n: 1, median: 50, past: false });
-    // Left out for a cavity short of q90 (45 mm): read at their length here.
-    expect(assessSize([run(true, 55, 45), run(true, 55, 45), run(true, 18, 45)], crystalT)).toMatchObject({ verdict: 'MEETS', eligible: 1, beyond: 2, atLength: { n: 3, median: 55, past: true } });
-    // Against a proxy too, and only over the runs where it occurs.
-    expect(assessSize([run(true, 140, 60), run(true, 140, 60), run(false, 0, 60)], proxyT)).toMatchObject({ verdict: 'ELIGIBILITY UNKNOWN', atLength: { n: 2, median: 140, past: true } });
+  it('what WP1\'s oversize test reads: the crystals at or past the display range\'s start, each one the cavity hides read both ways (rounds 13 and 14)', () => {
+    const r = (n: number, within: number, median: number | null, past: boolean) => ({ n, within, median, past });
+    // An accessory (below q25, 15) has no vote; the range's top (50) is within it; nothing is hidden in a cavity past q90.
+    expect(assessSize([run(true, 5, 90), run(true, 60, 90), run(true, 50, 90), run(true, 70, 90)], crystalT).display).toEqual({ least: r(3, 1, 60, true), most: r(3, 1, 60, true), hidden: 0 });
+    // Past the range on its length and in it on the span (45 mm): read at the span in its favour, at its length against it.
+    expect(assessSize([run(true, 55, 45), run(true, 55, 45), run(true, 18, 45)], crystalT).display).toEqual({ least: r(3, 3, 45, false), most: r(3, 1, 55, true), hidden: 2 });
+    // In a cavity below q25 (10 mm) the span reads an accessory: in the range on its length, it is within in its
+    // favour and has no vote against it; past the range, it has no vote in its favour and is past against it.
+    expect(assessSize([run(true, 30, 10), run(true, 80, 10)], crystalT).display).toEqual({ least: r(1, 1, 30, false), most: r(1, 0, 80, true), hidden: 2 });
+    // Accessories only: no vote at all. A crystal exactly at q25 is in the range, and votes.
+    expect(assessSize([run(true, 5), run(true, 9)], crystalT).display).toEqual({ least: r(0, 0, null, false), most: r(0, 0, null, false), hidden: 0 });
+    expect(assessSize([run(true, 15), run(true, 60)], crystalT).display.most).toEqual(r(2, 1, 37.5, false));
+    // A proxy reads the same way, and the readings are there where no run is eligible for the verdict.
+    expect(assessSize([run(true, 140, 60), run(true, 140, 60), run(false, 0, 60)], proxyT)).toMatchObject({ verdict: 'ELIGIBILITY UNKNOWN', display: { least: r(2, 2, 60, false), most: r(2, 0, 140, true), hidden: 2 } });
+    // The reported verdict still reads every eligible occurrence, an accessory's too.
+    expect(assessSize([run(true, 5), run(true, 5), run(true, 60)], crystalT)).toMatchObject({ verdict: 'BELOW', display: { least: r(1, 0, 60, true) } });
   });
   it('against a proxy: below it is no verdict, reaching it cannot test oversize, past its 90th percentile is oversize', () => {
     expect(fits(60, proxyT)).toBeNull();
@@ -822,42 +833,79 @@ describe('WP1\'s whole target', () => {
     expect(w('STORY', [p('g', { verdict: 'IN' }, { carried: 0, accessory: 20, beyond: 1 }, 0.2167)]).open).toEqual(['g carries the story in 0 of 21 scored runs, short of its share 0.2167 within noise']);
     expect(w('STORY', [p('g', { verdict: 'IN' }, { carried: 1, accessory: 20 }, 0.2167)]).open).toEqual(['g carries the story in 1 of 21 scored runs, short of its share 0.2167 within noise']);
   });
-  it('oversize: its typical crystal past its display range, where the runs can tell it, fails (round 9)', () => {
+  // assessSize's `display` as wp1Target reads it: the crystals at or past the display range's start, each one the
+  // cavity hides read in the protagonist's favour (`least`) and against it (`most`); the same where none is hidden.
+  const reading = (within: number, n: number, past = 2 * within < n) => ({ n, within, median: past ? 100 : 20, past });
+  const shown = (least: any, most: any = least, hidden = 0) => ({ display: { least, most, hidden } });
+  const scale = (past: number, n: number) => `past its display range in ${past} of its ${n} runs at or past its display scale`;
+  it('oversize: its typical crystal at or past its display scale past the range, where the runs can tell it, fails (rounds 9 and 14)', () => {
     // Its share met throughout (10 of 21 carried), so only the size can fail it.
-    const big = (within: number, eligible = 21, verdict = 'OVERSIZE') => p('g', { verdict: 'IN' }, { carried: 10 }, 0.2167, null, true, { size: { verdict, within, eligible } });
-    // 6 of 21 eligible runs within q90: the interval tops at 0.4996, below one half; 7: at 0.546.
-    expect(w('STORY', [big(6)])).toEqual({ met: false, fails: ['g oversize: past its display range in 15 of 21 eligible runs'], open: [] });
+    const big = (within: number, n = 21) => p('g', { verdict: 'IN' }, { carried: 10 }, 0.2167, null, true, { size: shown(reading(within, n)) });
+    // 6 of 21 within q90: the interval tops at 0.4996, below one half; 7: at 0.546.
+    expect(w('STORY', [big(6)])).toEqual({ met: false, fails: [`g oversize: ${scale(15, 21)}`], open: [] });
     // Within noise it is open, never met: an indistinguishable size miss is no pass (round 11: it had been met).
-    expect(w('STORY', [big(7)])).toEqual({ met: false, fails: [], open: ['g oversize within noise: past its display range in 14 of 21 eligible runs'] });
+    expect(w('STORY', [big(7)])).toEqual({ met: false, fails: [], open: [`g oversize within noise: ${scale(14, 21)}`] });
     // z reaches it: at z 1 the interval for 7 of 21 tops at 0.44, so 7 within q90 is past it beyond noise.
-    expect(w('STORY', [big(7)], 21, 1).fails).toEqual(['g oversize: past its display range in 14 of 21 eligible runs']);
-    // A typical crystal within the display range (LARGE) is never oversize, however its runs spread.
-    expect(w('STORY', [big(6, 21, 'LARGE')])).toEqual({ met: true, fails: [], open: [] });
-    // Too few runs to tell: 3 eligible runs, all past q90 (the interval tops at 0.56), as assessSize's `few` says — open; 4 can.
-    expect(w('STORY', [big(0, 3)])).toEqual({ met: false, fails: [], open: ['g oversize within noise: past its display range in 3 of 3 eligible runs'] });
-    expect(w('STORY', [big(0, 4)]).fails).toEqual(['g oversize: past its display range in 4 of 4 eligible runs']);
+    expect(w('STORY', [big(7)], 21, 1).fails).toEqual([`g oversize: ${scale(14, 21)}`]);
+    // A typical crystal within the range is never oversize, however its runs spread.
+    expect(w('STORY', [p('g', { verdict: 'IN' }, { carried: 10 }, 0.2167, null, true, { size: shown(reading(11, 21)) })])).toEqual({ met: true, fails: [], open: [] });
+    // Too few runs to tell: 3 of them, all past q90 (the interval tops at 0.56) — open; 4 can.
+    expect(w('STORY', [big(0, 3)])).toEqual({ met: false, fails: [], open: [`g oversize within noise: ${scale(3, 3)}`] });
+    expect(w('STORY', [big(0, 4)]).fails).toEqual([`g oversize: ${scale(4, 4)}`]);
+    // No crystal at or past its display scale, no vote: an accessory never offsets a giant, nor is one (round 14).
+    expect(w('STORY', [p('g', { verdict: 'IN' }, { carried: 10 }, 0.2167, null, true, { size: shown(reading(0, 0, false)) })])).toEqual({ met: true, fails: [], open: [] });
     // An oversize within noise does not stop the share from failing it.
-    expect(w('STORY', [p('g', { verdict: 'IN' }, { carried: 0, accessory: 14 }, 0.2167, null, true, { size: { verdict: 'OVERSIZE', within: 7, eligible: 21 } })])).toEqual({ met: false, fails: ['g carries the story in 0 of 21 scored runs, below its share 0.2167'], open: ['g oversize within noise: past its display range in 14 of 21 eligible runs'] });
+    expect(w('STORY', [p('g', { verdict: 'IN' }, { carried: 0, accessory: 14 }, 0.2167, null, true, { size: shown(reading(7, 21)) })])).toEqual({ met: false, fails: ['g carries the story in 0 of 21 scored runs, below its share 0.2167'], open: [`g oversize within noise: ${scale(14, 21)}`] });
   });
-  it('may be oversize: where the size verdict is not OVERSIZE but the median of every occurrence at its own length is past q90, it is open, never met (rounds 12 and 13)', () => {
-    // Its share met throughout (5 of 21 carried), so only the size can hold it open. `atLength` is assessSize's
-    // reading of every occurrence at its own length, as in a cavity that hid nothing.
-    const hid = (verdict: string, eligible: number, past: boolean, extra: any = {}) => p('g', { verdict: 'IN' }, { carried: 5, beyond: 16 }, 0.2167, null, true, { size: { verdict, eligible, within: eligible, beyond: 16, atLength: { n: 21, median: past ? 1000 : 16, past }, ...extra } });
-    const mayBe = (n: number, e: number) => `g may be oversize: the median of its ${n} occurrences at their own length is past its display range, and the size verdict judged ${e} of them`;
-    // 5 judged and in range (MEETS), 16 left out for a cavity short of q90, past it at their length: open.
-    expect(w('STORY', [hid('MEETS', 5, true)])).toEqual({ met: false, fails: [], open: [mayBe(21, 5)] });
-    // None judged, in a cavity short of the median (round 13: it had been met): open too.
-    expect(w('STORY', [hid('NO ELIGIBLE POCKET', 0, true)]).open).toEqual([mayBe(21, 0)]);
-    expect(w('STORY', [hid('ELIGIBILITY UNKNOWN', 0, true)]).open).toEqual([mayBe(21, 0)]);
-    // At their own length the median is within the range: met, whatever was left out.
-    expect(w('STORY', [hid('MEETS', 5, false)])).toEqual({ met: true, fails: [], open: [] });
-    expect(w('STORY', [hid('NO ELIGIBLE POCKET', 0, false)])).toEqual({ met: true, fails: [], open: [] });
-    // A judged OVERSIZE is the oversize test's alone: one entry, failed or open.
-    expect(w('STORY', [hid('OVERSIZE', 21, true, { within: 6 })])).toEqual({ met: false, fails: ['g oversize: past its display range in 15 of 21 eligible runs'], open: [] });
-    expect(w('STORY', [hid('OVERSIZE', 21, true, { within: 7 })])).toEqual({ met: false, fails: [], open: ['g oversize within noise: past its display range in 14 of 21 eligible runs'] });
+  it('a crystal the cavity hides is read both ways: failed only where every reading puts the typical one past q90 beyond noise, open where any reading puts it past q90 (rounds 12–14)', () => {
+    // Its share met throughout (5 of 21 carried), so only the size can hold it open or fail it.
+    const g = (least: any, most: any, hidden: number) => p('g', { verdict: 'IN' }, { carried: 5, beyond: hidden }, 0.2167, null, true, { size: shown(least, most, hidden) });
+    const mayBe = (past: number, n: number, h: number) => `g may be oversize: ${scale(past, n)}, with the ${h} crystals the cavity hides read against it`;
+    // 5 carriers and 16 crystals past q90 on their length, in the range on the span (round 12): open.
+    expect(w('STORY', [g(reading(21, 21), reading(5, 21), 16)])).toEqual({ met: false, fails: [], open: [mayBe(16, 21, 16)] });
+    // Past q90 in every reading, beyond noise even in its favour: failed.
+    expect(w('STORY', [g(reading(5, 21), reading(2, 21), 3)])).toEqual({ met: false, fails: [`g oversize: ${scale(16, 21)}, with the 3 crystals the cavity hides read in its favour`], open: [] });
+    // Past q90 in every reading, within noise in its favour: open.
+    expect(w('STORY', [g(reading(7, 21), reading(5, 21), 2)])).toEqual({ met: false, fails: [], open: [mayBe(16, 21, 2)] });
+    // Past q90 in no reading: met, whatever was hidden.
+    expect(w('STORY', [g(reading(21, 21), reading(12, 21), 9)])).toEqual({ met: true, fails: [], open: [] });
     // The share is still judged beside it, and with no scored runs the size still is.
-    expect(w('STORY', [p('g', { verdict: 'IN', k: 16 }, { carried: 0, beyond: 16 }, 0.2167, null, true, { size: { verdict: 'LONGER THAN THE CAVITY', eligible: 0, beyond: 16, atLength: { n: 16, median: 1000, past: true } } })]).open).toEqual([mayBe(16, 0), 'g carries the story in 0 of 21 scored runs; it could still reach its share 0.2167 if its 16 runs longer than the cavity carry it']);
-    expect(w('STORY', [hid('MEETS', 5, true)], 0).open).toEqual([mayBe(21, 5)]);
+    expect(w('STORY', [p('g', { verdict: 'IN', k: 16 }, { carried: 0, beyond: 16 }, 0.2167, null, true, { size: shown(reading(16, 16), reading(0, 16), 16) })]).open).toEqual([mayBe(16, 16, 16), 'g carries the story in 0 of 21 scored runs; it could still reach its share 0.2167 if its 16 runs longer than the cavity carry it']);
+    expect(w('STORY', [g(reading(21, 21), reading(5, 21), 16)], 0).open).toEqual([mayBe(16, 21, 16)]);
+  });
+  it('the scoreboard sorts each entry wp1Target writes under exactly one cause, its own, and a protagonist that never carries under the first cause it has (round 14: the labels had no test)', () => {
+    const sort = (list: any[], e: string) => { const hit = list.filter(([, re]) => re.test(e)).map(([label]) => label); expect(hit, e).toHaveLength(1); return hit[0]; };
+    const causes = (x: any) => ({ fails: x.fails.map((e: string) => sort(WP1_FAILS, e)), open: x.open.map((e: string) => sort(WP1_OPENS, e)) });
+    const S = 0.2167;
+    expect(causes(w({ verdict: 'NO STORY', noise: false }, [
+      p('a', { verdict: 'LOW', noise: false }), p('b', { verdict: 'HIGH', noise: false }),
+      p('o', { verdict: 'IN' }, { carried: 10 }, S, null, true, { size: shown(reading(0, 21)) }),
+      p('s', { verdict: 'IN' }, { carried: 0, accessory: 21 }, S),
+    ]))).toEqual({ fails: ['the story', 'a band', 'a band', 'oversize', 'a carrier share'], open: [] });
+    const OPENS = WP1_OPENS.map(([label]) => label);
+    expect(causes(w({ verdict: 'UNRESOLVED' }, [
+      p('c', { verdict: 'IN' }, { carried: 0, short: 21 }, S), p('n', { verdict: 'IN' }, { carried: 3 }, 0.3),
+      p('l', { verdict: 'LOW', noise: true }),
+      p('w', { verdict: 'IN' }, { carried: 10 }, S, null, true, { size: shown(reading(7, 21)) }),
+      p('m', { verdict: 'IN' }, { carried: 10 }, S, null, true, { size: shown(reading(21, 21), reading(5, 21), 16) }),
+      p('u', { verdict: 'IN' }, { carried: 0 }, null, 'no size target'), p('r', { verdict: 'IN' }, { carried: 0 }, null, 'display range beyond the cavity'),
+      p('t', { verdict: 'UNRESOLVED' }, { carried: 0 }, null, 'no band'), p('v', { verdict: 'LOW', noise: true, k: 0 }, { carried: 0 }),
+      p('x', { verdict: 'UNRESOLVED', k: 0 }, { carried: 0 }, null, 'no band'),
+    ]))).toEqual({ fails: [], open: [...OPENS, OPENS[OPENS.length - 1]] });
+    for (const story of [{ verdict: 'NO STORY', noise: true }, { verdict: 'SMALL POCKETS ONLY' }]) expect(causes(w(story, [])).open).toEqual([OPENS[0]]);
+    // Never carrying: each under the first cause it has — a fail before an open, a size cause before a share's.
+    const never = (x: any, k: string) => NEVER_CARRY[neverCarryCause(x, k)]?.[1];
+    const x = w('STORY', [
+      p('s', { verdict: 'IN' }, { carried: 0, accessory: 21 }, S),
+      p('o', { verdict: 'IN' }, { carried: 0, oversize: 21 }, S, null, true, { size: shown(reading(0, 21)) }),
+      p('w', { verdict: 'IN' }, { carried: 0, oversize: 14, accessory: 7 }, 0.1, null, true, { size: shown(reading(7, 21)) }),
+      p('m', { verdict: 'IN' }, { carried: 0, beyond: 16, accessory: 5 }, 0.1, null, true, { size: shown(reading(21, 21), reading(5, 21), 16) }),
+      p('k', { verdict: 'IN' }, { carried: 0, short: 21 }, S), p('b', { verdict: 'IN' }, { carried: 0, beyond: 21 }, S),
+      p('r', { verdict: 'IN' }, { carried: 0 }, null, 'display range beyond the cavity'), p('q', { verdict: 'IN' }, { carried: 0, unclassed: 21 }, S),
+      p('t', { verdict: 'UNRESOLVED' }, { carried: 0 }, null, 'no band'), p('z', { verdict: 'IN' }, { carried: 0, accessory: 21 }, 0.1),
+    ]);
+    expect(['s', 'o', 'w', 'm', 'k', 'b', 'r', 'q', 't', 'z'].map((k) => never(x, k))).toEqual(NEVER_CARRY.map(([, label]) => label));
+    expect(neverCarryCause({ fails: [], open: [] }, 'g')).toBe(-1);
   });
   it('what cannot be judged leaves it open: no size target, a range beyond the cavity, no band, a protagonist that never occurs where its band cannot fail that', () => {
     expect(w('STORY', [p('u', { verdict: 'IN' }, { carried: 0 }, null, 'no size target')]).open).toEqual(['u has no size target to show it carrying the story']);
@@ -884,9 +932,9 @@ describe('WP1\'s whole target', () => {
   it('a share met exactly is met; with no scored runs the share is not judged, but the bands and the size still are', () => {
     expect(w('STORY', [p('g', { verdict: 'IN' }, { carried: 6 }, 6 / 21)]).met).toBe(true);
     expect(w('SMALL POCKETS ONLY', [p('g', { verdict: 'IN' }, { carried: 0 })], 0)).toEqual({ met: false, fails: [], open: ['story SMALL POCKETS ONLY'] });
-    // Small pockets leave the story's count, not the fleet: occurrence counts every run, and size every run
-    // whose cavity holds the median (round 10: the old title said only the story speaks).
-    expect(w('SMALL POCKETS ONLY', [p('g', { verdict: 'LOW', noise: false }, { carried: 0 }, 0.3, null, true, { size: { verdict: 'OVERSIZE', within: 0, eligible: 8 } })], 0)).toEqual({ met: false, fails: ['g below its band', 'g oversize: past its display range in 8 of 8 eligible runs'], open: ['story SMALL POCKETS ONLY'] });
+    // Small pockets leave the story's count, not the fleet: occurrence counts every run, and size every crystal at
+    // or past its display scale, whatever its cavity (round 10: the old title said only the story speaks).
+    expect(w('SMALL POCKETS ONLY', [p('g', { verdict: 'LOW', noise: false }, { carried: 0 }, 0.3, null, true, { size: shown(reading(0, 8)) })], 0)).toEqual({ met: false, fails: ['g below its band', 'g oversize: past its display range in 8 of its 8 runs at or past its display scale'], open: ['story SMALL POCKETS ONLY'] });
   });
   // The North Pennines targets (fluorite primary, galena an alternate, calcite an alternate known by proxy).
   const fl = { basis: 'crystal', n: 17, q10: 13, q25: 15, median: 17, q75: 40, q90: 62.4, confidence: 'low' };
@@ -917,18 +965,18 @@ describe('WP1\'s whole target', () => {
       expect(npWp1(npRuns((i) => ({ occurs: true, size: i === 0 ? 19 : 8.6 })), species), at).toMatchObject({ met: false, fails: [], open: ['galena carries the story in 1 of 21 scored runs, short of its share 0.2167 within noise'] });
       // Oversize in every run: failed as oversize (round 9: the carrier obligation alone had stopped failing it),
       // and only as that — its carrying is not tested again.
-      expect(npWp1(npRuns(() => ({ occurs: true, size: 40 })), species), at).toEqual({ met: false, fails: ['galena oversize: past its display range in 21 of 21 eligible runs'], open: [] });
+      expect(npWp1(npRuns(() => ({ occurs: true, size: 40 })), species), at).toEqual({ met: false, fails: ['galena oversize: past its display range in 21 of its 21 runs at or past its display scale'], open: [] });
       // Longer than a cavity whose span (25 mm) is short of its q90 (27.2), it could be at its scale: open.
       expect(npWp1(npRuns(() => ({ occurs: true, size: 60 })).map((r) => ({ ...r, span: 25 })), species).open, at).toContain('galena carries the story in 0 of 21 scored runs; it could still reach its share 0.2167 if its 21 runs longer than the cavity carry it');
       // 45 mm in 16 runs and at its scale in 5 — its share met, its typical crystal past its range: failed.
-      expect(npWp1(npRuns((i) => ({ occurs: true, size: i < 5 ? 20 : 45 })), species).fails, at).toEqual(['galena oversize: past its display range in 16 of 21 eligible runs']);
+      expect(npWp1(npRuns((i) => ({ occurs: true, size: i < 5 ? 20 : 45 })), species).fails, at).toEqual(['galena oversize: past its display range in 16 of its 21 runs at or past its display scale']);
       // 60 mm in 15 runs and 100 mm, longer than the 92 mm cavity, in 6: the span is past q90 too, so the six
       // count as past the range rather than as runs it could carry (round 9: they had rescued it).
-      expect(npWp1(npRuns((i) => ({ occurs: true, size: i < 6 ? 100 : 60 })), species).fails, at).toEqual(['galena oversize: past its display range in 21 of 21 eligible runs']);
+      expect(npWp1(npRuns((i) => ({ occurs: true, size: i < 6 ? 100 : 60 })), species).fails, at).toEqual(['galena oversize: past its display range in 21 of its 21 runs at or past its display scale']);
       // Round 11's cases, met before: past the range in 12 of 21 runs, or giants past the cavity in 13 of 18 —
       // oversize the runs cannot tell from the range's top, so open, never met.
-      expect(npWp1(npRuns((i) => ({ occurs: true, size: i < 9 ? 20 : 40 })), species), at).toEqual({ met: false, fails: [], open: ['galena oversize within noise: past its display range in 12 of 21 eligible runs'] });
-      expect(npWp1(npRuns((i) => (i < 3 ? { occurs: false, size: 0 } : { occurs: true, size: i < 8 ? 20 : 1000 })), species), at).toEqual({ met: false, fails: [], open: ['galena oversize within noise: past its display range in 13 of 18 eligible runs'] });
+      expect(npWp1(npRuns((i) => ({ occurs: true, size: i < 9 ? 20 : 40 })), species), at).toEqual({ met: false, fails: [], open: ['galena oversize within noise: past its display range in 12 of its 21 runs at or past its display scale'] });
+      expect(npWp1(npRuns((i) => (i < 3 ? { occurs: false, size: 0 } : { occurs: true, size: i < 8 ? 20 : 1000 })), species), at).toEqual({ met: false, fails: [], open: ['galena oversize within noise: past its display range in 13 of its 18 runs at or past its display scale'] });
       // Absent, it fails its abundant band.
       expect(npWp1(npRuns(() => ({ occurs: false, size: 0 })), species).fails, at).toEqual(['galena below its band']);
     }
@@ -974,7 +1022,7 @@ describe('WP1\'s whole target', () => {
     // Each run's own cavity: a crystal longer than it could still carry (open), and at its own length the typical
     // one may be oversize (round 13: the size verdict judges none in a cavity short of the median); a range beyond
     // it cannot.
-    expect(scenarioWp1(atScale.map((r) => ({ ...r, span: 18.5, species: { ...r.species, galena: { occurs: true, size: 30 } } })), { galena: species.galena }, { verdict: 'STORY' }).open).toEqual(['galena may be oversize: the median of its 21 occurrences at their own length is past its display range, and the size verdict judged 0 of them', 'galena carries the story in 0 of 21 scored runs; it could still reach its share 0.2167 if its 21 runs longer than the cavity carry it']);
+    expect(scenarioWp1(atScale.map((r) => ({ ...r, span: 18.5, species: { ...r.species, galena: { occurs: true, size: 30 } } })), { galena: species.galena }, { verdict: 'STORY' }).open).toEqual(['galena may be oversize: past its display range in 21 of its 21 runs at or past its display scale, with the 21 crystals the cavity hides read against it', 'galena carries the story in 0 of 21 scored runs; it could still reach its share 0.2167 if its 21 runs longer than the cavity carry it']);
     // In the range on its length and on the span alike, a crystal longer than the cavity carries (round 11).
     expect(scenarioWp1(atScale.map((r) => ({ ...r, span: 18.5 })), { galena: species.galena }, { verdict: 'STORY' })).toEqual({ met: true, fails: [], open: [] });
     expect(scenarioWp1(atScale.map((r) => ({ ...r, span: 17 })), { galena: species.galena }, { verdict: 'STORY' }).open).toEqual(['galena cannot carry the story in this cavity: its display range starts beyond the span']);
@@ -1012,9 +1060,11 @@ describe('WP1\'s whole target', () => {
       for (const k2 of [`${c - 1},${o + 1},${d}`, `${c - 1},${o},${d + 1}`, `${c - 1},${o},${d}`]) expect(rank[res.get(k2)!] <= rank[out], `${key} → ${k2}`).toBe(true);
     }
   });
-  // Every split of 21 runs into carriers, giants, dust and absence, as `out` per split; and the visible twin: a
-  // cavity that hides crystals from the size verdict meets exactly the splits one that hides nothing meets, and
-  // fails only splits that one fails (rounds 12 and 13).
+  // Every split of 21 runs into carriers, giants, dust and absence, as `out` per split; and the visible twin: in
+  // one cavity that holds the primary's median and reaches the protagonist's display range, a cavity that hides
+  // crystals from the size verdict meets exactly the splits one that hides nothing meets, and fails only splits
+  // that one fails (rounds 12–14). With more giants than carriers no split is met, dust aside (round 14: dust had
+  // offset giants); dust in place of absence changes nothing where the band reads the same.
   const splits = (wp1: (c: number, g: number, d: number) => any) => {
     const res = new Map<string, string>();
     for (let c = 0; c <= 21; c++) for (let g = 0; c + g <= 21; g++) for (let d = 0; c + g + d <= 21; d++) {
@@ -1024,11 +1074,15 @@ describe('WP1\'s whole target', () => {
     expect(res.size).toBe(2024);
     return res;
   };
-  const expectTwin = (here: Map<string, string>, twin: Map<string, string>, label: string) => {
+  const expectTwin = (here: Map<string, string>, twin: Map<string, string>, label: string, band: number[]) => {
     const rank: any = { fail: 0, open: 1, met: 2 };
     for (const [key, out] of here) {
       const [c, g, d] = key.split(',').map(Number);
-      expect(out === 'met' && 2 * g > c + g + d, `${label}: ${key} met, mostly giants`).toBe(false);
+      expect(out === 'met' && g > c, `${label}: ${key} met, more giants than carriers`).toBe(false);
+      if (c + g + d < 21) {
+        const [b0, b1] = [assessOccurrence(c + g + d, 21, band), assessOccurrence(c + g + d + 1, 21, band)];
+        if (b0.verdict === b1.verdict && !!b0.noise === !!b1.noise) expect(here.get(`${c},${g},${d + 1}`), `${label}: ${key} → one more dust`).toBe(out);
+      }
       expect(out === 'met', `${label}: ${key} ${out} here, ${twin.get(key)} in the twin`).toBe(twin.get(key) === 'met');
       if (out === 'fail') expect(twin.get(key), `${label}: ${key}`).toBe('fail');
       // Moving one carrier to a giant, to dust or to absent never improves the outcome.
@@ -1046,7 +1100,7 @@ describe('WP1\'s whole target', () => {
     const metre: Map<string, string>[] = [];
     for (const giant of [61, 1000]) {
       const here = splits((c, g, d) => wp1(runsOf(c, g, d, 59.94, giant))), twin = splits((c, g, d) => wp1(runsOf(c, g, d, 92, giant)));
-      expectTwin(here, twin, `${giant} mm giants`);
+      expectTwin(here, twin, `${giant} mm giants`, BANDS.AB);
       if (giant === 1000) metre.push(here, twin);
     }
     // The cost §4 states: a metre-long crystal in place of dust, counted as a run it could carry, lifts a failing
@@ -1055,11 +1109,11 @@ describe('WP1\'s whole target', () => {
     expect(lifts(metre[0])).toBe(15);
     expect(lifts(metre[1])).toBe(0);
     // Round 12's case, 5 carriers and 16 giants of 1 m: open here, where it had been met; failed past q90.
-    expect(wp1(runsOf(5, 16, 0, 59.94, 1000))).toEqual({ met: false, fails: [], open: ['quartz may be oversize: the median of its 21 occurrences at their own length is past its display range, and the size verdict judged 5 of them'] });
-    expect(wp1(runsOf(5, 16, 0, 92, 1000))).toEqual({ met: false, fails: ['quartz oversize: past its display range in 16 of 21 eligible runs'], open: [] });
+    expect(wp1(runsOf(5, 16, 0, 59.94, 1000))).toEqual({ met: false, fails: [], open: ['quartz may be oversize: past its display range in 16 of its 21 runs at or past its display scale, with the 16 crystals the cavity hides read against it'] });
+    expect(wp1(runsOf(5, 16, 0, 92, 1000))).toEqual({ met: false, fails: ['quartz oversize: past its display range in 16 of its 21 runs at or past its display scale'], open: [] });
     // Half giants: the median of a 16 mm carrier and a giant decides, as in the size verdict — open at 1 m, met at
     // 61 mm (round 13: round 12's "at least half" held both open here, and met the second past q90).
-    expect(wp1(runsOf(6, 6, 0, 59.94, 1000)).open).toEqual(['quartz may be oversize: the median of its 12 occurrences at their own length is past its display range, and the size verdict judged 6 of them']);
+    expect(wp1(runsOf(6, 6, 0, 59.94, 1000)).open).toEqual(['quartz may be oversize: past its display range in 6 of its 12 runs at or past its display scale, with the 6 crystals the cavity hides read against it']);
     expect(wp1(runsOf(6, 6, 0, 59.94, 61)).met).toBe(true);
     expect(wp1(runsOf(6, 6, 0, 92, 61)).met).toBe(true);
   });
@@ -1070,40 +1124,40 @@ describe('WP1\'s whole target', () => {
     const runsOf = (c: number, g: number, d: number, span: number, giant: number) => npRuns((i) => (i < c ? { occurs: true, size: 20 } : i < c + g ? { occurs: true, size: giant } : i < c + g + d ? { occurs: true, size: 8.6 } : { occurs: false, size: 0 })).map((r) => ({ ...r, span }));
     for (const giant of [28, 1000]) {
       const twin = splits((c, g, d) => npWp1(runsOf(c, g, d, 91.93, giant), species));
-      for (const span of [18.5, 25]) expectTwin(splits((c, g, d) => npWp1(runsOf(c, g, d, span, giant), species)), twin, `${giant} mm in ${span} mm`);
+      for (const span of [18.5, 25]) expectTwin(splits((c, g, d) => npWp1(runsOf(c, g, d, span, giant), species)), twin, `${giant} mm in ${span} mm`, BANDS.AB);
     }
     // Round 13's case, 5 at 19 mm and 16 at 1 m: it had been met in the 18.5 mm cavity, where the size verdict
     // judges none; open there and in 25 mm, failed in 91.93 mm.
     const r13 = (span: number) => npWp1(npRuns((i) => ({ occurs: true, size: i < 5 ? 19 : 1000 })).map((r) => ({ ...r, span })), species);
-    const mayBe = (n: number, e: number) => `galena may be oversize: the median of its ${n} occurrences at their own length is past its display range, and the size verdict judged ${e} of them`;
-    expect(r13(18.5)).toEqual({ met: false, fails: [], open: [mayBe(21, 0)] });
-    expect(r13(25)).toEqual({ met: false, fails: [], open: [mayBe(21, 5)] });
-    expect(r13(91.93).fails).toEqual(['galena oversize: past its display range in 16 of 21 eligible runs']);
+    const mayBe = (past: number, h: number) => `galena may be oversize: past its display range in ${past} of its 21 runs at or past its display scale, with the ${h} crystals the cavity hides read against it`;
+    expect(r13(18.5)).toEqual({ met: false, fails: [], open: [mayBe(16, 16)] });
+    expect(r13(25)).toEqual({ met: false, fails: [], open: [mayBe(16, 16)] });
+    expect(r13(91.93).fails).toEqual(['galena oversize: past its display range in 16 of its 21 runs at or past its display scale']);
     // Half of them just past q90 (6 at 20 mm, 6 at 28): the median, 24 mm, is in the range, so it is met in every
     // cavity, hidden or not.
     for (const span of [18.5, 25, 91.93]) expect(npWp1(npRuns((i) => (i < 12 ? { occurs: true, size: i < 6 ? 20 : 28 } : { occurs: false, size: 0 })).map((r) => ({ ...r, span })), species).met, `${span} mm`).toBe(true);
     // Giants in cavities too small for its display range count at their own length too: 6 carriers in 25 mm
     // cavities and 15 giants in 10 mm ones (small pockets) are open, not met.
-    expect(npWp1(npRuns((i) => ({ occurs: true, size: i < 6 ? 20 : 1000 })).map((r, i) => ({ ...r, span: i < 6 ? 25 : 10 })), species)).toEqual({ met: false, fails: [], open: [mayBe(21, 6)] });
+    expect(npWp1(npRuns((i) => ({ occurs: true, size: i < 6 ? 20 : 1000 })).map((r, i) => ({ ...r, span: i < 6 ? 25 : 10 })), species)).toEqual({ met: false, fails: [], open: [mayBe(15, 15)] });
   });
   it('a proxy whose median its cavity cannot hold is read at its own length too: Deccan\'s stilbite beside a carrying primary, and supergene\'s smithsonite as the primary in unclassed pockets (round 13)', () => {
-    const mayBe = (k: string, e: number) => `${k} may be oversize: the median of its 21 occurrences at their own length is past its display range, and the size verdict judged ${e} of them`;
+    const mayBe = (k: string) => `${k} may be oversize: past its display range in 14 of its 21 runs at or past its display scale, with the 14 crystals the cavity hides read against it`;
     // Copies of the committed targets, rounded. 7 stilbites carry at 60 mm; 14 grow to 500 mm, past the range on
     // their length and, in its own 66.41 mm cavity (short of its 73 mm median), in it on the span.
     const ap = { basis: 'crystal', n: 8, q10: 15, q25: 20, median: 26, q75: 30, q90: 40, confidence: 'low' };
     const st = { basis: 'specimen-proxy', n: 20, q10: 45, q25: 56, median: 73, q75: 95, q90: 120, confidence: 'low' };
     const deccan: any = { apophyllite: { role: 'primary', engine: true, occurrence_band: BANDS.AB, size: ap }, stilbite: { role: 'alternate', engine: true, occurrence_band: BANDS.CO, size: st } };
     const dW = (span: number) => { const runs = Array.from({ length: 21 }, (_, i) => ({ span, species: { apophyllite: { occurs: true, size: 26 }, stilbite: { occurs: true, size: i < 14 ? 500 : 60 } } })); return scenarioWp1(runs, deccan, scenarioVerdict(runs, deccan, 0.2528)); };
-    expect(dW(66.41)).toEqual({ met: false, fails: [], open: [mayBe('stilbite', 0)] });
-    expect(dW(80)).toEqual({ met: false, fails: [], open: [mayBe('stilbite', 7)] });
-    expect(dW(130)).toEqual({ met: false, fails: [], open: ['stilbite oversize within noise: past its display range in 14 of 21 eligible runs'] });
+    expect(dW(66.41)).toEqual({ met: false, fails: [], open: [mayBe('stilbite')] });
+    expect(dW(80)).toEqual({ met: false, fails: [], open: [mayBe('stilbite')] });
+    expect(dW(130)).toEqual({ met: false, fails: [], open: ['stilbite oversize within noise: past its display range in 14 of its 21 runs at or past its display scale'] });
     // The primary itself a proxy whose median the cavity cannot hold: its pockets are unclassed, and it is read the
     // same way.
     const sm = { basis: 'specimen-proxy', n: 20, q10: 35, q25: 48.75, median: 70, q75: 90, q90: 114.9, confidence: 'low' };
     const sup: any = { smithsonite: { role: 'primary', engine: true, occurrence_band: BANDS.AB, size: sm } };
     const sRuns = Array.from({ length: 21 }, (_, i) => ({ span: 64.77, species: { smithsonite: { occurs: true, size: i < 14 ? 500 : 55 } } }));
     expect(pocketClass(64.77, sm)).toBe('UNCLASSED');
-    expect(scenarioWp1(sRuns, sup, scenarioVerdict(sRuns, sup, 0.294))).toEqual({ met: false, fails: [], open: [mayBe('smithsonite', 0)] });
+    expect(scenarioWp1(sRuns, sup, scenarioVerdict(sRuns, sup, 0.294))).toEqual({ met: false, fails: [], open: [mayBe('smithsonite')] });
   });
   it('WP1 goes from failed to met as a protagonist grows toward its record, and back to failed past it (rounds 7–9: the reviewers\' sweeps)', () => {
     const species = np(['fluorite', 'galena']);
@@ -1117,17 +1171,25 @@ describe('WP1\'s whole target', () => {
       }
       return { met: c.met / 300, fail: c.fail / 300 };
     };
-    // Galena's record: five crystals, median 20, q90 27.2; the fleet spreads as a lognormal of sd 0.6.
+    // Galena's record: five crystals, median 20, q90 27.2; the fleet spreads as a lognormal of sd 0.6, far wider
+    // than the record. At the record's median it is met in 38.5 % of 2,000 fleets and failed in 3.1 %: among its
+    // crystals at or past its display scale, giants outnumber carriers in many of them (round 14: an accessory no
+    // longer votes, so the dust below 18 mm no longer offsets them). With a spread like its record's (sd 0.3) it
+    // is met in 98.6 %.
     const [s2, s6, s20, s30, s40, s50, s60, s80, s150] = [2, 6, 20, 30, 40, 50, 60, 80, 150].map(shares);
     expect(s2.met).toBe(0);
     expect(s2.fail).toBeGreaterThan(0.95);
     expect(s6.met).toBeLessThan(0.02);
-    expect(s20.met).toBeGreaterThan(0.6);
-    expect(s20.fail).toBeLessThan(0.02);
+    expect(s20.met).toBeGreaterThan(0.3);
+    expect(s20.fail).toBeLessThan(0.05);
+    const narrow = lognormal(rng(30), 0.3), met03 = Array.from({ length: 300 }, () => { const runs = Array.from({ length: 21 }, () => ({ span: 91.93, species: { fluorite: { occurs: true, size: 17 }, galena: { occurs: true, size: narrow() } } })); return scenarioWp1(runs, species, scenarioVerdict(runs, species, 0.2889)).met; }).filter(Boolean).length / 300;
+    expect(met03).toBeGreaterThan(0.9);
     // Past its record it fails again (round 9: from 40 to 80 mm a6612fa1 failed none). At 1.5 times its median
-    // (30 mm, 1.1 times its q90) the runs mostly cannot tell its median from q90 — measured over 2,000 fleets:
-    // failed 12.3 %, 41.5 % at 35 mm, 71.3 % at 40, 97.0 % at 50, 99.8 % at 60, all from 80.
-    expect(s30.fail).toBeLessThan(0.25);
+    // (30 mm, 1.1 times its q90) the runs often cannot tell its typical crystal at display scale from q90 —
+    // measured over 2,000 fleets: failed 40.9 %, 67.5 % at 35 mm, 84.9 % at 40, 98.3 % at 50, 99.9 % at 60, all
+    // from 80 (round 13: 12.3, 41.5, 71.3, 97.0 and 99.8 %, with the dust voting).
+    expect(s30.fail).toBeGreaterThan(0.25);
+    expect(s30.fail).toBeLessThan(0.6);
     expect(s40.fail).toBeGreaterThan(0.6);
     expect(s50.fail).toBeGreaterThan(0.9);
     expect(Math.min(s60.fail, s80.fail)).toBeGreaterThan(0.95);
@@ -1139,7 +1201,7 @@ describe('WP1\'s whole target', () => {
     expect(fails.slice(0, turn + 1).every((f, i, a) => !i || f <= a[i - 1] + 0.02)).toBe(true);
     expect(fails.slice(turn).every((f, i, a) => !i || f >= a[i - 1] - 0.02)).toBe(true);
   });
-  it('a correct fleet is rarely failed and mostly met: both protagonists mid-band with crystals from their records (the jointly-satisfiable check)', () => {
+  it('a correct fleet is mostly met and rarely failed against a record of seventeen, more often open or failed against one of five: both protagonists mid-band with crystals from their records (the jointly-satisfiable check)', () => {
     const r = rng(31), draw = lognormal(r);
     const fleet = (n: number, pa: number, pb: number, runsN = 21, trials = 500) => {
       const c = { met: 0, open: 0, fail: 0 };
@@ -1153,13 +1215,15 @@ describe('WP1\'s whole target', () => {
       return { met: c.met / trials, open: c.open / trials, fail: c.fail / trials };
     };
     const MID = fleet(17, 0.72, 0.6), MID5 = fleet(5, 0.72, 0.6), FLOOR = fleet(17, 0.5, 0.3);
-    // In a 6,000-fleet run at 21 runs: met 72.5 %, open 27.3 %, failed 0.3 % against records of seventeen; 64.0,
-    // 34.7, 1.3 % against eight; 56.8, 40.7, 2.5 % against five (round 11: an oversize within noise is open now,
-    // so met fell 0.6 and 5.1 points).
+    // In a 6,000-fleet run at 21 runs: met 70.9 %, open 28.8 %, failed 0.3 % against records of seventeen; 60.5,
+    // 37.3, 2.1 % against eight; 48.5, 44.7, 6.8 % against five. Round 14: an accessory no longer votes on
+    // oversize, so the dust no longer hides a five-crystal record's 90th percentile that sits low in its own
+    // population — 6.3 % of those fleets now fail as oversize (round 13: met 72.5, 64.0 and 56.8 %; failed 0.3,
+    // 1.3 and 2.5 %).
     expect(MID.met).toBeGreaterThan(0.65);
     expect(MID.fail).toBeLessThan(0.03);
-    expect(MID5.met).toBeGreaterThan(0.5);
-    expect(MID5.fail).toBeLessThan(0.06);
+    expect(MID5.met).toBeGreaterThan(0.4);
+    expect(MID5.fail).toBeLessThan(0.1);
     // At the bands' floors — the edge of a correct fleet — each protagonist carries about its share: met 11 %,
     // open 80 %, failed 10 %, two thirds of that the bands' own tests at their floors (round 9: a rate below the
     // floor within noise is open now, so met fell from 21 %).
@@ -1167,11 +1231,12 @@ describe('WP1\'s whole target', () => {
     expect(FLOOR.fail).toBeLessThan(0.16);
     // The intervals model the runs' noise only, so a correct fleet fails more often with more runs: the share is
     // its expected rate at the floor, and a five-crystal record's display range is itself uncertain. At 210 runs
-    // (3,000 fleets) against five crystals: failed 17.3 % mid-band, 43.1 % at the floors — the figures §1.3 and
-    // §5 state (round 10: round 9 had claimed the record's noise kept this flat, and WP1's story test did not).
+    // (3,000 fleets) against five crystals: failed 24.9 % mid-band, 44.3 % at the floors — the figures §1.3 and
+    // §5 state (round 10: round 9 had claimed the record's noise kept this flat, and WP1's story test did not;
+    // round 13: 17.3 and 43.1 %).
     const MID5_210 = fleet(5, 0.72, 0.6, 210, 300), FLOOR5_210 = fleet(5, 0.5, 0.3, 210, 300);
-    expect(MID5_210.fail).toBeGreaterThan(0.08);
-    expect(MID5_210.fail).toBeLessThan(0.3);
+    expect(MID5_210.fail).toBeGreaterThan(0.15);
+    expect(MID5_210.fail).toBeLessThan(0.4);
     expect(FLOOR5_210.fail).toBeGreaterThan(0.3);
     expect(FLOOR5_210.fail).toBeLessThan(0.56);
   });
