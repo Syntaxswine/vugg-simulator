@@ -635,19 +635,24 @@ const lengthAndSpanAgree = (size, span, t) => !(span != null && size > span) || 
  * can neither fail the size nor confirm it. The interval models the runs' noise only, not the record's:
  * the window is the record's own middle half, itself uncertain for a small record.
  * share = eligible runs whose crystal lies in the record's display range, q25–q90; `within` = eligible runs
- * at or below q90, which WP1's oversize test counts (the same sign test, against q90).
+ * at or below q90, which WP1's oversize test counts (the same sign test, against q90). `atLength` = the
+ * median over every occurrence at its own length, as the verdict would read it in a cavity that hid nothing,
+ * and whether it is past q90 (WP1's may-be test): a cavity short of the median keeps every run from the
+ * verdict, and one short of q90 the crystals grown past it.
  *   runs: [{ occurs, size, span }]
  */
 export function assessSize(runs, target, z = 1.96) {
   if (!target || target.basis === 'unknown') return { verdict: 'UNKNOWN' };
   const occurring = runs.filter((r) => r.occurs);
   if (!occurring.length) return { verdict: 'NEVER OCCURS', occurring: 0, eligible: 0 };
+  const lengths = summarize(occurring.map((r) => r.size));
+  const atLength = { n: occurring.length, median: lengths.median, past: lengths.median > target.q90 };
   const fitting = occurring.filter((r) => fits(r.span, target) === true);
   const beyond = fitting.filter((r) => !lengthAndSpanAgree(r.size, r.span, target)).length;
   const eligible = fitting.filter((r) => lengthAndSpanAgree(r.size, r.span, target));
   if (!eligible.length) {
     const verdict = fitting.length ? 'LONGER THAN THE CAVITY' : target.basis === 'crystal' ? 'NO ELIGIBLE POCKET' : 'ELIGIBILITY UNKNOWN';
-    return { verdict, occurring: occurring.length, eligible: 0, beyond };
+    return { verdict, occurring: occurring.length, eligible: 0, beyond, atLength };
   }
   const inRange = eligible.filter((r) => r.size >= target.q25 && r.size <= target.q90).length;
   const sizes = summarize(eligible.map((r) => r.size));
@@ -660,7 +665,7 @@ export function assessSize(runs, target, z = 1.96) {
   const noise = verdict === 'BELOW' ? reaches((s) => s >= target.q25) : verdict === 'LARGE' || verdict === 'OVERSIZE' ? reaches((s) => s <= edge) : null;
   const few = wilson(0, eligible.length, z)[1] >= 0.5;
   const within = eligible.filter((r) => r.size <= target.q90).length;
-  return { verdict, ...(noise == null ? {} : { noise }), ...(few ? { few } : {}), share: inRange / eligible.length, inRange, within, eligible: eligible.length, occurring: occurring.length, beyond, sizes };
+  return { verdict, ...(noise == null ? {} : { noise }), ...(few ? { few } : {}), share: inRange / eligible.length, inRange, within, eligible: eligible.length, occurring: occurring.length, beyond, atLength, sizes };
 }
 
 /**
@@ -885,11 +890,11 @@ export function carrierShare(band, target, range, room = Infinity) {
  *     OVERSIZE) fails where the runs can tell it is — the interval of its eligible runs within q90 stays
  *     below one half — and leaves the target open where they cannot (with 3 eligible runs or fewer they
  *     never can, as assessSize's `few` says): an indistinguishable size miss is never a pass. So does a
- *     typical crystal that may be past the range: the size verdict leaves out the runs longer than a cavity
- *     whose span is short of q90 (`beyond`: past the range on their length, in it on the span), and where
- *     those and the eligible runs past q90 are at least half of all of them, the target is open — at
- *     exactly half the typical crystal may lie between one in the range and one past it, as the oversize
- *     test leaves it open when half of the eligible runs are past q90;
+ *     typical crystal the cavity may hide: the verdict judges only the runs in a cavity that holds the
+ *     median, less the crystals grown past one short of q90 (`beyond`: past the range on their length, in
+ *     it on the span), so where it is not OVERSIZE but the median over every occurrence at its own length
+ *     (`atLength`: the verdict as it would read in a cavity that hid nothing — the same median, the same
+ *     boundary) is past q90, the target is open;
  *   every protagonist with an engine carrying the story at its own scale in at least its carrier share
  *     (carrierShare) of the scored runs — the boss's obligation, the one test of "if it never does". Short
  *     of it beyond noise fails: even counting every run it could still carry (short of a proxy, longer than
@@ -932,10 +937,9 @@ export function wp1Target(story, protagonists, { scored = 0, z = 1.96 } = {}) {
       const past = `past its display range in ${sz.eligible - sz.within} of ${sz.eligible} eligible runs`;
       if (wilson(sz.within, sz.eligible, z)[1] < 0.5) { fails.push(`${p.k} oversize: ${past}`); continue; }
       open.push(`${p.k} oversize within noise: ${past}`);
-    } else if (sz?.beyond) {
-      // Runs longer than a cavity short of q90 may be past the range: if they could make the typical crystal so.
-      const pastOrBeyond = sz.eligible - (sz.within ?? 0) + sz.beyond, all = sz.eligible + sz.beyond;
-      if (2 * pastOrBeyond >= all) open.push(`${p.k} may be oversize: past its display range, or longer than a cavity short of it, in ${pastOrBeyond} of ${all} runs`);
+    } else if (sz?.atLength?.past) {
+      // The cavity kept crystals from the verdict; at their own length the typical one is past the range.
+      open.push(`${p.k} may be oversize: the median of its ${sz.atLength.n} occurrences at their own length is past its display range, and the size verdict judged ${sz.eligible} of them`);
     }
     if (!scored) continue;
     if (p.why === 'no size target') { open.push(`${p.k} has no size target to show it carrying the story`); continue; }

@@ -1359,3 +1359,120 @@ Note on round 11's response (M2): its cost for the third option, "about 8 % … 
 Mutation testing: 13 mutants on round 12's code, 11 killed: the may-be rule nine ways by the tests (among them more than half, my first version), the listed causes by the splice check, and the registered rule text by the targets check. The two survivors break or drop the may-be label in the scoreboard's open causes and never-carry groups; no protagonist is may-be-oversize in the census, so their output is identical.
 
 Result: STORY 1, STORY (PROXY) 1, NO STORY 3, UNRESOLVED 26, NO ENGINE 1, OUT OF SCOPE 1 (unchanged). WP1's whole target is met by none: it fails at 16 scored scenarios (by cause: the story 4, a band 15, a carrier share 5, oversize 0) and is open at 16. No protagonist is may-be-oversize. Tests 124 (was 122).
+
+## Round 13 — 8/10 (on 16f045c6)
+
+One reviewer, under the standing rule (no cap on rounds; stop at 9/10 or when nothing must be fixed).
+
+### The report
+
+> 16f045c6's M2 fix is right and complete. The rule texts now match the code's three agreements, and the scoreboard changes are sound. But the may-be rule, round 12's M1 fix, only counts runs in a cavity that holds the protagonist's median. So round 12's own case is MET again one step further down: in a cavity short of the median.
+>
+> **MUST-FIX**
+>
+> 1. **A protagonist grown past a cavity short of its median is MET even when most of its crystals are giants.**
+>    - **Where:**
+>      - `tools/story-pocket-lib.mjs:645–646` counts `beyond` over `fitting` runs only (span ≥ median).
+>      - `:935–938`: the may-be rule uses `beyond` and `eligible`. Where span < median both are 0, so the rule cannot fire.
+>      - `carrierShare` (q25 ≤ span) and `runStory` still credit the carriers in those runs.
+>    - **Evidence** (committed lib, real targets):
+>      - **Round 12's own case**, on the test file's NP galena (q25 18, median 20, q90 27.2), 5 × 19 mm and 16 × 1 m:
+>        - span 18.5: size NO ELIGIBLE POCKET, **WP1 MET**;
+>        - span 25: open (may be oversize, 16 of 21);
+>        - span 91.93: failed (oversize).
+>      - **Deccan's stilbite** (proxy q25 56, median 73, q90 120) in Deccan's own 66.41 mm cavity, 7 × 60 mm and 14 × 500 mm, the other protagonists carrying:
+>        - **MET** in its own cavity; open in an 80 mm one; open in a 130 mm one (oversize within noise).
+>        - Sweep (lognormal sd 0.6, 2,000 fleets): at a median of 120 mm it is met in 78 % of fleets in its own cavity, against 47 % in the 80 and 130 mm ones. At 200 mm: 6.8 % against 0.1 %.
+>      - **supergene_oxidation's smithsonite, the primary** (UNCLASSED pockets): 7 × 55 mm and 14 × 500 mm in its 64.77 mm cavity is **MET**; in an 80 mm cavity, open.
+>    - **Reach:** 12 of the 30 protagonists the sixth line lists have q25 ≤ span < median, all of them proxies, 11 with a band:
+>      - Deccan: stilbite, heulandite, chalcedony;
+>      - Elmwood: fluorite, sphalerite;
+>      - epithermal_telluride: calaverite;
+>      - MVT: galena, sphalerite;
+>      - Sunnyside: fluorite;
+>      - supergene_oxidation: smithsonite, calcite;
+>      - Bisbee: malachite.
+>    - **Claims this breaks:**
+>      - the registered `carrier_obligation` (DATA…json:84, targets.mjs:78): open "where those and the runs past the range are at least half of its occurrences". Here they are 14 of 21, so the code contradicts its registered rule;
+>      - PROPOSAL:306–311, 390–393, 417, 421–422 and 1164–1166;
+>      - the sixth line (PROPOSAL:564, scoreboard:404), which lists these 12 as held open;
+>      - the labels at scoreboard:420 and 540 ("of its occurrences");
+>      - lib:906.
+>    - **A committed test pins the gap.** test.ts:965 has NP galena at 30 mm in an 18.5 mm cavity (21 of 21 past q90) and expects it open on its share alone, with no may-be entry.
+>    - **Fix:**
+>      - Run the may-be rule over every occurrence whose cavity reaches q25, judged or left out.
+>      - Update test.ts:965, and add the 18.5 mm and Deccan cases.
+>    - **My scratch variant** (may be oversize where any run is left out and the median of all those lengths passes q90):
+>      - all three cases open;
+>      - the census is identical (32/32: 0 met, 16 failed, 16 open);
+>      - it breaks only test.ts:965 and the may-be unit test, which builds its own size objects.
+>
+> **SHOULD-FIX**
+>
+> 1. **"At least half" is not the oversize test's boundary, so the stated reason and two claimed invariants are false beyond the sizes tested.**
+>    - **The claim:** PROPOSAL:310, `size_check` (DATA…json:81) and test.ts:839 say exactly half is something "the oversize test leaves open too". It does so only when the R-7 median (the mean of the middle pair) passes q90.
+>    - **Evidence:**
+>      - NP galena in the 91.93 mm cavity, 6 × 20 mm and 6 × 28–34.4 mm (q90 27.2), is **MET**.
+>      - Round 11's strengthened property (test.ts:984–995; REVIEW:1355, "(it holds)") passes only because its 40 mm crystals average past q90.
+>      - Herkimer's 2,024 splits with giants of 61–104 mm (not 1 m): the 92 mm cavity meets 822 and the short one 802, so 20 exactly-half splits differ.
+>      - "Exactly the 92 mm cavity's 802" (REVIEW:1349, test.ts:1024, the commit) therefore holds only for giants longer than 2·q90 minus the carrier's length.
+>    - **Fix:** use one boundary on both sides, and restate the texts. Add a case just past q90 to both split tests. Either:
+>      - the R-7 median of the lengths in the may-be rule. My variant gives 822 = 822 at 61 and 90 mm, and 802 = 802 at 106 and 1,000 mm; or
+>      - leave exactly half open on the eligible side too.
+>
+> 2. **§4 does not list the may-be rule as a choice, and costs the cavity choice incompletely.**
+>    - **Stale and unlisted:**
+>      - PROPOSAL:1565–1568 still says "WP1 can never judge it oversize there". The sixth line now says it can never fail it, only hold it open.
+>      - The at-least-half boundary and its denominator are this proposal's choices, and §4 does not list them.
+>    - **The cost the boss should see:** in a cavity short of q90 an overgrown protagonist can never fail WP1 at all. Its giants count as runs it could carry, and at most make it "may be oversize".
+>      - Herkimer, WP1's first target, in its own cavity: 0 % of fleets fail at any median from 16 to 120 mm. In the 92 mm cavity, 46 % fail at 80 mm and 99 % at 120 mm; my sweep reproduces the commit's figures.
+>      - Turning one dust run into a giant changes a fail to open in 15 of its splits.
+>      - Today this is stated only in the commit and in REVIEW.
+>
+> 3. **Minor text:**
+>    - PROPOSAL:1594's "about 1.7 % simulated" is the five-crystal figure. Across records of 5, 8 and 17 it is 1.5–2.3 % (mine 1.8/1.5/2.3; REVIEW's 1.66/1.55/2.33).
+>    - "About 5, 9 and 30 %" are the lognormal simulations. The Beta model gives 5.8, 11.1 and 30.7 %; say which.
+>    - The response and the commit call the pockets paragraph "§2.3"; it is §1.3 (PROPOSAL:290–311).
+>
+> **Verified correct**
+> - **Read-only state:**
+>   - HEAD is 16f045c6 and the tree is clean.
+>   - The .local-evidence hashes are unchanged except the test-quarry ledger.
+>   - Nothing under js/ or data/, and not the comparison tool, changed in f49c1804^..16f045c6.
+>   - compare.json reproduced byte for byte.
+> - **Checks:** the size evidence runs; the targets match a rebuild; 13/13 scoreboard and 2/2 substrate blocks match; 124/124 tests pass.
+> - **M2 holds:**
+>   - option 1's 22/26/65 seeds;
+>   - option 2: 3.16/5.37/29.6 % on the runs' noise (model 5.8/11.1/30.7, simulated 4.7/9.2/30.2);
+>   - option 3 first judges at 13/8/5 runs (P 2.47/2.15/2.44 %), and Deccan's two at 0.92 % and 0.11 %;
+>   - the note correcting round 11 is present.
+> - **M1 holds in its own terms:**
+>   - the Herkimer sweep is met in 100/100/88.3/4.3/0 % of fleets in both cavities;
+>   - no move away from carrying improves the outcome at 61, 90 or 1,000 mm in either cavity;
+>   - the census is unchanged (no may-be).
+> - **S1–S5:** S1's texts match the code, except MUST-FIX 1's denominator. S2–S5 are done. Causes are listed by flag, and the never-carry relabel is right.
+> - **Mutants:** 18 on a scratch copy of the lib, run under a stand-in harness (the clean copy passes 124/124).
+>   - 16 killed. The may-be rule is pinned seven ways.
+>   - The 2 survivors are equivalent: `===` → `>=` in lengthAndSpanAgree, and `<` → `<=` 0.5.
+> - **Earlier rounds hold:**
+>   - there is no size floor;
+>   - unclassed runs stay out of the count;
+>   - one giant does not rescue dust.
+> - **Parser and joins:**
+>   - I checked every crystal length (about 60) behind Herkimer, Deccan's apophyllite and calcite, Grimsel's fluorite, Jeffrey's grossular, Mogok's spinel, NP galena, Tsumeb's cerussite and Shigar's aquamarine: none misread.
+>   - The joins I sampled are plausible, with no over-join.
+>
+> **Ready for the boss?** Not yet. First make the may-be rule count every occurrence whose cavity reaches q25 (MUST-FIX 1), and settle the exactly-half boundary and its claims (SHOULD-FIX 1). The rest is text.
+
+### The response
+
+| # | finding | what changed | evidence |
+|---|---|---|---|
+| M1 | a protagonist grown past a cavity short of its median was met with most of its crystals giants | The may-be test now reads every occurrence at its own length: `assessSize`'s new `atLength`, the median the size verdict would take in a cavity that hid nothing. Where that median is past q90 and the verdict is not OVERSIZE, WP1 is open. It counts every occurrence, not only those in cavities that reach q25 as the reviewer proposed: under that population, giants grown in cavities too small for the display range drop out of the median (6 carriers in 25 mm cavities and 15 metre-long crystals in 10 mm ones were met; open now). Restated: `size_check`, `carrier_obligation`, §1.3's pockets paragraph, WP1's bullets and target, the sixth line under §2's table, the open-cause and never-carry labels, the generated WP1 line and the lib's comments. The test of galena at 30 mm in an 18.5 mm cavity now expects the may-be entry beside its share. | The North Pennines galena (the test file's targets), 5 × 19 mm and 16 × 1 m: met in an 18.5 mm cavity before, open now, and open in 25 mm; failed in 91.93 mm. Deccan's stilbite, 7 × 60 and 14 × 500 mm in its own 66.41 mm cavity, and supergene's smithsonite, the primary, in its unclassed pockets: met before, open now (tests on copies of their targets). Across all 2,024 splits, in cavities short of q90 (Herkimer's own; the galena in 25 mm) and short of the median (the galena in 18.5 mm), WP1 meets exactly the splits a cavity that hides nothing meets, and fails no split that one does not fail. That holds with crystals just past q90 (61 mm for Herkimer, 28 mm for the galena) and at 90/34.4, 106/40 and 1,000 mm: met 822, 822, 802 and 802 in every cavity. It is pinned for two sizes each, with the reviewer's cases. Deccan's stilbite (2,000 lognormal fleets) is met in 84.5 / 47.5 / 0.1 % of fleets at medians of 60 / 120 / 200 mm, in its own cavity and in 80, 130 and 5,000 mm ones alike; the reviewer had 78 % against 47 % at 120 mm. The census is unchanged, and the rule fires nowhere in the 861 runs. |
+| S1 | "at least half" was not the oversize test's boundary | The may-be test is now the verdict's own median against its own q90, so one boundary serves both sides. The claims that exactly half is held open are removed from the proposal, `size_check` and the tests. Round 11's split property is back to "none mostly past the range", which holds at any size past q90. Both split tests now include a size just past q90. | The galena, 6 × 20 and 6 × 28 mm: met in the 18.5, 25 and 91.93 mm cavities alike (median 24 mm, in the range). Herkimer, 6 × 16 and 6 × 61 mm: met in both cavities; 6 × 16 and 6 × 1 m: open in its own. |
+| S2 | §4 did not list the may-be rule as a choice, nor cost the cavity choice fully | §4 lists it as a choice of this proposal, with its history (round 12's "at least half"; round 13's count over the cavities that hold the median) and its cost. In a cavity short of q90 an overgrown protagonist is open, never failed: Herkimer's quartz in its own cavity fails no fleet at any median from 16 to 120 mm, where a 92 mm cavity fails 46 % at 80 mm and 99 % at 120. A metre-long crystal in place of dust lifts a failing fleet to open in 15 of the moves between its 2,024 splits, and in none in the 92 mm cavity; a test pins both counts. The stale "WP1 can never judge it oversize there" now reads "can never fail it as oversize". | — |
+| S3 | minor text | §4: option 3's simulated false-fail rate is 1.5 to 2.3 % across records of five, eight and seventeen crystals. Option 2's "about 5, 9 and 30 %" are marked as simulated, beside the beta model's 5.8, 11.1 and 30.7 %. The pockets paragraph is §1.3, which round 12's response and commit message called §2.3; both are left as written. | — |
+
+Mutation testing: 12 mutants on round 13's code, 11 killed: the may-be rule ten ways by the tests — among them round 12's rule restored, and the reviewer's population (the cavities that reach q25), which the case of giants in cavities too small for the display range kills — and the registered rule text by the targets check. The survivor breaks the may-be label in the scoreboard's open causes; no protagonist is may-be-oversize in the census, so its output is identical.
+
+Result: STORY 1, STORY (PROXY) 1, NO STORY 3, UNRESOLVED 26, NO ENGINE 1, OUT OF SCOPE 1 (unchanged). WP1's whole target is met by none: it fails at 16 scored scenarios (by cause: the story 4, a band 15, a carrier share 5, oversize 0) and is open at 16. No protagonist is may-be-oversize. Tests 127 (was 124).
