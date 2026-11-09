@@ -1,0 +1,2670 @@
+{
+ "census_version": 3,
+ "sim_version": 286,
+ "seed": 1,
+ "inputs": "2744fd2eb7082d70b8c5775e0372d0548e36d691d23e05dde1dacb4960fe3058",
+ "scenarios": 41,
+ "controls": [
+  {
+   "id": "competition-log",
+   "kind": "positive",
+   "label": "the five R9 fahlores each show at least 10 \"edge-of-gate skip\" lines (recipe review R9: 64/64/60/60/65 at seed 42)",
+   "pass": true,
+   "detail": "64/64/60/60/65 = 313"
+  },
+  {
+   "id": "supply",
+   "kind": "positive",
+   "label": "the supply reading finds scarcity where it exists: in epithermal_telluride at least 100 zones of the gold tellurides are shaped on Au, some rationed and some budget-cut",
+   "pass": true,
+   "detail": "206 zones on Au; scenario-wide 206 rationed, 51 budget-cut"
+  },
+  {
+   "id": "two-fluids",
+   "kind": "positive",
+   "label": "radiogenic Pb stays on the bulk handle (bulk − voxel mean >= 50 ppm at run end); FLIPS when that write reaches the voxels",
+   "pass": true,
+   "detail": "97.7 / 216.8 ppm"
+  },
+  {
+   "id": "two-fluids",
+   "kind": "negative",
+   "label": "mvt's Ca never leaves the voxel mean by more than 1 % of its scale",
+   "pass": true,
+   "detail": "0.006 %"
+  },
+  {
+   "id": "space+end",
+   "kind": "positive",
+   "label": "gem_pegmatite reaches fill >= 0.999 by step 15, stores no positive zone afterwards, and at least 80 % of its crystals that grew read \"pocket full\"; FLIPS when the plug is cured",
+   "pass": true,
+   "detail": "full at step 10, last growth at step 10 of 230, \"pocket full\" 100 %"
+  },
+  {
+   "id": "space+end",
+   "kind": "negative",
+   "label": "mvt never reaches fill 0.7, is still growing on its final step, and no crystal reads \"pocket full\"",
+   "pass": true,
+   "detail": "first step at fill >= 0.7: never; fill at end 9.9 %, last growth at step 120 of 120, \"pocket full\" 0 %"
+  }
+ ],
+ "space": {
+  "le1": 17,
+  "le10": 11,
+  "le70": 7,
+  "gt70": 6,
+  "full": [
+   "gem_pegmatite@10/230",
+   "radioactive_pegmatite@55/120",
+   "searles_lake@185/300"
+  ]
+ },
+ "end": {
+  "surviving": 1101,
+  "ge1mm": 579,
+  "all": {
+   "still growing on the final step": 430,
+   "pocket full": 31,
+   "undersaturated, bulk too": 302,
+   "undersaturated at its cell only": 22,
+   "at or above saturation, no zone stored": 28,
+   "enclosed": 154,
+   "dissolving": 62,
+   "inactive": 0,
+   "size cap": 19,
+   "never grew": 47,
+   "no sigma method": 6,
+   "unclassified": 0
+  },
+  "ge1mmBy": {
+   "still growing on the final step": 316,
+   "pocket full": 22,
+   "undersaturated, bulk too": 150,
+   "undersaturated at its cell only": 6,
+   "at or above saturation, no zone stored": 10,
+   "enclosed": 8,
+   "dissolving": 42,
+   "inactive": 0,
+   "size cap": 19,
+   "never grew": 0,
+   "no sigma method": 6,
+   "unclassified": 0
+  },
+  "scenariosWithCrystals": 40,
+  "largestStillGrowing": 25,
+  "cellOnlyGe1mm": [
+   "supergene_oxidation/mimetite 3.2 mm (step 160)",
+   "supergene_oxidation/scorodite 3.2 mm (step 160)",
+   "supergene_oxidation/scorodite 2.9 mm (step 160)",
+   "supergene_oxidation/scorodite 3.2 mm (step 160)",
+   "supergene_oxidation/scorodite 3.0 mm (step 160)",
+   "supergene_oxidation/scorodite 2.5 mm (step 160)"
+  ],
+  "sizeCapGe1mm": [
+   "epithermal_telluride/hessite 17.3 mm (step 69)",
+   "epithermal_telluride/sylvanite 10.1 mm (step 81)",
+   "epithermal_telluride/sylvanite 10.1 mm (step 81)",
+   "epithermal_telluride/hessite 17.1 mm (step 69)",
+   "epithermal_telluride/calaverite 10.0 mm (step 81)",
+   "epithermal_telluride/hessite 17.1 mm (step 69)",
+   "epithermal_telluride/calaverite 10.0 mm (step 81)",
+   "supergene_oxidation/conichalcite 5.0 mm (step 87)",
+   "supergene_oxidation/powellite 20.0 mm (step 163)",
+   "supergene_oxidation/powellite 20.1 mm (step 164)",
+   "supergene_oxidation/powellite 20.0 mm (step 164)",
+   "supergene_oxidation/conichalcite 5.1 mm (step 96)",
+   "supergene_oxidation/powellite 20.0 mm (step 164)",
+   "supergene_oxidation/conichalcite 5.1 mm (step 96)",
+   "wittichen/haidingerite 4.9 mm (step 207)",
+   "wittichen/haidingerite 4.8 mm (step 208)",
+   "wittichen/haidingerite 5.0 mm (step 209)",
+   "wittichen/haidingerite 5.0 mm (step 211)",
+   "wittichen/haidingerite 4.8 mm (step 215)"
+  ],
+  "flowAuthored": [
+   "amethyst_geode 1→0.9265100944259205 (range 0.25–4.5)",
+   "asbestos_hills_crack_seal 1→0.18 (range 0.18–1)",
+   "asbestos_hills_surficial_alteration 1→0.12 (range 0.12–1)",
+   "bisbee 1→0.1 (range 0.1–1.62)",
+   "colorado_plateau 1→0.1 (range 0.1–1.08)",
+   "deccan_zeolite 1→0.1 (range 0.1–1)",
+   "elmwood 1→0.9885033776835002 (range 0.9885033776835002–3.15)",
+   "epithermal_telluride 1→0.9265100944259205 (range 0.9265100944259205–4.5)",
+   "gem_pegmatite 1→0.1 (range 0.1–1)",
+   "great_salt_plains 1→0.05 (range 0.05–1.26)",
+   "grimsel_alpine_cleft 1→0.2 (range 0.1–1)",
+   "jeffrey_mine 1→0.05 (range 0.05–1)",
+   "marble_contact_metamorphism 1→0.1 (range 0.1–2.25)",
+   "mvt 1→0.9265100944259205 (range 0.9150716981984405–4.5)",
+   "naica_geothermal 1→0.5 (range 0.05–1)",
+   "ouro_preto 1→0.05 (range 0.05–1.35)",
+   "porphyry 1→0.2 (range 0.2–3.6)",
+   "pulse 1→0.9414317882700003 (range 0.9265100944259205–4.5)",
+   "radioactive_pegmatite 1→0.1 (range 0.1–1.35)",
+   "reactivated_fluorite_vein 1→0.4 (range 0.05–4.5)",
+   "reactive_wall 1→0.1 (range 0.1–4.5)",
+   "roughten_gill 1→0.08 (range 0.08–1)",
+   "sabkha_dolomitization 1→0.05 (range 0.05–1.35)",
+   "schneeberg 1→0.3 (range 0.1–1.35)",
+   "searles_lake 1→0.2 (range 0.1–1.35)",
+   "shigar_pegmatite 1→0.2 (range 0.2–1)",
+   "sicily_solfifera 1→0.3 (range 0.2–1)",
+   "sulphur_bank 1→0.2 (range 0.1–1)",
+   "sunnyside_american_tunnel 1→0.1 (range 0.1–1)",
+   "supergene_oxidation 1→0.05 (range 0.05–1.8)",
+   "tn457_barite_pulses 1→0.9565938000000003 (range 0.9565938000000003–1.8)",
+   "tormiq_alpine_cleft 1→0.2 (range 0.2–1.1700000000000002)",
+   "ultramafic_supergene 1→0.05 (range 0.05–2.7)",
+   "wittichen 1→0.08 (range 0.08–1)"
+  ]
+ },
+ "supply": {
+  "pairs": 320,
+  "median": 0.00007308014410840342,
+  "p90": 0.0015727041194522496,
+  "max": 0.016539283059467585,
+  "over1pct": [
+   "colorado_plateau/U 1.7 %",
+   "supergene_oxidation/Mo 1.3 %",
+   "sulphur_bank/Hg 1.0 %"
+  ],
+  "over10pct": 0,
+  "positiveZones": 79984,
+  "rationed": 208,
+  "budgetCapped": 51,
+  "shapedBySupply": 208,
+  "limitedBy": {
+   "colorado_plateau/uranophane:U": 1,
+   "epithermal_telluride/sylvanite:Au": 104,
+   "epithermal_telluride/calaverite:Au": 102,
+   "roughten_gill/tetrahedrite:Sb": 1
+  },
+  "rationedToZero": 313,
+  "rationedToZeroBy": {
+   "bisbee/tetrahedrite": 64,
+   "bisbee/tennantite": 64,
+   "porphyry/tennantite": 60,
+   "porphyry/tetrahedrite": 60,
+   "schneeberg/tennantite": 65
+  }
+ },
+ "twoFluids": [
+  {
+   "scenario": "schneeberg",
+   "field": "Pb",
+   "maxDiv": 216.75913658726714,
+   "share": 0.9774530146674142,
+   "step": 160,
+   "bulkEnd": 221.75913658726714,
+   "voxEnd": 5,
+   "wallMinEnd": 5
+  },
+  {
+   "scenario": "radioactive_pegmatite",
+   "field": "Pb",
+   "maxDiv": 97.72937197789254,
+   "share": 0.7651284153718972,
+   "step": 81,
+   "bulkEnd": 127.72937197789254,
+   "voxEnd": 30,
+   "wallMinEnd": 30
+  },
+  {
+   "scenario": "stalactite_demo",
+   "field": "Ca",
+   "maxDiv": 425,
+   "share": 0.4146341463414634,
+   "step": 0,
+   "bulkEnd": 600,
+   "voxEnd": 1024.997500377206,
+   "wallMinEnd": 600
+  },
+  {
+   "scenario": "stalactite_demo",
+   "field": "CO3",
+   "maxDiv": 425,
+   "share": 0.4146341463414634,
+   "step": 0,
+   "bulkEnd": 600,
+   "voxEnd": 1024.9962574260512,
+   "wallMinEnd": 600
+  },
+  {
+   "scenario": "wittichen",
+   "field": "O2",
+   "maxDiv": 0.26286252712459657,
+   "share": 0.14603473729144253,
+   "step": 183,
+   "bulkEnd": 1.8,
+   "voxEnd": 1.5371374728756322,
+   "wallMinEnd": 0.6407365969573438
+  },
+  {
+   "scenario": "wittichen",
+   "field": "Eh",
+   "maxDiv": 46.000324864043364,
+   "share": 0.14280980839567506,
+   "step": 170,
+   "bulkEnd": 322.1090020413224,
+   "voxEnd": 284.255007555282,
+   "wallMinEnd": 142.6718121206808
+  },
+  {
+   "scenario": "roughten_gill",
+   "field": "O2",
+   "maxDiv": 0.22500000000019305,
+   "share": 0.12500000000010725,
+   "step": 183,
+   "bulkEnd": 1.2,
+   "voxEnd": 0.974999999999999,
+   "wallMinEnd": 0.7506942310796756
+  },
+  {
+   "scenario": "roughten_gill",
+   "field": "Eh",
+   "maxDiv": 39.88066111245385,
+   "share": 0.12381107283470978,
+   "step": 215,
+   "bulkEnd": 251.67249841904993,
+   "voxEnd": 212.09785438122225,
+   "wallMinEnd": 170.1852313685922
+  },
+  {
+   "scenario": "zoned_dripstone_cave",
+   "field": "Mg",
+   "maxDiv": 95.625,
+   "share": 0.08727895037079293,
+   "step": 0,
+   "bulkEnd": 1000,
+   "voxEnd": 1095.6249139095821,
+   "wallMinEnd": 30
+  },
+  {
+   "scenario": "supergene_oxidation",
+   "field": "Eh",
+   "maxDiv": 26.242226353353146,
+   "share": 0.07351400551915512,
+   "step": 160,
+   "bulkEnd": 220,
+   "voxEnd": 193.94507598195617,
+   "wallMinEnd": 160.87648626665285
+  },
+  {
+   "scenario": "schneeberg",
+   "field": "O2",
+   "maxDiv": 0.11391162896481344,
+   "share": 0.06328423831378524,
+   "step": 113,
+   "bulkEnd": 1.8,
+   "voxEnd": 1.6860883710354437,
+   "wallMinEnd": 1.498942339654029
+  },
+  {
+   "scenario": "supergene_oxidation",
+   "field": "O2",
+   "maxDiv": 0.1313550143237453,
+   "share": 0.059706824692611495,
+   "step": 162,
+   "bulkEnd": 1,
+   "voxEnd": 0.8686449856762611,
+   "wallMinEnd": 0.7115267230420564
+  }
+ ],
+ "count": {
+  "pairs": 350,
+  "single": 118,
+  "atOrOverCap": 177,
+  "speciesStepsPastSigmaCrit": 32981,
+  "capBinding": 14371,
+  "oneAtATime": 13112,
+  "neither": 5498,
+  "nucleationFunctions": 169,
+  "withOneAtATimeGate": 81,
+  "rolls": {
+   "total": 489,
+   "literal": 487,
+   "other": {
+    "_AIR_MODE_NUCLEATION_PROB": 2
+   }
+  }
+ },
+ "born": {
+  "crystals": 1174,
+  "neverGrew": 47,
+  "grewButUnder10um": 189,
+  "landedBelow90pctOfAdmittingSigma": 110,
+  "byScenario": [
+   "bisbee: tetrahedrite ×1, tennantite ×1",
+   "deccan_zeolite: feldspar ×1",
+   "gem_pegmatite: lepidolite ×3, cassiterite ×2",
+   "mvt: barite ×1",
+   "porphyry: tetrahedrite ×1, tennantite ×1",
+   "radioactive_pegmatite: opal ×5, plumbogummite ×3",
+   "schneeberg: tennantite ×1, topaz ×2, goethite ×1, pharmacolite ×2",
+   "searles_lake: mirabilite ×8, thenardite ×2, halite ×5",
+   "sunnyside_american_tunnel: native_silver ×4",
+   "supergene_oxidation: lepidocrocite ×1, descloizite ×1",
+   "ultramafic_supergene: dolomite ×1"
+  ]
+ },
+ "throughput": {
+  "over1": 30,
+  "over10": 28,
+  "over100": 23,
+  "over1000": 17,
+  "under0_01": 4,
+  "rows": [
+   {
+    "scenario": "roughten_gill",
+    "cavity_cm3": 9.818750920206474,
+    "solids_cm3": 5.154407124595003,
+    "priced": 0.9991852638909732,
+    "binding": {
+     "f": "Pb",
+     "pv": 33371.10114223506,
+     "ppm": 95,
+     "top": "galena"
+    },
+    "next": {
+     "f": "S",
+     "pv": 1596.225861889261,
+     "ppm": 300,
+     "top": "galena"
+    },
+    "elements": [
+     {
+      "f": "Pb",
+      "pv": 33371.10114223506,
+      "ppm": 95,
+      "top": "galena"
+     },
+     {
+      "f": "S",
+      "pv": 1596.225861889261,
+      "ppm": 300,
+      "top": "galena"
+     },
+     {
+      "f": "P",
+      "pv": 575.3993271554376,
+      "ppm": 12,
+      "top": "pyromorphite"
+     },
+     {
+      "f": "Cu",
+      "pv": 566.6448348648264,
+      "ppm": 150,
+      "top": "malachite"
+     },
+     {
+      "f": "Cl",
+      "pv": 87.81791474614258,
+      "ppm": 30,
+      "top": "pyromorphite"
+     },
+     {
+      "f": "CO3",
+      "pv": 33.758469087948484,
+      "ppm": 1200,
+      "top": "malachite"
+     },
+     {
+      "f": "SiO2",
+      "pv": 4.137580134121929,
+      "ppm": 360,
+      "top": "chrysocolla"
+     },
+     {
+      "f": "Ca",
+      "pv": 2.478515228701189,
+      "ppm": 350,
+      "top": "calcite"
+     },
+     {
+      "f": "Fe",
+      "pv": 1.360372023709976,
+      "ppm": 30,
+      "top": "pyrite"
+     },
+     {
+      "f": "Zn",
+      "pv": 0.055983947066789316,
+      "ppm": 180,
+      "top": "sphalerite"
+     }
+    ]
+   },
+   {
+    "scenario": "sulphur_bank",
+    "cavity_cm3": 32.97055103988535,
+    "solids_cm3": 9.276076562572412,
+    "priced": 0.9989436827468947,
+    "binding": {
+     "f": "Hg",
+     "pv": 14127.195454369126,
+     "ppm": 15,
+     "top": "metacinnabar"
+    },
+    "next": {
+     "f": "Fe",
+     "pv": 10279.307158502314,
+     "ppm": 55,
+     "top": "marcasite"
+    },
+    "elements": [
+     {
+      "f": "Hg",
+      "pv": 14127.195454369126,
+      "ppm": 15,
+      "top": "metacinnabar"
+     },
+     {
+      "f": "Fe",
+      "pv": 10279.307158502314,
+      "ppm": 55,
+      "top": "marcasite"
+     },
+     {
+      "f": "S",
+      "pv": 1001.1965495908911,
+      "ppm": 684.464,
+      "top": "marcasite"
+     }
+    ]
+   },
+   {
+    "scenario": "radioactive_pegmatite",
+    "cavity_cm3": 62.120725504011695,
+    "solids_cm3": 62.1207255040117,
+    "priced": 0.9999387089928266,
+    "binding": {
+     "f": "Al",
+     "pv": 8417.337680444245,
+     "ppm": 30,
+     "top": "feldspar"
+    },
+    "next": {
+     "f": "K",
+     "pv": 3307.1702159630877,
+     "ppm": 80,
+     "top": "feldspar"
+    },
+    "elements": [
+     {
+      "f": "Al",
+      "pv": 8417.337680444245,
+      "ppm": 30,
+      "top": "feldspar"
+     },
+     {
+      "f": "K",
+      "pv": 3307.1702159630877,
+      "ppm": 80,
+      "top": "feldspar"
+     },
+     {
+      "f": "Na",
+      "pv": 1129.0742926503756,
+      "ppm": 50,
+      "top": "albite"
+     },
+     {
+      "f": "SiO2",
+      "pv": 113.22707250881565,
+      "ppm": 15000,
+      "top": "feldspar"
+     },
+     {
+      "f": "Be",
+      "pv": 92.82423456288849,
+      "ppm": 20,
+      "top": "morganite"
+     },
+     {
+      "f": "U",
+      "pv": 58.06368564457066,
+      "ppm": 150,
+      "top": "uraninite"
+     }
+    ]
+   },
+   {
+    "scenario": "supergene_oxidation",
+    "cavity_cm3": 62.65053917462914,
+    "solids_cm3": 27.002724369012217,
+    "priced": 0.9944360106704836,
+    "binding": {
+     "f": "Mo",
+     "pv": 8406.893496002866,
+     "ppm": 40,
+     "top": "ferrimolybdite"
+    },
+    "next": {
+     "f": "Cu",
+     "pv": 4319.128978355714,
+     "ppm": 105,
+     "top": "malachite"
+    },
+    "elements": [
+     {
+      "f": "Mo",
+      "pv": 8406.893496002866,
+      "ppm": 40,
+      "top": "ferrimolybdite"
+     },
+     {
+      "f": "Cu",
+      "pv": 4319.128978355714,
+      "ppm": 105,
+      "top": "malachite"
+     },
+     {
+      "f": "Fe",
+      "pv": 1233.1060007879673,
+      "ppm": 56.32681509581943,
+      "top": "ferrimolybdite"
+     },
+     {
+      "f": "CO3",
+      "pv": 470.58357845879516,
+      "ppm": 424.1952046646748,
+      "top": "malachite"
+     },
+     {
+      "f": "Pb",
+      "pv": 432.6919897911732,
+      "ppm": 100,
+      "top": "wulfenite"
+     },
+     {
+      "f": "Ca",
+      "pv": 101.58897364126427,
+      "ppm": 564.9022264372913,
+      "top": "powellite"
+     },
+     {
+      "f": "S",
+      "pv": 8.075180357694327,
+      "ppm": 480,
+      "top": "brochantite"
+     },
+     {
+      "f": "P",
+      "pv": 3.7256038014808874,
+      "ppm": 6.5,
+      "top": "pyromorphite"
+     },
+     {
+      "f": "Cl",
+      "pv": 0.21487967999945773,
+      "ppm": 43,
+      "top": "pyromorphite"
+     },
+     {
+      "f": "Co",
+      "pv": 0.02274728857007106,
+      "ppm": 20,
+      "top": "erythrite"
+     },
+     {
+      "f": "As",
+      "pv": 0.022091881801404777,
+      "ppm": 33,
+      "top": "erythrite"
+     },
+     {
+      "f": "Ni",
+      "pv": 0.02017793469059785,
+      "ppm": 20,
+      "top": "annabergite"
+     }
+    ]
+   },
+   {
+    "scenario": "sunnyside_american_tunnel",
+    "cavity_cm3": 63.96556717741585,
+    "solids_cm3": 55.975476673972956,
+    "priced": 0.9994515848224743,
+    "binding": {
+     "f": "Pb",
+     "pv": 5220.056699190413,
+     "ppm": 80,
+     "top": "galena"
+    },
+    "next": {
+     "f": "Ca",
+     "pv": 3665.4351885006026,
+     "ppm": 240,
+     "top": "calcite"
+    },
+    "elements": [
+     {
+      "f": "Pb",
+      "pv": 5220.056699190413,
+      "ppm": 80,
+      "top": "galena"
+     },
+     {
+      "f": "Ca",
+      "pv": 3665.4351885006026,
+      "ppm": 240,
+      "top": "calcite"
+     },
+     {
+      "f": "CO3",
+      "pv": 2196.4145737778554,
+      "ppm": 600,
+      "top": "calcite"
+     },
+     {
+      "f": "S",
+      "pv": 323.18329647705247,
+      "ppm": 200,
+      "top": "galena"
+     },
+     {
+      "f": "Mn",
+      "pv": 21.91333913494866,
+      "ppm": 30,
+      "top": "rhodochrosite"
+     },
+     {
+      "f": "F",
+      "pv": 0.2104448473852323,
+      "ppm": 35,
+      "top": "fluorite"
+     },
+     {
+      "f": "As",
+      "pv": 0.07146618885427788,
+      "ppm": 10,
+      "top": "arsenopyrite"
+     },
+     {
+      "f": "SiO2",
+      "pv": 0.04857444582597767,
+      "ppm": 450,
+      "top": "quartz"
+     },
+     {
+      "f": "Fe",
+      "pv": 0.01324159198410541,
+      "ppm": 45,
+      "top": "arsenopyrite"
+     },
+     {
+      "f": "Zn",
+      "pv": 0.0049141022651851595,
+      "ppm": 120,
+      "top": "sphalerite"
+     },
+     {
+      "f": "Cu",
+      "pv": 0.0005974526032598563,
+      "ppm": 55,
+      "top": "chalcopyrite"
+     },
+     {
+      "f": "Te",
+      "pv": 0.0002003642860607241,
+      "ppm": 1,
+      "top": "sylvanite"
+     },
+     {
+      "f": "Au",
+      "pv": 0.00004417587386252887,
+      "ppm": 2.5,
+      "top": "calaverite"
+     },
+     {
+      "f": "Ag",
+      "pv": 0.0000030262064426489863,
+      "ppm": 8,
+      "top": "sylvanite"
+     }
+    ]
+   },
+   {
+    "scenario": "epithermal_telluride",
+    "cavity_cm3": 28.44572801904422,
+    "solids_cm3": 2.8118765848672904,
+    "priced": 0.9958603123551776,
+    "binding": {
+     "f": "Ag",
+     "pv": 4910.169605814072,
+     "ppm": 90,
+     "top": "hessite"
+    },
+    "next": {
+     "f": "Te",
+     "pv": 2762.6973982126606,
+     "ppm": 113,
+     "top": "hessite"
+    },
+    "elements": [
+     {
+      "f": "Ag",
+      "pv": 4910.169605814072,
+      "ppm": 90,
+      "top": "hessite"
+     },
+     {
+      "f": "Te",
+      "pv": 2762.6973982126606,
+      "ppm": 113,
+      "top": "hessite"
+     },
+     {
+      "f": "Au",
+      "pv": 2196.4876962326266,
+      "ppm": 25.4,
+      "top": "calaverite"
+     },
+     {
+      "f": "Al",
+      "pv": 65.90814942974461,
+      "ppm": 8,
+      "top": "feldspar"
+     },
+     {
+      "f": "SiO2",
+      "pv": 7.934257889905731,
+      "ppm": 870,
+      "top": "feldspar"
+     },
+     {
+      "f": "K",
+      "pv": 3.1188580322249417,
+      "ppm": 245,
+      "top": "feldspar"
+     },
+     {
+      "f": "Na",
+      "pv": 0.000038378782278098416,
+      "ppm": 60,
+      "top": "albite"
+     }
+    ]
+   },
+   {
+    "scenario": "gem_pegmatite",
+    "cavity_cm3": 69.26432628599616,
+    "solids_cm3": 69.26432628599618,
+    "priced": 0.9999998700532281,
+    "binding": {
+     "f": "K",
+     "pv": 4406.336120864609,
+     "ppm": 80,
+     "top": "feldspar"
+    },
+    "next": {
+     "f": "Al",
+     "pv": 1553.5938367847136,
+     "ppm": 160,
+     "top": "feldspar"
+    },
+    "elements": [
+     {
+      "f": "K",
+      "pv": 4406.336120864609,
+      "ppm": 80,
+      "top": "feldspar"
+     },
+     {
+      "f": "Al",
+      "pv": 1553.5938367847136,
+      "ppm": 160,
+      "top": "feldspar"
+     },
+     {
+      "f": "SiO2",
+      "pv": 207.5801547567578,
+      "ppm": 8000,
+      "top": "feldspar"
+     },
+     {
+      "f": "Na",
+      "pv": 56.8385196808704,
+      "ppm": 80,
+      "top": "albite"
+     }
+    ]
+   },
+   {
+    "scenario": "porphyry",
+    "cavity_cm3": 78.99709665545912,
+    "solids_cm3": 10.902512267103202,
+    "priced": 0.9988317442274741,
+    "binding": {
+     "f": "Mo",
+     "pv": 3937.527501309769,
+     "ppm": 80,
+     "top": "molybdenite"
+    },
+    "next": {
+     "f": "S",
+     "pv": 739.5170110780136,
+     "ppm": 260,
+     "top": "molybdenite"
+    },
+    "elements": [
+     {
+      "f": "Mo",
+      "pv": 3937.527501309769,
+      "ppm": 80,
+      "top": "molybdenite"
+     },
+     {
+      "f": "S",
+      "pv": 739.5170110780136,
+      "ppm": 260,
+      "top": "molybdenite"
+     },
+     {
+      "f": "As",
+      "pv": 631.1076677142272,
+      "ppm": 15,
+      "top": "arsenopyrite"
+     },
+     {
+      "f": "Pb",
+      "pv": 374.4736893507525,
+      "ppm": 55,
+      "top": "galena"
+     },
+     {
+      "f": "Fe",
+      "pv": 201.11550453552604,
+      "ppm": 110,
+      "top": "ferrimolybdite"
+     },
+     {
+      "f": "Cu",
+      "pv": 5.463594692578387,
+      "ppm": 120,
+      "top": "brochantite"
+     },
+     {
+      "f": "Al",
+      "pv": 0.6892596419107796,
+      "ppm": 15,
+      "top": "feldspar"
+     },
+     {
+      "f": "K",
+      "pv": 0.29827817370811777,
+      "ppm": 40,
+      "top": "feldspar"
+     },
+     {
+      "f": "Na",
+      "pv": 0.07178578556031452,
+      "ppm": 25,
+      "top": "albite"
+     },
+     {
+      "f": "SiO2",
+      "pv": 0.06279002519947381,
+      "ppm": 1100,
+      "top": "feldspar"
+     },
+     {
+      "f": "CO3",
+      "pv": 0.00036224159629945693,
+      "ppm": 50,
+      "top": "malachite"
+     }
+    ]
+   },
+   {
+    "scenario": "ouro_preto",
+    "cavity_cm3": 68.50359752979871,
+    "solids_cm3": 22.119883172955152,
+    "priced": 0.9957509696852592,
+    "binding": {
+     "f": "Al",
+     "pv": 3617.6640472627973,
+     "ppm": 23,
+     "top": "albite"
+    },
+    "next": {
+     "f": "K",
+     "pv": 1415.1284558709272,
+     "ppm": 40,
+     "top": "feldspar"
+    },
+    "elements": [
+     {
+      "f": "Al",
+      "pv": 3617.6640472627973,
+      "ppm": 23,
+      "top": "albite"
+     },
+     {
+      "f": "K",
+      "pv": 1415.1284558709272,
+      "ppm": 40,
+      "top": "feldspar"
+     },
+     {
+      "f": "Na",
+      "pv": 626.9742817364619,
+      "ppm": 60,
+      "top": "albite"
+     },
+     {
+      "f": "SiO2",
+      "pv": 412.4600500458476,
+      "ppm": 1350,
+      "top": "albite"
+     }
+    ]
+   },
+   {
+    "scenario": "bisbee",
+    "cavity_cm3": 66.38414361697275,
+    "solids_cm3": 60.36152751701526,
+    "priced": 0.9994794119042876,
+    "binding": {
+     "f": "Cu",
+     "pv": 2200.4149195322484,
+     "ppm": 770,
+     "top": "atacamite"
+    },
+    "next": {
+     "f": "S",
+     "pv": 1957.681932546595,
+     "ppm": 270,
+     "top": "chalcopyrite"
+    },
+    "elements": [
+     {
+      "f": "Cu",
+      "pv": 2200.4149195322484,
+      "ppm": 770,
+      "top": "atacamite"
+     },
+     {
+      "f": "S",
+      "pv": 1957.681932546595,
+      "ppm": 270,
+      "top": "chalcopyrite"
+     },
+     {
+      "f": "Fe",
+      "pv": 1916.8016483320955,
+      "ppm": 250.7424350697204,
+      "top": "chalcopyrite"
+     },
+     {
+      "f": "Cl",
+      "pv": 799.7493625414606,
+      "ppm": 400,
+      "top": "atacamite"
+     },
+     {
+      "f": "SiO2",
+      "pv": 37.605599637249995,
+      "ppm": 690,
+      "top": "chrysocolla"
+     },
+     {
+      "f": "CO3",
+      "pv": 20.676945504173442,
+      "ppm": 260,
+      "top": "malachite"
+     },
+     {
+      "f": "Al",
+      "pv": 18.58090390681705,
+      "ppm": 20,
+      "top": "albite"
+     },
+     {
+      "f": "Na",
+      "pv": 2.4014460160701647,
+      "ppm": 120,
+      "top": "albite"
+     },
+     {
+      "f": "K",
+      "pv": 0.6056110626017385,
+      "ppm": 80,
+      "top": "feldspar"
+     },
+     {
+      "f": "Ag",
+      "pv": 3.53334936065816e-8,
+      "ppm": 40,
+      "top": "native_silver"
+     }
+    ]
+   },
+   {
+    "scenario": "shigar_pegmatite",
+    "cavity_cm3": 6029.868480414726,
+    "solids_cm3": 5520.991345484161,
+    "priced": 0.9999995435035288,
+    "binding": {
+     "f": "K",
+     "pv": 1854.1016294987458,
+     "ppm": 80,
+     "top": "feldspar"
+    },
+    "next": {
+     "f": "Al",
+     "pv": 1586.4944428407991,
+     "ppm": 150,
+     "top": "albite"
+    },
+    "elements": [
+     {
+      "f": "K",
+      "pv": 1854.1016294987458,
+      "ppm": 80,
+      "top": "feldspar"
+     },
+     {
+      "f": "Al",
+      "pv": 1586.4944428407991,
+      "ppm": 150,
+      "top": "albite"
+     },
+     {
+      "f": "Na",
+      "pv": 1359.6105644785098,
+      "ppm": 85,
+      "top": "albite"
+     },
+     {
+      "f": "SiO2",
+      "pv": 198.74059221168852,
+      "ppm": 8000,
+      "top": "albite"
+     }
+    ]
+   },
+   {
+    "scenario": "tormiq_alpine_cleft",
+    "cavity_cm3": 532.7111527167838,
+    "solids_cm3": 44.12488225738708,
+    "priced": 0.9992023113813414,
+    "binding": {
+     "f": "Al",
+     "pv": 1458.0271540779775,
+     "ppm": 16,
+     "top": "albite"
+    },
+    "next": {
+     "f": "SiO2",
+     "pv": 99.71800227480725,
+     "ppm": 1420,
+     "top": "albite"
+    },
+    "elements": [
+     {
+      "f": "Al",
+      "pv": 1458.0271540779775,
+      "ppm": 16,
+      "top": "albite"
+     },
+     {
+      "f": "SiO2",
+      "pv": 99.71800227480725,
+      "ppm": 1420,
+      "top": "albite"
+     },
+     {
+      "f": "Na",
+      "pv": 70.40156534116878,
+      "ppm": 200,
+      "top": "albite"
+     },
+     {
+      "f": "Fe",
+      "pv": 67.9517276958538,
+      "ppm": 65,
+      "top": "epidote"
+     },
+     {
+      "f": "K",
+      "pv": 17.516265749926838,
+      "ppm": 210,
+      "top": "feldspar"
+     },
+     {
+      "f": "Ca",
+      "pv": 9.054809598774323,
+      "ppm": 700,
+      "top": "epidote"
+     },
+     {
+      "f": "Mg",
+      "pv": 0.011644592387985332,
+      "ppm": 45,
+      "top": "actinolite"
+     }
+    ]
+   },
+   {
+    "scenario": "searles_lake",
+    "cavity_cm3": 25.70331826515692,
+    "solids_cm3": 23.293899766784712,
+    "priced": 0.9983601297502002,
+    "binding": {
+     "f": "S",
+     "pv": 1358.5095923475012,
+     "ppm": 400,
+     "top": "thenardite"
+    },
+    "next": {
+     "f": "Na",
+     "pv": 519.3967199503703,
+     "ppm": 1500,
+     "top": "thenardite"
+    },
+    "elements": [
+     {
+      "f": "S",
+      "pv": 1358.5095923475012,
+      "ppm": 400,
+      "top": "thenardite"
+     },
+     {
+      "f": "Na",
+      "pv": 519.3967199503703,
+      "ppm": 1500,
+      "top": "thenardite"
+     },
+     {
+      "f": "Sr",
+      "pv": 1.535532096203653,
+      "ppm": 5,
+      "top": "celestine"
+     },
+     {
+      "f": "Ca",
+      "pv": 1.4185458067995843e-7,
+      "ppm": 25,
+      "top": "calcite"
+     },
+     {
+      "f": "CO3",
+      "pv": 6.63726717393674e-8,
+      "ppm": 80,
+      "top": "calcite"
+     }
+    ]
+   },
+   {
+    "scenario": "colorado_plateau",
+    "cavity_cm3": 75.0678749751914,
+    "solids_cm3": 0.8486042295688913,
+    "priced": 0.9999941558702703,
+    "binding": {
+     "f": "U",
+     "pv": 1344.2269292136127,
+     "ppm": 18,
+     "top": "uranophane"
+    },
+    "next": {
+     "f": "SiO2",
+     "pv": 29.62859866722597,
+     "ppm": 200,
+     "top": "uranophane"
+    },
+    "elements": [
+     {
+      "f": "U",
+      "pv": 1344.2269292136127,
+      "ppm": 18,
+      "top": "uranophane"
+     },
+     {
+      "f": "SiO2",
+      "pv": 29.62859866722597,
+      "ppm": 200,
+      "top": "uranophane"
+     },
+     {
+      "f": "V",
+      "pv": 20.465897460324136,
+      "ppm": 14,
+      "top": "tyuyamunite"
+     },
+     {
+      "f": "Ca",
+      "pv": 20.370942230220326,
+      "ppm": 100,
+      "top": "uranophane"
+     }
+    ]
+   },
+   {
+    "scenario": "reactivated_fluorite_vein",
+    "cavity_cm3": 86.8976341040975,
+    "solids_cm3": 20.240585563553378,
+    "priced": 0.9996771532137044,
+    "binding": {
+     "f": "CO3",
+     "pv": 1297.3746324484518,
+     "ppm": 280,
+     "top": "calcite"
+    },
+    "next": {
+     "f": "Ca",
+     "pv": 568.3483206313234,
+     "ppm": 450,
+     "top": "calcite"
+    },
+    "elements": [
+     {
+      "f": "CO3",
+      "pv": 1297.3746324484518,
+      "ppm": 280,
+      "top": "calcite"
+     },
+     {
+      "f": "Ca",
+      "pv": 568.3483206313234,
+      "ppm": 450,
+      "top": "calcite"
+     },
+     {
+      "f": "F",
+      "pv": 198.41307299091204,
+      "ppm": 64,
+      "top": "fluorite"
+     },
+     {
+      "f": "Pb",
+      "pv": 94.60127809968623,
+      "ppm": 65,
+      "top": "galena"
+     },
+     {
+      "f": "Mn",
+      "pv": 14.33248277144989,
+      "ppm": 25,
+      "top": "rhodochrosite"
+     },
+     {
+      "f": "Sr",
+      "pv": 13.79060458340531,
+      "ppm": 15,
+      "top": "celestine"
+     },
+     {
+      "f": "S",
+      "pv": 8.96391617030725,
+      "ppm": 120,
+      "top": "galena"
+     },
+     {
+      "f": "Ba",
+      "pv": 4.854587512785635,
+      "ppm": 30,
+      "top": "barite"
+     },
+     {
+      "f": "Fe",
+      "pv": 0.5299873349594988,
+      "ppm": 30,
+      "top": "siderite"
+     },
+     {
+      "f": "Zn",
+      "pv": 0.024186396377405616,
+      "ppm": 150,
+      "top": "sphalerite"
+     }
+    ]
+   },
+   {
+    "scenario": "sabkha_dolomitization",
+    "cavity_cm3": 41.62847195504044,
+    "solids_cm3": 1.079914338782414,
+    "priced": 0.9999998989649787,
+    "binding": {
+     "f": "Sr",
+     "pv": 1199.0135579108899,
+     "ppm": 30,
+     "top": "celestine"
+    },
+    "next": {
+     "f": "Ca",
+     "pv": 10.12611108448469,
+     "ppm": 600,
+     "top": "anhydrite"
+    },
+    "elements": [
+     {
+      "f": "Sr",
+      "pv": 1199.0135579108899,
+      "ppm": 30,
+      "top": "celestine"
+     },
+     {
+      "f": "Ca",
+      "pv": 10.12611108448469,
+      "ppm": 600,
+      "top": "anhydrite"
+     },
+     {
+      "f": "S",
+      "pv": 2.003006117768521,
+      "ppm": 9000,
+      "top": "celestine"
+     },
+     {
+      "f": "CO3",
+      "pv": 6.771919899096252e-8,
+      "ppm": 745.3833230336651,
+      "top": "aragonite"
+     }
+    ]
+   },
+   {
+    "scenario": "sicily_solfifera",
+    "cavity_cm3": 15.183731619397612,
+    "solids_cm3": 0.44463962401235013,
+    "priced": 0.9978868465265698,
+    "binding": {
+     "f": "Sr",
+     "pv": 1079.6124350174719,
+     "ppm": 45,
+     "top": "celestine"
+    },
+    "next": {
+     "f": "S",
+     "pv": 35.89082328477826,
+     "ppm": 700,
+     "top": "celestine"
+    },
+    "elements": [
+     {
+      "f": "Sr",
+      "pv": 1079.6124350174719,
+      "ppm": 45,
+      "top": "celestine"
+     },
+     {
+      "f": "S",
+      "pv": 35.89082328477826,
+      "ppm": 700,
+      "top": "celestine"
+     },
+     {
+      "f": "CO3",
+      "pv": 0.03738869002675955,
+      "ppm": 1015.6096039912691,
+      "top": "calcite"
+     },
+     {
+      "f": "Ca",
+      "pv": 0.021138600494826337,
+      "ppm": 1200,
+      "top": "calcite"
+     }
+    ]
+   },
+   {
+    "scenario": "mvt",
+    "cavity_cm3": 68.2262155181951,
+    "solids_cm3": 6.74839388959549,
+    "priced": 0.9996687149262682,
+    "binding": {
+     "f": "CO3",
+     "pv": 596.8272089969375,
+     "ppm": 250,
+     "top": "calcite"
+    },
+    "next": {
+     "f": "Pb",
+     "pv": 313.48574628627506,
+     "ppm": 65,
+     "top": "galena"
+    },
+    "elements": [
+     {
+      "f": "CO3",
+      "pv": 596.8272089969375,
+      "ppm": 250,
+      "top": "calcite"
+     },
+     {
+      "f": "Pb",
+      "pv": 313.48574628627506,
+      "ppm": 65,
+      "top": "galena"
+     },
+     {
+      "f": "Ca",
+      "pv": 265.0774469791088,
+      "ppm": 400,
+      "top": "calcite"
+     },
+     {
+      "f": "F",
+      "pv": 133.29099159588512,
+      "ppm": 45,
+      "top": "fluorite"
+     },
+     {
+      "f": "S",
+      "pv": 26.915205507324917,
+      "ppm": 120,
+      "top": "galena"
+     },
+     {
+      "f": "Fe",
+      "pv": 0.4274352312352368,
+      "ppm": 62.99999999999999,
+      "top": "pyrite"
+     },
+     {
+      "f": "Zn",
+      "pv": 0.0573560338426275,
+      "ppm": 150,
+      "top": "sphalerite"
+     },
+     {
+      "f": "Ba",
+      "pv": 0.00007038992783695848,
+      "ppm": 20,
+      "top": "barite"
+     },
+     {
+      "f": "SiO2",
+      "pv": 0.00003156676286288885,
+      "ppm": 120,
+      "top": "quartz"
+     }
+    ]
+   },
+   {
+    "scenario": "schneeberg",
+    "cavity_cm3": 81.39946826337558,
+    "solids_cm3": 8.933714594936655,
+    "priced": 0.9999348986526558,
+    "binding": {
+     "f": "K",
+     "pv": 464.91215931838144,
+     "ppm": 30,
+     "top": "feldspar"
+    },
+    "next": {
+     "f": "Al",
+     "pv": 384.96158399589893,
+     "ppm": 25,
+     "top": "feldspar"
+    },
+    "elements": [
+     {
+      "f": "K",
+      "pv": 464.91215931838144,
+      "ppm": 30,
+      "top": "feldspar"
+     },
+     {
+      "f": "Al",
+      "pv": 384.96158399589893,
+      "ppm": 25,
+      "top": "feldspar"
+     },
+     {
+      "f": "U",
+      "pv": 150.50665447806023,
+      "ppm": 100,
+      "top": "uraninite"
+     },
+     {
+      "f": "SiO2",
+      "pv": 30.91069710559265,
+      "ppm": 8000,
+      "top": "quartz"
+     },
+     {
+      "f": "Cu",
+      "pv": 2.305852945877437,
+      "ppm": 80,
+      "top": "chrysocolla"
+     },
+     {
+      "f": "Fe",
+      "pv": 1.850278364277893,
+      "ppm": 40,
+      "top": "arsenopyrite"
+     },
+     {
+      "f": "As",
+      "pv": 1.7059461992354428,
+      "ppm": 60,
+      "top": "arsenopyrite"
+     },
+     {
+      "f": "S",
+      "pv": 1.417758058595764,
+      "ppm": 30,
+      "top": "arsenopyrite"
+     },
+     {
+      "f": "Ni",
+      "pv": 0.08979330054699115,
+      "ppm": 20,
+      "top": "nickeline"
+     },
+     {
+      "f": "Co",
+      "pv": 0.019653209125437512,
+      "ppm": 30,
+      "top": "erythrite"
+     },
+     {
+      "f": "Ca",
+      "pv": 0.018779900340838544,
+      "ppm": 100,
+      "top": "uranophane"
+     },
+     {
+      "f": "Be",
+      "pv": 0.000059705959552097784,
+      "ppm": 10,
+      "top": "morganite"
+     },
+     {
+      "f": "Ag",
+      "pv": 0.000021430175846979806,
+      "ppm": 8,
+      "top": "native_silver"
+     }
+    ]
+   },
+   {
+    "scenario": "elmwood",
+    "cavity_cm3": 70.80821571512388,
+    "solids_cm3": 0.8619587704449616,
+    "priced": 1,
+    "binding": {
+     "f": "Sr",
+     "pv": 271.1312577029393,
+     "ppm": 30,
+     "top": "celestine"
+    },
+    "next": {
+     "f": "F",
+     "pv": 97.16401631062675,
+     "ppm": 30,
+     "top": "fluorite"
+    },
+    "elements": [
+     {
+      "f": "Sr",
+      "pv": 271.1312577029393,
+      "ppm": 30,
+      "top": "celestine"
+     },
+     {
+      "f": "F",
+      "pv": 97.16401631062675,
+      "ppm": 30,
+      "top": "fluorite"
+     },
+     {
+      "f": "Ca",
+      "pv": 21.97343615744533,
+      "ppm": 420,
+      "top": "calcite"
+     },
+     {
+      "f": "S",
+      "pv": 16.928103019434072,
+      "ppm": 201,
+      "top": "celestine"
+     },
+     {
+      "f": "CO3",
+      "pv": 12.135153306273295,
+      "ppm": 759.3363482999611,
+      "top": "calcite"
+     },
+     {
+      "f": "Zn",
+      "pv": 5.7137808548897215,
+      "ppm": 150,
+      "top": "sphalerite"
+     },
+     {
+      "f": "Ba",
+      "pv": 0.7679293366744815,
+      "ppm": 28,
+      "top": "barite"
+     },
+     {
+      "f": "SiO2",
+      "pv": 0.013752189942694065,
+      "ppm": 60,
+      "top": "chalcedony"
+     }
+    ]
+   },
+   {
+    "scenario": "tn457_barite_pulses",
+    "cavity_cm3": 8.904409012378927,
+    "solids_cm3": 0.1921200312729924,
+    "priced": 1,
+    "binding": {
+     "f": "Ba",
+     "pv": 268.4572072426174,
+     "ppm": 180,
+     "top": "barite"
+    },
+    "next": {
+     "f": "S",
+     "pv": 78.05207860014654,
+     "ppm": 200,
+     "top": "barite"
+    },
+    "elements": [
+     {
+      "f": "Ba",
+      "pv": 268.4572072426174,
+      "ppm": 180,
+      "top": "barite"
+     },
+     {
+      "f": "S",
+      "pv": 78.05207860014654,
+      "ppm": 200,
+      "top": "barite"
+     },
+     {
+      "f": "Zn",
+      "pv": 48.99532652575835,
+      "ppm": 180,
+      "top": "sphalerite"
+     }
+    ]
+   },
+   {
+    "scenario": "asbestos_hills_surficial_alteration",
+    "cavity_cm3": 79.30869922848096,
+    "solids_cm3": 0.2217260494625325,
+    "priced": 0.9979351709029205,
+    "binding": {
+     "f": "CO3",
+     "pv": 255.02675156343355,
+     "ppm": 5,
+     "top": "siderite"
+    },
+    "next": {
+     "f": "Fe",
+     "pv": 4.555646614117672,
+     "ppm": 300,
+     "top": "siderite"
+    },
+    "elements": [
+     {
+      "f": "CO3",
+      "pv": 255.02675156343355,
+      "ppm": 5,
+      "top": "siderite"
+     },
+     {
+      "f": "Fe",
+      "pv": 4.555646614117672,
+      "ppm": 300,
+      "top": "siderite"
+     },
+     {
+      "f": "SiO2",
+      "pv": 4.126271839616272,
+      "ppm": 1000,
+      "top": "opal"
+     },
+     {
+      "f": "Na",
+      "pv": 0.016509617682370074,
+      "ppm": 160,
+      "top": "crocidolite"
+     }
+    ]
+   },
+   {
+    "scenario": "asbestos_hills_crack_seal",
+    "cavity_cm3": 91.16913221844194,
+    "solids_cm3": 0.19223259308576252,
+    "priced": 0.9975116149093546,
+    "binding": {
+     "f": "CO3",
+     "pv": 249.9217007064802,
+     "ppm": 5,
+     "top": "siderite"
+    },
+    "next": {
+     "f": "SiO2",
+     "pv": 4.431717923758101,
+     "ppm": 650,
+     "top": "opal"
+    },
+    "elements": [
+     {
+      "f": "CO3",
+      "pv": 249.9217007064802,
+      "ppm": 5,
+      "top": "siderite"
+     },
+     {
+      "f": "SiO2",
+      "pv": 4.431717923758101,
+      "ppm": 650,
+      "top": "opal"
+     },
+     {
+      "f": "Fe",
+      "pv": 4.1290870571096745,
+      "ppm": 300,
+      "top": "siderite"
+     },
+     {
+      "f": "Na",
+      "pv": 0.0412415563814016,
+      "ppm": 160,
+      "top": "crocidolite"
+     }
+    ]
+   },
+   {
+    "scenario": "ultramafic_supergene",
+    "cavity_cm3": 36.41924298383915,
+    "solids_cm3": 0.4317072557815451,
+    "priced": 1,
+    "binding": {
+     "f": "SiO2",
+     "pv": 59.525376804616535,
+     "ppm": 400,
+     "top": "opal"
+    },
+    "next": {
+     "f": "Ca",
+     "pv": 1.3906051615103637e-9,
+     "ppm": 30,
+     "top": "calcite"
+    },
+    "elements": [
+     {
+      "f": "SiO2",
+      "pv": 59.525376804616535,
+      "ppm": 400,
+      "top": "opal"
+     },
+     {
+      "f": "Ca",
+      "pv": 1.3906051615103637e-9,
+      "ppm": 30,
+      "top": "calcite"
+     },
+     {
+      "f": "CO3",
+      "pv": 7.80784204175121e-10,
+      "ppm": 80,
+      "top": "calcite"
+     }
+    ]
+   },
+   {
+    "scenario": "jeffrey_mine",
+    "cavity_cm3": 329.1923445138876,
+    "solids_cm3": 3.5160746296587004,
+    "priced": 0.9929954077057032,
+    "binding": {
+     "f": "SiO2",
+     "pv": 37.853086230220505,
+     "ppm": 480,
+     "top": "diopside"
+    },
+    "next": {
+     "f": "Ca",
+     "pv": 12.032260212687147,
+     "ppm": 570,
+     "top": "diopside"
+    },
+    "elements": [
+     {
+      "f": "SiO2",
+      "pv": 37.853086230220505,
+      "ppm": 480,
+      "top": "diopside"
+     },
+     {
+      "f": "Ca",
+      "pv": 12.032260212687147,
+      "ppm": 570,
+      "top": "diopside"
+     },
+     {
+      "f": "Al",
+      "pv": 9.10767083129521,
+      "ppm": 80,
+      "top": "vesuvianite"
+     },
+     {
+      "f": "Mg",
+      "pv": 8.251939277062831,
+      "ppm": 380,
+      "top": "diopside"
+     },
+     {
+      "f": "Na",
+      "pv": 1.9870440530695916,
+      "ppm": 65,
+      "top": "albite"
+     },
+     {
+      "f": "CO3",
+      "pv": 1.0659304187799121,
+      "ppm": 5,
+      "top": "calcite"
+     },
+     {
+      "f": "Fe",
+      "pv": 0.2515326158537262,
+      "ppm": 98,
+      "top": "actinolite"
+     }
+    ]
+   },
+   {
+    "scenario": "naica_geothermal",
+    "cavity_cm3": 63.038070769067275,
+    "solids_cm3": 0.013158374936685167,
+    "priced": 1,
+    "binding": {
+     "f": "Sr",
+     "pv": 35.492214267029816,
+     "ppm": 6,
+     "top": "celestine"
+    },
+    "next": {
+     "f": "S",
+     "pv": 0.2387547504647687,
+     "ppm": 500,
+     "top": "celestine"
+    },
+    "elements": [
+     {
+      "f": "Sr",
+      "pv": 35.492214267029816,
+      "ppm": 6,
+      "top": "celestine"
+     },
+     {
+      "f": "S",
+      "pv": 0.2387547504647687,
+      "ppm": 500,
+      "top": "celestine"
+     },
+     {
+      "f": "Ca",
+      "pv": 0.08630436658455767,
+      "ppm": 600,
+      "top": "selenite"
+     }
+    ]
+   },
+   {
+    "scenario": "great_salt_plains",
+    "cavity_cm3": 306.3029682005918,
+    "solids_cm3": 17.212268522360755,
+    "priced": 0.999976144707355,
+    "binding": {
+     "f": "Ca",
+     "pv": 16.78809392710502,
+     "ppm": 1800,
+     "top": "selenite"
+    },
+    "next": {
+     "f": "S",
+     "pv": 9.299761151121453,
+     "ppm": 2600,
+     "top": "selenite"
+    },
+    "elements": [
+     {
+      "f": "Ca",
+      "pv": 16.78809392710502,
+      "ppm": 1800,
+      "top": "selenite"
+     },
+     {
+      "f": "S",
+      "pv": 9.299761151121453,
+      "ppm": 2600,
+      "top": "selenite"
+     }
+    ]
+   },
+   {
+    "scenario": "reactive_wall",
+    "cavity_cm3": 37.68833020118101,
+    "solids_cm3": 0.036364656532641405,
+    "priced": 1,
+    "binding": {
+     "f": "Zn",
+     "pv": 10.43556001594535,
+     "ppm": 250,
+     "top": "sphalerite"
+    },
+    "next": {
+     "f": "S",
+     "pv": 7.559503517223841,
+     "ppm": 170,
+     "top": "sphalerite"
+    },
+    "elements": [
+     {
+      "f": "Zn",
+      "pv": 10.43556001594535,
+      "ppm": 250,
+      "top": "sphalerite"
+     },
+     {
+      "f": "S",
+      "pv": 7.559503517223841,
+      "ppm": 170,
+      "top": "sphalerite"
+     },
+     {
+      "f": "Pb",
+      "pv": 0.9467987676731301,
+      "ppm": 30,
+      "top": "galena"
+     },
+     {
+      "f": "Fe",
+      "pv": 0.013193685388615616,
+      "ppm": 59.18096596958884,
+      "top": "pyrite"
+     },
+     {
+      "f": "Ca",
+      "pv": 0.0004066837980868066,
+      "ppm": 361.8096596958884,
+      "top": "anhydrite"
+     }
+    ]
+   },
+   {
+    "scenario": "deccan_zeolite",
+    "cavity_cm3": 70.46268674963554,
+    "solids_cm3": 0.21355029941414982,
+    "priced": 0.9954621016709273,
+    "binding": {
+     "f": "SiO2",
+     "pv": 7.614861736068848,
+     "ppm": 950,
+     "top": "quartz"
+    },
+    "next": {
+     "f": "Al",
+     "pv": 3.0308029766904636,
+     "ppm": 30,
+     "top": "albite"
+    },
+    "elements": [
+     {
+      "f": "SiO2",
+      "pv": 7.614861736068848,
+      "ppm": 950,
+      "top": "quartz"
+     },
+     {
+      "f": "Al",
+      "pv": 3.0308029766904636,
+      "ppm": 30,
+      "top": "albite"
+     },
+     {
+      "f": "Fe",
+      "pv": 1.2331126772658985,
+      "ppm": 310,
+      "top": "hematite"
+     },
+     {
+      "f": "Na",
+      "pv": 0.25897283732431764,
+      "ppm": 150,
+      "top": "albite"
+     },
+     {
+      "f": "CO3",
+      "pv": 0.1972477604813534,
+      "ppm": 80,
+      "top": "calcite"
+     },
+     {
+      "f": "Ca",
+      "pv": 0.14262491551762443,
+      "ppm": 310,
+      "top": "heulandite"
+     }
+    ]
+   },
+   {
+    "scenario": "grimsel_alpine_cleft",
+    "cavity_cm3": 600.4413673290857,
+    "solids_cm3": 0.44099644759377105,
+    "priced": 0.9955062916081916,
+    "binding": {
+     "f": "Al",
+     "pv": 4.579412794530847,
+     "ppm": 6,
+     "top": "albite"
+    },
+    "next": {
+     "f": "Ca",
+     "pv": 2.447156000105301,
+     "ppm": 200,
+     "top": "calcite"
+    },
+    "elements": [
+     {
+      "f": "Al",
+      "pv": 4.579412794530847,
+      "ppm": 6,
+      "top": "albite"
+     },
+     {
+      "f": "Ca",
+      "pv": 2.447156000105301,
+      "ppm": 200,
+      "top": "calcite"
+     },
+     {
+      "f": "Na",
+      "pv": 0.6395872446840312,
+      "ppm": 25,
+      "top": "albite"
+     },
+     {
+      "f": "K",
+      "pv": 0.4102013335679825,
+      "ppm": 30,
+      "top": "feldspar"
+     },
+     {
+      "f": "CO3",
+      "pv": 0.4019953868963059,
+      "ppm": 1800,
+      "top": "calcite"
+     },
+     {
+      "f": "SiO2",
+      "pv": 0.1177447253210279,
+      "ppm": 5506,
+      "top": "quartz"
+     },
+     {
+      "f": "P",
+      "pv": 0.0669664938295582,
+      "ppm": 40,
+      "top": "apatite"
+     },
+     {
+      "f": "F",
+      "pv": 0.02280576104946151,
+      "ppm": 26,
+      "top": "apatite"
+     },
+     {
+      "f": "Fe",
+      "pv": 0.0226892695758813,
+      "ppm": 200,
+      "top": "hematite"
+     }
+    ]
+   },
+   {
+    "scenario": "chiastolite_hornfels",
+    "cavity_cm3": 24.31580390936814,
+    "solids_cm3": 0.0009710255292837276,
+    "priced": 1,
+    "binding": {
+     "f": "Al",
+     "pv": 0.8692181067653177,
+     "ppm": 45,
+     "top": "andalusite"
+    },
+    "next": {
+     "f": "SiO2",
+     "pv": 0.13810079383448237,
+     "ppm": 350,
+     "top": "andalusite"
+    },
+    "elements": [
+     {
+      "f": "Al",
+      "pv": 0.8692181067653177,
+      "ppm": 45,
+      "top": "andalusite"
+     },
+     {
+      "f": "SiO2",
+      "pv": 0.13810079383448237,
+      "ppm": 350,
+      "top": "andalusite"
+     },
+     {
+      "f": "K",
+      "pv": 0.08302744497252218,
+      "ppm": 15,
+      "top": "feldspar"
+     },
+     {
+      "f": "Na",
+      "pv": 8.974224426155219e-11,
+      "ppm": 10,
+      "top": "albite"
+     }
+    ]
+   },
+   {
+    "scenario": "wittichen",
+    "cavity_cm3": 3161.699697343393,
+    "solids_cm3": 0.16041994571410836,
+    "priced": 0.9999997271849284,
+    "binding": {
+     "f": "Co",
+     "pv": 0.5454388826866378,
+     "ppm": 35,
+     "top": "erythrite"
+    },
+    "next": {
+     "f": "As",
+     "pv": 0.41832023953639913,
+     "ppm": 120,
+     "top": "haidingerite"
+    },
+    "elements": [
+     {
+      "f": "Co",
+      "pv": 0.5454388826866378,
+      "ppm": 35,
+      "top": "erythrite"
+     },
+     {
+      "f": "As",
+      "pv": 0.41832023953639913,
+      "ppm": 120,
+      "top": "haidingerite"
+     },
+     {
+      "f": "Ni",
+      "pv": 0.22531447818631878,
+      "ppm": 20,
+      "top": "annabergite"
+     },
+     {
+      "f": "Ca",
+      "pv": 0.03601322269969345,
+      "ppm": 410,
+      "top": "haidingerite"
+     },
+     {
+      "f": "Ag",
+      "pv": 0.014952279033709954,
+      "ppm": 12,
+      "top": "native_silver"
+     },
+     {
+      "f": "SiO2",
+      "pv": 0.014083501495061946,
+      "ppm": 80,
+      "top": "chalcedony"
+     },
+     {
+      "f": "Ba",
+      "pv": 0.0037330171706998383,
+      "ppm": 75,
+      "top": "barite"
+     },
+     {
+      "f": "S",
+      "pv": 0.0022417687405878986,
+      "ppm": 30,
+      "top": "barite"
+     }
+    ]
+   },
+   {
+    "scenario": "tutorial_travertine",
+    "cavity_cm3": 65.43535873254694,
+    "solids_cm3": 0.002803111752508401,
+    "priced": 1,
+    "binding": {
+     "f": "CO3",
+     "pv": 0.14374138966903616,
+     "ppm": 520.5987353797404,
+     "top": "aragonite"
+    },
+    "next": {
+     "f": "Ca",
+     "pv": 0.14279762678561872,
+     "ppm": 350,
+     "top": "aragonite"
+    },
+    "elements": [
+     {
+      "f": "CO3",
+      "pv": 0.14374138966903616,
+      "ppm": 520.5987353797404,
+      "top": "aragonite"
+     },
+     {
+      "f": "Ca",
+      "pv": 0.14279762678561872,
+      "ppm": 350,
+      "top": "aragonite"
+     }
+    ]
+   },
+   {
+    "scenario": "tutorial_mn_calcite",
+    "cavity_cm3": 72.88036710840807,
+    "solids_cm3": 0.0007470651856375731,
+    "priced": 1,
+    "binding": {
+     "f": "CO3",
+     "pv": 0.06765438759528124,
+     "ppm": 250,
+     "top": "calcite"
+    },
+    "next": {
+     "f": "Mn",
+     "pv": 0.037293944884385394,
+     "ppm": 38,
+     "top": "rhodochrosite"
+    },
+    "elements": [
+     {
+      "f": "CO3",
+      "pv": 0.06765438759528124,
+      "ppm": 250,
+      "top": "calcite"
+     },
+     {
+      "f": "Mn",
+      "pv": 0.037293944884385394,
+      "ppm": 38,
+      "top": "rhodochrosite"
+     },
+     {
+      "f": "Ca",
+      "pv": 0.03408132016478172,
+      "ppm": 300,
+      "top": "calcite"
+     },
+     {
+      "f": "Fe",
+      "pv": 0.0008859113358458225,
+      "ppm": 60,
+      "top": "siderite"
+     },
+     {
+      "f": "SiO2",
+      "pv": 2.0022468716763557e-9,
+      "ppm": 80,
+      "top": "quartz"
+     }
+    ]
+   },
+   {
+    "scenario": "pulse",
+    "cavity_cm3": 69.76277561216158,
+    "solids_cm3": 0.00001612538324555894,
+    "priced": 1,
+    "binding": {
+     "f": "Fe",
+     "pv": 0.029417497073611052,
+     "ppm": 15,
+     "top": "siderite"
+    },
+    "next": {
+     "f": "CO3",
+     "pv": 0.003951083430189329,
+     "ppm": 120,
+     "top": "siderite"
+    },
+    "elements": [
+     {
+      "f": "Fe",
+      "pv": 0.029417497073611052,
+      "ppm": 15,
+      "top": "siderite"
+     },
+     {
+      "f": "CO3",
+      "pv": 0.003951083430189329,
+      "ppm": 120,
+      "top": "siderite"
+     },
+     {
+      "f": "Mn",
+      "pv": 3.7975160011926e-9,
+      "ppm": 5,
+      "top": "rhodochrosite"
+     },
+     {
+      "f": "SiO2",
+      "pv": 5.872975412986279e-10,
+      "ppm": 900,
+      "top": "quartz"
+     }
+    ]
+   },
+   {
+    "scenario": "stalactite_demo",
+    "cavity_cm3": 124.63826427815981,
+    "solids_cm3": 0.0009455017923449596,
+    "priced": 1,
+    "binding": {
+     "f": "CO3",
+     "pv": 0.020543729999426167,
+     "ppm": 600,
+     "top": "calcite"
+    },
+    "next": {
+     "f": "Ca",
+     "pv": 0.013720924818813544,
+     "ppm": 600,
+     "top": "calcite"
+    },
+    "elements": [
+     {
+      "f": "CO3",
+      "pv": 0.020543729999426167,
+      "ppm": 600,
+      "top": "calcite"
+     },
+     {
+      "f": "Ca",
+      "pv": 0.013720924818813544,
+      "ppm": 600,
+      "top": "calcite"
+     }
+    ]
+   },
+   {
+    "scenario": "zoned_dripstone_cave",
+    "cavity_cm3": 273.84281858822675,
+    "solids_cm3": 0.0020869218230351477,
+    "priced": 0.9975353473701093,
+    "binding": {
+     "f": "CO3",
+     "pv": 0.006037766983964237,
+     "ppm": 2200,
+     "top": "aragonite"
+    },
+    "next": {
+     "f": "Ca",
+     "pv": 0.004435811877837281,
+     "ppm": 2000,
+     "top": "aragonite"
+    },
+    "elements": [
+     {
+      "f": "CO3",
+      "pv": 0.006037766983964237,
+      "ppm": 2200,
+      "top": "aragonite"
+     },
+     {
+      "f": "Ca",
+      "pv": 0.004435811877837281,
+      "ppm": 2000,
+      "top": "aragonite"
+     }
+    ]
+   },
+   {
+    "scenario": "cooling",
+    "cavity_cm3": 64.36585438154492,
+    "solids_cm3": 0.00001569586218564493,
+    "priced": 1,
+    "binding": {
+     "f": "SiO2",
+     "pv": 0.002485268131719346,
+     "ppm": 260,
+     "top": "quartz"
+    },
+    "next": null,
+    "elements": [
+     {
+      "f": "SiO2",
+      "pv": 0.002485268131719346,
+      "ppm": 260,
+      "top": "quartz"
+     }
+    ]
+   },
+   {
+    "scenario": "amethyst_geode",
+    "cavity_cm3": 59.337886024955345,
+    "solids_cm3": 4.797093956972784e-7,
+    "priced": 1,
+    "binding": {
+     "f": "SiO2",
+     "pv": 0.00005254611818433712,
+     "ppm": 400,
+     "top": "chalcedony"
+    },
+    "next": null,
+    "elements": [
+     {
+      "f": "SiO2",
+      "pv": 0.00005254611818433712,
+      "ppm": 400,
+      "top": "chalcedony"
+     }
+    ]
+   },
+   {
+    "scenario": "tutorial_first_crystal",
+    "cavity_cm3": 66.03734860496614,
+    "solids_cm3": 6.923849886290627e-11,
+    "priced": 1,
+    "binding": {
+     "f": "SiO2",
+     "pv": 4.630455614101594e-9,
+     "ppm": 600,
+     "top": "quartz"
+    },
+    "next": null,
+    "elements": [
+     {
+      "f": "SiO2",
+      "pv": 4.630455614101594e-9,
+      "ppm": 600,
+      "top": "quartz"
+     }
+    ]
+   },
+   {
+    "scenario": "marble_contact_metamorphism",
+    "cavity_cm3": 36.03716245941275,
+    "solids_cm3": 0,
+    "priced": 1,
+    "binding": null,
+    "next": null,
+    "elements": []
+   }
+  ]
+ },
+ "flow": {
+  "eventFilesAssigning": 22,
+  "assignments": 103,
+  "scenarioDataLines": 11,
+  "otherLines": [
+   {
+    "file": "25-chemistry-conditions.ts",
+    "line": 23,
+    "text": "this.flow_rate = opts.flow_rate ?? 1.0;"
+   },
+   {
+    "file": "70-events.ts",
+    "line": 19,
+    "text": "const allowedKeys = new Set(['multiply', 'add', 'pH_delta', 'flow_rate']);"
+   },
+   {
+    "file": "70-events.ts",
+    "line": 70,
+    "text": "if (Object.prototype.hasOwnProperty.call(transform, 'flow_rate')) {"
+   },
+   {
+    "file": "70-events.ts",
+    "line": 71,
+    "text": "if (!Number.isFinite(Number(transform.flow_rate)) || Number(transform.flow_rate) < 0) {"
+   },
+   {
+    "file": "70-events.ts",
+    "line": 72,
+    "text": "throw new Error(`${kind} has invalid flow_rate`);"
+   },
+   {
+    "file": "70-events.ts",
+    "line": 74,
+    "text": "nextFlowRate = Number(transform.flow_rate);"
+   },
+   {
+    "file": "85c-simulator-state.ts",
+    "line": 2226,
+    "text": "flow_rate: cnd.flow_rate,"
+   },
+   {
+    "file": "85d-simulator-step.ts",
+    "line": 263,
+    "text": "wall.paleo_flow_accum += this.conditions.flow_rate * result.rate_mm;"
+   },
+   {
+    "file": "85d-simulator-step.ts",
+    "line": 417,
+    "text": "const authoredFlow = draw(pulseFluid.flow_rate, NaN);"
+   },
+   {
+    "file": "85d-simulator-step.ts",
+    "line": 419,
+    "text": "this.conditions.flow_rate = Math.max(0, authoredFlow);"
+   },
+   {
+    "file": "85d-simulator-step.ts",
+    "line": 420,
+    "text": "added.push(`flow=${this.conditions.flow_rate.toFixed(2)}`);"
+   },
+   {
+    "file": "85d-simulator-step.ts",
+    "line": 438,
+    "text": "pHBoundary.rate_per_step * Math.min(Math.max(this.conditions.flow_rate, 0), 2),"
+   },
+   {
+    "file": "85d-simulator-step.ts",
+    "line": 443,
+    "text": "if (this.conditions.flow_rate > 1.0) this.conditions.flow_rate *= 0.9;"
+   },
+   {
+    "file": "85j-movements.ts",
+    "line": 683,
+    "text": "if (path === 'flow_rate' || path === 'fluid_surface_height_mm') {"
+   },
+   {
+    "file": "85l-simulation-command-protocol.ts",
+    "line": 253,
+    "text": "flowRate: Number(sim?.conditions?.flow_rate) || 0,"
+   },
+   {
+    "file": "97-ui-fortress.ts",
+    "line": 888,
+    "text": "...(flowRate == null ? {} : { flow_rate: flowRate }),"
+   },
+   {
+    "file": "97-ui-fortress.ts",
+    "line": 900,
+    "text": "flow_rate: _creativeControlNumber('f-flow-rate', 10, 1),"
+   },
+   {
+    "file": "97-ui-fortress.ts",
+    "line": 1546,
+    "text": "c.flow_rate = Math.max(c.flow_rate, 1.5);"
+   },
+   {
+    "file": "97-ui-fortress.ts",
+    "line": 1570,
+    "text": "c.flow_rate = 5.0;"
+   },
+   {
+    "file": "97-ui-fortress.ts",
+    "line": 1595,
+    "text": "c.flow_rate = Math.max(c.flow_rate * 0.5, 0.2);"
+   },
+   {
+    "file": "97-ui-fortress.ts",
+    "line": 1604,
+    "text": "c.flow_rate = Math.max(c.flow_rate * 0.2, 0.05);"
+   },
+   {
+    "file": "97-ui-fortress.ts",
+    "line": 1808,
+    "text": "c.flow_rate = 4.0;"
+   },
+   {
+    "file": "97-ui-fortress.ts",
+    "line": 2152,
+    "text": "flow_rate: snapCnd.flow_rate,"
+   },
+   {
+    "file": "97-ui-fortress.ts",
+    "line": 2168,
+    "text": "document.getElementById('f-stat-flow').textContent = c.flow_rate.toFixed(1);"
+   },
+   {
+    "file": "97a-ui-broth.ts",
+    "line": 85,
+    "text": "path: 'flow_rate',"
+   },
+   {
+    "file": "97a-ui-broth.ts",
+    "line": 86,
+    "text": "get: () => fortressSim.conditions.flow_rate,"
+   },
+   {
+    "file": "97a-ui-broth.ts",
+    "line": 87,
+    "text": "set: v => { fortressSim.conditions.flow_rate = v; },"
+   },
+   {
+    "file": "97a-ui-broth.ts",
+    "line": 422,
+    "text": "path: 'wall.thermal_pulse_fluid.flow_rate',"
+   },
+   {
+    "file": "97a-ui-broth.ts",
+    "line": 423,
+    "text": "get: () => fortressSim.conditions.wall.thermal_pulse_fluid?.flow_rate ?? -1,"
+   },
+   {
+    "file": "97a-ui-broth.ts",
+    "line": 426,
+    "text": "if (Number(v) < 0) delete contract.flow_rate;"
+   },
+   {
+    "file": "97a-ui-broth.ts",
+    "line": 427,
+    "text": "else contract.flow_rate = Number(v);"
+   },
+   {
+    "file": "97b-ui-geology.ts",
+    "line": 24,
+    "text": "['flow_rate', 'Flow rate'],"
+   }
+  ]
+ }
+}

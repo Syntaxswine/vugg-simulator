@@ -1,0 +1,49 @@
+[scenarios] loaded 41 from ./data/scenarios.json5
+[spec] loaded 184 minerals from ./data/minerals.json
+[thermo] loaded 15 carbonate entries from ./data/thermo-carbonates.json
+[thermo] loaded 4 sulfate entries from ./data/thermo-sulfates.json
+[narratives] loaded 94 species
+bulk supersaturation, SIM 286, seed 42 — start / largest (step it was read at); "grows" is the largest crystal in mm
+scenario                               SiO2 ppm at start   feldspar: start / max (step)    albite: start / max (step)      quartz: start / max (step)      grows
+amethyst_geode                                320             0.13 /    0.16 (  9)            0.19 /    0.24 (  9)            0.00 /    1.41 ( 18)         quartz 0.8
+asbestos_hills_crack_seal                     650             0.00 /    0.00 (  0)            0.00 /    0.00 (  0)            0.00 /    1.85 ( 57)         quartz 0.3
+asbestos_hills_surficial_alteration           650             0.00 /    0.00 (  0)            0.00 /    0.00 (  0)            0.00 /    1.85 ( 57)         quartz 0.3
+bisbee                                        500             4.59 /    5.51 ( 25)            7.87 /    9.44 ( 25)            0.00 /    1.11 ( 64)         feldspar 3.4, albite 8.2
+chiastolite_hornfels                          350             1.40 /    1.40 (  0)            1.07 /    1.07 (  0)            0.00 /    0.00 (  0)         feldspar 0.7, albite 0.0
+colorado_plateau                              200             0.00 /    0.01 (100)            0.00 /    0.00 (  0)            0.00 /    0.00 (  0)         —
+cooling                                       260             0.04 /    0.04 (  0)            0.17 /    0.17 (  0)            1.18 /    1.70 (100)         quartz 0.6
+deccan_zeolite                                400             0.00 /    1.04 (110)            0.00 /    4.82 (110)            0.00 /    8.99 (159)         feldspar 0.0, albite 4.2, quartz 8.3
+elmwood                                        60             0.00 /    0.00 (  0)            0.00 /    0.00 (  0)            0.00 /    0.00 (  0)         —
+epithermal_telluride                          600             4.63 /    7.13 (153)            1.59 /    2.00 (153)            0.00 /    5.37 (152)         feldspar 8.7, albite 1.3, quartz 3.6
+gem_pegmatite                                8000              552 /     552 (  0)             315 /     672 (130)            5.00 /    13.2 (230)         feldspar 31.7, albite 24.6, quartz 1.7
+great_salt_plains                              30             0.00 /    0.00 (  0)            0.00 /    0.00 (  0)            0.00 /    0.00 (  0)         —
+grimsel_alpine_cleft                         1550             1.64 /    5.81 ( 15)            1.56 /    5.53 ( 15)            0.00 /    7.20 (114)         feldspar 5.3, albite 6.5, quartz 6.7
+jeffrey_mine                                  200             0.00 /    0.00 (  0)            0.00 /    11.8 (153)            0.00 /    0.00 (  0)         albite 11.0
+marble_contact_metamorphism                    20             0.00 /    0.00 (  0)            0.00 /    0.00 (  0)            0.00 /    0.00 (  0)         —
+mvt                                           100             0.00 /    0.00 (  0)            0.00 /    0.00 (  0)            0.00 /    1.63 ( 39)         quartz 0.0
+naica_geothermal                               30             0.00 /    0.00 (  0)            0.00 /    0.00 (  0)            0.00 /    0.00 (  0)         —
+ouro_preto                                   1200             4.30 /    7.39 ( 35)            7.37 /    12.7 ( 35)            0.00 /    22.3 (242)         feldspar 16.9, albite 39.6, quartz 5.0
+porphyry                                      700             2.45 /    3.79 ( 60)            1.75 /    2.71 ( 60)            0.00 /    0.00 (  0)         feldspar 2.5, albite 2.0
+pulse                                         500             0.00 /    0.00 (  0)            0.00 /    0.00 (  0)            0.00 /    1.45 ( 46)         quartz 0.0
+radioactive_pegmatite                       12000              167 /     209 ( 20)             120 /     150 ( 20)            7.50 /     245 ( 92)         feldspar 50.2, albite 61.4, quartz 11.2
+reactivated_fluorite_vein                     100             0.00 /    0.00 (  0)            0.00 /    0.00 (  0)            0.00 /    1.54 (117)         —
+reactive_wall                                  50             0.00 /    0.00 (  0)            0.00 /    0.00 (  0)            0.00 /    0.00 (  0)         —
+roughten_gill                                 120             0.00 /    0.08 (215)            0.00 /    0.28 (215)            1.22 /    1.54 ( 59)         quartz 0.2
+sabkha_dolomitization                          20             0.00 /    0.00 (  0)            0.00 /    0.00 (  0)            0.00 /    0.00 (  0)         —
+schneeberg                                   8000             34.9 /    34.9 (  0)            0.00 /    0.00 (  0)            3.08 /    52.4 ( 84)         feldspar 27.6, quartz 24.4
+searles_lake                                   40             0.00 /    0.00 (  0)            0.00 /    0.00 (  0)            0.00 /    0.00 (  0)         —
+shigar_pegmatite                             8000              557 /     557 (  0)             318 /     676 ( 22)            5.00 /    15.2 ( 70)         feldspar 114.1, albite 269.8, quartz 10.7
+sicily_solfifera                               30             0.00 /    0.00 (  0)            0.00 /    0.00 (  0)            0.00 /    0.00 (  0)         —
+stalactite_demo                                 8             0.00 /    0.00 (  0)            0.00 /    0.00 (  0)            0.00 /    0.00 (  0)         —
+sulphur_bank                                  200             0.00 /    0.00 (  0)            0.00 /    0.00 (  0)            0.00 /    0.00 (  0)         —
+sunnyside_american_tunnel                     400             0.17 /    0.17 (  0)            0.65 /    0.65 (  0)            0.00 /    2.25 (150)         quartz 1.4
+supergene_oxidation                            30             0.00 /    0.00 (  0)            0.00 /    0.00 (  0)            0.00 /    0.00 (  0)         —
+tn457_barite_pulses                            30             0.00 /    0.00 (  0)            0.00 /    0.00 (  0)            0.00 /    0.00 (  0)         —
+tormiq_alpine_cleft                           320             2.65 /    27.3 (140)            5.05 /    29.8 ( 80)            0.00 /    2.04 (152)         feldspar 36.5, albite 65.8, quartz 0.0
+tutorial_first_crystal                        600             0.00 /    0.00 (  0)            0.00 /    0.00 (  0)            1.61 /    1.81 (  7)         quartz 0.0
+tutorial_mn_calcite                            80             0.00 /    0.00 (  0)            0.00 /    0.00 (  0)            1.33 /    1.33 (  0)         quartz 0.0
+tutorial_travertine                            54             0.00 /    0.00 (  0)            0.00 /    0.00 (  0)            0.00 /    0.00 (  0)         —
+ultramafic_supergene                          300             0.00 /    0.00 (  0)            0.02 /    0.02 ( 80)            0.00 /    0.00 (  0)         —
+wittichen                                      80             0.00 /    0.00 (  0)            0.00 /    0.00 (  0)            0.00 /    0.00 (  0)         —
+zoned_dripstone_cave                            6             0.00 /    0.00 (  0)            0.00 /    0.00 (  0)            0.00 /    0.00 (  0)         —
+integrity: 41 of 41 runs reproduce tests-js/baselines/seed42_v286.json with the reader attached

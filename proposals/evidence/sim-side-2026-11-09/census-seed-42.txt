@@ -1,0 +1,192 @@
+sim-side census v3 — SIM 286, seed 42, 41 scenario(s); inputs 2744fd2eb708
+integrity: 41 of 41 runs reproduce tests-js/baselines/seed42_v286.json
+
+CONTROLS
+  [PASS] positive competition-log: the five R9 fahlores each show at least 10 "edge-of-gate skip" lines (recipe review R9: 64/64/60/60/65 at seed 42) — 64/64/60/60/65 = 313
+  [PASS] positive supply: the supply reading finds scarcity where it exists: in epithermal_telluride at least 100 zones of the gold tellurides are shaped on Au, some rationed and some budget-cut — 268 zones on Au; scenario-wide 268 rationed, 45 budget-cut
+  [PASS] positive two-fluids: radiogenic Pb stays on the bulk handle (bulk − voxel mean >= 50 ppm at run end); FLIPS when that write reaches the voxels — 116.8 / 174.0 ppm
+  [PASS] negative two-fluids: mvt's Ca never leaves the voxel mean by more than 1 % of its scale — 0.006 %
+  [PASS] positive space+end: gem_pegmatite reaches fill >= 0.999 by step 15, stores no positive zone afterwards, and at least 80 % of its crystals that grew read "pocket full"; FLIPS when the plug is cured — full at step 9, last growth at step 9 of 230, "pocket full" 100 %
+  [PASS] negative space+end: mvt never reaches fill 0.7, is still growing on its final step, and no crystal reads "pocket full" — first step at fill >= 0.7: never; fill at end 8.7 %, last growth at step 120 of 120, "pocket full" 0 %
+
+SPACE and TIME
+scenario                               steps  cavity mm  fill at end  first step fill>=0.7 / >=0.999  last growth  largest crystal, and what ended its growth
+amethyst_geode                           240        48       0.0 %              - /    -              213       quartz 0.85 mm: at or above saturation, no zone stored (step 214)
+asbestos_hills_crack_seal                110        56       0.2 %              - /    -              110       siderite 7.5 mm: dissolving (step 58)
+asbestos_hills_surficial_alteration      120        53       0.3 %              - /    -              120       siderite 7.1 mm: dissolving (step 58)
+bisbee                                   340        50      95.6 %            204 /    -              340       malachite 66.0 mm: undersaturated, bulk too (step 265)
+chiastolite_hornfels                     120        36       0.0 %              - /    -              120       andalusite 1.2 mm: the run ended
+colorado_plateau                         180        52       1.1 %              - /    -              180       uranophane 12.6 mm: the run ended
+cooling                                  100        50       0.0 %              - /    -              100       quartz 0.57 mm: the run ended
+deccan_zeolite                           200        51       0.2 %              - /    -              200       quartz 8.3 mm: undersaturated, bulk too (step 160)
+elmwood                                  200        51       1.1 %              - /    -              200       calcite 14.3 mm: the run ended
+epithermal_telluride                     180        38       9.6 %              - /    -              180       hessite 17.2 mm: size cap (step 69)
+gem_pegmatite                            230        51     100.0 %              6 /    9                9       feldspar 31.7 mm: pocket full (step 10)
+great_salt_plains                        250        84       5.7 %              - /    -              250       selenite 40.8 mm: the run ended
+grimsel_alpine_cleft                     200       105       0.1 %              - /    -              200       calcite 13.0 mm: the run ended
+jeffrey_mine                             200        86       1.2 %              - /    -              200       vesuvianite 13.1 mm: the run ended
+marble_contact_metamorphism              180        41       0.0 %              - /    -                0       —: —
+mvt                                      120        51       8.7 %              - /    -              120       calcite 34.6 mm: the run ended
+naica_geothermal                         320        49       0.0 %              - /    -              320       selenite 2.8 mm: the run ended
+ouro_preto                               260        51      28.8 %              - /    -              260       albite 39.6 mm: the run ended
+porphyry                                 120        53      11.6 %              - /    -              120       molybdenite 33.4 mm: dissolving (step 85)
+pulse                                    100        51       0.0 %              - /    -               80       siderite 0.12 mm: undersaturated, bulk too (step 81)
+radioactive_pegmatite                    120        49     100.0 %             37 /   61               80       albite 61.4 mm: pocket full (step 62)
+reactivated_fluorite_vein                160        55      22.8 %              - /    -              160       calcite 38.4 mm: undersaturated, bulk too (step 124)
+reactive_wall                            120        42       0.1 %              - /    -              120       sphalerite 6.6 mm: the run ended
+roughten_gill                            240        27      15.0 %              - /    -              240       galena 14.7 mm: undersaturated, bulk too (step 60)
+sabkha_dolomitization                    260        43       2.7 %              - /    -              260       celestine 10.7 mm: the run ended
+schneeberg                               160        54      11.1 %              - /    -              160       feldspar 27.6 mm: the run ended
+searles_lake                             300        37      87.9 %            127 /  134              300       thenardite 46.0 mm: pocket full (step 245)
+shigar_pegmatite                          70       226      92.5 %             56 /    -               70       albite 269.8 mm: the run ended
+sicily_solfifera                         200        31       2.9 %              - /    -              200       celestine 9.1 mm: the run ended
+stalactite_demo                          100        62       0.0 %              - /    -              100       calcite 0.75 mm: the run ended
+sulphur_bank                             200        40      31.3 %              - /    -              200       marcasite 39.3 mm: the run ended
+sunnyside_american_tunnel                200        50      85.4 %            196 /    -              200       calcite 74.4 mm: the run ended
+supergene_oxidation                      200        49      41.3 %              - /    -              200       malachite 45.6 mm: the run ended
+tn457_barite_pulses                      110        26       2.2 %              - /    -              110       sphalerite 6.0 mm: the run ended
+tormiq_alpine_cleft                      200       101       7.7 %              - /    -              200       albite 65.8 mm: the run ended
+tutorial_first_crystal                    30        50       0.0 %              - /    -                7       quartz 0.01 mm: dissolving (step 8)
+tutorial_mn_calcite                       30        52       0.0 %              - /    -               30       calcite 1.9 mm: the run ended
+tutorial_travertine                       60        50       0.0 %              - /    -               60       aragonite 2.5 mm: the run ended
+ultramafic_supergene                     200        41       1.2 %              - /    -              200       opal 8.4 mm: the run ended
+wittichen                                220       182       0.0 %              - /    -              220       erythrite 8.3 mm: the run ended
+zoned_dripstone_cave                     150        81       0.0 %              - /    -              150       aragonite 1.6 mm: the run ended
+fill at run end: <= 1 % in 17, 1–10 % in 11, 10–70 % in 7, > 70 % in 6; reached fill >= 0.999: gem_pegmatite@9/230, radioactive_pegmatite@61/120, searles_lake@134/300
+
+END — what ended the growth of each surviving crystal
+  still growing on the final step              429 (37.6 %)   >= 1 mm:  321 (56.5 %)
+  pocket full                                   30 ( 2.6 %)   >= 1 mm:   22 ( 3.9 %)
+  undersaturated, bulk too                     289 (25.3 %)   >= 1 mm:  138 (24.3 %)
+  undersaturated at its cell only               23 ( 2.0 %)   >= 1 mm:    7 ( 1.2 %)
+  at or above saturation, no zone stored        32 ( 2.8 %)   >= 1 mm:    8 ( 1.4 %)
+  enclosed                                     213 (18.7 %)   >= 1 mm:    8 ( 1.4 %)
+  dissolving                                    61 ( 5.3 %)   >= 1 mm:   41 ( 7.2 %)
+  size cap                                      17 ( 1.5 %)   >= 1 mm:   17 ( 3.0 %)
+  never grew                                    42 ( 3.7 %)   >= 1 mm:    0 ( 0.0 %)
+  no sigma method                                6 ( 0.5 %)   >= 1 mm:    6 ( 1.1 %)
+  surviving crystals 1142; >= 1 mm 568; the largest crystal is still growing on the final step in 26 of 40 scenarios with crystals
+  >= 1 mm and undersaturated at its cell only: reactivated_fluorite_vein/anhydrite 1.8 mm (step 78); supergene_oxidation/mimetite 3.1 mm (step 160); supergene_oxidation/scorodite 3.5 mm (step 160); supergene_oxidation/scorodite 3.4 mm (step 160); supergene_oxidation/scorodite 2.7 mm (step 160); supergene_oxidation/scorodite 2.9 mm (step 160); supergene_oxidation/scorodite 2.5 mm (step 160)
+  >= 1 mm and stopped by the authored size cap: epithermal_telluride/sylvanite 10.1 mm (step 81); epithermal_telluride/calaverite 10.1 mm (step 127); epithermal_telluride/hessite 17.1 mm (step 69); epithermal_telluride/sylvanite 10.0 mm (step 96); epithermal_telluride/calaverite 10.0 mm (step 81); epithermal_telluride/hessite 17.2 mm (step 69); epithermal_telluride/hessite 17.2 mm (step 69); supergene_oxidation/conichalcite 5.0 mm (step 90); supergene_oxidation/conichalcite 5.1 mm (step 93); supergene_oxidation/powellite 20.1 mm (step 164); supergene_oxidation/powellite 20.0 mm (step 173); supergene_oxidation/conichalcite 5.0 mm (step 98); supergene_oxidation/powellite 20.2 mm (step 166); supergene_oxidation/conichalcite 5.0 mm (step 102); wittichen/haidingerite 5.0 mm (step 202); wittichen/haidingerite 5.1 mm (step 208); wittichen/haidingerite 4.7 mm (step 217)
+  scenarios whose flow_rate changed during the run: 34 of 41
+
+SUPPLY
+(scenario, species) pairs with booked solids: 321; solids / the most the voxel field ever held: median 0.0081 %, 90th percentile 0.14 %
+  above 1 % (3; above 10 %: 0): colorado_plateau/U 1.7 %; sulphur_bank/Hg 1.4 %; supergene_oxidation/Mo 1.2 %
+stored positive zones 78431; scaled below 1 by competition 275; cut by the formula budget 46; either 275 (0.35 %)
+  limited by: colorado_plateau/uranophane:U ×1; epithermal_telluride/sylvanite:Au ×120; epithermal_telluride/calaverite:Au ×148; porphyry/ferrimolybdite:Mo ×5; roughten_gill/tennantite:As ×1
+zones rationed to zero (never stored; "edge-of-gate skip" lines): 313 — bisbee/tetrahedrite ×64; bisbee/tennantite ×64; porphyry/tetrahedrite ×60; porphyry/tennantite ×60; schneeberg/tennantite ×65
+
+TWO FLUIDS — fields whose bulk value left the voxel mean by more than 5 % of the field's scale
+  schneeberg                         Pb     largest gap     174 (97.2 %) at step 160; at run end bulk 179, voxel mean 5.00, wall minimum 5.00
+  radioactive_pegmatite              Pb     largest gap     117 (79.6 %) at step  80; at run end bulk 147, voxel mean 30.0, wall minimum 30.0
+  stalactite_demo                    Ca     largest gap     425 (41.5 %) at step   0; at run end bulk 600, voxel mean 1025, wall minimum 600
+  stalactite_demo                    CO3    largest gap     425 (41.5 %) at step   0; at run end bulk 600, voxel mean 1025, wall minimum 600
+  wittichen                          O2     largest gap    0.26 (14.6 %) at step 183; at run end bulk 1.80, voxel mean 1.54, wall minimum 0.64
+  wittichen                          Eh     largest gap    46.0 (14.3 %) at step 170; at run end bulk 322, voxel mean 284, wall minimum 143
+  roughten_gill                      O2     largest gap    0.23 (12.5 %) at step 183; at run end bulk 1.20, voxel mean 0.97, wall minimum 0.75
+  roughten_gill                      Eh     largest gap    39.9 (12.4 %) at step 215; at run end bulk 252, voxel mean 212, wall minimum 170
+  zoned_dripstone_cave               Mg     largest gap    95.6 (8.7 %) at step   0; at run end bulk 1000, voxel mean 1096, wall minimum 30.0
+  supergene_oxidation                Eh     largest gap    26.2 (7.4 %) at step 160; at run end bulk 220, voxel mean 194, wall minimum 160
+  schneeberg                         O2     largest gap    0.11 (6.3 %) at step 113; at run end bulk 1.80, voxel mean 1.69, wall minimum 1.50
+  supergene_oxidation                O2     largest gap    0.13 (6.0 %) at step 174; at run end bulk 1.00, voxel mean 0.87, wall minimum 0.71
+
+COUNT
+(scenario, species) pairs 351: exactly one crystal 119 (33.9 %); crystals born >= max_nucleation_count 172 (49.0 %)
+species-steps with the bulk fluid past sigma_crit, for species with a crystal in that scenario: 33195; the spec cap was binding on 14324 (43.2 %); the species had an active crystal and a one-at-a-time gate on 13375 (40.3 %); neither on 5496 (16.6 %)
+static: 169 nucleation functions; 81 carry a one-at-a-time gate on their own species; 167 call _atNucleationCap
+static: 489 rng.random() comparisons in the nucleation files; 487 against a numeric literal; the rest: _AIR_MODE_NUCLEATION_PROB ×2
+
+BORN, NEVER GREW
+crystals 1212; never stored a positive zone 42 (3.5 %); grew and ended under 10 µm 229; births whose landing-cell sigma was below 0.9× the sigma that admitted them 108
+  bisbee: tetrahedrite ×1, tennantite ×1
+  deccan_zeolite: feldspar ×1
+  gem_pegmatite: cassiterite ×3, lepidolite ×2
+  great_salt_plains: halite ×1
+  porphyry: tetrahedrite ×1, tennantite ×1
+  radioactive_pegmatite: opal ×5, plumbogummite ×2
+  roughten_gill: smithsonite ×1
+  schneeberg: tennantite ×1, goethite ×1
+  searles_lake: mirabilite ×8, thenardite ×1, halite ×5
+  sunnyside_american_tunnel: sylvanite ×1, native_silver ×4
+  supergene_oxidation: olivenite ×1
+  ultramafic_supergene: dolomite ×1
+
+THROUGHPUT (order of magnitude; broth ppm at face value) — cavity-volumes of the richest broth held in the surviving solids
+  sulphur_bank                         cavity    33.0 cm3  solids    10.310 cm3 (100 % priced)  Hg 30425 (15.0 ppm; metacinnabar)              Fe 9999 (55.0 ppm; marcasite)
+  radioactive_pegmatite                cavity    62.1 cm3  solids    62.121 cm3 (100 % priced)  Al 8498 (30.0 ppm; feldspar)                   K 2703 (80.0 ppm; feldspar)
+  supergene_oxidation                  cavity    62.7 cm3  solids    25.887 cm3 (99 % priced)  Mo 7034 (40.0 ppm; ferrimolybdite)             Cu 4637 (105 ppm; malachite)
+  roughten_gill                        cavity     9.8 cm3  solids     1.476 cm3 (100 % priced)  Pb 6967 (95.0 ppm; galena)                     Cu 668 (150 ppm; malachite)
+  epithermal_telluride                 cavity    28.4 cm3  solids     2.729 cm3 (100 % priced)  Ag 4473 (90.0 ppm; hessite)                    Te 2760 (113 ppm; hessite)
+  gem_pegmatite                        cavity    69.3 cm3  solids    69.264 cm3 (100 % priced)  K 4382 (80.0 ppm; feldspar)                    Al 1554 (160 ppm; feldspar)
+  sunnyside_american_tunnel            cavity    64.0 cm3  solids    54.621 cm3 (100 % priced)  Ca 3804 (240 ppm; calcite)                     CO3 2280 (600 ppm; calcite)
+  porphyry                             cavity    79.0 cm3  solids     9.193 cm3 (100 % priced)  Mo 3590 (80.0 ppm; molybdenite)                As 1104 (15.0 ppm; arsenopyrite)
+  ouro_preto                           cavity    68.5 cm3  solids    19.718 cm3 (100 % priced)  Al 3222 (23.0 ppm; albite)                     K 1283 (40.0 ppm; feldspar)
+  bisbee                               cavity    66.4 cm3  solids    63.445 cm3 (100 % priced)  Cu 2426 (770 ppm; malachite)                   CO3 2366 (260 ppm; malachite)
+  shigar_pegmatite                     cavity  6029.9 cm3  solids  5576.353 cm3 (100 % priced)  K 1906 (80.0 ppm; feldspar)                    Al 1601 (150 ppm; albite)
+  tormiq_alpine_cleft                  cavity   532.7 cm3  solids    41.282 cm3 (100 % priced)  Al 1321 (16.0 ppm; albite)                     SiO2 95.5 (1420 ppm; albite)
+  searles_lake                         cavity    25.7 cm3  solids    22.601 cm3 (100 % priced)  S 1315 (400 ppm; thenardite)                   Na 503 (1500 ppm; thenardite)
+  colorado_plateau                     cavity    75.1 cm3  solids     0.826 cm3 (100 % priced)  U 1308 (18.0 ppm; uranophane)                  SiO2 28.9 (200 ppm; uranophane)
+  reactivated_fluorite_vein            cavity    86.9 cm3  solids    19.816 cm3 (100 % priced)  CO3 1268 (280 ppm; calcite)                    Ca 557 (450 ppm; calcite)
+  sabkha_dolomitization                cavity    41.6 cm3  solids     1.121 cm3 (100 % priced)  Sr 1210 (30.0 ppm; celestine)                  Ca 11.3 (600 ppm; anhydrite)
+  sicily_solfifera                     cavity    15.2 cm3  solids     0.447 cm3 (100 % priced)  Sr 1086 (45.0 ppm; celestine)                  S 36.2 (700 ppm; celestine)
+  mvt                                  cavity    68.2 cm3  solids     5.928 cm3 (100 % priced)  CO3 517 (250 ppm; calcite)                     Pb 297 (65.0 ppm; galena)
+  schneeberg                           cavity    81.4 cm3  solids     9.024 cm3 (100 % priced)  K 486 (30.0 ppm; feldspar)                     Al 402 (25.0 ppm; feldspar)
+  tn457_barite_pulses                  cavity     8.9 cm3  solids     0.195 cm3 (100 % priced)  Ba 274 (180 ppm; barite)                       S 78.7 (200 ppm; barite)
+  asbestos_hills_crack_seal            cavity    91.2 cm3  solids     0.193 cm3 (100 % priced)  CO3 252 (5.00 ppm; siderite)                   SiO2 4.40 (650 ppm; opal)
+  asbestos_hills_surficial_alteration  cavity    79.3 cm3  solids     0.233 cm3 (100 % priced)  CO3 243 (5.00 ppm; siderite)                   SiO2 4.44 (1000 ppm; opal)
+  elmwood                              cavity    70.8 cm3  solids     0.805 cm3 (100 % priced)  Sr 223 (30.0 ppm; celestine)                   F 106 (30.0 ppm; fluorite)
+  ultramafic_supergene                 cavity    36.4 cm3  solids     0.427 cm3 (100 % priced)  SiO2 58.7 (400 ppm; opal)                      Ca 3.7e-10 (30.0 ppm; calcite)
+  reactive_wall                        cavity    37.7 cm3  solids     0.046 cm3 (100 % priced)  Pb 44.8 (30.0 ppm; galena)                     Zn 11.0 (250 ppm; sphalerite)
+  jeffrey_mine                         cavity   329.2 cm3  solids     4.029 cm3 (99 % priced)  SiO2 43.9 (480 ppm; diopside)                  Ca 13.6 (570 ppm; diopside)
+  naica_geothermal                     cavity    63.0 cm3  solids     0.013 cm3 (100 % priced)  Sr 35.0 (6.00 ppm; celestine)                  S 0.24 (500 ppm; celestine)
+  great_salt_plains                    cavity   306.3 cm3  solids    17.548 cm3 (100 % priced)  Ca 17.1 (1800 ppm; selenite)                   S 9.48 (2600 ppm; selenite)
+  deccan_zeolite                       cavity    70.5 cm3  solids     0.168 cm3 (99 % priced)  SiO2 6.15 (950 ppm; quartz)                    Al 2.28 (30.0 ppm; albite)
+  grimsel_alpine_cleft                 cavity   600.4 cm3  solids     0.469 cm3 (100 % priced)  Al 4.56 (6.00 ppm; albite)                     Ca 2.65 (200 ppm; calcite)
+  chiastolite_hornfels                 cavity    24.3 cm3  solids     0.001 cm3 (100 % priced)  Al 0.88 (45.0 ppm; andalusite)                 SiO2 0.14 (350 ppm; andalusite)
+  wittichen                            cavity  3161.7 cm3  solids     0.158 cm3 (100 % priced)  Co 0.62 (35.0 ppm; erythrite)                  As 0.40 (120 ppm; erythrite)
+  tutorial_mn_calcite                  cavity    72.9 cm3  solids     0.002 cm3 (100 % priced)  CO3 0.20 (250 ppm; calcite)                    Ca 0.11 (300 ppm; calcite)
+  tutorial_travertine                  cavity    65.4 cm3  solids     0.002 cm3 (100 % priced)  CO3 0.13 (522 ppm; aragonite)                  Ca 0.13 (350 ppm; aragonite)
+  amethyst_geode                       cavity    59.3 cm3  solids     0.000 cm3 (100 % priced)  SiO2 0.0084 (400 ppm; quartz)                  —
+  zoned_dripstone_cave                 cavity   273.8 cm3  solids     0.002 cm3 (100 % priced)  CO3 0.0053 (2200 ppm; aragonite)               Ca 0.0039 (2000 ppm; aragonite)
+  stalactite_demo                      cavity   124.6 cm3  solids     0.000 cm3 (100 % priced)  CO3 0.0032 (600 ppm; calcite)                  Ca 0.0021 (600 ppm; calcite)
+  cooling                              cavity    64.4 cm3  solids     0.000 cm3 (100 % priced)  SiO2 0.0024 (260 ppm; quartz)                  —
+  pulse                                cavity    69.8 cm3  solids     0.000 cm3 (100 % priced)  Fe 0.00095 (15.0 ppm; siderite)                CO3 0.00013 (120 ppm; siderite)
+  tutorial_first_crystal               cavity    66.0 cm3  solids     0.000 cm3 (100 % priced)  SiO2 2.1e-9 (600 ppm; quartz)                  —
+  marble_contact_metamorphism          cavity    36.0 cm3  solids     0.000 cm3 (100 % priced)  —                                              —
+scenarios whose solids hold more of some element than one cavity-volume of their richest broth: 30 of 41; more than 10: 28; more than 100: 23; more than 1,000: 17; less than a hundredth: 6
+
+STATIC — flow_rate
+assigned 103 times in 22 event files (js/70*.ts), and named on 11 event lines of data/scenarios.json5. Every other non-comment line of js/ that names it:
+  js/25-chemistry-conditions.ts:23  this.flow_rate = opts.flow_rate ?? 1.0;
+  js/70-events.ts:19  const allowedKeys = new Set(['multiply', 'add', 'pH_delta', 'flow_rate']);
+  js/70-events.ts:70  if (Object.prototype.hasOwnProperty.call(transform, 'flow_rate')) {
+  js/70-events.ts:71  if (!Number.isFinite(Number(transform.flow_rate)) || Number(transform.flow_rate) < 0) {
+  js/70-events.ts:72  throw new Error(`${kind} has invalid flow_rate`);
+  js/70-events.ts:74  nextFlowRate = Number(transform.flow_rate);
+  js/85c-simulator-state.ts:2226  flow_rate: cnd.flow_rate,
+  js/85d-simulator-step.ts:263  wall.paleo_flow_accum += this.conditions.flow_rate * result.rate_mm;
+  js/85d-simulator-step.ts:417  const authoredFlow = draw(pulseFluid.flow_rate, NaN);
+  js/85d-simulator-step.ts:419  this.conditions.flow_rate = Math.max(0, authoredFlow);
+  js/85d-simulator-step.ts:420  added.push(`flow=${this.conditions.flow_rate.toFixed(2)}`);
+  js/85d-simulator-step.ts:438  pHBoundary.rate_per_step * Math.min(Math.max(this.conditions.flow_rate, 0), 2),
+  js/85d-simulator-step.ts:443  if (this.conditions.flow_rate > 1.0) this.conditions.flow_rate *= 0.9;
+  js/85j-movements.ts:683  if (path === 'flow_rate' || path === 'fluid_surface_height_mm') {
+  js/85l-simulation-command-protocol.ts:253  flowRate: Number(sim?.conditions?.flow_rate) || 0,
+  js/97-ui-fortress.ts:888  ...(flowRate == null ? {} : { flow_rate: flowRate }),
+  js/97-ui-fortress.ts:900  flow_rate: _creativeControlNumber('f-flow-rate', 10, 1),
+  js/97-ui-fortress.ts:1546  c.flow_rate = Math.max(c.flow_rate, 1.5);
+  js/97-ui-fortress.ts:1570  c.flow_rate = 5.0;
+  js/97-ui-fortress.ts:1595  c.flow_rate = Math.max(c.flow_rate * 0.5, 0.2);
+  js/97-ui-fortress.ts:1604  c.flow_rate = Math.max(c.flow_rate * 0.2, 0.05);
+  js/97-ui-fortress.ts:1808  c.flow_rate = 4.0;
+  js/97-ui-fortress.ts:2152  flow_rate: snapCnd.flow_rate,
+  js/97-ui-fortress.ts:2168  document.getElementById('f-stat-flow').textContent = c.flow_rate.toFixed(1);
+  js/97a-ui-broth.ts:85  path: 'flow_rate',
+  js/97a-ui-broth.ts:86  get: () => fortressSim.conditions.flow_rate,
+  js/97a-ui-broth.ts:87  set: v => { fortressSim.conditions.flow_rate = v; },
+  js/97a-ui-broth.ts:422  path: 'wall.thermal_pulse_fluid.flow_rate',
+  js/97a-ui-broth.ts:423  get: () => fortressSim.conditions.wall.thermal_pulse_fluid?.flow_rate ?? -1,
+  js/97a-ui-broth.ts:426  if (Number(v) < 0) delete contract.flow_rate;
+  js/97a-ui-broth.ts:427  else contract.flow_rate = Number(v);
+  js/97b-ui-geology.ts:24  ['flow_rate', 'Flow rate'],

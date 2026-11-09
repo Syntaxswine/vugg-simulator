@@ -1,0 +1,117 @@
+{
+ "sim_version": 286,
+ "arms": [
+  "excess=1"
+ ],
+ "minerals": [
+  "galena"
+ ],
+ "seeds": [
+  42
+ ],
+ "selfcheck": {
+  "scenario": "schneeberg",
+  "neutral": {
+   "rind=Infinity": true,
+   "cap=Infinity": true,
+   "root=1": true,
+   "mul=Ca:1": true
+  },
+  "shippedReproducesBaseline": true
+ },
+ "runs": [
+  {
+   "scenario": "reactive_wall",
+   "seed": 42,
+   "shippedReproducesBaseline": true,
+   "A": {
+    "fill": 0.0012159551036735091,
+    "full": null,
+    "lastGrowth": 120,
+    "species": {
+     "sphalerite": {
+      "n": 1,
+      "max_um": 6627.016185903934,
+      "last": 120
+     },
+     "marcasite": {
+      "n": 1,
+      "max_um": 0,
+      "last": 70
+     },
+     "galena": {
+      "n": 1,
+      "max_um": 3891.377833226939,
+      "last": 120
+     },
+     "pyrite": {
+      "n": 2,
+      "max_um": 468.450896975157,
+      "last": 120
+     },
+     "anhydrite": {
+      "n": 4,
+      "max_um": 131.08423839023405,
+      "last": 92
+     }
+    },
+    "bulkPb": 30,
+    "voxPb": 29.991601109510004,
+    "trace": {
+     "mineral": "galena",
+     "steps": 81,
+     "sigmaBulkMedian": 1.1189169378545387,
+     "sigmaCellMedian": 1.003797354897823
+    }
+   },
+   "B": {
+    "excess=1": {
+     "fill": 0.0010242775173983224,
+     "full": null,
+     "lastGrowth": 120,
+     "species": {
+      "sphalerite": {
+       "n": 1,
+       "max_um": 6652.214544888441,
+       "last": 120
+      },
+      "marcasite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 70
+      },
+      "galena": {
+       "n": 1,
+       "max_um": 742.3844651695076,
+       "last": 120
+      },
+      "pyrite": {
+       "n": 2,
+       "max_um": 463.5535691255218,
+       "last": 120
+      },
+      "anhydrite": {
+       "n": 4,
+       "max_um": 132.50023456815106,
+       "last": 92
+      }
+     },
+     "bulkPb": 30,
+     "voxPb": 29.998397686862724,
+     "trace": {
+      "mineral": "galena",
+      "steps": 81,
+      "sigmaBulkMedian": 1.1189169093404558,
+      "sigmaCellMedian": 1.0939725169688486
+     },
+     "speciesCount": 5,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "galena"
+     ]
+    }
+   }
+  }
+ ]
+}

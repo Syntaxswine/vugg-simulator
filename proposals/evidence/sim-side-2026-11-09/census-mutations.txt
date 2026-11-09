@@ -1,0 +1,37 @@
+sim-side census mutations — 8 mutants; the census as committed runs once on bisbee, epithermal_telluride, gem_pegmatite, mvt, porphyry, radioactive_pegmatite, schneeberg (seed 42)
+
+the census as committed (7 of 7 runs reproduce the baseline):
+  [PASS] positive competition-log — 64/64/60/60/65 = 313
+  [PASS] positive supply — 268 zones on Au; scenario-wide 268 rationed, 45 budget-cut
+  [PASS] positive two-fluids — 116.8 / 174.0 ppm
+  [PASS] negative two-fluids — 0.006 %
+  [PASS] positive space+end — full at step 9, last growth at step 9 of 230, "pocket full" 100 %
+  [PASS] negative space+end — first step at fill >= 0.7: never; fill at end 8.7 %, last growth at step 120 of 120, "pocket full" 0 %
+
+mutant                    control it should fail      committed  mutant   what was broken
+log-read-once             positive competition-log    PASS       FAIL     the step log is scanned on the final step only (run_step resets it every step)
+                                                      committed: 64/64/60/60/65 = 313
+                                                      mutant:    0/0/0/0/0 = 0
+ration-receipt-ignored    positive supply             PASS       FAIL     the competition receipt on a zone is not read
+                                                      committed: 268 zones on Au; scenario-wide 268 rationed, 45 budget-cut
+                                                      mutant:    45 zones on Au; scenario-wide 0 rationed, 45 budget-cut
+voxel-mean-is-bulk        positive two-fluids         PASS       FAIL     the voxel mean at run end is read from the bulk handle
+                                                      committed: 116.8 / 174.0 ppm
+                                                      mutant:    0.0 / 0.0 ppm
+gap-is-bulk-value         negative two-fluids         PASS       FAIL     the gap between the two fluids is computed as the bulk value itself
+                                                      committed: 0.006 %
+                                                      mutant:    100.000 %
+fill-reads-zero           positive space+end          PASS       FAIL     the fill series is recorded as 0
+                                                      committed: full at step 9, last growth at step 9 of 230, "pocket full" 100 %
+                                                      mutant:    full at step null, last growth at step 9 of 230, "pocket full" 100 %
+fill-reads-one            negative space+end          PASS       FAIL     the fill series is recorded as 1
+                                                      committed: first step at fill >= 0.7: never; fill at end 8.7 %, last growth at step 120 of 120, "pocket full" 0 %
+                                                      mutant:    first step at fill >= 0.7: 1; fill at end 8.7 %, last growth at step 120 of 120, "pocket full" 0 %
+stop-never-recorded       positive space+end          PASS       FAIL     the END tracker never notes that a crystal grew, so no stop is ever recorded
+                                                      committed: full at step 9, last growth at step 9 of 230, "pocket full" 100 %
+                                                      mutant:    full at step 9, last growth at step 9 of 230, "pocket full" 0 %
+pocket-full-never-read    positive space+end          PASS       FAIL     the END reading never tests the cavity fill, so a full pocket is filed under whatever comes next
+                                                      committed: full at step 9, last growth at step 9 of 230, "pocket full" 100 %
+                                                      mutant:    full at step 9, last growth at step 9 of 230, "pocket full" 0 %
+
+all 8 mutants: the control passes on the census as committed and fails on the mutant

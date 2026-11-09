@@ -1,0 +1,456 @@
+{
+ "sim_version": 286,
+ "arms": [
+  "cap=4",
+  "cap=8",
+  "cap=12",
+  "cap=16",
+  "cap=24",
+  "cap=48"
+ ],
+ "minerals": [
+  "feldspar",
+  "albite"
+ ],
+ "seeds": [
+  42
+ ],
+ "selfcheck": {
+  "scenario": "schneeberg",
+  "neutral": {
+   "rind=Infinity": true,
+   "cap=Infinity": true,
+   "root=1": true,
+   "mul=Ca:1": true,
+   "fcap=Infinity": true
+  },
+  "shippedReproducesBaseline": true
+ },
+ "runs": [
+  {
+   "scenario": "gem_pegmatite",
+   "seed": 42,
+   "shippedReproducesBaseline": true,
+   "A": {
+    "fill": 1,
+    "full": 9,
+    "lastGrowth": 9,
+    "species": {
+     "quartz": {
+      "n": 3,
+      "max_um": 1654.787422083504,
+      "last": 9
+     },
+     "feldspar": {
+      "n": 2,
+      "max_um": 31728.66652207226,
+      "last": 9
+     },
+     "albite": {
+      "n": 2,
+      "max_um": 24611.643573740355,
+      "last": 9
+     },
+     "spodumene": {
+      "n": 1,
+      "max_um": 124.65995151547568,
+      "last": 9
+     },
+     "tourmaline": {
+      "n": 2,
+      "max_um": 294.1936076346222,
+      "last": 9
+     },
+     "lepidolite": {
+      "n": 3,
+      "max_um": 6.888554233177586,
+      "last": 9
+     },
+     "cassiterite": {
+      "n": 4,
+      "max_um": 7.501884451789632,
+      "last": 8
+     }
+    },
+    "bulkPb": 0,
+    "voxPb": 0,
+    "trace": null
+   },
+   "B": {
+    "cap=4": {
+     "fill": 0.21329090485967972,
+     "full": null,
+     "lastGrowth": 230,
+     "species": {
+      "quartz": {
+       "n": 3,
+       "max_um": 37445.524138467896,
+       "last": 230
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 10372.510902544716,
+       "last": 230
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 13852.235562717542,
+       "last": 230
+      },
+      "spodumene": {
+       "n": 4,
+       "max_um": 4225.20484650932,
+       "last": 159
+      },
+      "tourmaline": {
+       "n": 8,
+       "max_um": 12028.711443000497,
+       "last": 197
+      },
+      "lepidolite": {
+       "n": 5,
+       "max_um": 4743.4827609155855,
+       "last": 159
+      },
+      "cassiterite": {
+       "n": 10,
+       "max_um": 1437.1104148293712,
+       "last": 230
+      },
+      "topaz": {
+       "n": 6,
+       "max_um": 2481.8429046748724,
+       "last": 215
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 8,
+     "gained": [
+      "topaz"
+     ],
+     "lost": [],
+     "moved": [
+      "albite",
+      "cassiterite",
+      "feldspar",
+      "lepidolite",
+      "quartz",
+      "spodumene",
+      "tourmaline"
+     ]
+    },
+    "cap=8": {
+     "fill": 0.4209569297522651,
+     "full": null,
+     "lastGrowth": 230,
+     "species": {
+      "quartz": {
+       "n": 3,
+       "max_um": 37461.053702270736,
+       "last": 230
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 24139.48865607055,
+       "last": 230
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 32316.43577799946,
+       "last": 230
+      },
+      "spodumene": {
+       "n": 4,
+       "max_um": 4226.565129611793,
+       "last": 159
+      },
+      "tourmaline": {
+       "n": 8,
+       "max_um": 12014.843183248327,
+       "last": 197
+      },
+      "lepidolite": {
+       "n": 5,
+       "max_um": 4735.560169011542,
+       "last": 159
+      },
+      "cassiterite": {
+       "n": 10,
+       "max_um": 1437.8080009505677,
+       "last": 230
+      },
+      "topaz": {
+       "n": 6,
+       "max_um": 2502.000118283215,
+       "last": 215
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 8,
+     "gained": [
+      "topaz"
+     ],
+     "lost": [],
+     "moved": [
+      "albite",
+      "cassiterite",
+      "feldspar",
+      "lepidolite",
+      "quartz",
+      "spodumene",
+      "tourmaline"
+     ]
+    },
+    "cap=12": {
+     "fill": 0.9032094122456826,
+     "full": null,
+     "lastGrowth": 230,
+     "species": {
+      "quartz": {
+       "n": 3,
+       "max_um": 32911.94103226261,
+       "last": 230
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 35223.53919946373,
+       "last": 230
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 47101.72279407485,
+       "last": 230
+      },
+      "spodumene": {
+       "n": 4,
+       "max_um": 4227.68428464221,
+       "last": 159
+      },
+      "tourmaline": {
+       "n": 8,
+       "max_um": 12010.278397161894,
+       "last": 197
+      },
+      "lepidolite": {
+       "n": 5,
+       "max_um": 4735.56016897403,
+       "last": 159
+      },
+      "cassiterite": {
+       "n": 10,
+       "max_um": 1388.9271685650426,
+       "last": 222
+      },
+      "topaz": {
+       "n": 6,
+       "max_um": 2468.1823002994165,
+       "last": 215
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 8,
+     "gained": [
+      "topaz"
+     ],
+     "lost": [],
+     "moved": [
+      "albite",
+      "cassiterite",
+      "lepidolite",
+      "quartz",
+      "spodumene",
+      "tourmaline"
+     ]
+    },
+    "cap=16": {
+     "fill": 0.9888806839866049,
+     "full": null,
+     "lastGrowth": 230,
+     "species": {
+      "quartz": {
+       "n": 3,
+       "max_um": 21753.326880576977,
+       "last": 230
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 30854.491519824267,
+       "last": 230
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 40714.3753403065,
+       "last": 230
+      },
+      "spodumene": {
+       "n": 4,
+       "max_um": 3864.062383234807,
+       "last": 153
+      },
+      "tourmaline": {
+       "n": 9,
+       "max_um": 9399.682162045105,
+       "last": 189
+      },
+      "lepidolite": {
+       "n": 6,
+       "max_um": 3713.488586380133,
+       "last": 159
+      },
+      "cassiterite": {
+       "n": 16,
+       "max_um": 993.9848530646368,
+       "last": 222
+      },
+      "topaz": {
+       "n": 6,
+       "max_um": 874.4055306856848,
+       "last": 201
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 8,
+     "gained": [
+      "topaz"
+     ],
+     "lost": [],
+     "moved": [
+      "albite",
+      "cassiterite",
+      "lepidolite",
+      "quartz",
+      "spodumene",
+      "tourmaline"
+     ]
+    },
+    "cap=24": {
+     "fill": 1,
+     "full": 113,
+     "lastGrowth": 114,
+     "species": {
+      "quartz": {
+       "n": 3,
+       "max_um": 17031.377798232643,
+       "last": 114
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 29915.85608515802,
+       "last": 114
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 38287.47368036528,
+       "last": 114
+      },
+      "spodumene": {
+       "n": 5,
+       "max_um": 2569.3297896474737,
+       "last": 113
+      },
+      "tourmaline": {
+       "n": 8,
+       "max_um": 6067.261855485869,
+       "last": 114
+      },
+      "lepidolite": {
+       "n": 6,
+       "max_um": 2027.7594963168517,
+       "last": 113
+      },
+      "cassiterite": {
+       "n": 15,
+       "max_um": 645.9696257384229,
+       "last": 113
+      },
+      "topaz": {
+       "n": 2,
+       "max_um": 7.02494647984944,
+       "last": 97
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 8,
+     "gained": [
+      "topaz"
+     ],
+     "lost": [],
+     "moved": [
+      "albite",
+      "cassiterite",
+      "lepidolite",
+      "quartz",
+      "spodumene",
+      "tourmaline"
+     ]
+    },
+    "cap=48": {
+     "fill": 1,
+     "full": 55,
+     "lastGrowth": 56,
+     "species": {
+      "quartz": {
+       "n": 3,
+       "max_um": 8898.428020473732,
+       "last": 56
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 29679.615710675367,
+       "last": 56
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 38688.21268391402,
+       "last": 56
+      },
+      "spodumene": {
+       "n": 5,
+       "max_um": 701.2677589559485,
+       "last": 55
+      },
+      "tourmaline": {
+       "n": 8,
+       "max_um": 2841.5536000421935,
+       "last": 55
+      },
+      "lepidolite": {
+       "n": 7,
+       "max_um": 464.60646067451125,
+       "last": 55
+      },
+      "cassiterite": {
+       "n": 11,
+       "max_um": 287.0170513898957,
+       "last": 48
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 7,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "cassiterite",
+      "lepidolite",
+      "quartz",
+      "spodumene",
+      "tourmaline"
+     ]
+    }
+   }
+  }
+ ]
+}

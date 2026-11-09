@@ -7,6 +7,24 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
+> ## ⏳ SIMULATION-SIDE REVIEW — WHAT ENDS A CRYSTAL'S GROWTH (2026-11-09) — **`REVIEW-SIMULATION-SIDE-2026-11-09.md`**
+>
+> Boss ask: "take a look at vugg simulator and see if you see any improvements of the simulation
+> side of things." A review at SIM 286 (`e86ba58a`) with five passive instruments
+> (`tools/sim-side-census.mjs` and its `-mutations` check, `sim-side-ab.mjs`,
+> `rate-at-saturation-census.mjs`, `seed-variety-census.mjs`) and their outputs in
+> `proposals/evidence/sim-side-2026-11-09/`; nothing in `js/`, `data/` or a baseline changes. **The reading:** the
+> fluid's supply shapes almost no growth, so a crystal stops only when the run ends, the pocket is
+> full, or an event moves the chemistry. **Three defects, each with an A/B:** F1 the pegmatite pocket
+> plugs (`gem_pegmatite` is full at step 9–10 of 230; with feldspar and albite bounded, tourmaline
+> reaches 12 mm and topaz appears; ten times the boron changes nothing — read this before testing
+> story-pocket WP8(b)); F2 galena, molybdenite and uraninite propose growth at saturation (k·σ where
+> 171 other engines vanish at σ = 1); F3 radiogenic Pb is written to the bulk handle only
+> (`js/85-simulator.ts:1276`). `flow_rate` is authored 103 times and read by no growth code.
+> **Awaits the boss:** the five decisions in the doc's §6 (R1's shape — a clamp, NOT factor caps,
+> which delete both feldspars from the Grimsel cleft; R2's constant; R3's mechanism; whether to pilot
+> a supply that can run short; the order against the open ladders).
+
 > ## 📷 HOSTILE REVIEW — VISUAL REALISM (2026-09-04) — **`PROPOSAL-HOSTILE-REVIEW-VISUAL-REALISM-2026-09-04.md`**
 >
 > Boss ask: how true to life do the rendered crystals look (10 = a photograph; target 7)?

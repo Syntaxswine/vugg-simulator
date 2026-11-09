@@ -1,0 +1,428 @@
+{
+ "stratum": "2026-11-04/v286",
+ "meta": {
+  "sha": "e86ba58a",
+  "sim_version": 286,
+  "n_seeds": 55
+ },
+ "scenarios": 41,
+ "oneSpeciesSet": 30,
+ "pairs": 356,
+ "inEverySeed": 334,
+ "sameCount": 174,
+ "sameCountOf": 334,
+ "oneLargestSpecies": 31,
+ "oneLargestSpeciesOf": 40,
+ "rows": [
+  {
+   "scenario": "amethyst_geode",
+   "seeds": 55,
+   "species": 2,
+   "inEverySeed": 2,
+   "oneSpeciesSet": true,
+   "sizeSpread": null,
+   "sameCount": 1,
+   "largestSpecies": 2
+  },
+  {
+   "scenario": "asbestos_hills_crack_seal",
+   "seeds": 55,
+   "species": 9,
+   "inEverySeed": 9,
+   "oneSpeciesSet": true,
+   "sizeSpread": 0.08962838866890042,
+   "sameCount": 7,
+   "largestSpecies": 1
+  },
+  {
+   "scenario": "asbestos_hills_surficial_alteration",
+   "seeds": 55,
+   "species": 10,
+   "inEverySeed": 10,
+   "oneSpeciesSet": true,
+   "sizeSpread": 0.09516226872914771,
+   "sameCount": 8,
+   "largestSpecies": 1
+  },
+  {
+   "scenario": "bisbee",
+   "seeds": 55,
+   "species": 31,
+   "inEverySeed": 28,
+   "oneSpeciesSet": false,
+   "sizeSpread": 0.9989257021859625,
+   "sameCount": 9,
+   "largestSpecies": 2
+  },
+  {
+   "scenario": "chiastolite_hornfels",
+   "seeds": 55,
+   "species": 3,
+   "inEverySeed": 3,
+   "oneSpeciesSet": true,
+   "sizeSpread": 0.068615649183147,
+   "sameCount": 3,
+   "largestSpecies": 1
+  },
+  {
+   "scenario": "colorado_plateau",
+   "seeds": 55,
+   "species": 4,
+   "inEverySeed": 4,
+   "oneSpeciesSet": true,
+   "sizeSpread": 0.03858414079493765,
+   "sameCount": 2,
+   "largestSpecies": 1
+  },
+  {
+   "scenario": "cooling",
+   "seeds": 55,
+   "species": 1,
+   "inEverySeed": 1,
+   "oneSpeciesSet": true,
+   "sizeSpread": null,
+   "sameCount": 1,
+   "largestSpecies": 1
+  },
+  {
+   "scenario": "deccan_zeolite",
+   "seeds": 55,
+   "species": 14,
+   "inEverySeed": 14,
+   "oneSpeciesSet": true,
+   "sizeSpread": 0.7718572888599833,
+   "sameCount": 7,
+   "largestSpecies": 2
+  },
+  {
+   "scenario": "elmwood",
+   "seeds": 55,
+   "species": 6,
+   "inEverySeed": 6,
+   "oneSpeciesSet": true,
+   "sizeSpread": 0.04546156437756196,
+   "sameCount": 6,
+   "largestSpecies": 1
+  },
+  {
+   "scenario": "epithermal_telluride",
+   "seeds": 55,
+   "species": 9,
+   "inEverySeed": 9,
+   "oneSpeciesSet": true,
+   "sizeSpread": 0.12361151591696616,
+   "sameCount": 6,
+   "largestSpecies": 1
+  },
+  {
+   "scenario": "gem_pegmatite",
+   "seeds": 55,
+   "species": 7,
+   "inEverySeed": 7,
+   "oneSpeciesSet": true,
+   "sizeSpread": 0.6552437654805311,
+   "sameCount": 1,
+   "largestSpecies": 2
+  },
+  {
+   "scenario": "great_salt_plains",
+   "seeds": 55,
+   "species": 2,
+   "inEverySeed": 2,
+   "oneSpeciesSet": true,
+   "sizeSpread": 1.1010393935913632,
+   "sameCount": 1,
+   "largestSpecies": 1
+  },
+  {
+   "scenario": "grimsel_alpine_cleft",
+   "seeds": 55,
+   "species": 10,
+   "inEverySeed": 10,
+   "oneSpeciesSet": true,
+   "sizeSpread": 0.16552808173629177,
+   "sameCount": 4,
+   "largestSpecies": 1
+  },
+  {
+   "scenario": "jeffrey_mine",
+   "seeds": 55,
+   "species": 13,
+   "inEverySeed": 13,
+   "oneSpeciesSet": true,
+   "sizeSpread": 0.7782550196646656,
+   "sameCount": 4,
+   "largestSpecies": 1
+  },
+  {
+   "scenario": "marble_contact_metamorphism",
+   "seeds": 55,
+   "species": 0,
+   "inEverySeed": 0,
+   "oneSpeciesSet": true,
+   "sizeSpread": null,
+   "sameCount": 0,
+   "largestSpecies": 0
+  },
+  {
+   "scenario": "mvt",
+   "seeds": 55,
+   "species": 9,
+   "inEverySeed": 8,
+   "oneSpeciesSet": false,
+   "sizeSpread": 0.7987188426006624,
+   "sameCount": 3,
+   "largestSpecies": 1
+  },
+  {
+   "scenario": "naica_geothermal",
+   "seeds": 55,
+   "species": 2,
+   "inEverySeed": 2,
+   "oneSpeciesSet": true,
+   "sizeSpread": 0.08134965445593745,
+   "sameCount": 2,
+   "largestSpecies": 1
+  },
+  {
+   "scenario": "ouro_preto",
+   "seeds": 55,
+   "species": 4,
+   "inEverySeed": 4,
+   "oneSpeciesSet": true,
+   "sizeSpread": 0.61615683089695,
+   "sameCount": 2,
+   "largestSpecies": 1
+  },
+  {
+   "scenario": "porphyry",
+   "seeds": 55,
+   "species": 19,
+   "inEverySeed": 19,
+   "oneSpeciesSet": true,
+   "sizeSpread": 0.7983333150822941,
+   "sameCount": 12,
+   "largestSpecies": 1
+  },
+  {
+   "scenario": "pulse",
+   "seeds": 55,
+   "species": 3,
+   "inEverySeed": 2,
+   "oneSpeciesSet": false,
+   "sizeSpread": null,
+   "sameCount": 1,
+   "largestSpecies": 2
+  },
+  {
+   "scenario": "radioactive_pegmatite",
+   "seeds": 55,
+   "species": 13,
+   "inEverySeed": 12,
+   "oneSpeciesSet": false,
+   "sizeSpread": 0.9857136538546596,
+   "sameCount": 4,
+   "largestSpecies": 3
+  },
+  {
+   "scenario": "reactivated_fluorite_vein",
+   "seeds": 55,
+   "species": 12,
+   "inEverySeed": 11,
+   "oneSpeciesSet": false,
+   "sizeSpread": 0.24014737811698136,
+   "sameCount": 9,
+   "largestSpecies": 1
+  },
+  {
+   "scenario": "reactive_wall",
+   "seeds": 55,
+   "species": 5,
+   "inEverySeed": 5,
+   "oneSpeciesSet": true,
+   "sizeSpread": 0.7550430102117812,
+   "sameCount": 2,
+   "largestSpecies": 1
+  },
+  {
+   "scenario": "roughten_gill",
+   "seeds": 55,
+   "species": 23,
+   "inEverySeed": 23,
+   "oneSpeciesSet": true,
+   "sizeSpread": 0.6601276294020327,
+   "sameCount": 11,
+   "largestSpecies": 1
+  },
+  {
+   "scenario": "sabkha_dolomitization",
+   "seeds": 55,
+   "species": 6,
+   "inEverySeed": 6,
+   "oneSpeciesSet": true,
+   "sizeSpread": 0.13135895606076042,
+   "sameCount": 3,
+   "largestSpecies": 1
+  },
+  {
+   "scenario": "schneeberg",
+   "seeds": 55,
+   "species": 33,
+   "inEverySeed": 23,
+   "oneSpeciesSet": false,
+   "sizeSpread": 0.951122948459545,
+   "sameCount": 12,
+   "largestSpecies": 2
+  },
+  {
+   "scenario": "searles_lake",
+   "seeds": 55,
+   "species": 7,
+   "inEverySeed": 6,
+   "oneSpeciesSet": false,
+   "sizeSpread": 9.475030759209668,
+   "sameCount": 1,
+   "largestSpecies": 2
+  },
+  {
+   "scenario": "shigar_pegmatite",
+   "seeds": 55,
+   "species": 5,
+   "inEverySeed": 5,
+   "oneSpeciesSet": true,
+   "sizeSpread": 0.5647981460538886,
+   "sameCount": 3,
+   "largestSpecies": 1
+  },
+  {
+   "scenario": "sicily_solfifera",
+   "seeds": 55,
+   "species": 5,
+   "inEverySeed": 5,
+   "oneSpeciesSet": true,
+   "sizeSpread": 0.16345691426572814,
+   "sameCount": 3,
+   "largestSpecies": 1
+  },
+  {
+   "scenario": "stalactite_demo",
+   "seeds": 55,
+   "species": 1,
+   "inEverySeed": 1,
+   "oneSpeciesSet": true,
+   "sizeSpread": null,
+   "sameCount": 0,
+   "largestSpecies": 1
+  },
+  {
+   "scenario": "sulphur_bank",
+   "seeds": 55,
+   "species": 7,
+   "inEverySeed": 7,
+   "oneSpeciesSet": true,
+   "sizeSpread": 0.38460344559987586,
+   "sameCount": 4,
+   "largestSpecies": 1
+  },
+  {
+   "scenario": "sunnyside_american_tunnel",
+   "seeds": 55,
+   "species": 16,
+   "inEverySeed": 15,
+   "oneSpeciesSet": false,
+   "sizeSpread": 0.36211794114305196,
+   "sameCount": 9,
+   "largestSpecies": 1
+  },
+  {
+   "scenario": "supergene_oxidation",
+   "seeds": 55,
+   "species": 30,
+   "inEverySeed": 29,
+   "oneSpeciesSet": false,
+   "sizeSpread": 0.29381018753167765,
+   "sameCount": 11,
+   "largestSpecies": 1
+  },
+  {
+   "scenario": "tn457_barite_pulses",
+   "seeds": 55,
+   "species": 2,
+   "inEverySeed": 2,
+   "oneSpeciesSet": true,
+   "sizeSpread": 0.07277325091317789,
+   "sameCount": 2,
+   "largestSpecies": 1
+  },
+  {
+   "scenario": "tormiq_alpine_cleft",
+   "seeds": 55,
+   "species": 6,
+   "inEverySeed": 5,
+   "oneSpeciesSet": false,
+   "sizeSpread": 0.51817457878995,
+   "sameCount": 4,
+   "largestSpecies": 2
+  },
+  {
+   "scenario": "tutorial_first_crystal",
+   "seeds": 55,
+   "species": 1,
+   "inEverySeed": 1,
+   "oneSpeciesSet": true,
+   "sizeSpread": null,
+   "sameCount": 1,
+   "largestSpecies": 1
+  },
+  {
+   "scenario": "tutorial_mn_calcite",
+   "seeds": 55,
+   "species": 4,
+   "inEverySeed": 4,
+   "oneSpeciesSet": true,
+   "sizeSpread": 0.4997660271408516,
+   "sameCount": 4,
+   "largestSpecies": 1
+  },
+  {
+   "scenario": "tutorial_travertine",
+   "seeds": 55,
+   "species": 2,
+   "inEverySeed": 2,
+   "oneSpeciesSet": true,
+   "sizeSpread": 0.18048070492899562,
+   "sameCount": 2,
+   "largestSpecies": 1
+  },
+  {
+   "scenario": "ultramafic_supergene",
+   "seeds": 55,
+   "species": 4,
+   "inEverySeed": 4,
+   "oneSpeciesSet": true,
+   "sizeSpread": 0.06760558300573442,
+   "sameCount": 2,
+   "largestSpecies": 1
+  },
+  {
+   "scenario": "wittichen",
+   "seeds": 55,
+   "species": 13,
+   "inEverySeed": 12,
+   "oneSpeciesSet": false,
+   "sizeSpread": 0.3540487592511972,
+   "sameCount": 6,
+   "largestSpecies": 1
+  },
+  {
+   "scenario": "zoned_dripstone_cave",
+   "seeds": 55,
+   "species": 3,
+   "inEverySeed": 3,
+   "oneSpeciesSet": true,
+   "sizeSpread": 0.38070915246184,
+   "sameCount": 1,
+   "largestSpecies": 1
+  }
+ ]
+}

@@ -1,0 +1,78 @@
+{
+ "seed": 42,
+ "ok": true,
+ "results": [
+  {
+   "mutant": "log-read-once",
+   "what": "the step log is scanned on the final step only (run_step resets it every step)",
+   "control": "competition-log positive",
+   "committed": "PASS",
+   "committedDetail": "64/64/60/60/65 = 313",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "0/0/0/0/0 = 0"
+  },
+  {
+   "mutant": "ration-receipt-ignored",
+   "what": "the competition receipt on a zone is not read",
+   "control": "supply positive",
+   "committed": "PASS",
+   "committedDetail": "268 zones on Au; scenario-wide 268 rationed, 45 budget-cut",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "45 zones on Au; scenario-wide 0 rationed, 45 budget-cut"
+  },
+  {
+   "mutant": "voxel-mean-is-bulk",
+   "what": "the voxel mean at run end is read from the bulk handle",
+   "control": "two-fluids positive",
+   "committed": "PASS",
+   "committedDetail": "116.8 / 174.0 ppm",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "0.0 / 0.0 ppm"
+  },
+  {
+   "mutant": "gap-is-bulk-value",
+   "what": "the gap between the two fluids is computed as the bulk value itself",
+   "control": "two-fluids negative",
+   "committed": "PASS",
+   "committedDetail": "0.006 %",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "100.000 %"
+  },
+  {
+   "mutant": "fill-reads-zero",
+   "what": "the fill series is recorded as 0",
+   "control": "space+end positive",
+   "committed": "PASS",
+   "committedDetail": "full at step 9, last growth at step 9 of 230, \"pocket full\" 100 %",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "full at step null, last growth at step 9 of 230, \"pocket full\" 100 %"
+  },
+  {
+   "mutant": "fill-reads-one",
+   "what": "the fill series is recorded as 1",
+   "control": "space+end negative",
+   "committed": "PASS",
+   "committedDetail": "first step at fill >= 0.7: never; fill at end 8.7 %, last growth at step 120 of 120, \"pocket full\" 0 %",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "first step at fill >= 0.7: 1; fill at end 8.7 %, last growth at step 120 of 120, \"pocket full\" 0 %"
+  },
+  {
+   "mutant": "stop-never-recorded",
+   "what": "the END tracker never notes that a crystal grew, so no stop is ever recorded",
+   "control": "space+end positive",
+   "committed": "PASS",
+   "committedDetail": "full at step 9, last growth at step 9 of 230, \"pocket full\" 100 %",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "full at step 9, last growth at step 9 of 230, \"pocket full\" 0 %"
+  },
+  {
+   "mutant": "pocket-full-never-read",
+   "what": "the END reading never tests the cavity fill, so a full pocket is filed under whatever comes next",
+   "control": "space+end positive",
+   "committed": "PASS",
+   "committedDetail": "full at step 9, last growth at step 9 of 230, \"pocket full\" 100 %",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "full at step 9, last growth at step 9 of 230, \"pocket full\" 0 %"
+  }
+ ]
+}
