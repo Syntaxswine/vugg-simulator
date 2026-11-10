@@ -3,7 +3,7 @@
  "sim_version": 286,
  "seed": 42,
  "inputs": "ccb0db2bfa2c29949670b1ca5a36bdd73167103e5b0a5a25c5ba44aa4fcc9cc2",
- "tool_sha256": "d6c854fbd6211d9ec689018da55984cb9fc6aef564a825eef5e6b3d599174b43",
+ "tool_sha256": "832e001cf8c9633d2eb8a10f5d97c27db044e76764fb0ee360baf59609e31156",
  "scenarios": 41,
  "baseline": {
   "reproduced": 41,
@@ -192,6 +192,48 @@
    "label": "schneeberg stores at least 0.5 mm on a cell under half the reference's excess that its ingredients do not explain, and pH restores at least nine tenths of it",
    "pass": true,
    "detail": "3.93 mm not through the ingredients; uranophane:pH 3.93 mm"
+  },
+  {
+   "id": "big-drawn-down",
+   "kind": "positive",
+   "label": "at least three of colorado_plateau's surviving crystals of 1 mm or more stored most of their growth on a cell under half the reference's excess",
+   "pass": true,
+   "detail": "3 of 13: uranophane ×3"
+  },
+  {
+   "id": "starved",
+   "kind": "positive",
+   "label": "sunnyside_american_tunnel has at least 100 starved crystal-steps (nothing proposed, the cell below saturation, the bulk handle at or above it, the ingredients enough to restore it)",
+   "pass": true,
+   "detail": "1062 crystal-steps (sylvanite ×393, calaverite ×381, galena ×204)"
+  },
+  {
+   "id": "band",
+   "kind": "positive",
+   "label": "bisbee stores at least a tenth of its growth on a cell between 0.5 and 0.9 of the reference's excess",
+   "pass": true,
+   "detail": "36.2 % of 345 mm stored"
+  },
+  {
+   "id": "reference-under",
+   "kind": "positive",
+   "label": "zoned_dripstone_cave stores more than half its growth where the bulk handle's own fluid is at or under saturation",
+   "pass": true,
+   "detail": "81.3 % of 7.2 mm stored"
+  },
+  {
+   "id": "wall-min",
+   "kind": "positive",
+   "label": "mvt's lowest wall cell ends between 0.3 and 1.5 ppm of Cd (the bulk handle holds 2), and its lowest wall cell of Ca between 390 and 400 ppm",
+   "pass": true,
+   "detail": "Cd 0.93, Ca 395.1 ppm"
+  },
+  {
+   "id": "ring-means",
+   "kind": "positive",
+   "label": "schneeberg's floor ring ends with a voxel-mean O2 at least 0.2 below the bulk handle's",
+   "pass": true,
+   "detail": "bulk handle 1.800; floor ring 1.498, top ring 1.800"
   }
  ],
  "space": {

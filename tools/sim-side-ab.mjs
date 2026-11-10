@@ -87,10 +87,12 @@
  *
  * AUDIT. An intervention may trip one of the simulator's own audits, and an audit that fails can
  * cancel an authored event: the run then differs for a reason that is not the intervention's subject.
- * Every run counts the step-log lines in which a CO2 or carbonate event reports itself paused or
- * refused (js/70l, the only events that do), the failed transactions of the carbonate boundary, and
- * the entries of the three violation ledgers
- * (sulfur and carbon propagation, fluid boundary). An arm whose counts differ from arm A's is
+ * Every run counts the step-log lines in which a CO2 or carbonate event of js/70l reports itself
+ * paused or refused, the failed transactions of the carbonate boundary, and the entries of the
+ * three violation ledgers (sulfur and carbon propagation, fluid boundary). The sabkha events of
+ * js/70k narrate a blocked transaction in other words ("carbonate transaction BLOCKED"), which the
+ * line count does not match; a blocked transaction is recorded as a failed one, and the second
+ * count has it. An arm whose counts differ from arm A's is
  * flagged on its own line and in the JSON. Beside the audit, each run records the steps on which
  * the wall's dissolution was withheld as too small to resolve (js/85d). That is a notice, not a
  * failure: it follows how much acid reaches the wall and how much of the wall the crystals cover,
@@ -137,10 +139,11 @@ const HIGH_FILL = 0.7;          // _fillDampenerFor (js/85d) starts to bite here
 // js/39-supersat-silicate.ts: sigma = (K/40)(Al/10)(SiO2/400) for feldspar, (Na/35)(Al/10)(SiO2/400)
 // for albite. Spelled out here: if those functions change, `fcap` no longer previews them.
 const FACTORS = { feldspar: [['K', 40], ['Al', 10], ['SiO2', 400]], albite: [['Na', 35], ['Al', 10], ['SiO2', 400]] };
-// A step-log line in which an event says it did not act. Only the CO2 and carbonate events of
-// js/70l do ("CO₂ vent paused: …", "Heated CO₂ vent paused: …", "CO₂ charge refused: …",
-// "Carbonate recharge paused: …"). The pattern names them, so that narration which happens to
-// contain "refused:" is not counted. Counted for the AUDIT comparison.
+// A step-log line in which a CO2 or carbonate event of js/70l says it did not act ("CO₂ vent
+// paused: …", "Heated CO₂ vent paused: …", "CO₂ charge refused: …", "Carbonate recharge
+// refused: …"). The pattern names them, so that narration which happens to contain "refused:" is
+// not counted. The sabkha events of js/70k say "carbonate transaction BLOCKED" instead; that case
+// is in the failed-transaction count, not this one. Counted for the AUDIT comparison.
 const REFUSAL = /(CO₂|Carbonate) [a-z₂ ]*(paused|refused): /;
 // The wall's notice that a dissolution step was too small to resolve (js/85d). Counted beside the
 // audit, not in it.

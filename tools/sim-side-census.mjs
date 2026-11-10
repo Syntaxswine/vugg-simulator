@@ -150,6 +150,18 @@
  *   + vadose            the override dries schneeberg's equator ring and the bulk handle's O2 rises.
  *   - vadose            it dries no ring in mvt.
  *   + draw-down-other   schneeberg's uranophane is held down through pH, not its ingredients.
+ *   + big-drawn-down    three of colorado_plateau's crystals of 1 mm or more stored most of their
+ *                       growth on a cell under half the reference's excess (the per-crystal share).
+ *   + starved           sunnyside_american_tunnel has crystal-steps on which nothing was proposed, the
+ *                       cell was below saturation and the ingredients would have restored it.
+ *   + band              bisbee stores a tenth or more of its thickness between 0.5 and 0.9 of the
+ *                       reference's excess.
+ *   + reference-under   zoned_dripstone_cave stores most of its thickness where the bulk handle's own
+ *                       fluid is at or under saturation.
+ *   + wall-min          mvt's lowest wall cell ends well under the bulk handle's 2 ppm of Cd, and its
+ *                       lowest wall cell of Ca just under the bulk handle's 400.
+ *   + ring-means        schneeberg's floor ring ends with less O2 than the bulk handle, which the
+ *                       vadose override wrote.
  * Five controls sit on today's defects — two fluids (+) and strangled (+) on the radiogenic Pb,
  * space/end (+) and time (−) on gem_pegmatite's plug, count (+) on the galena radioactive_pegmatite
  * does not license. The commit that changes one of those turns its control around, and must say so.
@@ -458,6 +470,49 @@ const CONTROLS = [
       const by = R.schneeberg.draw.otherBy, total = Object.values(by).reduce((a, b) => a + b, 0);
       const pH = Object.entries(by).filter(([k]) => k.endsWith(':pH')).reduce((s, [, um]) => s + um, 0);
       return { pass: total >= 500 && pH >= 0.9 * total, detail: `${(total / MM).toFixed(2)} mm not through the ingredients; ${Object.entries(by).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k, um]) => `${k} ${(um / MM).toFixed(2)} mm`).join(', ') || 'none'}` };
+    } },
+  { id: 'big-drawn-down', kind: 'positive', needs: ['colorado_plateau'],
+    label: "at least three of colorado_plateau's surviving crystals of 1 mm or more stored most of their growth on a cell under half the reference's excess",
+    test: (R) => {
+      const big = R.colorado_plateau.crystals.filter(c => !c.dissolved && c.g >= MM && c.nPos > 0);
+      const mostly = big.filter(c => c.half > 0.5);
+      const by = Object.entries(mostly.reduce((o, c) => (o[c.m] = (o[c.m] || 0) + 1, o), {})).map(([m, n]) => `${m} ×${n}`).join(', ');
+      return { pass: mostly.length >= 3, detail: `${mostly.length} of ${big.length}${by ? ': ' + by : ''}` };
+    } },
+  { id: 'starved', kind: 'positive', needs: ['sunnyside_american_tunnel'],
+    label: 'sunnyside_american_tunnel has at least 100 starved crystal-steps (nothing proposed, the cell below saturation, the bulk handle at or above it, the ingredients enough to restore it)',
+    test: (R) => {
+      const s = R.sunnyside_american_tunnel.draw.starved, n = Object.values(s).reduce((a, b) => a + b, 0);
+      const top = Object.entries(s).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([m, k]) => `${m} ×${k}`).join(', ');
+      return { pass: n >= 100, detail: `${n} crystal-steps${top ? ' (' + top + ')' : ''}` };
+    } },
+  { id: 'band', kind: 'positive', needs: ['bisbee'],
+    label: "bisbee stores at least a tenth of its growth on a cell between 0.5 and 0.9 of the reference's excess",
+    test: (R) => {
+      const d = R.bisbee.draw, all = d.t + d.unread;
+      return { pass: all > 0 && d.mid / all >= 0.1, detail: `${(d.mid / Math.max(1e-9, all) * 100).toFixed(1)} % of ${(all / MM).toFixed(0)} mm stored` };
+    } },
+  { id: 'reference-under', kind: 'positive', needs: ['zoned_dripstone_cave'],
+    label: "zoned_dripstone_cave stores more than half its growth where the bulk handle's own fluid is at or under saturation",
+    test: (R) => {
+      const d = R.zoned_dripstone_cave.draw, all = d.t + d.unread;
+      return { pass: all > 0 && d.refUnder / all > 0.5, detail: `${(d.refUnder / Math.max(1e-9, all) * 100).toFixed(1)} % of ${(all / MM).toFixed(1)} mm stored` };
+    } },
+  { id: 'wall-min', kind: 'positive', needs: ['mvt'],
+    label: "mvt's lowest wall cell ends between 0.3 and 1.5 ppm of Cd (the bulk handle holds 2), and its lowest wall cell of Ca between 390 and 400 ppm",
+    test: (R) => {
+      const cd = R.mvt.fields.Cd?.wallMinEnd, ca = R.mvt.fields.Ca?.wallMinEnd;
+      const within = (x, lo, hi) => typeof x === 'number' && Number.isFinite(x) && x >= lo && x <= hi;
+      const text = (x, digits) => (typeof x === 'number' && Number.isFinite(x) ? x.toFixed(digits) : 'not recorded');
+      return { pass: within(cd, 0.3, 1.5) && within(ca, 390, 400), detail: `Cd ${text(cd, 2)}, Ca ${text(ca, 1)} ppm` };
+    } },
+  { id: 'ring-means', kind: 'positive', needs: ['schneeberg'],
+    label: "schneeberg's floor ring ends with a voxel-mean O2 at least 0.2 below the bulk handle's",
+    test: (R) => {
+      const v = R.schneeberg.vadose, rings = v.ringO2End;
+      const have = Array.isArray(rings) && rings.length > 1;
+      return { pass: have && v.bulkO2End - rings[0] >= 0.2,
+        detail: have ? `bulk handle ${v.bulkO2End.toFixed(3)}; floor ring ${rings[0].toFixed(3)}, top ring ${rings[rings.length - 1].toFixed(3)}` : 'no ring dried' };
     } },
 ];
 

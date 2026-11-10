@@ -18,12 +18,16 @@
  *             leaves alone read in the passive draw-down table.
  *   draw      from the census reports alone: how much of the draw-down table of §2.1 is the feldspar
  *             pair's own growth. Nothing is re-run under a clamp: the pair's drawn-down thickness is
- *             taken out of each scenario's numerator, which is arithmetic on the committed table.
- *             Also where the crystals of 1 mm or more that grew mostly on a drawn-down cell sit, and
- *             the thickness the two "held down by one further field" cases carry.
+ *             taken out of each scenario's numerator, in every scenario and in gem_pegmatite alone,
+ *             which is arithmetic on the committed table. Also where the crystals of 1 mm or more
+ *             that grew mostly on a drawn-down cell sit, and the thickness the two "held down by
+ *             one further field" cases carry.
  *   feldspar  per shape and seed, on the 13 scenarios that grow feldspar or albite: scenarios moved,
  *             scenarios whose baseline would differ, species lost, ouro_preto's fill, bisbee's count;
- *             then whether the clamp on the rate (rclamp=7) differs from the clamp on sigma (cap=8).
+ *             whether the clamp on the rate (rclamp=7) differs from the clamp on sigma (cap=8); and
+ *             every species schneeberg moves or loses under rclamp=7, with its sizes.
+ *   rind      the rind (no thickness past 5 mm) on the same 13, read as the clamp values are.
+ *   broth     a change to gem_pegmatite's broth in place of a bound: the pocket and its species.
  *   clamp     per clamp value and seed, on the same 13: every scenario whose baseline would differ,
  *             with its fill, its feldspar pair and the species it loses; then gem_pegmatite's finer
  *             sweep, on the rate and on sigma.
@@ -31,7 +35,8 @@
  *             pocket as shipped, with the feldspar pair clamped, and held open: plumbogummite, and
  *             how many negative zones the uraninites took.
  *   excess    per constant and seed: species moved or lost other than the three engines' own, and
- *             porphyry's fill.
+ *             porphyry's fill; and, in the two scenarios that grow uraninite, the uraninites' size
+ *             and the bulk handle's Pb at run end (the block's lead is a tenth of their size a step).
  *   boron     whether ten times the boron is identical to its reference, plugged and open.
  *   audits    for every A/B file: arm runs whose audits differ from the shipped arm's.
  *
@@ -105,11 +110,12 @@ for (const seed of SEEDS) {
   }
   const grew = d.scenarios.filter(x => x.stored_mm > 0);
   const without = (x) => Math.max(0, (x.half * x.stored_mm - (pair[x.scenario] || 0)) / x.stored_mm);
+  const withoutInGem = (x) => (x.scenario === 'gem_pegmatite' ? without(x) : x.half);
   const over = (threshold, share) => grew.filter(x => share(x) > threshold);
   const theirs = grew.filter(x => x.half > 0.10 && (pair[x.scenario] || 0) >= 0.5);
   const at = (s) => d.scenarios.find(x => x.scenario === s);
   const other = (k) => d.underHalfNotThroughIngredients_um[k] || 0;
-  console.log(`  seed ${String(seed).padStart(2)}: more than a tenth of the stored thickness was put on at a cell under half the reference's excess in ${over(0.10, x => x.half).length} of ${grew.length} scenarios, and more than half of it in ${over(0.50, x => x.half).length}; with the feldspar pair's part taken out of the numerator, ${over(0.10, without).length} and ${over(0.50, without).length}`);
+  console.log(`  seed ${String(seed).padStart(2)}: more than a tenth of the stored thickness was put on at a cell under half the reference's excess in ${over(0.10, x => x.half).length} of ${grew.length} scenarios, and more than half of it in ${over(0.50, x => x.half).length}; with the feldspar pair's part taken out of the numerator in every scenario, ${over(0.10, without).length} and ${over(0.50, without).length}; taken out in gem_pegmatite alone, ${over(0.10, withoutInGem).length} and ${over(0.50, withoutInGem).length}`);
   for (const x of theirs) console.log(`           ${x.scenario.padEnd(22)} ${pct(x.half).padStart(6)} of ${x.stored_mm.toFixed(0).padStart(3)} mm; through its ingredients ${(x.halfIngredients * x.stored_mm).toFixed(1)} mm, of which feldspar and albite ${pair[x.scenario].toFixed(1)} mm; without them ${pct(without(x))}; crystals of 1 mm or more grown mostly that way ${x.ge1mmMostlyHalf} of ${x.ge1mm}`);
   console.log(`           crystals of 1 mm or more that stored most of their growth that way: ${d.ge1mmMostlyHalf} of ${d.ge1mm}; ${at('supergene_oxidation').ge1mmMostlyHalf} of them in supergene_oxidation and ${at('schneeberg').ge1mmMostlyHalf} in schneeberg, the two scenarios where a further field holds the cell down; ${theirs.reduce((n, x) => n + x.ge1mmMostlyHalf, 0)} in the ${theirs.length} scenarios listed above`);
   console.log(`           held down by one further field: supergene_oxidation's ferrimolybdite through O2, ${other('supergene_oxidation/ferrimolybdite:O2').toFixed(0)} µm (${pct(other('supergene_oxidation/ferrimolybdite:O2') / 1000 / at('supergene_oxidation').stored_mm)} of that scenario's stored thickness; all minerals ${pct(at('supergene_oxidation').halfOtherwise)}); schneeberg's uranophane through pH, ${other('schneeberg/uranophane:pH').toFixed(0)} µm (${pct(other('schneeberg/uranophane:pH') / 1000 / at('schneeberg').stored_mm)})`);
@@ -132,6 +138,40 @@ console.log('\nthe feldspar shapes on the 13 scenarios that grow feldspar or alb
     if (d.length) differ.push(`${r.scenario} seed ${r.seed} (${d.map(k => `${k} ${size(a, k)} → ${size(b, k)}`).join(', ')})`);
   }
   console.log(`  the clamp on sigma (cap=8) against the clamp on the rate (rclamp=7), by the tool's moved test: ${differ.length ? `${differ.length} of ${j.runs.length} runs differ — ${differ.join('; ')}` : `no species differs in any of the ${j.runs.length} runs`}`);
+  console.log('  schneeberg under rclamp=7, every species the arm moves or loses (largest crystal and crystals with solid, shipped → arm):');
+  for (const seed of SEEDS) {
+    const r = j.runs.find(x => x.scenario === 'schneeberg' && x.seed === seed), b = r.B['rclamp=7'];
+    console.log(`    seed ${String(seed).padStart(2)}: ${[...b.moved, ...b.lost].sort().map(k => `${k} ${size(r.A.species, k)} → ${size(b.species, k)}`).join('; ')}`);
+  }
+}
+
+// one arm on the 13 scenarios: where the baseline would differ, with fills, the pair and the losses
+function showArm(arm, j, scenarios) {
+  const pair = (runs, pick) => ['albite', 'feldspar'].filter(m => runs.some(r => r.A.species[m] || pick(r).species[m])).map(m => `${m} ${runs.map(r => t(pick(r).species, m)).join(' / ')} mm`).join('; ');
+  const touched = scenarios.filter(s => by(j, s).some(r => !r.B[arm].sameAsShipped));
+  console.log(`  ${arm}: the baseline differs in ${SEEDS.map(seed => j.runs.filter(r => r.seed === seed && !r.B[arm].sameAsShipped).length).join(' / ')} of ${scenarios.length} scenarios; moved in ${SEEDS.map(seed => j.runs.filter(r => r.seed === seed && changed(r.B[arm])).length).join(' / ')}; unchanged at every seed: ${scenarios.filter(s => !touched.includes(s)).join(', ') || 'none'}`);
+  for (const s of touched) {
+    const runs = by(j, s);
+    console.log(`    ${s.padEnd(24)} fill ${runs.map(r => (r.B[arm].fill * 100).toFixed(1)).join(' / ')} % (largest of the run ${runs.map(r => (r.B[arm].maxFill * 100).toFixed(1)).join(' / ')} %), full at step ${runs.map(r => r.B[arm].full ?? '—').join(' / ')}; ${pair(runs, r => r.B[arm])}; moved ${runs.map(r => r.B[arm].moved.length).join(' / ')}; lost ${runs.map(r => lostText(r, r.B[arm]) || 'none').join(' / ')}`);
+  }
+}
+
+console.log('\nthe rind on the same 13 scenarios: feldspar and albite add no thickness once a crystal has reached 5 mm (ab-rind-13-scenarios.json); seeds 42 / 1 / 2');
+{
+  const j = load('ab-rind-13-scenarios.json');
+  showArm('rind=5000', j, [...new Set(j.runs.map(r => r.scenario))]);
+}
+
+console.log('\na change to gem_pegmatite\'s broth in place of a bound (ab-gem-broth.json): SiO2 and Al multiplied before the run; seeds 42 / 1 / 2');
+{
+  const j = load('ab-gem-broth.json'), gem = by(j, 'gem_pegmatite');
+  const one = (pick, m) => gem.map(r => (pick(r).species[m] ? `${t(pick(r).species, m)} ×${pick(r).species[m].n}` : 'none')).join(' / ');
+  const row = (label, pick) => console.log(`  ${label.padEnd(26)} fill ${gem.map(r => (pick(r).fill * 100).toFixed(1)).join(' / ')} % (largest of the run ${gem.map(r => (pick(r).maxFill * 100).toFixed(1)).join(' / ')} %), full at step ${gem.map(r => pick(r).full ?? '—').join(' / ')}, last growth ${gem.map(r => pick(r).lastGrowth).join(' / ')}; mm: tourmaline ${one(pick, 'tourmaline')}; topaz ${one(pick, 'topaz')}; spodumene ${one(pick, 'spodumene')}; lepidolite ${one(pick, 'lepidolite')}; quartz ${one(pick, 'quartz')}; feldspar ${one(pick, 'feldspar')}; albite ${one(pick, 'albite')}`);
+  row('shipped', r => r.A);
+  for (const arm of j.arms) {
+    row(arm, r => r.B[arm]);
+    console.log(`  ${''.padEnd(26)} against shipped: moved ${gem.map(r => r.B[arm].moved.length).join(' / ')}; gained ${gem.map(r => r.B[arm].gained.join('+') || 'none').join(' / ')}; lost ${gem.map(r => lostText(r, r.B[arm]) || 'none').join(' / ')}; no solid left: ${gem.map(r => Object.entries(r.B[arm].noSolid).map(([m, n]) => `${m} (${n})`).join(', ') || 'none').join(' / ')}`);
+  }
 }
 
 console.log('\nthe clamp value on the 13 scenarios (rclamp=7 from ab-feldspar-13-scenarios.json; 11, 23 and 47 from ab-clamp-values-13-scenarios.json); seeds 42 / 1 / 2');
@@ -145,14 +185,7 @@ console.log('\nthe clamp value on the 13 scenarios (rclamp=7 from ab-feldspar-13
     const runs = by(f, s);
     console.log(`    ${s.padEnd(24)} fill ${runs.map(r => (r.A.fill * 100).toFixed(1)).join(' / ')} %, full at step ${runs.map(r => r.A.full ?? '—').join(' / ')}; ${pair(runs, r => r.A)}`);
   }
-  for (const [arm, j] of arms) {
-    const touched = scenarios.filter(s => by(j, s).some(r => !r.B[arm].sameAsShipped));
-    console.log(`  ${arm}: the baseline differs in ${SEEDS.map(seed => j.runs.filter(r => r.seed === seed && !r.B[arm].sameAsShipped).length).join(' / ')} of ${scenarios.length} scenarios; moved in ${SEEDS.map(seed => j.runs.filter(r => r.seed === seed && changed(r.B[arm])).length).join(' / ')}; unchanged at every seed: ${scenarios.filter(s => !touched.includes(s)).join(', ') || 'none'}`);
-    for (const s of touched) {
-      const runs = by(j, s);
-      console.log(`    ${s.padEnd(24)} fill ${runs.map(r => (r.B[arm].fill * 100).toFixed(1)).join(' / ')} % (largest of the run ${runs.map(r => (r.B[arm].maxFill * 100).toFixed(1)).join(' / ')} %), full at step ${runs.map(r => r.B[arm].full ?? '—').join(' / ')}; ${pair(runs, r => r.B[arm])}; moved ${runs.map(r => r.B[arm].moved.length).join(' / ')}; lost ${runs.map(r => lostText(r, r.B[arm]) || 'none').join(' / ')}`);
-    }
-  }
+  for (const [arm, j] of arms) showArm(arm, j, scenarios);
   const g = load('ab-gem-clamp-sensitivity.json'), gem = by(g, 'gem_pegmatite');
   console.log('  gem_pegmatite alone, a finer sweep on the rate and on sigma (ab-gem-clamp-sensitivity.json):');
   console.log(`    shipped    fill ${gem.map(r => (r.A.fill * 100).toFixed(0)).join(' / ')} %, full at step ${gem.map(r => r.A.full ?? '—').join(' / ')}, tourmaline ${gem.map(r => t(r.A.species, 'tourmaline')).join(' / ')} mm, topaz ${gem.map(r => t(r.A.species, 'topaz')).join(' / ')}, feldspar ${gem.map(r => t(r.A.species, 'feldspar')).join(' / ')} mm, albite ${gem.map(r => t(r.A.species, 'albite')).join(' / ')} mm`);
@@ -192,6 +225,13 @@ console.log('\nk·σ rescaled to m·k·(σ − 1) for galena, molybdenite and ur
     const lost = runs.filter(r => r.B[arm].lost.length).map(r => `${r.scenario} (${lostText(r, r.B[arm])})`);
     const p = runs.find(r => r.scenario === 'porphyry');
     console.log(`  ${arm.padEnd(9)} seed ${String(seed).padStart(2)}: other species moved, gained or lost — ${others.join('; ') || 'none'}; lost: ${lost.join('; ') || 'none'}; porphyry fill ${(p.A.fill * 100).toFixed(0)} → ${(p.B[arm].fill * 100).toFixed(0)} %`);
+  }
+  console.log('  the two scenarios that grow uraninite, seeds 42 / 1 / 2: the uraninites\' largest crystal and the bulk handle\'s Pb at run end');
+  for (const s of ['radioactive_pegmatite', 'schneeberg']) {
+    const runs = by(j, s);
+    const row = (label, pick) => console.log(`    ${s.padEnd(22)} ${label.padEnd(9)} uraninite ${runs.map(r => t(pick(r).species, 'uraninite')).join(' / ')} mm; bulk Pb ${runs.map(r => pick(r).bulkPb.toFixed(1)).join(' / ')} ppm`);
+    row('shipped', r => r.A);
+    for (const arm of j.arms) row(arm, r => r.B[arm]);
   }
 }
 

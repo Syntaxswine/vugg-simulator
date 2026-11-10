@@ -1,0 +1,91 @@
+[scenarios] loaded 41 from ./data/scenarios.json5
+[spec] loaded 184 minerals from ./data/minerals.json
+[thermo] loaded 15 carbonate entries from ./data/thermo-carbonates.json
+[thermo] loaded 4 sulfate entries from ./data/thermo-sulfates.json
+[narratives] loaded 94 species
+probe-lead-choices — SIM 286; seeds 42 / 1 / 2; sigma_crit: galena 1, plumbogummite 1
+radioactive_pegmatite, seed 42: the shipped run reproduces the baseline
+schneeberg, seed 42: the shipped run reproduces the baseline
+
+radioactive_pegmatite — when the lead is released, and whether galena is licensed
+
+  pocket as shipped
+    shipped galena not licensed  fill 100.0 / 100.0 / 100.0 %; bulk Pb at run end 146.8 / 127.7 / 147.2; uraninite negative zones 3 / 6 / 29 (from step 80 / 80 / 80)
+                                 past sigma_crit on the bulk handle: galena on 33 / 30 / 30 steps, plumbogummite on 21 / 21 / 21
+                                 galena: none / none / none
+                                 plumbogummite: no solid (2 records) / no solid (3 records) / no solid (3 records)
+    pb      galena not licensed  fill 100.0 / 100.0 / 100.0 %; bulk Pb at run end 146.7 / 129.3 / 158.7; uraninite negative zones 3 / 9 / 54 (from step 80 / 80 / 80)
+                                 past sigma_crit on the bulk handle: galena on 33 / 30 / 30 steps, plumbogummite on 21 / 21 / 21
+                                 galena: none / none / none
+                                 plumbogummite: no solid (3 records) / no solid (3 records) / no solid (3 records)
+    held    galena not licensed  fill 100.0 / 100.0 / 100.0 %; bulk Pb at run end 146.8 / 127.7 / 147.2; uraninite negative zones 3 / 6 / 29 (from step 80 / 80 / 80); released 116.8 / 97.7 / 117.2 ppm in 1 / 2 / 15 release(s)
+                                 past sigma_crit on the bulk handle: galena on 0 / 0 / 0 steps, plumbogummite on 21 / 21 / 21
+                                 galena: none / none / none
+                                 plumbogummite: no solid (3 records) / no solid (3 records) / no solid (3 records)
+    shipped galena licensed      fill 100.0 / 100.0 / 100.0 %; bulk Pb at run end 146.8 / 127.7 / 147.2; uraninite negative zones 3 / 6 / 29 (from step 80 / 80 / 80)
+                                 past sigma_crit on the bulk handle: galena on 33 / 30 / 30 steps, plumbogummite on 21 / 21 / 21
+                                 galena: none / none / none
+                                 plumbogummite: no solid (2 records) / no solid (3 records) / no solid (3 records)
+    pb      galena licensed      fill 100.0 / 100.0 / 100.0 %; bulk Pb at run end 146.7 / 129.3 / 149.5; uraninite negative zones 3 / 9 / 33 (from step 80 / 80 / 80)
+                                 past sigma_crit on the bulk handle: galena on 33 / 30 / 30 steps, plumbogummite on 21 / 21 / 21
+                                 galena: ×1 @ 0.163 mm, born at step 47 / none / ×1 @ 0.040 mm, born at step 54
+                                 plumbogummite: no solid (3 records) / no solid (3 records) / no solid (3 records)
+    held    galena licensed      fill 100.0 / 100.0 / 100.0 %; bulk Pb at run end 146.8 / 127.7 / 147.2; uraninite negative zones 3 / 6 / 29 (from step 80 / 80 / 80); released 116.8 / 97.7 / 117.2 ppm in 1 / 2 / 15 release(s)
+                                 past sigma_crit on the bulk handle: galena on 0 / 0 / 0 steps, plumbogummite on 21 / 21 / 21
+                                 galena: none / none / none
+                                 plumbogummite: no solid (3 records) / no solid (3 records) / no solid (3 records)
+
+  pocket held open (sigma of feldspar, albite and quartz capped at 8)
+    shipped galena not licensed  fill 12.7 / 11.3 / 17.8 %; bulk Pb at run end 312.6 / 299.2 / 287.9; uraninite negative zones 123 / 123 / 123 (from step 80 / 80 / 80)
+                                 past sigma_crit on the bulk handle: galena on 33 / 31 / 30 steps, plumbogummite on 21 / 21 / 21
+                                 galena: none / none / none
+                                 plumbogummite: ×3 @ 0.006 mm, born at step 107 / ×3 @ 0.005 mm, born at step 107 / ×3 @ 0.005 mm, born at step 107
+    pb      galena not licensed  fill 12.7 / 11.2 / 17.8 %; bulk Pb at run end 312.5 / 299.1 / 287.8; uraninite negative zones 123 / 123 / 123 (from step 80 / 80 / 80)
+                                 past sigma_crit on the bulk handle: galena on 33 / 31 / 30 steps, plumbogummite on 21 / 21 / 21
+                                 galena: none / none / none
+                                 plumbogummite: ×3 @ 0.710 mm, born at step 100 / ×3 @ 0.699 mm, born at step 100 / ×3 @ 0.686 mm, born at step 100
+    held    galena not licensed  fill 12.7 / 11.2 / 17.8 %; bulk Pb at run end 312.6 / 299.2 / 287.9; uraninite negative zones 123 / 123 / 123 (from step 80 / 80 / 80); released 282.6 / 269.2 / 257.9 ppm in 41 / 41 / 41 release(s)
+                                 past sigma_crit on the bulk handle: galena on 0 / 0 / 0 steps, plumbogummite on 21 / 21 / 21
+                                 galena: none / none / none
+                                 plumbogummite: ×3 @ 0.710 mm, born at step 100 / ×3 @ 0.699 mm, born at step 100 / ×3 @ 0.686 mm, born at step 100
+    shipped galena licensed      fill 12.7 / 11.3 / 17.8 %; bulk Pb at run end 312.6 / 299.2 / 287.9; uraninite negative zones 123 / 123 / 123 (from step 80 / 80 / 80)
+                                 past sigma_crit on the bulk handle: galena on 33 / 31 / 30 steps, plumbogummite on 21 / 21 / 21
+                                 galena: none / none / none
+                                 plumbogummite: ×3 @ 0.006 mm, born at step 107 / ×3 @ 0.005 mm, born at step 107 / ×3 @ 0.005 mm, born at step 107
+    pb      galena licensed      fill 12.7 / 11.3 / 17.7 %; bulk Pb at run end 312.3 / 301.5 / 289.9; uraninite negative zones 123 / 123 / 123 (from step 80 / 80 / 80)
+                                 past sigma_crit on the bulk handle: galena on 33 / 31 / 30 steps, plumbogummite on 21 / 21 / 21
+                                 galena: ×4 @ 5.1 mm, born at step 47 / ×4 @ 5.0 mm, born at step 49 / ×4 @ 4.6 mm, born at step 50
+                                 plumbogummite: ×3 @ 0.671 mm, born at step 100 / ×3 @ 0.719 mm, born at step 100 / ×3 @ 0.655 mm, born at step 100
+    held    galena licensed      fill 12.7 / 11.2 / 17.8 %; bulk Pb at run end 312.6 / 299.2 / 287.9; uraninite negative zones 123 / 123 / 123 (from step 80 / 80 / 80); released 282.6 / 269.2 / 257.9 ppm in 41 / 41 / 41 release(s)
+                                 past sigma_crit on the bulk handle: galena on 0 / 0 / 0 steps, plumbogummite on 21 / 21 / 21
+                                 galena: none / none / none
+                                 plumbogummite: ×3 @ 0.710 mm, born at step 100 / ×3 @ 0.699 mm, born at step 100 / ×3 @ 0.686 mm, born at step 100
+
+both timings in the two scenarios that grow uraninite, pocket as shipped, galena not licensed, against the shipped run
+(amazonite: grow_feldspar notes a microcline zone "amazonite" when the crystal's own cell holds more than 10 ppm of Pb)
+  radioactive_pegmatite  shipped  bulk Pb 146.8 / 127.7 / 147.2, voxel mean 30.0 / 30.0 / 30.0
+                                  feldspar zones noted amazonite: 25 of 122 (3.6 of 91.7 mm) / 14 of 110 (1.5 of 94.2 mm) / 21 of 118 (2.3 of 94.2 mm)
+  radioactive_pegmatite  pb       bulk Pb 146.7 / 129.3 / 158.7, voxel mean 146.7 / 129.3 / 158.7
+                                  species moved 0 / 0 / 0; gained none / none / opal; lost none / none / none; the baseline differs yes / yes / yes; minerals on record under the arm and not as shipped none / none / none, and the reverse none / none / none
+                                  feldspar zones noted amazonite: 25 of 122 (3.6 of 91.7 mm) / 13 of 109 (1.5 of 94.2 mm) / 19 of 116 (2.3 of 94.2 mm)
+  radioactive_pegmatite  held     bulk Pb 146.8 / 127.7 / 147.2, voxel mean 146.8 / 127.7 / 147.2; released 116.8 / 97.7 / 117.2 ppm in 1 / 2 / 15 release(s)
+                                  species moved 0 / 0 / 0; gained none / none / none; lost none / none / none; the baseline differs yes / no / no; minerals on record under the arm and not as shipped none / none / none, and the reverse none / none / none
+                                  feldspar zones noted amazonite: 25 of 122 (3.6 of 91.7 mm) / 14 of 110 (1.5 of 94.2 mm) / 21 of 118 (2.3 of 94.2 mm)
+  schneeberg             shipped  bulk Pb 179.0 / 221.8 / 217.5, voxel mean 5.0 / 5.0 / 5.0
+                                  feldspar zones noted amazonite: 0 of 319 (0.0 of 54.0 mm) / 0 of 318 (0.0 of 53.2 mm) / 0 of 317 (0.0 of 52.9 mm)
+  schneeberg             pb       bulk Pb 178.9 / 221.7 / 217.4, voxel mean 178.9 / 221.7 / 217.4
+                                  species moved 3 (goethite, pharmacolite, proustite) / 2 (pharmacolite, proustite) / 1 (goethite); gained none / none / none; lost none / none / none; the baseline differs yes / yes / yes; minerals on record under the arm and not as shipped none / none / none, and the reverse none / none / none
+                                  feldspar zones noted amazonite: 213 of 319 (15.4 of 53.9 mm) / 214 of 318 (14.8 of 53.2 mm) / 214 of 317 (15.2 of 52.9 mm)
+  schneeberg             held     bulk Pb 179.0 / 221.8 / 217.5, voxel mean 179.0 / 221.8 / 217.5; released 174.0 / 216.8 / 212.5 ppm in 73 / 73 / 73 release(s)
+                                  species moved 2 (goethite, pharmacolite) / 1 (pharmacolite) / 1 (goethite); gained none / none / none; lost none / none / none; the baseline differs yes / yes / yes; minerals on record under the arm and not as shipped none / none / none, and the reverse none / none / none
+                                  feldspar zones noted amazonite: 144 of 319 (2.1 of 53.9 mm) / 144 of 318 (2.2 of 53.2 mm) / 144 of 317 (2.2 of 52.9 mm)
+
+if SC2 lands first: radioactive_pegmatite, pocket held open, galena not licensed, with galena, molybdenite and uraninite on sigma − 1 (excess=1)
+  today's law pb    uraninite largest 11.5 / 11.1 / 11.2 mm; bulk Pb at run end 312.5 / 299.1 / 287.8; fill 12.7 / 11.2 / 17.8 %
+                    plumbogummite: ×3 @ 0.710 mm, born at step 100 / ×3 @ 0.699 mm, born at step 100 / ×3 @ 0.686 mm, born at step 100
+  today's law held  uraninite largest 11.5 / 11.1 / 11.2 mm; bulk Pb at run end 312.6 / 299.2 / 287.9; released 282.6 / 269.2 / 257.9 ppm in 41 / 41 / 41 release(s); fill 12.7 / 11.2 / 17.8 %
+                    plumbogummite: ×3 @ 0.710 mm, born at step 100 / ×3 @ 0.699 mm, born at step 100 / ×3 @ 0.686 mm, born at step 100
+  with SC2    pb    uraninite largest 8.5 / 8.2 / 8.3 mm; bulk Pb at run end 243.2 / 233.1 / 224.5; fill 12.2 / 10.8 / 17.4 %
+                    plumbogummite: ×3 @ 0.710 mm, born at step 100 / ×3 @ 0.700 mm, born at step 100 / ×3 @ 0.687 mm, born at step 100
+  with SC2    held  uraninite largest 8.5 / 8.2 / 8.3 mm; bulk Pb at run end 243.3 / 233.2 / 224.6; released 213.3 / 203.2 / 194.6 ppm in 41 / 41 / 41 release(s); fill 12.2 / 10.8 / 17.4 %
+                    plumbogummite: ×3 @ 0.710 mm, born at step 100 / ×3 @ 0.700 mm, born at step 100 / ×3 @ 0.687 mm, born at step 100

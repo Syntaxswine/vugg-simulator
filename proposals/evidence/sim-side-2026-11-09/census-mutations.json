@@ -1,8 +1,8 @@
 {
  "seed": 42,
- "census_sha256": "d6c854fbd6211d9ec689018da55984cb9fc6aef564a825eef5e6b3d599174b43",
+ "census_sha256": "832e001cf8c9633d2eb8a10f5d97c27db044e76764fb0ee360baf59609e31156",
  "ok": true,
- "controlsDeclared": 26,
+ "controlsDeclared": 32,
  "controlsWithNoMutant": [],
  "results": [
   {
@@ -319,6 +319,60 @@
    "committedDetail": "3.93 mm not through the ingredients; uranophane:pH 3.93 mm",
    "mutant_verdict": "FAIL",
    "mutantDetail": "3.93 mm not through the ingredients; uranophane:no one field 3.93 mm"
+  },
+  {
+   "mutant": "crystal-share-not-kept",
+   "what": "a crystal's own thickness stored on a drawn-down cell is never added up",
+   "control": "big-drawn-down positive",
+   "committed": "PASS",
+   "committedDetail": "3 of 13: uranophane ×3",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "0 of 13"
+  },
+  {
+   "mutant": "starved-never-counted",
+   "what": "a starved crystal-step is never counted as one",
+   "control": "starved positive",
+   "committed": "PASS",
+   "committedDetail": "1062 crystal-steps (sylvanite ×393, calaverite ×381, galena ×204)",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "0 crystal-steps"
+  },
+  {
+   "mutant": "band-filed-as-near",
+   "what": "thickness stored between 0.5 and 0.9 of the reference's excess is filed with the thickness at 0.9 or more",
+   "control": "band positive",
+   "committed": "PASS",
+   "committedDetail": "36.2 % of 345 mm stored",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "0.0 % of 345 mm stored"
+  },
+  {
+   "mutant": "reference-under-dropped",
+   "what": "thickness stored where the bulk handle is at or under saturation is not filed",
+   "control": "reference-under positive",
+   "committed": "PASS",
+   "committedDetail": "81.3 % of 7.2 mm stored",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "0.0 % of 7.2 mm stored"
+  },
+  {
+   "mutant": "wall-minimum-never-taken",
+   "what": "the lowest wall cell of a field is never recorded",
+   "control": "wall-min positive",
+   "committed": "PASS",
+   "committedDetail": "Cd 0.93, Ca 395.1 ppm",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "Cd not recorded, Ca not recorded ppm"
+  },
+  {
+   "mutant": "ring-means-read-bulk",
+   "what": "each ring's mean is read from the bulk handle",
+   "control": "ring-means positive",
+   "committed": "PASS",
+   "committedDetail": "bulk handle 1.800; floor ring 1.498, top ring 1.800",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "bulk handle 1.800; floor ring 1.800, top ring 1.800"
   }
  ]
 }

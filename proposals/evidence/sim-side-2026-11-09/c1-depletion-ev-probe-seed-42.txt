@@ -1,0 +1,168 @@
+[scenarios] loaded 41 from ./data/scenarios.json5
+[spec] loaded 184 minerals from ./data/minerals.json
+[thermo] loaded 15 carbonate entries from ./data/thermo-carbonates.json
+[thermo] loaded 4 sulfate entries from ./data/thermo-sulfates.json
+[narratives] loaded 94 species
+
+C1 EV probe — local (cell) vs bulk σ across the fleet (seed 42).
+Growth-weighted per crystal. RATE already reads cell σ; this measures what FORM would gain by reading it too.
+
+READOUT 1 — SOLUTE BOOKS: cellσ̄/bulkσ̄ ratio (1.0 = no local depletion; <1 = crystal sits below cavity average)
+  fluid-grown : n=1040  min=0.000 q25=0.912 med=0.988 q75=0.999 max=1.114
+  air-grown   : n= 118  min=0.437 q25=0.933 med=0.992 q75=1.000 max=18.243
+  mean per-step drawdown (fluid, growth-weighted 1−cellσ/bulkσ):
+              : n=1040  min=-0.114 q25=0.000 med=0.012 q75=0.087 max=1.000
+  MAX per-step drawdown (fluid — persistence upper bound):
+              : n=1040  min=0.000 q25=0.001 med=0.018 q75=0.122 max=1.000
+  crystals whose local σ differs ≥10% from bulk: 247/1040 fluid-grown
+
+  by mineral (fluid-grown, median ratio + n):
+    tetrahedrite     n=   2  med ratio=0.000  q25=0.000
+    calaverite       n=   4  med ratio=0.062  q25=0.000
+    sylvanite        n=   3  med ratio=0.079  q25=0.079
+    hessite          n=   3  med ratio=0.277  q25=0.277
+    ferrimolybdite   n=   9  med ratio=0.442  q25=0.285
+    tennantite       n=   2  med ratio=0.455  q25=0.000
+    molybdenite      n=   3  med ratio=0.508  q25=0.508
+    uranophane       n=   6  med ratio=0.527  q25=0.519
+    metacinnabar     n=   3  med ratio=0.546  q25=0.546
+    greenockite      n=  10  med ratio=0.552  q25=0.503
+    morganite        n=   5  med ratio=0.554  q25=0.480
+    galena           n=  15  med ratio=0.565  q25=0.457
+    caledonite       n=   2  med ratio=0.695  q25=0.695
+    lepidolite       n=   7  med ratio=0.706  q25=0.390
+    wulfenite        n=   1  med ratio=0.712  q25=0.712
+    cinnabar         n=   6  med ratio=0.755  q25=0.703
+    acanthite        n=  12  med ratio=0.767  q25=0.642
+    feldspar         n=  21  med ratio=0.807  q25=0.504
+    arsenopyrite     n=  12  med ratio=0.819  q25=0.632
+    vanadinite       n=   3  med ratio=0.829  q25=0.829
+    powellite        n=   4  med ratio=0.833  q25=0.821
+    plumbogummite    n=   1  med ratio=0.837  q25=0.837
+    vesuvianite      n=   4  med ratio=0.845  q25=0.844
+    raspite          n=   1  med ratio=0.858  q25=0.858
+    epidote          n=  12  med ratio=0.861  q25=0.561
+    albite           n=  25  med ratio=0.870  q25=0.545
+    pyromorphite     n=   9  med ratio=0.876  q25=0.788
+    descloizite      n=   1  med ratio=0.881  q25=0.881
+    titanite         n=   9  med ratio=0.886  q25=0.713
+    borax            n=   1  med ratio=0.890  q25=0.890
+    stolzite         n=   4  med ratio=0.890  q25=0.876
+    conichalcite     n=   4  med ratio=0.910  q25=0.854
+    erythrite        n=   1  med ratio=0.910  q25=0.910
+    tyuyamunite      n=   5  med ratio=0.912  q25=0.906
+    malachite        n=   4  med ratio=0.914  q25=0.836
+    annabergite      n=   1  med ratio=0.922  q25=0.922
+    uraninite        n=   6  med ratio=0.926  q25=0.919
+    turquoise        n=   6  med ratio=0.928  q25=0.921
+    magnetite        n=   5  med ratio=0.931  q25=0.930
+    orpiment         n=   6  med ratio=0.933  q25=0.830
+    mottramite       n=   3  med ratio=0.933  q25=0.933
+    zeunerite        n=   1  med ratio=0.940  q25=0.940
+    heulandite       n=   4  med ratio=0.943  q25=0.907
+    bismuthinite     n=   4  med ratio=0.943  q25=0.932
+    native_gold      n=  20  med ratio=0.944  q25=0.824
+    duftite          n=   2  med ratio=0.948  q25=0.926
+    carnotite        n=   4  med ratio=0.949  q25=0.948
+    realgar          n=   6  med ratio=0.955  q25=0.952
+    stilbite         n=   4  med ratio=0.957  q25=0.944
+    torbernite       n=   1  med ratio=0.958  q25=0.958
+    chrysocolla      n=  11  med ratio=0.960  q25=0.955
+    naumannite       n=   2  med ratio=0.960  q25=0.902
+    celestine        n=  39  med ratio=0.962  q25=0.956
+    mimetite         n=   3  med ratio=0.965  q25=0.965
+    crocidolite      n=   6  med ratio=0.966  q25=0.961
+    grossular        n=   8  med ratio=0.967  q25=0.875
+    fluorite         n=   5  med ratio=0.967  q25=0.956
+    goethite         n=   9  med ratio=0.968  q25=0.810
+    chalcopyrite     n=   7  med ratio=0.969  q25=0.925
+    adamite          n=   1  med ratio=0.969  q25=0.969
+    alunite          n=   5  med ratio=0.971  q25=0.504
+    nickeline        n=   8  med ratio=0.971  q25=0.969
+    tourmaline       n=  17  med ratio=0.971  q25=0.681
+    autunite         n=   1  med ratio=0.972  q25=0.972
+    prehnite         n=   6  med ratio=0.974  q25=0.895
+    scorodite        n=   7  med ratio=0.976  q25=0.975
+    marcasite        n=   3  med ratio=0.977  q25=0.977
+    sphalerite       n=   9  med ratio=0.982  q25=0.979
+    actinolite       n=   8  med ratio=0.983  q25=0.970
+    native_tellurium n=   4  med ratio=0.985  q25=0.979
+    rhodochrosite    n=   4  med ratio=0.985  q25=0.974
+    mesolite         n=   1  med ratio=0.985  q25=0.985
+    pyrite           n=   8  med ratio=0.986  q25=0.961
+    atacamite        n=   8  med ratio=0.986  q25=0.985
+    argentite        n=  22  med ratio=0.986  q25=0.854
+    proustite        n=   2  med ratio=0.987  q25=0.986
+    covellite        n=   4  med ratio=0.987  q25=0.986
+    apophyllite      n=   3  med ratio=0.987  q25=0.987
+    awaruite         n=   3  med ratio=0.987  q25=0.987
+    apatite          n=   6  med ratio=0.989  q25=0.988
+    cobaltite        n=   4  med ratio=0.989  q25=0.982
+    wollastonite     n=   1  med ratio=0.990  q25=0.990
+    amosite          n=   6  med ratio=0.991  q25=0.983
+    strontianite     n=   4  med ratio=0.992  q25=0.992
+    safflorite       n=   2  med ratio=0.993  q25=0.993
+    diopside         n=   4  med ratio=0.994  q25=0.994
+    siderite         n=   7  med ratio=0.995  q25=0.990
+    andalusite       n=   5  med ratio=0.995  q25=0.995
+    scolecite        n=   2  med ratio=0.995  q25=0.989
+    hematite         n=   7  med ratio=0.996  q25=0.995
+    pectolite        n=   8  med ratio=0.996  q25=0.888
+    hemimorphite     n=   1  med ratio=0.997  q25=0.997
+    smithsonite      n=   2  med ratio=0.997  q25=0.976
+    chrysoprase      n=   3  med ratio=0.997  q25=0.997
+    anglesite        n=   9  med ratio=0.997  q25=0.971
+    skutterudite     n=   2  med ratio=0.997  q25=0.997
+    azurite          n=  10  med ratio=0.997  q25=0.945
+    brochantite      n=  22  med ratio=0.997  q25=0.979
+    opal             n=  26  med ratio=0.998  q25=0.997
+    spodumene        n=   6  med ratio=0.998  q25=0.955
+    datolite         n=   3  med ratio=0.998  q25=0.998
+    lepidocrocite    n=   4  med ratio=0.998  q25=0.975
+    chalcedony       n=  11  med ratio=0.998  q25=0.997
+    barite           n=  59  med ratio=0.998  q25=0.997
+    anhydrite        n=  30  med ratio=0.999  q25=0.987
+    cerussite        n=   8  med ratio=0.999  q25=0.999
+    stibnite         n=   2  med ratio=0.999  q25=0.999
+    chrysotile       n=   1  med ratio=0.999  q25=0.999
+    quartz           n=  41  med ratio=0.999  q25=0.999
+    cassiterite      n=  10  med ratio=0.999  q25=0.996
+    native_sulfur    n=   9  med ratio=0.999  q25=0.999
+    brucite          n=   2  med ratio=1.000  q25=0.999
+    selenite         n=  10  med ratio=1.000  q25=1.000
+    dolomite         n=  17  med ratio=1.000  q25=0.000
+    aragonite        n=   2  med ratio=1.000  q25=0.998
+    calcite          n=  33  med ratio=1.000  q25=0.995
+    HMC              n=  52  med ratio=1.000  q25=1.000
+    tigers_eye       n=   6  med ratio=1.000  q25=0.987
+    halite           n=  23  med ratio=1.000  q25=1.000
+    native_silver    n=  15  med ratio=1.000  q25=1.000
+    dioptase         n=   7  med ratio=1.000  q25=1.000
+    native_bismuth   n=   4  med ratio=1.000  q25=1.000
+    native_arsenic   n=   7  med ratio=1.000  q25=0.999
+    bornite          n=   3  med ratio=1.000  q25=1.000
+    chalcocite       n=  10  med ratio=1.000  q25=1.000
+    topaz            n=  15  med ratio=1.000  q25=0.997
+    aurichalcite     n=   5  med ratio=1.000  q25=1.000
+    jarosite         n=   8  med ratio=1.000  q25=1.000
+    cuprite          n=   3  med ratio=1.000  q25=1.000
+    native_copper    n=   1  med ratio=1.003  q25=1.003
+    pharmacolite     n=   1  med ratio=1.114  q25=1.114
+
+READOUT 1b — DIRECTIONAL: σ(base d=0)/σ(tip d=max) per crystal — O1a's exposure driver as real chemistry
+  (1.0 = flat radial field, kExp=0.18 constant is fiction; <1 = base starved vs tip, real per-crystal exposure signal)
+  fluid-grown : n=1039  min=0.000 q25=0.919 med=0.989 q75=1.000 max=1.003
+  crystals with base/tip σ differing ≥10%: 228/1039 fluid-grown
+
+READOUT 2 — FORM MOVES: calcite tenants (wulff_calcite), n=1
+  scenario                       id   bulkΩ̄   cellΩ̄  biasC(bulk) biasC(cell)  Δ    word(bulk)→word(cell)
+  ------------------------------ --- ------- ------- ----------- ----------- ----- ----------------------
+  mvt                              1    2.29    2.19       0.255       0.255 0.000 rhombohedral
+
+  biasC moves ≥0.01: 0/1   |   C0 word flips (bulk→cell Ω): 0/1
+
+EV SUMMARY
+  fleet growing-crystal sample : 1170 crystals across 41 scenarios
+  fluid-grown with real bulk σ : 1040
+  local view differs ≥10%      : 247  (24%)
+  → signal present if the ratio spread is wide and material% is high; a no-op (defer like O1b) if ratios cluster at 1.0.

@@ -1,15 +1,17 @@
 # Evidence for `REVIEW-SIMULATION-SIDE-2026-11-09.md`
 
-Outputs of the review's passive instruments, copied byte for byte from `.local-evidence/`, and six
-small probes with their outputs. Runtime: Windows x64, Node 24.15.0. SIM 286. No file under `js/` or
+Outputs of the review's passive instruments, copied byte for byte from `.local-evidence/`, ten
+small probes with their outputs, and the output of one earlier probe of the repository's own, run
+unchanged on this tree. Runtime: Windows x64, Node 24.15.0. SIM 286. No file under `js/` or
 `data/` differs from `origin/main` `e86ba58a`, and `dist/` is built from it. The input digest each
 census report prints (`ccb0db2bfa2c…` at seed 42; each seed has its own) covers the seed, the runtime, `dist/`,
 `js/`, `data/`, the harness, the lockfile, the seed-42 baseline and the text of the code that produces
 a census row. The census reports and the mutation report name the sha256 of `tools/sim-side-census.mjs`
-as it ran, `d6c854fbd621…`.
+as it ran, `832e001cf8c9…`.
 
-Every `ab-*` file here comes from one re-run of `tools/sim-side-ab.mjs`, made after the last change
-to what that tool does (§8 of the document says which version of the file that is).
+Every `ab-*` file here was produced by the code of `tools/sim-side-ab.mjs` as it stands at commit
+`0b243e32`: all but two in one re-run made after the last change to what that tool does, and
+`ab-rind-13-scenarios` and `ab-gem-broth` afterwards (§8 of the document).
 
 Nothing here is a receipt, and no test or gate reads this directory.
 
@@ -18,7 +20,7 @@ Nothing here is a receipt, and no test or gate reads this directory.
 | `census-seed-42.{txt,json,md}` | `node tools/sim-side-census.mjs` | §2, §3.3, Appendix A |
 | `census-seed-1.{txt,json}`, `census-seed-2.{txt,json}` | `node tools/sim-side-census.mjs --seed 1` (and `2`) | the three-seed tables of §2 |
 | `census-mutations.{txt,json}` | `node tools/sim-side-census-mutations.mjs` | §1: each control fails on its mutants |
-| `rate-at-saturation.{txt,json}` | `node tools/rate-at-saturation-census.mjs` | §3.2; the shape test of §4 C2 |
+| `rate-at-saturation.{txt,json}` | `node tools/rate-at-saturation-census.mjs` | §3.2; the shape test of §4 SC2 |
 | `seed-variety.{txt,json}` | `node tools/seed-variety-census.mjs --stratum <vugg-canary>/logs/2026-11-04/v286` | §2.4 |
 | `ab-refund-seed-42.{txt,json}` | `node tools/sim-side-ab.mjs --arm refund=1 --seeds 42 amethyst_geode asbestos_hills_crack_seal asbestos_hills_surficial_alteration bisbee chiastolite_hornfels colorado_plateau cooling deccan_zeolite elmwood epithermal_telluride gem_pegmatite great_salt_plains grimsel_alpine_cleft jeffrey_mine marble_contact_metamorphism mvt naica_geothermal ouro_preto porphyry pulse radioactive_pegmatite reactivated_fluorite_vein reactive_wall roughten_gill sabkha_dolomitization schneeberg searles_lake shigar_pegmatite sicily_solfifera stalactite_demo sulphur_bank sunnyside_american_tunnel supergene_oxidation tn457_barite_pulses tormiq_alpine_cleft tutorial_first_crystal tutorial_mn_calcite tutorial_travertine ultramafic_supergene wittichen zoned_dripstone_cave` | §2.1: every debit returned to its cell, all 41 scenarios, seed 42 |
 | `ab-refund-seed-1.{txt,json}` | `node tools/sim-side-ab.mjs --arm refund=1 --seeds 1 amethyst_geode asbestos_hills_crack_seal asbestos_hills_surficial_alteration bisbee chiastolite_hornfels colorado_plateau cooling deccan_zeolite elmwood epithermal_telluride gem_pegmatite great_salt_plains grimsel_alpine_cleft jeffrey_mine marble_contact_metamorphism mvt naica_geothermal ouro_preto porphyry pulse radioactive_pegmatite reactivated_fluorite_vein reactive_wall roughten_gill sabkha_dolomitization schneeberg searles_lake shigar_pegmatite sicily_solfifera stalactite_demo sulphur_bank sunnyside_american_tunnel supergene_oxidation tn457_barite_pulses tormiq_alpine_cleft tutorial_first_crystal tutorial_mn_calcite tutorial_travertine ultramafic_supergene wittichen zoned_dripstone_cave` | §2.1: every debit returned to its cell, all 41 scenarios, seed 1 |
@@ -26,20 +28,27 @@ Nothing here is a receipt, and no test or gate reads this directory.
 | `ab-pegmatites-rind-clamp.{txt,json}` | `node tools/sim-side-ab.mjs --arm rind=5000 --arm cap=8 --arm rclamp=7 --seeds 42,1,2 gem_pegmatite radioactive_pegmatite shigar_pegmatite` | §3.1 A/B table (rind, the clamp on sigma, the clamp on the rate); the other two pegmatites |
 | `ab-gem-factor-caps-root.{txt,json}` | `node tools/sim-side-ab.mjs --arm fcap=2 --arm root=3 --seeds 42,1,2 gem_pegmatite` | §3.1 A/B table (factor caps, root) |
 | `ab-gem-boron.{txt,json}` | `node tools/sim-side-ab.mjs --arm mul=B:10 --arm mul=B:0.5 --arm mul=B:0.25 --arm cap=8,mul=B:10 --arm cap=8,mul=B:0.5 --seeds 42,1,2 gem_pegmatite` | §3.1: tourmaline against the boron, in the plugged pocket and the open one |
-| `ab-feldspar-13-scenarios.{txt,json}` | `node tools/sim-side-ab.mjs --arm cap=8 --arm rclamp=7 --arm fcap=2 --arm root=3 --seeds 42,1,2 bisbee chiastolite_hornfels deccan_zeolite epithermal_telluride gem_pegmatite grimsel_alpine_cleft jeffrey_mine ouro_preto porphyry radioactive_pegmatite schneeberg shigar_pegmatite tormiq_alpine_cleft` | §4 C1: what each shape moves in the 13 scenarios that grow feldspar or albite |
+| `ab-feldspar-13-scenarios.{txt,json}` | `node tools/sim-side-ab.mjs --arm cap=8 --arm rclamp=7 --arm fcap=2 --arm root=3 --seeds 42,1,2 bisbee chiastolite_hornfels deccan_zeolite epithermal_telluride gem_pegmatite grimsel_alpine_cleft jeffrey_mine ouro_preto porphyry radioactive_pegmatite schneeberg shigar_pegmatite tormiq_alpine_cleft` | §4 SC1: what each shape moves in the 13 scenarios that grow feldspar or albite |
 | `ab-quartz-also-clamped.{txt,json}` | `node tools/sim-side-ab.mjs --arm cap=8 --minerals feldspar,albite,quartz --seeds 42,1,2 radioactive_pegmatite gem_pegmatite` | §3.1: radioactive_pegmatite with quartz bounded as well |
 | `ab-radiogenic-lead.{txt,json}` | `node tools/sim-side-ab.mjs --arm pb --arm nopb --seeds 42,1,2 radioactive_pegmatite schneeberg` | §3.3 A/B table: radiogenic lead carried to the voxels, and kept out of every fluid |
-| `ab-radiogenic-lead-open-pocket.{txt,json}` | `node tools/sim-side-ab.mjs --arm cap=8 --arm cap=8,pb --arm cap=8,nopb --minerals feldspar,albite,quartz --seeds 42,1,2 radioactive_pegmatite` | §3.3 and §4 C3: the same two arms with the pocket open (feldspar, albite and quartz clamped) |
-| `ab-rate-on-excess.{txt,json}` | `node tools/sim-side-ab.mjs --arm excess=1 --arm excess=3 --minerals galena,molybdenite,uraninite --seeds 42,1,2 mvt porphyry radioactive_pegmatite reactivated_fluorite_vein reactive_wall roughten_gill schneeberg sunnyside_american_tunnel` | §4 C2 preview table |
-| `ab-gem-clamp-sensitivity.{txt,json}` | `node tools/sim-side-ab.mjs --arm rclamp=3 --arm rclamp=7 --arm rclamp=11 --arm rclamp=15 --arm rclamp=23 --arm rclamp=47 --arm cap=4 --arm cap=8 --arm cap=12 --arm cap=16 --arm cap=24 --arm cap=48 --seeds 42,1,2 gem_pegmatite` | §4 C1: sensitivity to the clamp value, on the rate and on sigma |
-| `ab-clamp-values-13-scenarios.{txt,json}` | `node tools/sim-side-ab.mjs --arm rclamp=11 --arm rclamp=23 --arm rclamp=47 --seeds 42,1,2 bisbee chiastolite_hornfels deccan_zeolite epithermal_telluride gem_pegmatite grimsel_alpine_cleft jeffrey_mine ouro_preto porphyry radioactive_pegmatite schneeberg shigar_pegmatite tormiq_alpine_cleft` | §4 C1: three more clamp values on the same 13 scenarios (E = 7 is in `ab-feldspar-13-scenarios`) |
-| `ab-reactive-wall-trace.{txt,json}` | `node tools/sim-side-ab.mjs --arm excess=1 --minerals galena --trace galena --seeds 42,1,2 reactive_wall` | §4 C2: galena sigma on the bulk handle and on its own cell |
+| `ab-radiogenic-lead-open-pocket.{txt,json}` | `node tools/sim-side-ab.mjs --arm cap=8 --arm cap=8,pb --arm cap=8,nopb --minerals feldspar,albite,quartz --seeds 42,1,2 radioactive_pegmatite` | §3.3 and §4 SC3: the same two arms with the pocket open (feldspar, albite and quartz clamped) |
+| `ab-rate-on-excess.{txt,json}` | `node tools/sim-side-ab.mjs --arm excess=1 --arm excess=3 --minerals galena,molybdenite,uraninite --seeds 42,1,2 mvt porphyry radioactive_pegmatite reactivated_fluorite_vein reactive_wall roughten_gill schneeberg sunnyside_american_tunnel` | §4 SC2 preview table |
+| `ab-gem-clamp-sensitivity.{txt,json}` | `node tools/sim-side-ab.mjs --arm rclamp=3 --arm rclamp=7 --arm rclamp=11 --arm rclamp=15 --arm rclamp=23 --arm rclamp=47 --arm cap=4 --arm cap=8 --arm cap=12 --arm cap=16 --arm cap=24 --arm cap=48 --seeds 42,1,2 gem_pegmatite` | §4 SC1: sensitivity to the clamp value, on the rate and on sigma |
+| `ab-clamp-values-13-scenarios.{txt,json}` | `node tools/sim-side-ab.mjs --arm rclamp=11 --arm rclamp=23 --arm rclamp=47 --seeds 42,1,2 bisbee chiastolite_hornfels deccan_zeolite epithermal_telluride gem_pegmatite grimsel_alpine_cleft jeffrey_mine ouro_preto porphyry radioactive_pegmatite schneeberg shigar_pegmatite tormiq_alpine_cleft` | §4 SC1: three more clamp values on the same 13 scenarios (E = 7 is in `ab-feldspar-13-scenarios`) |
+| `ab-rind-13-scenarios.{txt,json}` | `node tools/sim-side-ab.mjs --arm rind=5000 --seeds 42,1,2 bisbee chiastolite_hornfels deccan_zeolite epithermal_telluride gem_pegmatite grimsel_alpine_cleft jeffrey_mine ouro_preto porphyry radioactive_pegmatite schneeberg shigar_pegmatite tormiq_alpine_cleft` | §4 SC1: the rind (no thickness past 5 mm) on the same 13 scenarios |
+| `ab-gem-broth.{txt,json}` | `node tools/sim-side-ab.mjs --arm mul=SiO2:0.1,mul=Al:0.15 --arm mul=SiO2:0.15,mul=Al:0.15 --seeds 42,1,2 gem_pegmatite` | §4 SC1: a change to the broth in place of a bound |
+| `ab-reactive-wall-trace.{txt,json}` | `node tools/sim-side-ab.mjs --arm excess=1 --minerals galena --trace galena --seeds 42,1,2 reactive_wall` | §4 SC2: galena sigma on the bulk handle and on its own cell |
 | `probe-sigma-maxima.mjs`, `.txt`, `-naica.txt` | `node proposals/evidence/sim-side-2026-11-09/probe-sigma-maxima.mjs` (and `--minerals selenite,celestine naica_geothermal`) | §3.1 cause; §3.4 Naica |
 | `probe-baseline-history.mjs`, `.txt` | `node proposals/evidence/sim-side-2026-11-09/probe-baseline-history.mjs <vugg-canary>/logs/2026-11-04/v286` | §3.1 and §3.4: the baseline history and the canary spreads |
 | `probe-nucleation-envelope.mjs`, `.txt`, `-per-vertex.txt` | `node proposals/evidence/sim-side-2026-11-09/probe-nucleation-envelope.mjs` (and `--minerals selenite,celestine,calcite,aragonite,anhydrite naica_geothermal stalactite_demo zoned_dripstone_cave`) | §7: a wrapped supersaturation method governs births too |
 | `probe-cell-field-gap.mjs`, `-uranophane-pH.txt`, `-ferrimolybdite-O2.txt`, `-ferrimolybdite-Mo.txt` | `node proposals/evidence/sim-side-2026-11-09/probe-cell-field-gap.mjs schneeberg uranophane pH 6.0` (and `supergene_oxidation ferrimolybdite O2`, `supergene_oxidation ferrimolybdite Mo`) | §2.1: the field that holds a cell down where the ingredients do not explain it |
 | `probe-side-doors.mjs`, `.txt` | `node proposals/evidence/sim-side-2026-11-09/probe-side-doors.mjs` (a static reading of the nucleation files; runs no simulation) | §2.3: what a side door on a count gate is made of |
+| `probe-lead-choices.mjs`, `.txt` | `node proposals/evidence/sim-side-2026-11-09/probe-lead-choices.mjs` (about 12 minutes) | §4 SC3: when the radiogenic lead is released against whether galena is licensed; the amazonite note; what SC3 delivers if SC2 lands first |
+| `probe-cation-gate.mjs`, `.txt` | `node proposals/evidence/sim-side-2026-11-09/probe-cation-gate.mjs` | §4: which previewed change moves the two numbers `npm run audit:cations` commissions |
+| `probe-enclosed-survivors.mjs`, `.txt` | `node proposals/evidence/sim-side-2026-11-09/probe-enclosed-survivors.mjs` | §4 SC1: why schneeberg loses species under the clamp in every scenario |
+| `probe-appearance-contract.mjs`, `.txt` | `node proposals/evidence/sim-side-2026-11-09/probe-appearance-contract.mjs` (reads the `ab-*.json` files here and the scenarios' tiers; runs no simulation) | §4: which previewed change would trip `npm run audit:localities` |
 | `probe-ab-digest.mjs`, `.txt` | `node proposals/evidence/sim-side-2026-11-09/probe-ab-digest.mjs` (reads the `ab-*.json` and `census-seed-*.json` files here; runs no simulation) | the counts §2.1, §3.1, §3.3 and §4 draw from the A/B outputs and the census reports |
+| `c1-depletion-ev-probe-seed-42.txt` | `node tools/c1-depletion-ev-probe.mjs --seed 42` (the repository's own probe of 2026-07-07, unchanged, run on this tree) | §2.1: what was already known about the cell and the bulk fluid |
 
 Every simulation run in these files that has a seed-42 baseline to compare with reproduces it, with
 the instrument attached; each file says so in its own integrity line.

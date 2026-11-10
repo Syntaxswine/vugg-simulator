@@ -19,25 +19,40 @@ Living list of open work items, captured from session conversations so context s
 > the baseline of 38 (Shigar's pocket plugs at step 23). Above the cell nothing binds: the cavity's
 > inventory is never dented, the bulk handle is never debited, and `flow_rate` (authored 103 times)
 > feeds nothing. So a slowed crystal is seldom stopped; it ends with the run, the cavity, an event
-> or burial. **Three defects, each with an A/B:** F1 the pegmatite pocket plugs (`gem_pegmatite` is
+> or burial. It builds on two earlier pieces of work: the roadmap's rung C1 (the local-σ
+> depletion field, 2026-07-07), whose probe showed that the rate reads the cell, and the high-fill
+> research of 2026-05-16, which had the two pegmatites sealing early. Its own proposed changes
+> are numbered SC1–SC5, so as not to collide with the roadmap's C rungs.
+> **Three defects, each with an A/B:** F1 the pegmatite pocket plugs (`gem_pegmatite` is
 > full at step 9–10 of 230; with feldspar and albite bounded, tourmaline reaches 12 mm and topaz
 > appears; boron is NOT the lever — tourmaline's boron factor is at its cap, so do not test
 > story-pocket WP8(b) on it); F2 galena, molybdenite and uraninite propose growth at saturation
 > (k·σ where 171 other engines vanish at σ = 1); F3 radiogenic Pb is written to the bulk handle
 > only (`js/85-simulator.ts:1276`), and `radioactive_pegmatite` does not license the galena its
-> description promises. **This review has been corrected three times by its own review rounds
-> (the doc's §0 lists each set): the first version said supply does not bind; the second costed
+> description promises. **This review has been corrected four times by its own review rounds
+> (the doc's §9 lists each set): the first version said supply does not bind; the second costed
 > the recommended fixes too lightly; the third said the feldspar clamp loses no species, having
 > counted a dissolved-away crystal's record as presence, and recommended a lead mechanism that
-> cannot work.**
-> **Awaits the boss:** the seven decisions in the doc's §6. C1: a clamp on the feldspar pair's
-> rate authored on `gem_pegmatite` ALONE (recommended; one baseline changes), against the same
-> clamp in the engines for every scenario (eight baselines change; it empties Shigar's pocket and
-> leaves `schneeberg` without native arsenic and native bismuth at seeds 1 and 2, and without
-> cobaltite at seed 1, all three of them species it expects), or no bound until C4. NOT factor caps, which delete both feldspars from the Grimsel cleft. C2's
-> constant. C3: carry the radiogenic lead to the voxels (previewed), with its release on
-> alteration as an open, unpreviewed choice, and the galena license. Whether to pilot a supply
-> with a scale above the cell, C4. Whether the census joins the SIM-bump routine, C5. The order
+> cannot work; the fourth left out the locality gate, which the recommended clamp trips, and put
+> two coupled choices to the owner as independent.**
+> **Awaits the boss:** the seven decisions in the doc's §6. SC1: a clamp on the feldspar pair's
+> rate authored on `gem_pegmatite` ALONE (recommended; one baseline changes), which makes topaz
+> appear at all three locality-gate seeds, so the bump must also PROMOTE TOPAZ out of the
+> aspirational tier. Against it: the same clamp in the engines for every scenario (eight
+> baselines change; it empties Shigar's pocket and leaves `schneeberg` without solid native
+> arsenic and native bismuth at seeds 1 and 2, and cobaltite at seed 1, all three of them species
+> it expects); a change to the broth, which costs the pocket its quartz; or no bound until SC4.
+> NOT factor caps, which delete both feldspars from the Grimsel cleft. The field SC1 authors
+> also needs a class in the Creative lever audit. SC2's constant; at the same constant SC2
+> shrinks the uraninites, their radiogenic lead falls (`schneeberg`'s bulk handle ends at 111
+> ppm, not 179), and the CATION GATE (`npm run audit:cations`) must be recommissioned with a
+> new Ca share (0.630, not 0.582). SC3: hold the radiogenic lead until a uraninite is altered and
+> release it to the bulk handle and the voxels alike (recommended), and drop the two galena
+> sentences, because under that timing no license can produce galena; or keep today's timing
+> and license galena, with a source. The held release leaves the cation gate's numbers as
+> commissioned; the continuous one does not. SC2 and SC3 meet in `schneeberg`'s pharmacolite, so
+> the second to land is previewed on the tree the first leaves. Whether to pilot a supply with a
+> scale above the cell, SC4. Whether the census joins the SIM-bump routine, SC5. The order
 > against the open ladders. And three authored values that sit exactly on a σ threshold, one of
 > which starts four of `supergene_oxidation`'s azurites dissolving at its last event.
 

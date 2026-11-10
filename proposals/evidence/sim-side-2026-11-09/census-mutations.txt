@@ -1,4 +1,4 @@
-sim-side census mutations — 35 mutants of tools/sim-side-census.mjs (sha256 d6c854fbd621); the census as committed runs once on bisbee, colorado_plateau, cooling, epithermal_telluride, gem_pegmatite, great_salt_plains, mvt, porphyry, radioactive_pegmatite, schneeberg, sunnyside_american_tunnel, tn457_barite_pulses, tormiq_alpine_cleft, zoned_dripstone_cave (seed 42)
+sim-side census mutations — 41 mutants of tools/sim-side-census.mjs (sha256 832e001cf8c9); the census as committed runs once on bisbee, colorado_plateau, cooling, epithermal_telluride, gem_pegmatite, great_salt_plains, mvt, porphyry, radioactive_pegmatite, schneeberg, sunnyside_american_tunnel, tn457_barite_pulses, tormiq_alpine_cleft, zoned_dripstone_cave (seed 42)
 
 the census as committed (14 of 14 runs reproduce the baseline):
   [PASS] positive competition-log — 64/64/60/60/65 = 313
@@ -27,6 +27,12 @@ the census as committed (14 of 14 runs reproduce the baseline):
   [PASS] positive vadose — step 110: 10 rings from ring 6 up; bulk O2 1.50 → 1.80
   [PASS] negative vadose — 0 step(s) on which a ring dried
   [PASS] positive draw-down-other — 3.93 mm not through the ingredients; uranophane:pH 3.93 mm
+  [PASS] positive big-drawn-down — 3 of 13: uranophane ×3
+  [PASS] positive starved — 1062 crystal-steps (sylvanite ×393, calaverite ×381, galena ×204)
+  [PASS] positive band — 36.2 % of 345 mm stored
+  [PASS] positive reference-under — 81.3 % of 7.2 mm stored
+  [PASS] positive wall-min — Cd 0.93, Ca 395.1 ppm
+  [PASS] positive ring-means — bulk handle 1.800; floor ring 1.498, top ring 1.800
 
 mutant                    control it should fail      committed  mutant   what was broken
 log-read-once             positive competition-log    PASS       FAIL     the step log is scanned on the final step only (run_step resets it every step)
@@ -134,6 +140,24 @@ vadose-every-call         negative vadose             PASS       FAIL     every 
 other-field-not-set       positive draw-down-other    PASS       FAIL     the search for one further field never sets that field to the bulk handle's value
                                                       committed: 3.93 mm not through the ingredients; uranophane:pH 3.93 mm
                                                       mutant:    3.93 mm not through the ingredients; uranophane:no one field 3.93 mm
+crystal-share-not-kept    positive big-drawn-down     PASS       FAIL     a crystal's own thickness stored on a drawn-down cell is never added up
+                                                      committed: 3 of 13: uranophane ×3
+                                                      mutant:    0 of 13
+starved-never-counted     positive starved            PASS       FAIL     a starved crystal-step is never counted as one
+                                                      committed: 1062 crystal-steps (sylvanite ×393, calaverite ×381, galena ×204)
+                                                      mutant:    0 crystal-steps
+band-filed-as-near        positive band               PASS       FAIL     thickness stored between 0.5 and 0.9 of the reference's excess is filed with the thickness at 0.9 or more
+                                                      committed: 36.2 % of 345 mm stored
+                                                      mutant:    0.0 % of 345 mm stored
+reference-under-dropped   positive reference-under    PASS       FAIL     thickness stored where the bulk handle is at or under saturation is not filed
+                                                      committed: 81.3 % of 7.2 mm stored
+                                                      mutant:    0.0 % of 7.2 mm stored
+wall-minimum-never-taken  positive wall-min           PASS       FAIL     the lowest wall cell of a field is never recorded
+                                                      committed: Cd 0.93, Ca 395.1 ppm
+                                                      mutant:    Cd not recorded, Ca not recorded ppm
+ring-means-read-bulk      positive ring-means         PASS       FAIL     each ring's mean is read from the bulk handle
+                                                      committed: bulk handle 1.800; floor ring 1.498, top ring 1.800
+                                                      mutant:    bulk handle 1.800; floor ring 1.800, top ring 1.800
 
-all 35 mutants: the control passes on the census as committed and fails on the mutant
-controls the census declares: 26; with no mutant aimed at them: none
+all 41 mutants: the control passes on the census as committed and fails on the mutant
+controls the census declares: 32; with no mutant aimed at them: none

@@ -65,21 +65,21 @@ refund=1 — every positive zone's debit returned to its cell (ab-refund-seed-*.
   seed 42, bisbee: 19 moved, 5 lost, 0 gained, of 29 species present in either arm
 
 the draw-down table of §2.1 and the feldspar pair's part of it (census-seed-*.json; arithmetic on the committed table, nothing re-run)
-  seed 42: more than a tenth of the stored thickness was put on at a cell under half the reference's excess in 13 of 40 scenarios, and more than half of it in 3; with the feldspar pair's part taken out of the numerator, 9 and 1
+  seed 42: more than a tenth of the stored thickness was put on at a cell under half the reference's excess in 13 of 40 scenarios, and more than half of it in 3; with the feldspar pair's part taken out of the numerator in every scenario, 9 and 1; taken out in gem_pegmatite alone, 12 and 3
            gem_pegmatite          31.4 % of 107 mm; through its ingredients 33.7 mm, of which feldspar and albite 33.7 mm; without them 0.0 %; crystals of 1 mm or more grown mostly that way 0 of 5
            radioactive_pegmatite  50.3 % of 292 mm; through its ingredients 147.2 mm, of which feldspar and albite 130.3 mm; without them 5.8 %; crystals of 1 mm or more grown mostly that way 6 of 18
            shigar_pegmatite       83.1 % of 782 mm; through its ingredients 649.7 mm, of which feldspar and albite 649.7 mm; without them 0.0 %; crystals of 1 mm or more grown mostly that way 4 of 8
            tormiq_alpine_cleft    18.4 % of 241 mm; through its ingredients 44.3 mm, of which feldspar and albite 37.0 mm; without them 3.0 %; crystals of 1 mm or more grown mostly that way 1 of 16
            crystals of 1 mm or more that stored most of their growth that way: 56 of 568; 6 of them in supergene_oxidation and 3 in schneeberg, the two scenarios where a further field holds the cell down; 11 in the 4 scenarios listed above
            held down by one further field: supergene_oxidation's ferrimolybdite through O2, 67548 µm (14.6 % of that scenario's stored thickness; all minerals 14.9 %); schneeberg's uranophane through pH, 3933 µm (1.8 %)
-  seed  1: more than a tenth of the stored thickness was put on at a cell under half the reference's excess in 11 of 40 scenarios, and more than half of it in 2; with the feldspar pair's part taken out of the numerator, 7 and 1
+  seed  1: more than a tenth of the stored thickness was put on at a cell under half the reference's excess in 11 of 40 scenarios, and more than half of it in 2; with the feldspar pair's part taken out of the numerator in every scenario, 7 and 1; taken out in gem_pegmatite alone, 10 and 2
            gem_pegmatite          29.1 % of 103 mm; through its ingredients 30.0 mm, of which feldspar and albite 30.0 mm; without them 0.0 %; crystals of 1 mm or more grown mostly that way 0 of 6
            radioactive_pegmatite  43.9 % of 279 mm; through its ingredients 122.7 mm, of which feldspar and albite 110.7 mm; without them 4.3 %; crystals of 1 mm or more grown mostly that way 5 of 22
            shigar_pegmatite       82.7 % of 787 mm; through its ingredients 650.9 mm, of which feldspar and albite 650.9 mm; without them 0.0 %; crystals of 1 mm or more grown mostly that way 4 of 12
            tormiq_alpine_cleft    24.0 % of 291 mm; through its ingredients 69.9 mm, of which feldspar and albite 49.8 mm; without them 6.9 %; crystals of 1 mm or more grown mostly that way 4 of 16
            crystals of 1 mm or more that stored most of their growth that way: 52 of 579; 6 of them in supergene_oxidation and 2 in schneeberg, the two scenarios where a further field holds the cell down; 13 in the 4 scenarios listed above
            held down by one further field: supergene_oxidation's ferrimolybdite through O2, 36847 µm (7.7 % of that scenario's stored thickness; all minerals 8.1 %); schneeberg's uranophane through pH, 3157 µm (1.6 %)
-  seed  2: more than a tenth of the stored thickness was put on at a cell under half the reference's excess in 11 of 40 scenarios, and more than half of it in 1; with the feldspar pair's part taken out of the numerator, 8 and 0
+  seed  2: more than a tenth of the stored thickness was put on at a cell under half the reference's excess in 11 of 40 scenarios, and more than half of it in 1; with the feldspar pair's part taken out of the numerator in every scenario, 8 and 0; taken out in gem_pegmatite alone, 10 and 1
            gem_pegmatite          29.9 % of  89 mm; through its ingredients 26.6 mm, of which feldspar and albite 26.6 mm; without them 0.0 %; crystals of 1 mm or more grown mostly that way 0 of 4
            radioactive_pegmatite  47.8 % of 297 mm; through its ingredients 141.7 mm, of which feldspar and albite 131.6 mm; without them 3.4 %; crystals of 1 mm or more grown mostly that way 4 of 19
            shigar_pegmatite       84.0 % of 779 mm; through its ingredients 654.5 mm, of which feldspar and albite 654.5 mm; without them 0.0 %; crystals of 1 mm or more grown mostly that way 4 of 10
@@ -101,6 +101,30 @@ the feldspar shapes on the 13 scenarios that grow feldspar or albite (ab-feldspa
   root=3   seed  1: moved 13 of 13; the baseline differs in 13; lost: bisbee (alunite 0.115 mm ×1); schneeberg (cobaltite 0.187 mm ×1, native_arsenic 0.246 mm ×1, native_bismuth 0.066 mm ×1, native_silver 0.022 mm ×1); ouro_preto fill 32.3 → 0.3 %; bisbee species moved 6
   root=3   seed  2: moved 13 of 13; the baseline differs in 13; lost: schneeberg (native_arsenic 0.171 mm ×2, native_bismuth 0.063 mm ×1, naumannite 0.066 mm ×1); ouro_preto fill 22.8 → 0.2 %; bisbee species moved 17
   the clamp on sigma (cap=8) against the clamp on the rate (rclamp=7), by the tool's moved test: no species differs in any of the 39 runs
+  schneeberg under rclamp=7, every species the arm moves or loses (largest crystal and crystals with solid, shipped → arm):
+    seed 42: acanthite 1.2 ×4 → 0.734 ×4; arsenopyrite 4.3 ×4 → 3.3 ×4; cobaltite 0.093 ×3 → 0.018 ×1; feldspar 27.6 ×2 → 10.3 ×2; goethite 0.004 ×1 → 0.003 ×1; native_arsenic 0.240 ×2 → 0.250 ×1; native_bismuth 0.067 ×1 → 0.026 ×1; native_silver 0.224 ×2 → 0.221 ×1; nickeline 1.0 ×4 → 0.771 ×4; pharmacolite 1.1 ×5 → 0.974 ×4; proustite 0.800 ×2 → 0.007 ×2; uranophane 2.4 ×3 → 1.8 ×3
+    seed  1: annabergite 0.137 ×2 → 0.222 ×2; cobaltite 0.187 ×1 → none; cuprite 0.004 ×1 → none; feldspar 26.6 ×2 → 9.8 ×2; native_arsenic 0.246 ×1 → none; native_bismuth 0.066 ×1 → none; proustite 0.012 ×1 → 0.011 ×2
+    seed  2: acanthite 1.1 ×3 → 0.148 ×3; annabergite 0.214 ×2 → 0.289 ×1; feldspar 26.7 ×2 → 9.8 ×2; goethite 0.025 ×2 → 0.055 ×1; native_arsenic 0.171 ×2 → none; native_bismuth 0.063 ×1 → none; naumannite 0.066 ×1 → none; proustite 0.716 ×2 → 0.007 ×2
+
+the rind on the same 13 scenarios: feldspar and albite add no thickness once a crystal has reached 5 mm (ab-rind-13-scenarios.json); seeds 42 / 1 / 2
+  rind=5000: the baseline differs in 10 / 10 / 10 of 13 scenarios; moved in 10 / 10 / 10; unchanged at every seed: chiastolite_hornfels, deccan_zeolite, porphyry
+    bisbee                   fill 95.6 / 90.9 / 92.0 % (largest of the run 97.8 / 90.9 / 92.0 %), full at step — / — / —; albite 5.1 / 5.1 / 5.1 mm; feldspar 3.4 / 3.4 / 3.3 mm; moved 1 / 1 / 1; lost none / none / none
+    epithermal_telluride     fill 9.3 / 9.7 / 9.2 % (largest of the run 9.3 / 9.7 / 9.2 %), full at step — / — / —; albite 1.3 / 0.144 / 1.3 mm; feldspar 5.1 / 5.0 / 5.0 mm; moved 1 / 1 / 1; lost none / none / none
+    gem_pegmatite            fill 22.9 / 22.7 / 19.6 % (largest of the run 22.9 / 22.7 / 19.6 %), full at step — / — / —; albite 8.1 / 7.4 / 7.2 mm; feldspar 10.0 / 10.6 / 7.2 mm; moved 7 / 7 / 7; lost none / none / none
+    grimsel_alpine_cleft     fill 0.1 / 0.1 / 0.1 % (largest of the run 0.1 / 0.1 / 0.1 %), full at step — / — / —; albite 5.1 / 5.1 / 5.1 mm; feldspar 5.0 / 5.0 / 5.0 mm; moved 2 / 1 / 1; lost none / none / none
+    jeffrey_mine             fill 1.2 / 1.0 / 1.3 % (largest of the run 1.2 / 1.0 / 1.3 %), full at step — / — / —; albite 5.1 / 5.2 / 5.1 mm; moved 1 / 1 / 1; lost none / none / none
+    ouro_preto               fill 0.7 / 0.6 / 0.6 % (largest of the run 0.7 / 0.6 / 0.6 %), full at step — / — / —; albite 5.2 / 5.2 / 5.1 mm; feldspar 5.1 / 5.1 / 5.1 mm; moved 3 / 3 / 3; lost none / none / none
+    radioactive_pegmatite    fill 98.3 / 98.6 / 98.5 % (largest of the run 98.3 / 98.6 / 98.5 %), full at step — / — / —; albite 6.1 / 5.9 / 6.5 mm; feldspar 5.7 / 6.2 / 6.3 mm; moved 7 / 10 / 8; lost none / none / none
+    schneeberg               fill 6.8 / 7.0 / 7.1 % (largest of the run 6.9 / 7.1 / 7.2 %), full at step — / — / —; feldspar 5.1 / 5.2 / 5.3 mm; moved 10 / 3 / 6; lost cuprite 0.005 mm ×1, native_arsenic 0.240 mm ×2, native_silver 0.224 mm ×2 / cobaltite 0.187 mm ×1, cuprite 0.004 mm ×1, native_arsenic 0.246 mm ×1, native_bismuth 0.066 mm ×1, native_silver 0.022 mm ×1 / native_arsenic 0.171 mm ×2, native_bismuth 0.063 mm ×1, naumannite 0.066 mm ×1
+    shigar_pegmatite         fill 0.0 / 0.0 / 0.0 % (largest of the run 0.0 / 0.0 / 0.0 %), full at step — / — / —; albite 6.1 / 7.5 / 7.3 mm; feldspar 10.1 / 8.5 / 10.4 mm; moved 3 / 3 / 2; lost none / none / none
+    tormiq_alpine_cleft      fill 0.6 / 1.3 / 0.7 % (largest of the run 0.6 / 1.3 / 0.7 %), full at step — / — / —; albite 5.2 / 5.2 / 5.1 mm; feldspar 5.1 / 5.1 / 5.1 mm; moved 2 / 3 / 2; lost none / none / none
+
+a change to gem_pegmatite's broth in place of a bound (ab-gem-broth.json): SiO2 and Al multiplied before the run; seeds 42 / 1 / 2
+  shipped                    fill 100.0 / 100.0 / 100.0 % (largest of the run 100.0 / 100.0 / 100.0 %), full at step 9 / 10 / 10, last growth 9 / 10 / 10; mm: tourmaline 0.294 ×2 / 0.368 ×3 / 0.390 ×3; topaz none / none / none; spodumene 0.125 ×1 / 0.197 ×1 / 0.130 ×4; lepidolite 0.007 ×1 / 0.016 ×1 / 0.012 ×1; quartz 1.7 ×3 / 1.5 ×3 / 1.6 ×2; feldspar 31.7 ×2 / 33.4 ×2 / 36.8 ×2; albite 24.6 ×2 / 24.2 ×2 / 29.6 ×1
+  mul=SiO2:0.1,mul=Al:0.15   fill 19.4 / 21.1 / 15.5 % (largest of the run 19.4 / 21.1 / 15.5 %), full at step — / — / —, last growth 230 / 230 / 230; mm: tourmaline 11.6 ×8 / 11.5 ×8 / 11.3 ×8; topaz 2.6 ×6 / 2.5 ×6 / 2.6 ×6; spodumene 4.4 ×4 / 5.4 ×5 / 5.3 ×4; lepidolite 2.8 ×5 / 2.8 ×3 / 2.8 ×3; quartz 0.007 ×1 / 0.008 ×1 / 0.007 ×1; feldspar 20.8 ×2 / 20.2 ×2 / 20.5 ×2; albite 41.7 ×2 / 41.5 ×2 / 39.9 ×2
+                             against shipped: moved 7 / 7 / 7; gained topaz / topaz / topaz; lost none / none / none; no solid left: none / none / none
+  mul=SiO2:0.15,mul=Al:0.15  fill 63.5 / 67.7 / 48.6 % (largest of the run 63.5 / 67.7 / 48.6 %), full at step — / — / —, last growth 230 / 230 / 230; mm: tourmaline 11.6 ×8 / 11.5 ×8 / 11.3 ×8; topaz 2.6 ×6 / 2.6 ×6 / 2.6 ×6; spodumene 4.4 ×4 / 5.4 ×5 / 5.3 ×4; lepidolite 2.7 ×5 / 2.8 ×3 / 2.8 ×3; quartz 0.536 ×1 / 0.554 ×1 / 0.522 ×1; feldspar 31.6 ×2 / 31.3 ×2 / 31.6 ×2; albite 62.6 ×2 / 61.3 ×2 / 58.6 ×2
+                             against shipped: moved 6 / 6 / 6; gained topaz / topaz / topaz; lost none / none / none; no solid left: none / none / none
 
 the clamp value on the 13 scenarios (rclamp=7 from ab-feldspar-13-scenarios.json; 11, 23 and 47 from ab-clamp-values-13-scenarios.json); seeds 42 / 1 / 2
   shipped:
@@ -179,6 +203,13 @@ k·σ rescaled to m·k·(σ − 1) for galena, molybdenite and uraninite (ab-rat
   excess=3  seed 42: other species moved, gained or lost — schneeberg 1 (uranophane); sunnyside_american_tunnel 1 (argentite); lost: none; porphyry fill 12 → 48 %
   excess=3  seed  1: other species moved, gained or lost — reactive_wall 1 (marcasite); roughten_gill 19 (anglesite, aurichalcite, azurite, brochantite, cerussite, …); lost: roughten_gill (calcite 3.9 mm ×1); porphyry fill 14 → 54 %
   excess=3  seed  2: other species moved, gained or lost — radioactive_pegmatite 1 (gained opal); roughten_gill 20 (acanthite, anglesite, aurichalcite, azurite, brochantite, …); schneeberg 1 (gained native_silver); lost: roughten_gill (calcite 3.7 mm ×1, mottramite 1.2 mm ×4); porphyry fill 12 → 48 %
+  the two scenarios that grow uraninite, seeds 42 / 1 / 2: the uraninites' largest crystal and the bulk handle's Pb at run end
+    radioactive_pegmatite  shipped   uraninite 6.9 / 5.7 / 6.6 mm; bulk Pb 146.8 / 127.7 / 147.2 ppm
+    radioactive_pegmatite  excess=1  uraninite 5.3 / 4.3 / 4.9 mm; bulk Pb 118.7 / 105.4 / 120.2 ppm
+    radioactive_pegmatite  excess=3  uraninite 13.8 / 11.5 / 13.3 mm; bulk Pb 266.7 / 240.1 / 288.7 ppm
+    schneeberg             shipped   uraninite 8.3 / 7.8 / 7.8 mm; bulk Pb 179.0 / 221.8 / 217.5 ppm
+    schneeberg             excess=1  uraninite 5.1 / 4.8 / 4.8 mm; bulk Pb 111.2 / 136.0 / 133.3 ppm
+    schneeberg             excess=3  uraninite 11.8 / 12.0 / 11.7 mm; bulk Pb 464.6 / 446.1 / 436.7 ppm
 
 ten times the boron in gem_pegmatite (ab-gem-boron.json, ab-pegmatites-rind-clamp.json)
   seed 42: mul=B:10 identical to shipped: true; cap=8,mul=B:10 identical to cap=8: true; tourmaline at half the boron 0.135 mm plugged, 5.6 mm open; at a quarter 0.018 mm plugged
@@ -189,6 +220,7 @@ every A/B file here: arm runs whose audits read differently from the shipped arm
   ab-clamp-values-13-scenarios.json          audits: none differ; wall dissolution withheld: none differ
   ab-feldspar-13-scenarios.json              audits: none differ; wall dissolution withheld: bisbee seed 42 root=3 41 → 38; bisbee seed 1 root=3 45 → 50; bisbee seed 2 root=3 38 → 39
   ab-gem-boron.json                          audits: none differ; wall dissolution withheld: none differ
+  ab-gem-broth.json                          audits: none differ; wall dissolution withheld: none differ
   ab-gem-clamp-sensitivity.json              audits: none differ; wall dissolution withheld: none differ
   ab-gem-factor-caps-root.json               audits: none differ; wall dissolution withheld: none differ
   ab-pegmatites-rind-clamp.json              audits: none differ; wall dissolution withheld: none differ
@@ -200,3 +232,4 @@ every A/B file here: arm runs whose audits read differently from the shipped arm
   ab-refund-seed-1.json                      audits: none differ; wall dissolution withheld: bisbee seed 1 refund=1 45 → 27; supergene_oxidation seed 1 refund=1 37 → 0
   ab-refund-seed-2.json                      audits: none differ; wall dissolution withheld: bisbee seed 2 refund=1 38 → 25; supergene_oxidation seed 2 refund=1 16 → 3
   ab-refund-seed-42.json                     audits: none differ; wall dissolution withheld: bisbee seed 42 refund=1 41 → 27; supergene_oxidation seed 42 refund=1 30 → 0
+  ab-rind-13-scenarios.json                  audits: none differ; wall dissolution withheld: none differ
