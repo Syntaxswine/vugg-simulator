@@ -1,178 +1,192 @@
 refund=1 — every positive zone's debit returned to its cell (ab-refund-seed-*.json; census-seed-*.json)
-  seed 42: 41 scenarios; moved 26; a species' largest crystal, 1 mm or more in either arm, changed by a factor of more than 1.25 in 21; fill rose by more than ten points in 7
+  seed 42: 41 scenarios; moved 26; a species' largest crystal, 1 mm or more in either arm, changed by a factor of more than 1.25 in 21; fill rose by more than ten points in 7; the baseline differs in 38
            fill, shipped → refund: ouro_preto 29 → 46 %; porphyry 12 → 82 %; roughten_gill 15 → 98 %; sulphur_bank 31 → 72 %; sunnyside_american_tunnel 85 → 99 %; supergene_oxidation 41 → 98 %; tormiq_alpine_cleft 8 → 31 %
            first step at fill >= 0.999, shipped → refund: gem_pegmatite 9 → 5; radioactive_pegmatite 61 → 17; searles_lake 134 → 133; shigar_pegmatite never → 23
-           species lost: bisbee (brochantite); radioactive_pegmatite (topaz); roughten_gill (mottramite); shigar_pegmatite (topaz)
+           species lost: bisbee (azurite 0.288 mm ×4, bornite 0.332 mm ×3, brochantite 1.5 mm ×5, jarosite 3.5 mm ×6, native_silver 0.001 mm ×1); gem_pegmatite (cassiterite 0.008 mm ×1); radioactive_pegmatite (topaz 0.175 mm ×3); roughten_gill (calcite 4.3 mm ×1, mimetite 0.030 mm ×1, mottramite 1.1 mm ×3); shigar_pegmatite (topaz 0.601 mm ×4)
            not moved (15): amethyst_geode, cooling, elmwood, great_salt_plains, jeffrey_mine, marble_contact_metamorphism, naica_geothermal, searles_lake, sicily_solfifera, stalactite_demo, tn457_barite_pulses, tutorial_first_crystal, tutorial_mn_calcite, tutorial_travertine, zoned_dripstone_cave
              of those, store 1 % or more of their thickness on a cell under half the reference's excess: none; store nothing: marble_contact_metamorphism
+             of those, store a tenth or more between 0.5 and 0.9 of the reference's excess: elmwood 22.8 %, jeffrey_mine 32.2 %, naica_geothermal 75.7 %
            moved, though under 1 % of the stored thickness is on a cell under half the reference's excess (11):
              asbestos_hills_crack_seal            0.5–0.9 of the reference's excess: 18.6 %; starved crystal-steps    0; species moved 1, 1 of them 1 mm or more
              asbestos_hills_surficial_alteration  0.5–0.9 of the reference's excess: 17.6 %; starved crystal-steps    0; species moved 1, 1 of them 1 mm or more
-             bisbee                               0.5–0.9 of the reference's excess: 36.2 %; starved crystal-steps    2; species moved 23, 7 of them 1 mm or more; gained none, lost brochantite
+             bisbee                               0.5–0.9 of the reference's excess: 36.2 %; starved crystal-steps    2; species moved 19, 7 of them 1 mm or more; gained none, lost azurite, bornite, brochantite, jarosite, native_silver
              chiastolite_hornfels                 0.5–0.9 of the reference's excess:  0.0 %; starved crystal-steps  119; species moved 1, none of them 1 mm or more
-             deccan_zeolite                       0.5–0.9 of the reference's excess: 12.9 %; starved crystal-steps   15; species moved 2, 1 of them 1 mm or more
+             deccan_zeolite                       0.5–0.9 of the reference's excess: 12.9 %; starved crystal-steps   15; species moved 1, 1 of them 1 mm or more; gained feldspar, lost none
              grimsel_alpine_cleft                 0.5–0.9 of the reference's excess: 43.9 %; starved crystal-steps    3; species moved 3, 1 of them 1 mm or more
              ouro_preto                           0.5–0.9 of the reference's excess: 61.7 %; starved crystal-steps    8; species moved 1, 1 of them 1 mm or more
              pulse                                0.5–0.9 of the reference's excess:  0.0 %; starved crystal-steps    8; species moved 1, none of them 1 mm or more
              sabkha_dolomitization                0.5–0.9 of the reference's excess:  0.0 %; starved crystal-steps    0; species moved 3, none of them 1 mm or more
-             ultramafic_supergene                 0.5–0.9 of the reference's excess:  0.0 %; starved crystal-steps  192; species moved 1, none of them 1 mm or more
+             ultramafic_supergene                 0.5–0.9 of the reference's excess:  0.0 %; starved crystal-steps  192; species moved 0, none of them 1 mm or more; gained dolomite, lost none
              wittichen                            0.5–0.9 of the reference's excess: 23.4 %; starved crystal-steps    0; species moved 3, 2 of them 1 mm or more
            audits: every arm run reads the simulator's audits as the shipped arm does; self-check on tutorial_travertine: refund=1 leaves the audits as shipped
-  seed  1: 41 scenarios; moved 27; a species' largest crystal, 1 mm or more in either arm, changed by a factor of more than 1.25 in 21; fill rose by more than ten points in 7
+  seed  1: 41 scenarios; moved 27; a species' largest crystal, 1 mm or more in either arm, changed by a factor of more than 1.25 in 21; fill rose by more than ten points in 7; the baseline differs in 38
            fill, shipped → refund: ouro_preto 32 → 51 %; porphyry 14 → 94 %; roughten_gill 52 → 99 %; sulphur_bank 28 → 67 %; sunnyside_american_tunnel 88 → 99 %; supergene_oxidation 43 → 98 %; tormiq_alpine_cleft 8 → 32 %
            first step at fill >= 0.999, shipped → refund: gem_pegmatite 10 → 5; radioactive_pegmatite 55 → 16; shigar_pegmatite never → 26
-           species lost: bisbee (brochantite, native_silver); radioactive_pegmatite (topaz); shigar_pegmatite (topaz)
+           species lost: bisbee (brochantite 2.1 mm ×5, jarosite 3.5 mm ×6, native_silver 0.004 mm ×1); radioactive_pegmatite (topaz 0.077 mm ×1); roughten_gill (calcite 3.9 mm ×1); shigar_pegmatite (topaz 0.641 mm ×2)
            not moved (14): amethyst_geode, cooling, elmwood, great_salt_plains, marble_contact_metamorphism, naica_geothermal, searles_lake, sicily_solfifera, stalactite_demo, tn457_barite_pulses, tutorial_first_crystal, tutorial_mn_calcite, tutorial_travertine, zoned_dripstone_cave
              of those, store 1 % or more of their thickness on a cell under half the reference's excess: none; store nothing: marble_contact_metamorphism
+             of those, store a tenth or more between 0.5 and 0.9 of the reference's excess: elmwood 21.0 %, naica_geothermal 75.2 %
            moved, though under 1 % of the stored thickness is on a cell under half the reference's excess (12):
              asbestos_hills_crack_seal            0.5–0.9 of the reference's excess: 18.1 %; starved crystal-steps    0; species moved 1, 1 of them 1 mm or more
              asbestos_hills_surficial_alteration  0.5–0.9 of the reference's excess: 18.3 %; starved crystal-steps    0; species moved 1, 1 of them 1 mm or more
-             bisbee                               0.5–0.9 of the reference's excess: 20.6 %; starved crystal-steps    0; species moved 21, 15 of them 1 mm or more; gained none, lost brochantite, native_silver
+             bisbee                               0.5–0.9 of the reference's excess: 20.6 %; starved crystal-steps    0; species moved 20, 15 of them 1 mm or more; gained none, lost brochantite, jarosite, native_silver
              chiastolite_hornfels                 0.5–0.9 of the reference's excess:  0.0 %; starved crystal-steps  119; species moved 1, none of them 1 mm or more
-             deccan_zeolite                       0.5–0.9 of the reference's excess: 15.1 %; starved crystal-steps   15; species moved 3, 1 of them 1 mm or more
+             deccan_zeolite                       0.5–0.9 of the reference's excess: 15.1 %; starved crystal-steps   15; species moved 2, 1 of them 1 mm or more; gained feldspar, lost none
              grimsel_alpine_cleft                 0.5–0.9 of the reference's excess: 44.4 %; starved crystal-steps    3; species moved 2, 1 of them 1 mm or more
              jeffrey_mine                         0.5–0.9 of the reference's excess: 41.4 %; starved crystal-steps   37; species moved 4, 1 of them 1 mm or more
              ouro_preto                           0.5–0.9 of the reference's excess: 57.0 %; starved crystal-steps    2; species moved 1, none of them 1 mm or more
              pulse                                0.5–0.9 of the reference's excess:  0.0 %; starved crystal-steps    2; species moved 1, none of them 1 mm or more
              sabkha_dolomitization                0.5–0.9 of the reference's excess:  0.0 %; starved crystal-steps    0; species moved 3, none of them 1 mm or more
-             ultramafic_supergene                 0.5–0.9 of the reference's excess:  0.0 %; starved crystal-steps  187; species moved 1, none of them 1 mm or more
+             ultramafic_supergene                 0.5–0.9 of the reference's excess:  0.0 %; starved crystal-steps  187; species moved 0, none of them 1 mm or more; gained dolomite, lost none
              wittichen                            0.5–0.9 of the reference's excess: 17.0 %; starved crystal-steps    0; species moved 3, 2 of them 1 mm or more
            audits: every arm run reads the simulator's audits as the shipped arm does; self-check on tutorial_travertine: refund=1 leaves the audits as shipped
-  seed  2: 41 scenarios; moved 25; a species' largest crystal, 1 mm or more in either arm, changed by a factor of more than 1.25 in 18; fill rose by more than ten points in 7
+  seed  2: 41 scenarios; moved 25; a species' largest crystal, 1 mm or more in either arm, changed by a factor of more than 1.25 in 18; fill rose by more than ten points in 7; the baseline differs in 38
            fill, shipped → refund: ouro_preto 23 → 36 %; porphyry 12 → 90 %; roughten_gill 67 → 98 %; sulphur_bank 29 → 70 %; sunnyside_american_tunnel 88 → 99 %; supergene_oxidation 40 → 99 %; tormiq_alpine_cleft 6 → 19 %
            first step at fill >= 0.999, shipped → refund: gem_pegmatite 10 → 5; radioactive_pegmatite 59 → 17; searles_lake 188 → 187; shigar_pegmatite never → 26
-           species lost: bisbee (brochantite, native_silver); radioactive_pegmatite (topaz); roughten_gill (mottramite); shigar_pegmatite (topaz)
+           species lost: bisbee (azurite 0.645 mm ×4, bornite 0.386 mm ×3, brochantite 1.9 mm ×5, jarosite 3.6 mm ×6, marcasite 1.5 mm ×1); gem_pegmatite (cassiterite 0.014 mm ×2); radioactive_pegmatite (topaz 0.388 mm ×4); roughten_gill (calcite 3.7 mm ×1, mottramite 1.2 mm ×4); schneeberg (native_bismuth 0.063 mm ×1); shigar_pegmatite (topaz 0.629 mm ×6)
            not moved (16): amethyst_geode, cooling, elmwood, great_salt_plains, jeffrey_mine, marble_contact_metamorphism, naica_geothermal, pulse, reactive_wall, sicily_solfifera, stalactite_demo, tn457_barite_pulses, tutorial_first_crystal, tutorial_mn_calcite, tutorial_travertine, zoned_dripstone_cave
              of those, store 1 % or more of their thickness on a cell under half the reference's excess: reactive_wall 2.4 %; store nothing: marble_contact_metamorphism
+             of those, store a tenth or more between 0.5 and 0.9 of the reference's excess: elmwood 10.4 %, naica_geothermal 74.3 %
            moved, though under 1 % of the stored thickness is on a cell under half the reference's excess (12):
              asbestos_hills_crack_seal            0.5–0.9 of the reference's excess: 19.2 %; starved crystal-steps    0; species moved 1, 1 of them 1 mm or more
              asbestos_hills_surficial_alteration  0.5–0.9 of the reference's excess: 18.1 %; starved crystal-steps    0; species moved 1, 1 of them 1 mm or more
-             bisbee                               0.5–0.9 of the reference's excess: 16.2 %; starved crystal-steps    1; species moved 22, 14 of them 1 mm or more; gained none, lost brochantite, native_silver
+             bisbee                               0.5–0.9 of the reference's excess: 16.2 %; starved crystal-steps    1; species moved 18, 14 of them 1 mm or more; gained none, lost azurite, bornite, brochantite, jarosite, marcasite
              chiastolite_hornfels                 0.5–0.9 of the reference's excess:  0.0 %; starved crystal-steps  119; species moved 1, none of them 1 mm or more
-             deccan_zeolite                       0.5–0.9 of the reference's excess: 23.1 %; starved crystal-steps   14; species moved 2, none of them 1 mm or more
+             deccan_zeolite                       0.5–0.9 of the reference's excess: 23.1 %; starved crystal-steps   14; species moved 1, none of them 1 mm or more; gained feldspar, lost none
              grimsel_alpine_cleft                 0.5–0.9 of the reference's excess: 47.4 %; starved crystal-steps    3; species moved 2, 1 of them 1 mm or more
              ouro_preto                           0.5–0.9 of the reference's excess: 59.6 %; starved crystal-steps    9; species moved 1, none of them 1 mm or more
-             roughten_gill                        0.5–0.9 of the reference's excess: 65.4 %; starved crystal-steps  138; species moved 20, 12 of them 1 mm or more; gained none, lost mottramite
+             roughten_gill                        0.5–0.9 of the reference's excess: 65.4 %; starved crystal-steps  138; species moved 18, 12 of them 1 mm or more; gained mimetite, lost calcite, mottramite
              sabkha_dolomitization                0.5–0.9 of the reference's excess:  0.0 %; starved crystal-steps    0; species moved 3, none of them 1 mm or more
              searles_lake                         0.5–0.9 of the reference's excess:  3.7 %; starved crystal-steps    0; species moved 2, none of them 1 mm or more
-             ultramafic_supergene                 0.5–0.9 of the reference's excess:  0.0 %; starved crystal-steps  193; species moved 1, none of them 1 mm or more
+             ultramafic_supergene                 0.5–0.9 of the reference's excess:  0.0 %; starved crystal-steps  193; species moved 0, none of them 1 mm or more; gained dolomite, lost none
              wittichen                            0.5–0.9 of the reference's excess: 16.4 %; starved crystal-steps    0; species moved 2, 2 of them 1 mm or more
            audits: every arm run reads the simulator's audits as the shipped arm does; self-check on tutorial_travertine: refund=1 leaves the audits as shipped
   seed 42, largest crystal: mvt greenockite 2.4 → 7.3 mm; colorado_plateau uranophane 12.6 → 25.7 mm; reactive_wall galena 3.9 → 7.0 mm; sunnyside_american_tunnel galena 15.4 → 31.1 mm; tutorial_travertine aragonite 2.5 → 2.5 mm
-  seed 42, bisbee: 23 of 31 species moved
+  seed 42, bisbee: 19 moved, 5 lost, 0 gained, of 29 species present in either arm
+
+the draw-down table of §2.1 and the feldspar pair's part of it (census-seed-*.json; arithmetic on the committed table, nothing re-run)
+  seed 42: more than a tenth of the stored thickness was put on at a cell under half the reference's excess in 13 of 40 scenarios, and more than half of it in 3; with the feldspar pair's part taken out of the numerator, 9 and 1
+           gem_pegmatite          31.4 % of 107 mm; through its ingredients 33.7 mm, of which feldspar and albite 33.7 mm; without them 0.0 %; crystals of 1 mm or more grown mostly that way 0 of 5
+           radioactive_pegmatite  50.3 % of 292 mm; through its ingredients 147.2 mm, of which feldspar and albite 130.3 mm; without them 5.8 %; crystals of 1 mm or more grown mostly that way 6 of 18
+           shigar_pegmatite       83.1 % of 782 mm; through its ingredients 649.7 mm, of which feldspar and albite 649.7 mm; without them 0.0 %; crystals of 1 mm or more grown mostly that way 4 of 8
+           tormiq_alpine_cleft    18.4 % of 241 mm; through its ingredients 44.3 mm, of which feldspar and albite 37.0 mm; without them 3.0 %; crystals of 1 mm or more grown mostly that way 1 of 16
+           crystals of 1 mm or more that stored most of their growth that way: 56 of 568; 6 of them in supergene_oxidation and 3 in schneeberg, the two scenarios where a further field holds the cell down; 11 in the 4 scenarios listed above
+           held down by one further field: supergene_oxidation's ferrimolybdite through O2, 67548 µm (14.6 % of that scenario's stored thickness; all minerals 14.9 %); schneeberg's uranophane through pH, 3933 µm (1.8 %)
+  seed  1: more than a tenth of the stored thickness was put on at a cell under half the reference's excess in 11 of 40 scenarios, and more than half of it in 2; with the feldspar pair's part taken out of the numerator, 7 and 1
+           gem_pegmatite          29.1 % of 103 mm; through its ingredients 30.0 mm, of which feldspar and albite 30.0 mm; without them 0.0 %; crystals of 1 mm or more grown mostly that way 0 of 6
+           radioactive_pegmatite  43.9 % of 279 mm; through its ingredients 122.7 mm, of which feldspar and albite 110.7 mm; without them 4.3 %; crystals of 1 mm or more grown mostly that way 5 of 22
+           shigar_pegmatite       82.7 % of 787 mm; through its ingredients 650.9 mm, of which feldspar and albite 650.9 mm; without them 0.0 %; crystals of 1 mm or more grown mostly that way 4 of 12
+           tormiq_alpine_cleft    24.0 % of 291 mm; through its ingredients 69.9 mm, of which feldspar and albite 49.8 mm; without them 6.9 %; crystals of 1 mm or more grown mostly that way 4 of 16
+           crystals of 1 mm or more that stored most of their growth that way: 52 of 579; 6 of them in supergene_oxidation and 2 in schneeberg, the two scenarios where a further field holds the cell down; 13 in the 4 scenarios listed above
+           held down by one further field: supergene_oxidation's ferrimolybdite through O2, 36847 µm (7.7 % of that scenario's stored thickness; all minerals 8.1 %); schneeberg's uranophane through pH, 3157 µm (1.6 %)
+  seed  2: more than a tenth of the stored thickness was put on at a cell under half the reference's excess in 11 of 40 scenarios, and more than half of it in 1; with the feldspar pair's part taken out of the numerator, 8 and 0
+           gem_pegmatite          29.9 % of  89 mm; through its ingredients 26.6 mm, of which feldspar and albite 26.6 mm; without them 0.0 %; crystals of 1 mm or more grown mostly that way 0 of 4
+           radioactive_pegmatite  47.8 % of 297 mm; through its ingredients 141.7 mm, of which feldspar and albite 131.6 mm; without them 3.4 %; crystals of 1 mm or more grown mostly that way 4 of 19
+           shigar_pegmatite       84.0 % of 779 mm; through its ingredients 654.5 mm, of which feldspar and albite 654.5 mm; without them 0.0 %; crystals of 1 mm or more grown mostly that way 4 of 10
+           tormiq_alpine_cleft    20.9 % of 215 mm; through its ingredients 45.0 mm, of which feldspar and albite 19.5 mm; without them 11.9 %; crystals of 1 mm or more grown mostly that way 5 of 14
+           crystals of 1 mm or more that stored most of their growth that way: 55 of 572; 6 of them in supergene_oxidation and 3 in schneeberg, the two scenarios where a further field holds the cell down; 13 in the 4 scenarios listed above
+           held down by one further field: supergene_oxidation's ferrimolybdite through O2, 44848 µm (9.5 % of that scenario's stored thickness; all minerals 9.7 %); schneeberg's uranophane through pH, 4656 µm (2.3 %)
 
 the feldspar shapes on the 13 scenarios that grow feldspar or albite (ab-feldspar-13-scenarios.json)
-  cap=8    seed 42: moved 7 of 13 (gem_pegmatite, jeffrey_mine, ouro_preto, radioactive_pegmatite, schneeberg, shigar_pegmatite, tormiq_alpine_cleft); lost: none; ouro_preto fill 28.8 → 21.9 %; bisbee species moved 0
-  cap=8    seed  1: moved 7 of 13 (gem_pegmatite, jeffrey_mine, ouro_preto, radioactive_pegmatite, schneeberg, shigar_pegmatite, tormiq_alpine_cleft); lost: none; ouro_preto fill 32.3 → 24.3 %; bisbee species moved 0
-  cap=8    seed  2: moved 7 of 13 (gem_pegmatite, jeffrey_mine, ouro_preto, radioactive_pegmatite, schneeberg, shigar_pegmatite, tormiq_alpine_cleft); lost: none; ouro_preto fill 22.8 → 17.0 %; bisbee species moved 0
-  rclamp=7 seed 42: moved 7 of 13 (gem_pegmatite, jeffrey_mine, ouro_preto, radioactive_pegmatite, schneeberg, shigar_pegmatite, tormiq_alpine_cleft); lost: none; ouro_preto fill 28.8 → 21.9 %; bisbee species moved 0
-  rclamp=7 seed  1: moved 7 of 13 (gem_pegmatite, jeffrey_mine, ouro_preto, radioactive_pegmatite, schneeberg, shigar_pegmatite, tormiq_alpine_cleft); lost: none; ouro_preto fill 32.3 → 24.3 %; bisbee species moved 0
-  rclamp=7 seed  2: moved 7 of 13 (gem_pegmatite, jeffrey_mine, ouro_preto, radioactive_pegmatite, schneeberg, shigar_pegmatite, tormiq_alpine_cleft); lost: none; ouro_preto fill 22.8 → 17.0 %; bisbee species moved 0
-  fcap=2   seed 42: moved 13 of 13; lost: chiastolite_hornfels (albite 0.001 mm, feldspar 0.710 mm); deccan_zeolite (feldspar 0.000 mm); grimsel_alpine_cleft (albite 6.5 mm, feldspar 5.3 mm); ouro_preto fill 28.8 → 4.1 %; bisbee species moved 1
-  fcap=2   seed  1: moved 13 of 13; lost: chiastolite_hornfels (albite 0.001 mm, feldspar 0.664 mm); deccan_zeolite (feldspar 0.000 mm); grimsel_alpine_cleft (albite 6.6 mm, feldspar 5.2 mm); ouro_preto fill 32.3 → 4.5 %; bisbee species moved 2
-  fcap=2   seed  2: moved 13 of 13; lost: chiastolite_hornfels (albite 0.001 mm, feldspar 0.697 mm); deccan_zeolite (feldspar 0.000 mm); grimsel_alpine_cleft (albite 6.5 mm, feldspar 5.3 mm); ouro_preto fill 22.8 → 3.3 %; bisbee species moved 1
-  root=3   seed 42: moved 13 of 13; lost: none; ouro_preto fill 28.8 → 0.3 %; bisbee species moved 8
-  root=3   seed  1: moved 13 of 13; lost: none; ouro_preto fill 32.3 → 0.3 %; bisbee species moved 7
-  root=3   seed  2: moved 13 of 13; lost: none; ouro_preto fill 22.8 → 0.2 %; bisbee species moved 17
-  what the clamp does where it acts — largest crystal, mm ×count, shipped → rclamp=7 (the clamp on the rate), seeds 42 / 1 / 2:
-    gem_pegmatite          fill 100.0 → 42.1 % / 100.0 → 41.4 % / 100.0 → 41.0 %; albite 24.6 ×2 → 32.3 ×2 / 24.2 ×2 → 32.2 ×2 / 29.6 ×1 → 32.5 ×2; feldspar 31.7 ×2 → 24.1 ×2 / 33.4 ×2 → 24.7 ×2 / 36.8 ×2 → 24.7 ×2; species moved 7 of 8 / 7 of 8 / 7 of 8; largest crystal feldspar → quartz / feldspar → quartz / feldspar → quartz
-    jeffrey_mine           fill 1.2 → 1.2 % / 1.1 → 1.0 % / 1.4 → 1.3 %; albite 11.0 ×2 → 8.4 ×2 / 10.4 ×2 → 8.2 ×2 / 11.2 ×2 → 8.6 ×2; species moved 1 of 13 / 1 of 13 / 1 of 13; largest crystal vesuvianite → vesuvianite / vesuvianite → vesuvianite / vesuvianite → vesuvianite
-    ouro_preto             fill 28.8 → 21.9 % / 32.3 → 24.3 % / 22.8 → 17.0 %; albite 39.6 ×2 → 30.7 ×2 / 41.3 ×2 → 31.8 ×2 / 36.8 ×2 → 27.9 ×2; feldspar 16.9 ×2 → 16.9 ×2 / 17.4 ×2 → 17.4 ×2 / 15.8 ×2 → 15.5 ×2; species moved 2 of 4 / 1 of 4 / 2 of 4; largest crystal albite → albite / albite → albite / albite → albite
-    radioactive_pegmatite  fill 100.0 → 98.3 % / 100.0 → 98.6 % / 100.0 → 98.7 %; albite 61.4 ×2 → 12.8 ×2 / 49.5 ×2 → 12.6 ×2 / 59.9 ×2 → 12.4 ×2; feldspar 50.2 ×2 → 9.2 ×2 / 51.2 ×2 → 9.5 ×2 / 47.2 ×2 → 9.0 ×2; species moved 8 of 12 / 12 of 12 / 10 of 12; largest crystal albite → quartz / feldspar → quartz / albite → quartz
-    schneeberg             fill 11.1 → 7.0 % / 11.0 → 7.1 % / 10.6 → 7.2 %; feldspar 27.6 ×2 → 10.3 ×2 / 26.6 ×2 → 9.8 ×2 / 26.7 ×2 → 9.8 ×2; species moved 9 of 30 / 6 of 30 / 8 of 29; largest crystal feldspar → quartz / feldspar → quartz / feldspar → quartz
-    shigar_pegmatite       fill 92.5 → 0.0 % / 91.6 → 0.0 % / 90.4 → 0.0 %; albite 269.8 ×2 → 9.7 ×2 / 267.9 ×2 → 9.7 ×2 / 276.8 ×2 → 9.9 ×2; feldspar 114.1 ×2 → 7.5 ×2 / 115.0 ×2 → 7.3 ×2 / 112.2 ×2 → 7.3 ×2; species moved 3 of 5 / 3 of 5 / 2 of 5; largest crystal albite → quartz / albite → quartz / albite → quartz
-    tormiq_alpine_cleft    fill 7.7 → 1.3 % / 8.3 → 2.0 % / 6.3 → 1.1 %; albite 65.8 ×2 → 26.7 ×2 / 66.5 ×2 → 26.5 ×2 / 66.5 ×2 → 26.3 ×2; feldspar 36.5 ×2 → 19.0 ×2 / 37.2 ×2 → 18.8 ×2 / 37.4 ×2 → 18.9 ×2; species moved 2 of 6 / 2 of 6 / 2 of 6; largest crystal albite → albite / albite → albite / albite → albite
+  cap=8    seed 42: moved 7 of 13 (gem_pegmatite, jeffrey_mine, ouro_preto, radioactive_pegmatite, schneeberg, shigar_pegmatite, tormiq_alpine_cleft); the baseline differs in 8 (bisbee, gem_pegmatite, jeffrey_mine, ouro_preto, radioactive_pegmatite, schneeberg, shigar_pegmatite, tormiq_alpine_cleft); lost: none; ouro_preto fill 28.8 → 21.9 %; bisbee species moved 0
+  cap=8    seed  1: moved 7 of 13 (gem_pegmatite, jeffrey_mine, ouro_preto, radioactive_pegmatite, schneeberg, shigar_pegmatite, tormiq_alpine_cleft); the baseline differs in 8 (bisbee, gem_pegmatite, jeffrey_mine, ouro_preto, radioactive_pegmatite, schneeberg, shigar_pegmatite, tormiq_alpine_cleft); lost: schneeberg (cobaltite 0.187 mm ×1, cuprite 0.004 mm ×1, native_arsenic 0.246 mm ×1, native_bismuth 0.066 mm ×1); ouro_preto fill 32.3 → 24.3 %; bisbee species moved 0
+  cap=8    seed  2: moved 7 of 13 (gem_pegmatite, jeffrey_mine, ouro_preto, radioactive_pegmatite, schneeberg, shigar_pegmatite, tormiq_alpine_cleft); the baseline differs in 8 (bisbee, gem_pegmatite, jeffrey_mine, ouro_preto, radioactive_pegmatite, schneeberg, shigar_pegmatite, tormiq_alpine_cleft); lost: schneeberg (native_arsenic 0.171 mm ×2, native_bismuth 0.063 mm ×1, naumannite 0.066 mm ×1); ouro_preto fill 22.8 → 17.0 %; bisbee species moved 0
+  rclamp=7 seed 42: moved 7 of 13 (gem_pegmatite, jeffrey_mine, ouro_preto, radioactive_pegmatite, schneeberg, shigar_pegmatite, tormiq_alpine_cleft); the baseline differs in 8 (bisbee, gem_pegmatite, jeffrey_mine, ouro_preto, radioactive_pegmatite, schneeberg, shigar_pegmatite, tormiq_alpine_cleft); lost: none; ouro_preto fill 28.8 → 21.9 %; bisbee species moved 0
+  rclamp=7 seed  1: moved 7 of 13 (gem_pegmatite, jeffrey_mine, ouro_preto, radioactive_pegmatite, schneeberg, shigar_pegmatite, tormiq_alpine_cleft); the baseline differs in 8 (bisbee, gem_pegmatite, jeffrey_mine, ouro_preto, radioactive_pegmatite, schneeberg, shigar_pegmatite, tormiq_alpine_cleft); lost: schneeberg (cobaltite 0.187 mm ×1, cuprite 0.004 mm ×1, native_arsenic 0.246 mm ×1, native_bismuth 0.066 mm ×1); ouro_preto fill 32.3 → 24.3 %; bisbee species moved 0
+  rclamp=7 seed  2: moved 7 of 13 (gem_pegmatite, jeffrey_mine, ouro_preto, radioactive_pegmatite, schneeberg, shigar_pegmatite, tormiq_alpine_cleft); the baseline differs in 8 (bisbee, gem_pegmatite, jeffrey_mine, ouro_preto, radioactive_pegmatite, schneeberg, shigar_pegmatite, tormiq_alpine_cleft); lost: schneeberg (native_arsenic 0.171 mm ×2, native_bismuth 0.063 mm ×1, naumannite 0.066 mm ×1); ouro_preto fill 22.8 → 17.0 %; bisbee species moved 0
+  fcap=2   seed 42: moved 13 of 13; the baseline differs in 13; lost: chiastolite_hornfels (albite 0.001 mm ×1, feldspar 0.710 mm ×1); grimsel_alpine_cleft (albite 6.5 mm ×2, feldspar 5.3 mm ×2); schneeberg (cobaltite 0.093 mm ×3, cuprite 0.005 mm ×1, native_arsenic 0.240 mm ×2, native_silver 0.224 mm ×2); ouro_preto fill 28.8 → 4.1 %; bisbee species moved 1
+  fcap=2   seed  1: moved 13 of 13; the baseline differs in 13; lost: chiastolite_hornfels (albite 0.001 mm ×1, feldspar 0.664 mm ×1); grimsel_alpine_cleft (albite 6.6 mm ×2, feldspar 5.2 mm ×2); schneeberg (cobaltite 0.187 mm ×1, native_arsenic 0.246 mm ×1, native_bismuth 0.066 mm ×1, native_silver 0.022 mm ×1); ouro_preto fill 32.3 → 4.5 %; bisbee species moved 2
+  fcap=2   seed  2: moved 13 of 13; the baseline differs in 13; lost: chiastolite_hornfels (albite 0.001 mm ×1, feldspar 0.697 mm ×1); grimsel_alpine_cleft (albite 6.5 mm ×2, feldspar 5.3 mm ×2); schneeberg (native_arsenic 0.171 mm ×2, native_bismuth 0.063 mm ×1, naumannite 0.066 mm ×1); ouro_preto fill 22.8 → 3.3 %; bisbee species moved 1
+  root=3   seed 42: moved 13 of 13; the baseline differs in 13; lost: schneeberg (cuprite 0.005 mm ×1, native_arsenic 0.240 mm ×2, native_silver 0.224 mm ×2); ouro_preto fill 28.8 → 0.3 %; bisbee species moved 9
+  root=3   seed  1: moved 13 of 13; the baseline differs in 13; lost: bisbee (alunite 0.115 mm ×1); schneeberg (cobaltite 0.187 mm ×1, native_arsenic 0.246 mm ×1, native_bismuth 0.066 mm ×1, native_silver 0.022 mm ×1); ouro_preto fill 32.3 → 0.3 %; bisbee species moved 6
+  root=3   seed  2: moved 13 of 13; the baseline differs in 13; lost: schneeberg (native_arsenic 0.171 mm ×2, native_bismuth 0.063 mm ×1, naumannite 0.066 mm ×1); ouro_preto fill 22.8 → 0.2 %; bisbee species moved 17
   the clamp on sigma (cap=8) against the clamp on the rate (rclamp=7), by the tool's moved test: no species differs in any of the 39 runs
 
-the clamp value: gem_pegmatite (ab-gem-clamp-sensitivity.json) beside the six other scenarios whose sigma passes the clamp (ab-clamp-collateral.json, ab-clamp-other-pegmatites.json); seeds 42 / 1 / 2
-  shipped: gem_pegmatite fill 100 / 100 / 100 %, full at step 9 / 10 / 10, tourmaline 0.294 / 0.368 / 0.390 mm, topaz none / none / none, feldspar 31.7 / 33.4 / 36.8 mm, albite 24.6 / 24.2 / 29.6 mm
-           tormiq_alpine_cleft: albite 65.8 / 66.5 / 66.5 mm; feldspar 36.5 / 37.2 / 37.4 mm; fill 7.7 / 8.3 / 6.3 %, full at step — / — / —
-           schneeberg: feldspar 27.6 / 26.6 / 26.7 mm; fill 11.1 / 11.0 / 10.6 %, full at step — / — / —
-           ouro_preto: albite 39.6 / 41.3 / 36.8 mm; feldspar 16.9 / 17.4 / 15.8 mm; fill 28.8 / 32.3 / 22.8 %, full at step — / — / —
-           jeffrey_mine: albite 11.0 / 10.4 / 11.2 mm; fill 1.2 / 1.1 / 1.4 %, full at step — / — / —
-           shigar_pegmatite: albite 269.8 / 267.9 / 276.8 mm; feldspar 114.1 / 115.0 / 112.2 mm; fill 92.5 / 91.6 / 90.4 %, full at step — / — / —
-           radioactive_pegmatite: albite 61.4 / 49.5 / 59.9 mm; feldspar 50.2 / 51.2 / 47.2 mm; fill 100.0 / 100.0 / 100.0 %, full at step 61 / 55 / 59
-  rclamp=3   gem_pegmatite fill 21 / 21 / 20 %, full at step — / — / —, last growth 230 / 230 / 230, tourmaline 12.0 / 11.9 / 12.0 mm, topaz 2.5 / 2.5 / 2.5 mm, feldspar 10.4 / 10.6 / 10.5 mm, albite 13.9 / 13.8 / 14.0 mm
-             tormiq_alpine_cleft: albite 12.1 / 11.8 / 11.9 mm; feldspar 8.6 / 8.3 / 8.5 mm; fill 0.6 / 1.3 / 0.7 %, full at step — / — / —; species moved 2 / 3 / 2; lost none / none / none
-             schneeberg: feldspar 5.2 / 4.9 / 5.0 mm; fill 6.8 / 7.0 / 7.0 %, full at step — / — / —; species moved 10 / 7 / 8; lost none / none / none
-             ouro_preto: albite 14.3 / 14.9 / 12.4 mm; feldspar 10.0 / 10.4 / 9.1 mm; fill 4.3 / 4.8 / 3.0 %, full at step — / — / —; species moved 3 / 2 / 3; lost none / none / none
-             jeffrey_mine: albite 3.6 / 3.6 / 3.7 mm; fill 1.2 / 1.0 / 1.3 %, full at step — / — / —; species moved 1 / 1 / 1; lost none / none / none
-             shigar_pegmatite: albite 4.2 / 4.1 / 4.2 mm; feldspar 3.2 / 3.1 / 3.1 mm; fill 0.0 / 0.0 / 0.0 %, full at step — / — / —; species moved 3 / 3 / 2; lost none / none / none
-             radioactive_pegmatite: albite 5.5 / 5.4 / 5.3 mm; feldspar 3.9 / 4.0 / 3.9 mm; fill 98.3 / 98.8 / 98.6 %, full at step — / — / —; species moved 9 / 12 / 10; lost none / none / none
-  rclamp=7   gem_pegmatite fill 42 / 41 / 41 %, full at step — / — / —, last growth 230 / 230 / 230, tourmaline 12.0 / 11.9 / 12.0 mm, topaz 2.5 / 2.5 / 2.5 mm, feldspar 24.1 / 24.7 / 24.7 mm, albite 32.3 / 32.2 / 32.5 mm
-             tormiq_alpine_cleft: albite 26.7 / 26.5 / 26.3 mm; feldspar 19.0 / 18.8 / 18.9 mm; fill 1.3 / 2.0 / 1.1 %, full at step — / — / —; species moved 2 / 2 / 2; lost none / none / none
-             schneeberg: feldspar 10.3 / 9.8 / 9.8 mm; fill 7.0 / 7.1 / 7.2 %, full at step — / — / —; species moved 9 / 6 / 8; lost none / none / none
-             ouro_preto: albite 30.7 / 31.8 / 27.9 mm; feldspar 16.9 / 17.4 / 15.5 mm; fill 21.9 / 24.3 / 17.0 %, full at step — / — / —; species moved 2 / 1 / 2; lost none / none / none
-             jeffrey_mine: albite 8.4 / 8.2 / 8.6 mm; fill 1.2 / 1.0 / 1.3 %, full at step — / — / —; species moved 1 / 1 / 1; lost none / none / none
-             shigar_pegmatite: albite 9.7 / 9.7 / 9.9 mm; feldspar 7.5 / 7.3 / 7.3 mm; fill 0.0 / 0.0 / 0.0 %, full at step — / — / —; species moved 3 / 3 / 2; lost none / none / none
-             radioactive_pegmatite: albite 12.8 / 12.6 / 12.4 mm; feldspar 9.2 / 9.5 / 9.0 mm; fill 98.3 / 98.6 / 98.7 %, full at step — / — / —; species moved 8 / 12 / 10; lost none / none / none
-  rclamp=11  gem_pegmatite fill 90 / 90 / 90 %, full at step — / — / —, last growth 230 / 230 / 230, tourmaline 12.0 / 12.0 / 12.0 mm, topaz 2.5 / 2.4 / 2.5 mm, feldspar 35.2 / 36.4 / 36.2 mm, albite 47.1 / 46.9 / 47.9 mm
-             tormiq_alpine_cleft: albite 41.0 / 40.3 / 40.3 mm; feldspar 27.3 / 27.7 / 28.1 mm; fill 3.1 / 3.7 / 2.2 %, full at step — / — / —; species moved 2 / 2 / 2; lost none / none / none
-             schneeberg: feldspar 14.4 / 13.9 / 13.9 mm; fill 7.6 / 7.5 / 7.6 %, full at step — / — / —; species moved 7 / 6 / 6; lost none / none / none
-             ouro_preto: albite 39.6 / 41.3 / 36.8 mm; feldspar 16.9 / 17.4 / 15.8 mm; fill 28.8 / 32.3 / 22.8 %, full at step — / — / —; species moved 0 / 0 / 0; lost none / none / none
-             jeffrey_mine: albite 11.0 / 10.4 / 11.2 mm; fill 1.2 / 1.1 / 1.4 %, full at step — / — / —; species moved 0 / 0 / 0; lost none / none / none
-             shigar_pegmatite: albite 15.3 / 15.2 / 15.5 mm; feldspar 11.8 / 11.5 / 11.4 mm; fill 0.0 / 0.0 / 0.0 %, full at step — / — / —; species moved 3 / 3 / 2; lost none / none / none
-             radioactive_pegmatite: albite 20.0 / 19.7 / 19.3 mm; feldspar 14.4 / 15.0 / 14.1 mm; fill 98.4 / 98.8 / 98.8 %, full at step — / — / —; species moved 8 / 12 / 10; lost none / none / none
-  rclamp=15  gem_pegmatite fill 99 / 99 / 99 %, full at step — / — / —, last growth 230 / 230 / 230, tourmaline 9.4 / 9.5 / 9.6 mm, topaz 0.874 / 0.923 / 0.964 mm, feldspar 30.9 / 31.8 / 32.3 mm, albite 40.7 / 41.1 / 42.1 mm
-             tormiq_alpine_cleft: albite 55.2 / 54.4 / 54.3 mm; feldspar 32.0 / 32.5 / 32.9 mm; fill 5.6 / 5.9 / 3.9 %, full at step — / — / —; species moved 0 / 0 / 0; lost none / none / none
-             schneeberg: feldspar 18.5 / 17.8 / 17.7 mm; fill 8.2 / 8.1 / 7.9 %, full at step — / — / —; species moved 5 / 4 / 5; lost none / none / none
-             ouro_preto: albite 39.6 / 41.3 / 36.8 mm; feldspar 16.9 / 17.4 / 15.8 mm; fill 28.8 / 32.3 / 22.8 %, full at step — / — / —; species moved 0 / 0 / 0; lost none / none / none
-             jeffrey_mine: albite 11.0 / 10.4 / 11.2 mm; fill 1.2 / 1.1 / 1.4 %, full at step — / — / —; species moved 0 / 0 / 0; lost none / none / none
-             shigar_pegmatite: albite 20.9 / 20.7 / 21.1 mm; feldspar 16.1 / 15.7 / 15.5 mm; fill 0.1 / 0.1 / 0.1 %, full at step — / — / —; species moved 3 / 3 / 2; lost none / none / none
-             radioactive_pegmatite: albite 27.2 / 26.6 / 26.2 mm; feldspar 19.4 / 20.3 / 19.1 mm; fill 98.6 / 99.1 / 99.0 %, full at step — / — / —; species moved 8 / 12 / 10; lost none / none / none
-  rclamp=23  gem_pegmatite fill 100 / 100 / 100 %, full at step 113 / 115 / 116, last growth 114 / 116 / 116, tourmaline 6.1 / 6.2 / 6.2 mm, topaz 0.007 / 0.008 / 0.008 mm, feldspar 29.9 / 30.2 / 30.9 mm, albite 38.3 / 38.6 / 40.3 mm
-             tormiq_alpine_cleft: albite 65.8 / 66.5 / 66.5 mm; feldspar 36.5 / 37.2 / 37.4 mm; fill 7.7 / 8.3 / 6.3 %, full at step — / — / —; species moved 0 / 0 / 0; lost none / none / none
-             schneeberg: feldspar 26.2 / 25.2 / 25.2 mm; fill 10.4 / 10.4 / 10.0 %, full at step — / — / —; species moved 1 / 1 / 1; lost none / none / none
-             ouro_preto: albite 39.6 / 41.3 / 36.8 mm; feldspar 16.9 / 17.4 / 15.8 mm; fill 28.8 / 32.3 / 22.8 %, full at step — / — / —; species moved 0 / 0 / 0; lost none / none / none
-             jeffrey_mine: albite 11.0 / 10.4 / 11.2 mm; fill 1.2 / 1.1 / 1.4 %, full at step — / — / —; species moved 0 / 0 / 0; lost none / none / none
-             shigar_pegmatite: albite 32.0 / 31.7 / 32.4 mm; feldspar 24.6 / 24.1 / 23.8 mm; fill 0.3 / 0.3 / 0.3 %, full at step — / — / —; species moved 3 / 3 / 2; lost none / none / none
-             radioactive_pegmatite: albite 39.5 / 38.8 / 38.8 mm; feldspar 29.0 / 30.4 / 28.8 mm; fill 99.2 / 99.8 / 99.5 %, full at step — / — / —; species moved 9 / 11 / 10; lost none / none / none
-  rclamp=47  gem_pegmatite fill 100 / 100 / 100 %, full at step 55 / 56 / 57, last growth 56 / 57 / 57, tourmaline 2.8 / 2.9 / 2.9 mm, topaz none / none / none mm, feldspar 29.7 / 31.0 / 31.7 mm, albite 38.7 / 39.4 / 41.4 mm
-             tormiq_alpine_cleft: albite 65.8 / 66.5 / 66.5 mm; feldspar 36.5 / 37.2 / 37.4 mm; fill 7.7 / 8.3 / 6.3 %, full at step — / — / —; species moved 0 / 0 / 0; lost none / none / none
-             schneeberg: feldspar 27.6 / 26.6 / 26.7 mm; fill 11.1 / 11.0 / 10.6 %, full at step — / — / —; species moved 0 / 0 / 0; lost none / none / none
-             ouro_preto: albite 39.6 / 41.3 / 36.8 mm; feldspar 16.9 / 17.4 / 15.8 mm; fill 28.8 / 32.3 / 22.8 %, full at step — / — / —; species moved 0 / 0 / 0; lost none / none / none
-             jeffrey_mine: albite 11.0 / 10.4 / 11.2 mm; fill 1.2 / 1.1 / 1.4 %, full at step — / — / —; species moved 0 / 0 / 0; lost none / none / none
-             shigar_pegmatite: albite 65.4 / 64.8 / 66.1 mm; feldspar 50.3 / 49.3 / 48.7 mm; fill 2.5 / 2.3 / 2.3 %, full at step — / — / —; species moved 3 / 3 / 2; lost none / none / none
-             radioactive_pegmatite: albite 63.8 / 60.6 / 62.6 mm; feldspar 46.3 / 47.7 / 47.5 mm; fill 100.0 / 100.0 / 100.0 %, full at step 92 / 90 / 93; species moved 5 / 7 / 7; lost none / none / none
-  cap=4      gem_pegmatite fill 21 / 21 / 20 %, full at step — / — / —, last growth 230 / 230 / 230, tourmaline 12.0 / 11.9 / 12.0 mm, topaz 2.5 / 2.5 / 2.5 mm, feldspar 10.4 / 10.6 / 10.5 mm, albite 13.9 / 13.8 / 14.0 mm
-  cap=8      gem_pegmatite fill 42 / 41 / 41 %, full at step — / — / —, last growth 230 / 230 / 230, tourmaline 12.0 / 11.9 / 12.0 mm, topaz 2.5 / 2.5 / 2.5 mm, feldspar 24.1 / 24.7 / 24.7 mm, albite 32.3 / 32.2 / 32.5 mm
-  cap=12     gem_pegmatite fill 90 / 90 / 90 %, full at step — / — / —, last growth 230 / 230 / 230, tourmaline 12.0 / 12.0 / 12.0 mm, topaz 2.5 / 2.4 / 2.5 mm, feldspar 35.2 / 36.4 / 36.2 mm, albite 47.1 / 46.9 / 47.9 mm
-  cap=16     gem_pegmatite fill 99 / 99 / 99 %, full at step — / — / —, last growth 230 / 230 / 230, tourmaline 9.4 / 9.5 / 9.6 mm, topaz 0.874 / 0.923 / 0.964 mm, feldspar 30.9 / 31.8 / 32.3 mm, albite 40.7 / 41.1 / 42.1 mm
-  cap=24     gem_pegmatite fill 100 / 100 / 100 %, full at step 113 / 115 / 116, last growth 114 / 116 / 116, tourmaline 6.1 / 6.2 / 6.2 mm, topaz 0.007 / 0.008 / 0.008 mm, feldspar 29.9 / 30.2 / 30.9 mm, albite 38.3 / 38.6 / 40.3 mm
-  cap=48     gem_pegmatite fill 100 / 100 / 100 %, full at step 55 / 56 / 57, last growth 56 / 57 / 57, tourmaline 2.8 / 2.9 / 2.9 mm, topaz none / none / none mm, feldspar 29.7 / 31.0 / 31.7 mm, albite 38.7 / 39.4 / 41.4 mm
+the clamp value on the 13 scenarios (rclamp=7 from ab-feldspar-13-scenarios.json; 11, 23 and 47 from ab-clamp-values-13-scenarios.json); seeds 42 / 1 / 2
+  shipped:
+    bisbee                   fill 95.6 / 90.9 / 92.0 %, full at step — / — / —; albite 8.2 / 8.0 / 8.5 mm; feldspar 3.4 / 3.4 / 3.3 mm
+    chiastolite_hornfels     fill 0.0 / 0.0 / 0.0 %, full at step — / — / —; albite 0.001 / 0.001 / 0.001 mm; feldspar 0.710 / 0.664 / 0.697 mm
+    deccan_zeolite           fill 0.2 / 0.3 / 0.2 %, full at step — / — / —; albite 4.2 / 4.2 / 4.2 mm
+    epithermal_telluride     fill 9.6 / 9.9 / 9.5 %, full at step — / — / —; albite 1.3 / 0.144 / 1.3 mm; feldspar 8.7 / 7.2 / 8.5 mm
+    gem_pegmatite            fill 100.0 / 100.0 / 100.0 %, full at step 9 / 10 / 10; albite 24.6 / 24.2 / 29.6 mm; feldspar 31.7 / 33.4 / 36.8 mm
+    grimsel_alpine_cleft     fill 0.1 / 0.1 / 0.1 %, full at step — / — / —; albite 6.5 / 6.6 / 6.5 mm; feldspar 5.3 / 5.2 / 5.3 mm
+    jeffrey_mine             fill 1.2 / 1.1 / 1.4 %, full at step — / — / —; albite 11.0 / 10.4 / 11.2 mm
+    ouro_preto               fill 28.8 / 32.3 / 22.8 %, full at step — / — / —; albite 39.6 / 41.3 / 36.8 mm; feldspar 16.9 / 17.4 / 15.8 mm
+    porphyry                 fill 11.6 / 13.8 / 12.3 %, full at step — / — / —; albite 2.0 / 1.9 / 2.0 mm; feldspar 2.5 / 2.6 / 2.5 mm
+    radioactive_pegmatite    fill 100.0 / 100.0 / 100.0 %, full at step 61 / 55 / 59; albite 61.4 / 49.5 / 59.9 mm; feldspar 50.2 / 51.2 / 47.2 mm
+    schneeberg               fill 11.1 / 11.0 / 10.6 %, full at step — / — / —; feldspar 27.6 / 26.6 / 26.7 mm
+    shigar_pegmatite         fill 92.5 / 91.6 / 90.4 %, full at step — / — / —; albite 269.8 / 267.9 / 276.8 mm; feldspar 114.1 / 115.0 / 112.2 mm
+    tormiq_alpine_cleft      fill 7.7 / 8.3 / 6.3 %, full at step — / — / —; albite 65.8 / 66.5 / 66.5 mm; feldspar 36.5 / 37.2 / 37.4 mm
+  rclamp=7: the baseline differs in 8 / 8 / 8 of 13 scenarios; moved in 7 / 7 / 7; unchanged at every seed: chiastolite_hornfels, deccan_zeolite, epithermal_telluride, grimsel_alpine_cleft, porphyry
+    bisbee                   fill 95.6 / 90.9 / 92.0 % (largest of the run 97.8 / 90.9 / 92.0 %), full at step — / — / —; albite 8.1 / 7.9 / 8.3 mm; feldspar 3.4 / 3.4 / 3.3 mm; moved 0 / 0 / 0; lost none / none / none
+    gem_pegmatite            fill 42.1 / 41.4 / 41.0 % (largest of the run 42.1 / 41.4 / 41.0 %), full at step — / — / —; albite 32.3 / 32.2 / 32.5 mm; feldspar 24.1 / 24.7 / 24.7 mm; moved 7 / 7 / 7; lost none / none / none
+    jeffrey_mine             fill 1.2 / 1.0 / 1.3 % (largest of the run 1.2 / 1.0 / 1.3 %), full at step — / — / —; albite 8.4 / 8.2 / 8.6 mm; moved 1 / 1 / 1; lost none / none / none
+    ouro_preto               fill 21.9 / 24.3 / 17.0 % (largest of the run 21.9 / 24.3 / 17.0 %), full at step — / — / —; albite 30.7 / 31.8 / 27.9 mm; feldspar 16.9 / 17.4 / 15.5 mm; moved 2 / 1 / 2; lost none / none / none
+    radioactive_pegmatite    fill 98.3 / 98.6 / 98.7 % (largest of the run 98.3 / 98.6 / 98.7 %), full at step — / — / —; albite 12.8 / 12.6 / 12.4 mm; feldspar 9.2 / 9.5 / 9.0 mm; moved 7 / 10 / 8; lost none / none / none
+    schneeberg               fill 7.0 / 7.1 / 7.2 % (largest of the run 7.1 / 7.2 / 7.3 %), full at step — / — / —; feldspar 10.3 / 9.8 / 9.8 mm; moved 12 / 3 / 5; lost none / cobaltite 0.187 mm ×1, cuprite 0.004 mm ×1, native_arsenic 0.246 mm ×1, native_bismuth 0.066 mm ×1 / native_arsenic 0.171 mm ×2, native_bismuth 0.063 mm ×1, naumannite 0.066 mm ×1
+    shigar_pegmatite         fill 0.0 / 0.0 / 0.0 % (largest of the run 0.0 / 0.0 / 0.0 %), full at step — / — / —; albite 9.7 / 9.7 / 9.9 mm; feldspar 7.5 / 7.3 / 7.3 mm; moved 3 / 3 / 2; lost none / none / none
+    tormiq_alpine_cleft      fill 1.3 / 2.0 / 1.1 % (largest of the run 1.3 / 2.0 / 1.1 %), full at step — / — / —; albite 26.7 / 26.5 / 26.3 mm; feldspar 19.0 / 18.8 / 18.9 mm; moved 2 / 2 / 2; lost none / none / none
+  rclamp=11: the baseline differs in 5 / 5 / 5 of 13 scenarios; moved in 5 / 5 / 5; unchanged at every seed: bisbee, chiastolite_hornfels, deccan_zeolite, epithermal_telluride, grimsel_alpine_cleft, jeffrey_mine, ouro_preto, porphyry
+    gem_pegmatite            fill 90.3 / 89.8 / 89.6 % (largest of the run 90.3 / 89.8 / 89.6 %), full at step — / — / —; albite 47.1 / 46.9 / 47.9 mm; feldspar 35.2 / 36.4 / 36.2 mm; moved 6 / 6 / 6; lost none / none / none
+    radioactive_pegmatite    fill 98.4 / 98.8 / 98.8 % (largest of the run 98.4 / 98.8 / 98.8 %), full at step — / — / —; albite 20.0 / 19.7 / 19.3 mm; feldspar 14.4 / 15.0 / 14.1 mm; moved 7 / 10 / 8; lost none / none / none
+    schneeberg               fill 7.6 / 7.5 / 7.6 % (largest of the run 7.6 / 7.5 / 7.6 %), full at step — / — / —; feldspar 14.4 / 13.9 / 13.9 mm; moved 9 / 3 / 5; lost none / cobaltite 0.187 mm ×1, cuprite 0.004 mm ×1, native_arsenic 0.246 mm ×1, native_bismuth 0.066 mm ×1 / native_bismuth 0.063 mm ×1
+    shigar_pegmatite         fill 0.0 / 0.0 / 0.0 % (largest of the run 0.0 / 0.0 / 0.0 %), full at step — / — / —; albite 15.3 / 15.2 / 15.5 mm; feldspar 11.8 / 11.5 / 11.4 mm; moved 3 / 3 / 2; lost none / none / none
+    tormiq_alpine_cleft      fill 3.1 / 3.7 / 2.2 % (largest of the run 3.1 / 3.7 / 2.2 %), full at step — / — / —; albite 41.0 / 40.3 / 40.3 mm; feldspar 27.3 / 27.7 / 28.1 mm; moved 2 / 2 / 2; lost none / none / none
+  rclamp=23: the baseline differs in 4 / 4 / 4 of 13 scenarios; moved in 4 / 4 / 4; unchanged at every seed: bisbee, chiastolite_hornfels, deccan_zeolite, epithermal_telluride, grimsel_alpine_cleft, jeffrey_mine, ouro_preto, porphyry, tormiq_alpine_cleft
+    gem_pegmatite            fill 100.0 / 100.0 / 100.0 % (largest of the run 100.0 / 100.0 / 100.0 %), full at step 113 / 115 / 116; albite 38.3 / 38.6 / 40.3 mm; feldspar 29.9 / 30.2 / 30.9 mm; moved 6 / 6 / 6; lost none / none / none
+    radioactive_pegmatite    fill 99.2 / 99.8 / 99.5 % (largest of the run 99.2 / 99.8 / 99.5 %), full at step — / — / —; albite 39.5 / 38.8 / 38.8 mm; feldspar 29.0 / 30.4 / 28.8 mm; moved 7 / 10 / 8; lost none / none / none
+    schneeberg               fill 10.4 / 10.4 / 10.0 % (largest of the run 10.4 / 10.4 / 10.0 %), full at step — / — / —; feldspar 26.2 / 25.2 / 25.2 mm; moved 1 / 1 / 1; lost none / none / none
+    shigar_pegmatite         fill 0.3 / 0.3 / 0.3 % (largest of the run 0.3 / 0.3 / 0.3 %), full at step — / — / —; albite 32.0 / 31.7 / 32.4 mm; feldspar 24.6 / 24.1 / 23.8 mm; moved 3 / 3 / 2; lost none / none / none
+  rclamp=47: the baseline differs in 3 / 3 / 3 of 13 scenarios; moved in 3 / 3 / 3; unchanged at every seed: bisbee, chiastolite_hornfels, deccan_zeolite, epithermal_telluride, grimsel_alpine_cleft, jeffrey_mine, ouro_preto, porphyry, schneeberg, tormiq_alpine_cleft
+    gem_pegmatite            fill 100.0 / 100.0 / 100.0 % (largest of the run 100.0 / 100.0 / 100.0 %), full at step 55 / 56 / 57; albite 38.7 / 39.4 / 41.4 mm; feldspar 29.7 / 31.0 / 31.7 mm; moved 6 / 6 / 6; lost none / none / none
+    radioactive_pegmatite    fill 100.0 / 100.0 / 100.0 % (largest of the run 100.0 / 100.0 / 100.0 %), full at step 92 / 90 / 93; albite 63.8 / 60.6 / 62.6 mm; feldspar 46.3 / 47.7 / 47.5 mm; moved 5 / 7 / 6; lost none / none / none
+    shigar_pegmatite         fill 2.5 / 2.3 / 2.3 % (largest of the run 2.5 / 2.3 / 2.3 %), full at step — / — / —; albite 65.4 / 64.8 / 66.1 mm; feldspar 50.3 / 49.3 / 48.7 mm; moved 3 / 3 / 2; lost none / none / none
+  gem_pegmatite alone, a finer sweep on the rate and on sigma (ab-gem-clamp-sensitivity.json):
+    shipped    fill 100 / 100 / 100 %, full at step 9 / 10 / 10, tourmaline 0.294 / 0.368 / 0.390 mm, topaz none / none / none, feldspar 31.7 / 33.4 / 36.8 mm, albite 24.6 / 24.2 / 29.6 mm
+    rclamp=3   fill 21 / 21 / 20 % (largest of the run 21.3 / 21.4 / 20.3 %), full at step — / — / —, last growth 230 / 230 / 230, tourmaline 12.0 / 11.9 / 12.0 mm, topaz 2.5 / 2.5 / 2.5 mm, feldspar 10.4 / 10.6 / 10.5 mm, albite 13.9 / 13.8 / 14.0 mm
+    rclamp=7   fill 42 / 41 / 41 % (largest of the run 42.1 / 41.4 / 41.0 %), full at step — / — / —, last growth 230 / 230 / 230, tourmaline 12.0 / 11.9 / 12.0 mm, topaz 2.5 / 2.5 / 2.5 mm, feldspar 24.1 / 24.7 / 24.7 mm, albite 32.3 / 32.2 / 32.5 mm
+    rclamp=11  fill 90 / 90 / 90 % (largest of the run 90.3 / 89.8 / 89.6 %), full at step — / — / —, last growth 230 / 230 / 230, tourmaline 12.0 / 12.0 / 12.0 mm, topaz 2.5 / 2.4 / 2.5 mm, feldspar 35.2 / 36.4 / 36.2 mm, albite 47.1 / 46.9 / 47.9 mm
+    rclamp=15  fill 99 / 99 / 99 % (largest of the run 98.9 / 98.8 / 98.7 %), full at step — / — / —, last growth 230 / 230 / 230, tourmaline 9.4 / 9.5 / 9.6 mm, topaz 0.874 / 0.923 / 0.964 mm, feldspar 30.9 / 31.8 / 32.3 mm, albite 40.7 / 41.1 / 42.1 mm
+    rclamp=23  fill 100 / 100 / 100 % (largest of the run 100.0 / 100.0 / 100.0 %), full at step 113 / 115 / 116, last growth 114 / 116 / 116, tourmaline 6.1 / 6.2 / 6.2 mm, topaz 0.007 / 0.008 / 0.008 mm, feldspar 29.9 / 30.2 / 30.9 mm, albite 38.3 / 38.6 / 40.3 mm
+    rclamp=47  fill 100 / 100 / 100 % (largest of the run 100.0 / 100.0 / 100.0 %), full at step 55 / 56 / 57, last growth 56 / 57 / 57, tourmaline 2.8 / 2.9 / 2.9 mm, topaz none / none / none mm, feldspar 29.7 / 31.0 / 31.7 mm, albite 38.7 / 39.4 / 41.4 mm
+    cap=4      fill 21 / 21 / 20 % (largest of the run 21.3 / 21.4 / 20.3 %), full at step — / — / —, last growth 230 / 230 / 230, tourmaline 12.0 / 11.9 / 12.0 mm, topaz 2.5 / 2.5 / 2.5 mm, feldspar 10.4 / 10.6 / 10.5 mm, albite 13.9 / 13.8 / 14.0 mm
+    cap=8      fill 42 / 41 / 41 % (largest of the run 42.1 / 41.4 / 41.0 %), full at step — / — / —, last growth 230 / 230 / 230, tourmaline 12.0 / 11.9 / 12.0 mm, topaz 2.5 / 2.5 / 2.5 mm, feldspar 24.1 / 24.7 / 24.7 mm, albite 32.3 / 32.2 / 32.5 mm
+    cap=12     fill 90 / 90 / 90 % (largest of the run 90.3 / 89.8 / 89.6 %), full at step — / — / —, last growth 230 / 230 / 230, tourmaline 12.0 / 12.0 / 12.0 mm, topaz 2.5 / 2.4 / 2.5 mm, feldspar 35.2 / 36.4 / 36.2 mm, albite 47.1 / 46.9 / 47.9 mm
+    cap=16     fill 99 / 99 / 99 % (largest of the run 98.9 / 98.8 / 98.7 %), full at step — / — / —, last growth 230 / 230 / 230, tourmaline 9.4 / 9.5 / 9.6 mm, topaz 0.874 / 0.923 / 0.964 mm, feldspar 30.9 / 31.8 / 32.3 mm, albite 40.7 / 41.1 / 42.1 mm
+    cap=24     fill 100 / 100 / 100 % (largest of the run 100.0 / 100.0 / 100.0 %), full at step 113 / 115 / 116, last growth 114 / 116 / 116, tourmaline 6.1 / 6.2 / 6.2 mm, topaz 0.007 / 0.008 / 0.008 mm, feldspar 29.9 / 30.2 / 30.9 mm, albite 38.3 / 38.6 / 40.3 mm
+    cap=48     fill 100 / 100 / 100 % (largest of the run 100.0 / 100.0 / 100.0 %), full at step 55 / 56 / 57, last growth 56 / 57 / 57, tourmaline 2.8 / 2.9 / 2.9 mm, topaz none / none / none mm, feldspar 29.7 / 31.0 / 31.7 mm, albite 38.7 / 39.4 / 41.4 mm
 
-radiogenic lead taken off the bulk handle (nopb) and carried to the voxels (pb) (ab-radiogenic-lead.json, ab-radiogenic-lead-open-pocket.json); seeds 42 / 1 / 2
-  radioactive_pegmatite, shipped                             fill 100.0 / 100.0 / 100.0 %; bulk Pb 146.8 / 127.7 / 147.2, voxel mean 30.00 / 30.00 / 30.00; plumbogummite ×2 @ 0.000 mm / ×3 @ 0.000 mm / ×3 @ 0.000 mm; uraninite negative zones 3 / 6 / 29
-  radioactive_pegmatite, pb                                  fill 100.0 / 100.0 / 100.0 %; bulk Pb 146.7 / 129.3 / 158.7, voxel mean 146.75 / 129.32 / 158.66; plumbogummite ×3 @ 0.000 mm / ×3 @ 0.000 mm / ×3 @ 0.000 mm; uraninite negative zones 3 / 9 / 54
-                                                             against shipped: moved 1 / 0 / 1 of 12 / 12 / 12; lost none / none / none; gained none / none / none
-  radioactive_pegmatite, nopb                                fill 100.0 / 100.0 / 100.0 %; bulk Pb 30.0 / 30.0 / 30.0, voxel mean 30.00 / 30.00 / 30.00; plumbogummite none / none / ×1 @ 0.000 mm; uraninite negative zones 3 / 6 / 29
-                                                             against shipped: moved 0 / 0 / 1 of 12 / 12 / 12; lost plumbogummite / plumbogummite / none; gained none / none / none
-  schneeberg, shipped                                        fill 11.1 / 11.0 / 10.6 %; bulk Pb 179.0 / 221.8 / 217.5, voxel mean 5.00 / 5.00 / 5.00; plumbogummite none / none / none; uraninite negative zones 79 / 149 / 149
-  schneeberg, pb                                             fill 11.1 / 11.0 / 10.6 %; bulk Pb 178.9 / 221.7 / 217.4, voxel mean 178.91 / 221.70 / 217.43; plumbogummite none / none / none; uraninite negative zones 79 / 149 / 149
-                                                             against shipped: moved 2 / 1 / 0 of 30 / 30 / 29; lost none / none / none; gained none / none / none
-  schneeberg, nopb                                           fill 11.1 / 11.0 / 10.6 %; bulk Pb 5.0 / 5.0 / 5.0, voxel mean 5.00 / 5.00 / 5.00; plumbogummite none / none / none; uraninite negative zones 79 / 149 / 149
-                                                             against shipped: moved 0 / 0 / 0 of 30 / 30 / 29; lost none / none / none; gained none / none / none
-  radioactive_pegmatite, rclamp=7 on feldspar, albite only   fill 98.3 / 98.6 / 98.7 %; bulk Pb 185.1 / 173.8 / 167.1, voxel mean 30.00 / 30.00 / 30.00; plumbogummite ×2 @ 0.000 mm / ×3 @ 0.000 mm / ×3 @ 0.000 mm; uraninite negative zones 11 / 9 / 9
-  radioactive_pegmatite, cap=8 on feldspar, albite, quartz   fill 12.7 / 11.3 / 17.8 %; bulk Pb 312.6 / 299.2 / 287.9, voxel mean 30.00 / 30.00 / 30.00; plumbogummite ×3 @ 0.006 mm / ×3 @ 0.005 mm / ×3 @ 0.005 mm; uraninite negative zones 123 / 123 / 123
-  radioactive_pegmatite, cap=8,pb on feldspar, albite, quartz fill 12.7 / 11.2 / 17.8 %; bulk Pb 312.5 / 299.1 / 287.8, voxel mean 312.47 / 299.12 / 287.82; plumbogummite ×3 @ 0.710 mm / ×3 @ 0.699 mm / ×3 @ 0.686 mm; uraninite negative zones 123 / 123 / 123
-  radioactive_pegmatite, cap=8,nopb on feldspar, albite, quartz fill 12.7 / 11.2 / 17.8 %; bulk Pb 30.0 / 30.0 / 30.0, voxel mean 30.00 / 30.00 / 30.00; plumbogummite ×1 @ 0.006 mm / none / none; uraninite negative zones 123 / 123 / 123
+radiogenic lead carried to the voxels (pb) and kept out of every fluid (nopb) (ab-radiogenic-lead.json, ab-pegmatites-rind-clamp.json, ab-radiogenic-lead-open-pocket.json); seeds 42 / 1 / 2
+  radioactive_pegmatite, shipped                               fill 100.0 / 100.0 / 100.0 %; bulk Pb 146.8 / 127.7 / 147.2, voxel mean 30.00 / 30.00 / 30.00; plumbogummite no solid (2 records) / no solid (3 records) / no solid (3 records); uraninite negative zones 3 / 6 / 29
+  radioactive_pegmatite, pb                                    fill 100.0 / 100.0 / 100.0 %; bulk Pb 146.7 / 129.3 / 158.7, voxel mean 146.75 / 129.32 / 158.66; plumbogummite no solid (3 records) / no solid (3 records) / no solid (3 records); uraninite negative zones 3 / 9 / 54
+                                                               against shipped: moved 0 / 0 / 0; lost none / none / none; gained none / none / opal; the baseline differs yes / yes / yes
+  radioactive_pegmatite, nopb                                  fill 100.0 / 100.0 / 100.0 %; bulk Pb 30.0 / 30.0 / 30.0, voxel mean 30.00 / 30.00 / 30.00; plumbogummite no solid (1 record) / no solid (1 record) / no solid (1 record); uraninite negative zones 3 / 6 / 29
+                                                               against shipped: moved 0 / 0 / 0; lost none / none / none; gained none / none / none; the baseline differs yes / yes / yes
+  schneeberg, shipped                                          fill 11.1 / 11.0 / 10.6 %; bulk Pb 179.0 / 221.8 / 217.5, voxel mean 5.00 / 5.00 / 5.00; plumbogummite none / none / none; uraninite negative zones 79 / 149 / 149
+  schneeberg, pb                                               fill 11.1 / 11.0 / 10.6 %; bulk Pb 178.9 / 221.7 / 217.4, voxel mean 178.91 / 221.70 / 217.43; plumbogummite none / none / none; uraninite negative zones 79 / 149 / 149
+                                                               against shipped: moved 3 / 2 / 1; lost none / none / none; gained none / none / none; the baseline differs yes / yes / yes
+  schneeberg, nopb                                             fill 11.1 / 11.0 / 10.6 %; bulk Pb 5.0 / 5.0 / 5.0, voxel mean 5.00 / 5.00 / 5.00; plumbogummite none / none / none; uraninite negative zones 79 / 149 / 149
+                                                               against shipped: moved 0 / 0 / 0; lost none / none / none; gained none / none / none; the baseline differs no / no / no
+  radioactive_pegmatite, rclamp=7 on feldspar, albite only     fill 98.3 / 98.6 / 98.7 %; bulk Pb 185.1 / 173.8 / 167.1, voxel mean 30.00 / 30.00 / 30.00; plumbogummite ×2 @ 0.000 mm / ×3 @ 0.000 mm / ×3 @ 0.000 mm; uraninite negative zones 11 / 9 / 9
+  radioactive_pegmatite, cap=8 on feldspar, albite, quartz     fill 12.7 / 11.3 / 17.8 %; bulk Pb 312.6 / 299.2 / 287.9, voxel mean 30.00 / 30.00 / 30.00; plumbogummite ×3 @ 0.006 mm / ×3 @ 0.005 mm / ×3 @ 0.005 mm; uraninite negative zones 123 / 123 / 123
+  radioactive_pegmatite, cap=8,pb on feldspar, albite, quartz  fill 12.7 / 11.2 / 17.8 %; bulk Pb 312.5 / 299.1 / 287.8, voxel mean 312.47 / 299.12 / 287.82; plumbogummite ×3 @ 0.710 mm / ×3 @ 0.699 mm / ×3 @ 0.686 mm; uraninite negative zones 123 / 123 / 123
+  radioactive_pegmatite, cap=8,nopb on feldspar, albite, quartz fill 12.7 / 11.3 / 17.8 %; bulk Pb 30.0 / 30.0 / 30.0, voxel mean 30.00 / 30.00 / 30.00; plumbogummite ×1 @ 0.006 mm / ×1 @ 0.003 mm / ×1 @ 0.004 mm; uraninite negative zones 123 / 123 / 123
 
 k·σ rescaled to m·k·(σ − 1) for galena, molybdenite and uraninite (ab-rate-on-excess.json)
-  excess=1  seed 42: other species moved — sunnyside_american_tunnel 1 (argentite); porphyry fill 12 → 10 %
-  excess=1  seed  1: other species moved — mvt 3 (barite, quartz, sphalerite); reactive_wall 1 (marcasite); sunnyside_american_tunnel 1 (argentite); porphyry fill 14 → 12 %
-  excess=1  seed  2: other species moved — radioactive_pegmatite 1 (cassiterite); porphyry fill 12 → 11 %
-  excess=3  seed 42: other species moved — schneeberg 1 (uranophane); sunnyside_american_tunnel 1 (argentite); porphyry fill 12 → 48 %
-  excess=3  seed  1: other species moved — reactive_wall 1 (marcasite); roughten_gill 19 (acanthite, anglesite, aurichalcite, azurite, …); porphyry fill 14 → 54 %
-  excess=3  seed  2: other species moved — radioactive_pegmatite 1 (opal); roughten_gill 19 (anglesite, aurichalcite, azurite, brochantite, …); schneeberg 1 (native_silver); porphyry fill 12 → 48 %
+  excess=1  seed 42: other species moved, gained or lost — sunnyside_american_tunnel 1 (argentite); lost: none; porphyry fill 12 → 10 %
+  excess=1  seed  1: other species moved, gained or lost — mvt 3 (barite, quartz, sphalerite); reactive_wall 1 (marcasite); sunnyside_american_tunnel 1 (argentite); lost: none; porphyry fill 14 → 12 %
+  excess=1  seed  2: other species moved, gained or lost — radioactive_pegmatite 1 (cassiterite); lost: none; porphyry fill 12 → 11 %
+  excess=3  seed 42: other species moved, gained or lost — schneeberg 1 (uranophane); sunnyside_american_tunnel 1 (argentite); lost: none; porphyry fill 12 → 48 %
+  excess=3  seed  1: other species moved, gained or lost — reactive_wall 1 (marcasite); roughten_gill 19 (anglesite, aurichalcite, azurite, brochantite, cerussite, …); lost: roughten_gill (calcite 3.9 mm ×1); porphyry fill 14 → 54 %
+  excess=3  seed  2: other species moved, gained or lost — radioactive_pegmatite 1 (gained opal); roughten_gill 20 (acanthite, anglesite, aurichalcite, azurite, brochantite, …); schneeberg 1 (gained native_silver); lost: roughten_gill (calcite 3.7 mm ×1, mottramite 1.2 mm ×4); porphyry fill 12 → 48 %
 
 ten times the boron in gem_pegmatite (ab-gem-boron.json, ab-pegmatites-rind-clamp.json)
   seed 42: mul=B:10 identical to shipped: true; cap=8,mul=B:10 identical to cap=8: true; tourmaline at half the boron 0.135 mm plugged, 5.6 mm open; at a quarter 0.018 mm plugged
   seed  1: mul=B:10 identical to shipped: true; cap=8,mul=B:10 identical to cap=8: true; tourmaline at half the boron 0.169 mm plugged, 5.6 mm open; at a quarter 0.017 mm plugged
   seed  2: mul=B:10 identical to shipped: true; cap=8,mul=B:10 identical to cap=8: true; tourmaline at half the boron 0.179 mm plugged, 5.4 mm open; at a quarter 0.020 mm plugged
 
-every A/B file here: arm runs whose audits read differently from the shipped arm's (an event paused or refused; a failed carbonate transaction; a ledger violation), and arm runs in which the wall's dissolution was withheld as too small to resolve on a different number of steps (a notice, not a failure)
-  ab-clamp-collateral.json                   audits: none differ; wall dissolution withheld: none differ
-  ab-clamp-other-pegmatites.json             audits: none differ; wall dissolution withheld: none differ
+every A/B file here: arm runs whose audits read differently from the shipped arm's (a CO2 or carbonate event paused or refused; a failed carbonate transaction; a ledger violation), and arm runs in which the wall's dissolution was withheld as too small to resolve on a different number of steps (a notice, not a failure)
+  ab-clamp-values-13-scenarios.json          audits: none differ; wall dissolution withheld: none differ
   ab-feldspar-13-scenarios.json              audits: none differ; wall dissolution withheld: bisbee seed 42 root=3 41 → 38; bisbee seed 1 root=3 45 → 50; bisbee seed 2 root=3 38 → 39
   ab-gem-boron.json                          audits: none differ; wall dissolution withheld: none differ
   ab-gem-clamp-sensitivity.json              audits: none differ; wall dissolution withheld: none differ

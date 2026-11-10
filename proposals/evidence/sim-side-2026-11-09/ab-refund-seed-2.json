@@ -44,6 +44,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 9.579299993718575e-9,
+    "maxFill": 1.3685047822887022e-8,
+    "maxFillStep": 213,
+    "first70": null,
     "full": null,
     "lastGrowth": 213,
     "species": {
@@ -58,6 +61,7 @@
       "last": 213
      }
     },
+    "noSolid": {},
     "bulkPb": 0,
     "voxPb": 0,
     "uraniniteNegativeZones": 0,
@@ -72,6 +76,9 @@
    "B": {
     "refund=1": {
      "fill": 9.594409965615303e-9,
+     "maxFill": 1.3720064987494812e-8,
+     "maxFillStep": 213,
+     "first70": null,
      "full": null,
      "lastGrowth": 213,
      "species": {
@@ -86,6 +93,7 @@
        "last": 213
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -94,13 +102,14 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 2,
      "gained": [],
      "lost": [],
-     "moved": []
+     "moved": [],
+     "sameAsShipped": false
     }
    }
   },
@@ -110,6 +119,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 0.002053286492280419,
+    "maxFill": 0.002053286492280419,
+    "maxFillStep": 110,
+    "first70": null,
     "full": null,
     "lastGrowth": 110,
     "species": {
@@ -159,6 +171,7 @@
       "last": 110
      }
     },
+    "noSolid": {},
     "bulkPb": 0,
     "voxPb": 0,
     "uraniniteNegativeZones": 0,
@@ -173,6 +186,9 @@
    "B": {
     "refund=1": {
      "fill": 0.005024810089170971,
+     "maxFill": 0.005024810089170971,
+     "maxFillStep": 110,
+     "first70": null,
      "full": null,
      "lastGrowth": 110,
      "species": {
@@ -222,6 +238,7 @@
        "last": 110
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -230,15 +247,16 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 9,
      "gained": [],
      "lost": [],
      "moved": [
       "siderite"
-     ]
+     ],
+     "sameAsShipped": false
     }
    }
   },
@@ -248,6 +266,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 0.002915790674527561,
+    "maxFill": 0.002915790674527561,
+    "maxFillStep": 120,
+    "first70": null,
     "full": null,
     "lastGrowth": 120,
     "species": {
@@ -302,6 +323,7 @@
       "last": 120
      }
     },
+    "noSolid": {},
     "bulkPb": 0,
     "voxPb": 0,
     "uraniniteNegativeZones": 0,
@@ -316,6 +338,9 @@
    "B": {
     "refund=1": {
      "fill": 0.00672038253356368,
+     "maxFill": 0.00672038253356368,
+     "maxFillStep": 120,
+     "first70": null,
      "full": null,
      "lastGrowth": 120,
      "species": {
@@ -370,6 +395,7 @@
        "last": 120
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -378,15 +404,16 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 10,
      "gained": [],
      "lost": [],
      "moved": [
       "siderite"
-     ]
+     ],
+     "sameAsShipped": false
     }
    }
   },
@@ -396,6 +423,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 0.9204107574610911,
+    "maxFill": 0.9204107574610911,
+    "maxFillStep": 340,
+    "first70": 295,
     "full": null,
     "lastGrowth": 340,
     "species": {
@@ -418,16 +448,6 @@
       "n": 1,
       "max_um": 59397.8394870832,
       "last": 119
-     },
-     "tetrahedrite": {
-      "n": 1,
-      "max_um": 0,
-      "last": 0
-     },
-     "tennantite": {
-      "n": 1,
-      "max_um": 0,
-      "last": 0
      },
      "acanthite": {
       "n": 4,
@@ -494,25 +514,20 @@
       "max_um": 41028.31323991632,
       "last": 340
      },
-     "alunite": {
-      "n": 5,
-      "max_um": 501.4812848362949,
-      "last": 116
-     },
      "brochantite": {
       "n": 5,
       "max_um": 1887.8038344038735,
+      "last": 116
+     },
+     "alunite": {
+      "n": 2,
+      "max_um": 501.4812848362949,
       "last": 116
      },
      "bornite": {
       "n": 3,
       "max_um": 386.1021978945212,
       "last": 119
-     },
-     "native_silver": {
-      "n": 2,
-      "max_um": 0,
-      "last": 140
      },
      "native_copper": {
       "n": 1,
@@ -555,6 +570,11 @@
       "last": 340
      }
     },
+    "noSolid": {
+     "native_silver": 2,
+     "tennantite": 1,
+     "tetrahedrite": 1
+    },
     "bulkPb": 15,
     "voxPb": 14.997242078163023,
     "uraniniteNegativeZones": 0,
@@ -569,6 +589,9 @@
    "B": {
     "refund=1": {
      "fill": 0.8597788687314571,
+     "maxFill": 0.9295467588428052,
+     "maxFillStep": 156,
+     "first70": 53,
      "full": null,
      "lastGrowth": 340,
      "species": {
@@ -592,16 +615,6 @@
        "max_um": 73927.50476338287,
        "last": 119
       },
-      "tetrahedrite": {
-       "n": 1,
-       "max_um": 0,
-       "last": 0
-      },
-      "tennantite": {
-       "n": 1,
-       "max_um": 0,
-       "last": 0
-      },
       "acanthite": {
        "n": 5,
        "max_um": 3568.0673642213314,
@@ -613,7 +626,7 @@
        "last": 64
       },
       "chalcocite": {
-       "n": 4,
+       "n": 1,
        "max_um": 5.2273278397967715,
        "last": 119
       },
@@ -623,7 +636,7 @@
        "last": 179
       },
       "covellite": {
-       "n": 4,
+       "n": 3,
        "max_um": 288.55392374734964,
        "last": 119
       },
@@ -652,11 +665,6 @@
        "max_um": 128.10035849580603,
        "last": 116
       },
-      "jarosite": {
-       "n": 3,
-       "max_um": 0,
-       "last": 116
-      },
       "cuprite": {
        "n": 2,
        "max_um": 53.10699941312219,
@@ -666,16 +674,6 @@
        "n": 5,
        "max_um": 14148.441410403697,
        "last": 340
-      },
-      "bornite": {
-       "n": 2,
-       "max_um": 0,
-       "last": 119
-      },
-      "marcasite": {
-       "n": 1,
-       "max_um": 0,
-       "last": 119
       },
       "native_copper": {
        "n": 1,
@@ -691,11 +689,6 @@
        "n": 10,
        "max_um": 669.119758362849,
        "last": 340
-      },
-      "azurite": {
-       "n": 4,
-       "max_um": 0,
-       "last": 224
       },
       "opal": {
        "n": 6,
@@ -718,6 +711,14 @@
        "last": 340
       }
      },
+     "noSolid": {
+      "azurite": 4,
+      "bornite": 2,
+      "jarosite": 3,
+      "marcasite": 1,
+      "tennantite": 1,
+      "tetrahedrite": 1
+     },
      "bulkPb": 15,
      "voxPb": 15,
      "uraniniteNegativeZones": 0,
@@ -726,21 +727,22 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 25,
      "trace": null,
-     "speciesCount": 31,
+     "auditMoved": false,
+     "speciesCount": 28,
      "gained": [],
      "lost": [
+      "azurite",
+      "bornite",
       "brochantite",
-      "native_silver"
+      "jarosite",
+      "marcasite"
      ],
      "moved": [
       "acanthite",
       "alunite",
       "atacamite",
-      "azurite",
-      "bornite",
       "chalcedony",
       "chalcocite",
       "chrysocolla",
@@ -749,16 +751,15 @@
       "dioptase",
       "goethite",
       "hematite",
-      "jarosite",
       "lepidocrocite",
       "malachite",
-      "marcasite",
       "native_copper",
       "native_gold",
       "opal",
       "siderite",
       "turquoise"
-     ]
+     ],
+     "sameAsShipped": false
     }
    }
   },
@@ -768,6 +769,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 0.00002904531095347422,
+    "maxFill": 0.00002904531095347422,
+    "maxFillStep": 120,
+    "first70": null,
     "full": null,
     "lastGrowth": 120,
     "species": {
@@ -787,6 +791,7 @@
       "last": 120
      }
     },
+    "noSolid": {},
     "bulkPb": 0,
     "voxPb": 0,
     "uraniniteNegativeZones": 0,
@@ -801,6 +806,9 @@
    "B": {
     "refund=1": {
      "fill": 0.00003008241697711904,
+     "maxFill": 0.00003008241697711904,
+     "maxFillStep": 120,
+     "first70": null,
      "full": null,
      "lastGrowth": 120,
      "species": {
@@ -820,6 +828,7 @@
        "last": 120
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -828,15 +837,16 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 3,
      "gained": [],
      "lost": [],
      "moved": [
       "albite"
-     ]
+     ],
+     "sameAsShipped": false
     }
    }
   },
@@ -846,6 +856,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 0.011106044598543464,
+    "maxFill": 0.011106044598543464,
+    "maxFillStep": 180,
+    "first70": null,
     "full": null,
     "lastGrowth": 180,
     "species": {
@@ -870,6 +883,7 @@
       "last": 139
      }
     },
+    "noSolid": {},
     "bulkPb": 0,
     "voxPb": 0,
     "uraniniteNegativeZones": 0,
@@ -884,6 +898,9 @@
    "B": {
     "refund=1": {
      "fill": 0.08968994449445257,
+     "maxFill": 0.08968994449445257,
+     "maxFillStep": 180,
+     "first70": null,
      "full": null,
      "lastGrowth": 180,
      "species": {
@@ -908,6 +925,7 @@
        "last": 139
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -916,15 +934,16 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 4,
      "gained": [],
      "lost": [],
      "moved": [
       "uranophane"
-     ]
+     ],
+     "sameAsShipped": false
     }
    }
   },
@@ -934,6 +953,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 2.518956028206032e-7,
+    "maxFill": 2.518956028206032e-7,
+    "maxFillStep": 100,
+    "first70": null,
     "full": null,
     "lastGrowth": 100,
     "species": {
@@ -943,6 +965,7 @@
       "last": 100
      }
     },
+    "noSolid": {},
     "bulkPb": 0,
     "voxPb": 0,
     "uraniniteNegativeZones": 0,
@@ -957,6 +980,9 @@
    "B": {
     "refund=1": {
      "fill": 2.5361046369958224e-7,
+     "maxFill": 2.5361046369958224e-7,
+     "maxFillStep": 100,
+     "first70": null,
      "full": null,
      "lastGrowth": 100,
      "species": {
@@ -966,6 +992,7 @@
        "last": 100
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -974,13 +1001,14 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 1,
      "gained": [],
      "lost": [],
-     "moved": []
+     "moved": [],
+     "sameAsShipped": false
     }
    }
   },
@@ -990,6 +1018,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 0.002399899612979816,
+    "maxFill": 0.002399899612979816,
+    "maxFillStep": 200,
+    "first70": null,
     "full": null,
     "lastGrowth": 200,
     "species": {
@@ -1048,11 +1079,6 @@
       "max_um": 1601.5598927627257,
       "last": 159
      },
-     "feldspar": {
-      "n": 1,
-      "max_um": 0,
-      "last": 0
-     },
      "prehnite": {
       "n": 1,
       "max_um": 276.9132578600133,
@@ -1063,6 +1089,9 @@
       "max_um": 2189.5684990905047,
       "last": 200
      }
+    },
+    "noSolid": {
+     "feldspar": 1
     },
     "bulkPb": 0,
     "voxPb": 0,
@@ -1078,6 +1107,9 @@
    "B": {
     "refund=1": {
      "fill": 0.0028647453435423215,
+     "maxFill": 0.0028647453435423215,
+     "maxFillStep": 200,
+     "first70": null,
      "full": null,
      "lastGrowth": 200,
      "species": {
@@ -1152,6 +1184,7 @@
        "last": 200
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -1160,16 +1193,18 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 14,
-     "gained": [],
+     "gained": [
+      "feldspar"
+     ],
      "lost": [],
      "moved": [
-      "feldspar",
       "stilbite"
-     ]
+     ],
+     "sameAsShipped": false
     }
    }
   },
@@ -1179,6 +1214,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 0.011849030519174101,
+    "maxFill": 0.011849030519174101,
+    "maxFillStep": 200,
+    "first70": null,
     "full": null,
     "lastGrowth": 200,
     "species": {
@@ -1213,6 +1251,7 @@
       "last": 200
      }
     },
+    "noSolid": {},
     "bulkPb": 15,
     "voxPb": 15,
     "uraniniteNegativeZones": 0,
@@ -1227,6 +1266,9 @@
    "B": {
     "refund=1": {
      "fill": 0.013710353926901505,
+     "maxFill": 0.013710353926901505,
+     "maxFillStep": 200,
+     "first70": null,
      "full": null,
      "lastGrowth": 200,
      "species": {
@@ -1261,6 +1303,7 @@
        "last": 200
       }
      },
+     "noSolid": {},
      "bulkPb": 15,
      "voxPb": 15,
      "uraniniteNegativeZones": 0,
@@ -1269,13 +1312,14 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 6,
      "gained": [],
      "lost": [],
-     "moved": []
+     "moved": [],
+     "sameAsShipped": false
     }
    }
   },
@@ -1285,6 +1329,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 0.09463568482015594,
+    "maxFill": 0.09463568482015594,
+    "maxFillStep": 180,
+    "first70": null,
     "full": null,
     "lastGrowth": 180,
     "species": {
@@ -1334,6 +1381,7 @@
       "last": 180
      }
     },
+    "noSolid": {},
     "bulkPb": 5,
     "voxPb": 5,
     "uraniniteNegativeZones": 0,
@@ -1348,6 +1396,9 @@
    "B": {
     "refund=1": {
      "fill": 0.11329821111974837,
+     "maxFill": 0.11329821111974837,
+     "maxFillStep": 180,
+     "first70": null,
      "full": null,
      "lastGrowth": 180,
      "species": {
@@ -1397,6 +1448,7 @@
        "last": 180
       }
      },
+     "noSolid": {},
      "bulkPb": 5,
      "voxPb": 5,
      "uraniniteNegativeZones": 0,
@@ -1405,16 +1457,17 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 9,
      "gained": [],
      "lost": [],
      "moved": [
       "quartz",
       "sylvanite"
-     ]
+     ],
+     "sameAsShipped": false
     }
    }
   },
@@ -1424,11 +1477,14 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 1,
+    "maxFill": 1,
+    "maxFillStep": 10,
+    "first70": 7,
     "full": 10,
     "lastGrowth": 10,
     "species": {
      "quartz": {
-      "n": 3,
+      "n": 2,
       "max_um": 1604.1276907141564,
       "last": 10
      },
@@ -1453,16 +1509,17 @@
       "last": 9
      },
      "lepidolite": {
-      "n": 4,
+      "n": 1,
       "max_um": 12.206375047832328,
       "last": 9
      },
      "cassiterite": {
-      "n": 4,
+      "n": 2,
       "max_um": 14.378489871262197,
       "last": 9
      }
     },
+    "noSolid": {},
     "bulkPb": 0,
     "voxPb": 0,
     "uraniniteNegativeZones": 0,
@@ -1477,11 +1534,14 @@
    "B": {
     "refund=1": {
      "fill": 1,
+     "maxFill": 1,
+     "maxFillStep": 5,
+     "first70": 4,
      "full": 5,
      "lastGrowth": 5,
      "species": {
       "quartz": {
-       "n": 3,
+       "n": 1,
        "max_um": 1043.84826260136,
        "last": 5
       },
@@ -1506,15 +1566,13 @@
        "last": 4
       },
       "lepidolite": {
-       "n": 3,
+       "n": 1,
        "max_um": 8.282825497731645,
        "last": 4
-      },
-      "cassiterite": {
-       "n": 4,
-       "max_um": 0,
-       "last": 0
       }
+     },
+     "noSolid": {
+      "cassiterite": 4
      },
      "bulkPb": 0,
      "voxPb": 0,
@@ -1524,19 +1582,21 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 7,
      "gained": [],
-     "lost": [],
+     "lost": [
+      "cassiterite"
+     ],
      "moved": [
-      "cassiterite",
       "lepidolite",
       "quartz",
       "spodumene",
       "tourmaline"
-     ]
+     ],
+     "sameAsShipped": false
     }
    }
   },
@@ -1546,6 +1606,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 0.0540048545905276,
+    "maxFill": 0.0540048545905276,
+    "maxFillStep": 250,
+    "first70": null,
     "full": null,
     "lastGrowth": 250,
     "species": {
@@ -1555,11 +1618,12 @@
       "last": 250
      },
      "halite": {
-      "n": 21,
+      "n": 13,
       "max_um": 3546.523269049879,
       "last": 250
      }
     },
+    "noSolid": {},
     "bulkPb": 0,
     "voxPb": 0,
     "uraniniteNegativeZones": 0,
@@ -1574,6 +1638,9 @@
    "B": {
     "refund=1": {
      "fill": 0.0540048545905276,
+     "maxFill": 0.0540048545905276,
+     "maxFillStep": 250,
+     "first70": null,
      "full": null,
      "lastGrowth": 250,
      "species": {
@@ -1583,11 +1650,12 @@
        "last": 250
       },
       "halite": {
-       "n": 21,
+       "n": 13,
        "max_um": 3546.523269049879,
        "last": 250
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -1596,13 +1664,14 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 2,
      "gained": [],
      "lost": [],
-     "moved": []
+     "moved": [],
+     "sameAsShipped": true
     }
    }
   },
@@ -1612,6 +1681,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 0.0008039216679607147,
+    "maxFill": 0.0008039216679607147,
+    "maxFillStep": 200,
+    "first70": null,
     "full": null,
     "lastGrowth": 200,
     "species": {
@@ -1666,6 +1738,7 @@
       "last": 200
      }
     },
+    "noSolid": {},
     "bulkPb": 0,
     "voxPb": 0,
     "uraniniteNegativeZones": 0,
@@ -1680,6 +1753,9 @@
    "B": {
     "refund=1": {
      "fill": 0.0011040034571028513,
+     "maxFill": 0.0011040034571028513,
+     "maxFillStep": 200,
+     "first70": null,
      "full": null,
      "lastGrowth": 200,
      "species": {
@@ -1734,6 +1810,7 @@
        "last": 200
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -1742,16 +1819,17 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 10,
      "gained": [],
      "lost": [],
      "moved": [
       "epidote",
       "titanite"
-     ]
+     ],
+     "sameAsShipped": false
     }
    }
   },
@@ -1761,6 +1839,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 0.013783682028660755,
+    "maxFill": 0.013783682028660755,
+    "maxFillStep": 200,
+    "first70": null,
     "full": null,
     "lastGrowth": 200,
     "species": {
@@ -1830,6 +1911,7 @@
       "last": 200
      }
     },
+    "noSolid": {},
     "bulkPb": 0,
     "voxPb": 0,
     "uraniniteNegativeZones": 0,
@@ -1844,6 +1926,9 @@
    "B": {
     "refund=1": {
      "fill": 0.015110923444069484,
+     "maxFill": 0.015110923444069484,
+     "maxFillStep": 200,
+     "first70": null,
      "full": null,
      "lastGrowth": 200,
      "species": {
@@ -1913,6 +1998,7 @@
        "last": 200
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -1921,13 +2007,14 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 13,
      "gained": [],
      "lost": [],
-     "moved": []
+     "moved": [],
+     "sameAsShipped": false
     }
    }
   },
@@ -1937,9 +2024,13 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 0,
+    "maxFill": 0,
+    "maxFillStep": 0,
+    "first70": null,
     "full": null,
     "lastGrowth": 0,
     "species": {},
+    "noSolid": {},
     "bulkPb": 0,
     "voxPb": 0,
     "uraniniteNegativeZones": 0,
@@ -1954,9 +2045,13 @@
    "B": {
     "refund=1": {
      "fill": 0,
+     "maxFill": 0,
+     "maxFillStep": 0,
+     "first70": null,
      "full": null,
      "lastGrowth": 0,
      "species": {},
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -1965,13 +2060,14 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 0,
      "gained": [],
      "lost": [],
-     "moved": []
+     "moved": [],
+     "sameAsShipped": true
     }
    }
   },
@@ -1981,6 +2077,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 0.04315483738162563,
+    "maxFill": 0.04315483738162563,
+    "maxFillStep": 120,
+    "first70": null,
     "full": null,
     "lastGrowth": 120,
     "species": {
@@ -2030,6 +2129,7 @@
       "last": 41
      }
     },
+    "noSolid": {},
     "bulkPb": 65,
     "voxPb": 64.97502104548697,
     "uraniniteNegativeZones": 0,
@@ -2044,6 +2144,9 @@
    "B": {
     "refund=1": {
      "fill": 0.05581024277693961,
+     "maxFill": 0.05581024277693961,
+     "maxFillStep": 120,
+     "first70": null,
      "full": null,
      "lastGrowth": 120,
      "species": {
@@ -2093,6 +2196,7 @@
        "last": 41
       }
      },
+     "noSolid": {},
      "bulkPb": 65,
      "voxPb": 65,
      "uraniniteNegativeZones": 0,
@@ -2101,9 +2205,9 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 9,
      "gained": [],
      "lost": [],
@@ -2111,7 +2215,8 @@
       "barite",
       "greenockite",
       "pyrite"
-     ]
+     ],
+     "sameAsShipped": false
     }
    }
   },
@@ -2121,6 +2226,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 0.00020480737377094932,
+    "maxFill": 0.00020480737377094932,
+    "maxFillStep": 320,
+    "first70": null,
     "full": null,
     "lastGrowth": 320,
     "species": {
@@ -2135,6 +2243,7 @@
       "last": 320
      }
     },
+    "noSolid": {},
     "bulkPb": 5,
     "voxPb": 5,
     "uraniniteNegativeZones": 0,
@@ -2149,6 +2258,9 @@
    "B": {
     "refund=1": {
      "fill": 0.00025565025430816665,
+     "maxFill": 0.00025565025430816665,
+     "maxFillStep": 320,
+     "first70": null,
      "full": null,
      "lastGrowth": 320,
      "species": {
@@ -2163,6 +2275,7 @@
        "last": 320
       }
      },
+     "noSolid": {},
      "bulkPb": 5,
      "voxPb": 5,
      "uraniniteNegativeZones": 0,
@@ -2171,13 +2284,14 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 2,
      "gained": [],
      "lost": [],
-     "moved": []
+     "moved": [],
+     "sameAsShipped": false
     }
    }
   },
@@ -2187,6 +2301,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 0.22799774716379972,
+    "maxFill": 0.22799774716379972,
+    "maxFillStep": 260,
+    "first70": null,
     "full": null,
     "lastGrowth": 260,
     "species": {
@@ -2211,6 +2328,7 @@
       "last": 260
      }
     },
+    "noSolid": {},
     "bulkPb": 0,
     "voxPb": 0,
     "uraniniteNegativeZones": 0,
@@ -2225,6 +2343,9 @@
    "B": {
     "refund=1": {
      "fill": 0.3565042184824642,
+     "maxFill": 0.3565042184824642,
+     "maxFillStep": 260,
+     "first70": null,
      "full": null,
      "lastGrowth": 260,
      "species": {
@@ -2249,6 +2370,7 @@
        "last": 260
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -2257,15 +2379,16 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 4,
      "gained": [],
      "lost": [],
      "moved": [
       "quartz"
-     ]
+     ],
+     "sameAsShipped": false
     }
    }
   },
@@ -2275,6 +2398,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 0.12291071624529666,
+    "maxFill": 0.12625918678571332,
+    "maxFillStep": 84,
+    "first70": null,
     "full": null,
     "lastGrowth": 120,
     "species": {
@@ -2318,16 +2444,6 @@
       "max_um": 3031.293791659334,
       "last": 84
      },
-     "tetrahedrite": {
-      "n": 1,
-      "max_um": 0,
-      "last": 0
-     },
-     "tennantite": {
-      "n": 1,
-      "max_um": 0,
-      "last": 0
-     },
      "galena": {
       "n": 4,
       "max_um": 11042.579726367187,
@@ -2336,11 +2452,6 @@
      "molybdenite": {
       "n": 3,
       "max_um": 32853.70047728123,
-      "last": 84
-     },
-     "magnetite": {
-      "n": 1,
-      "max_um": 0,
       "last": 84
      },
      "malachite": {
@@ -2374,6 +2485,11 @@
       "last": 120
      }
     },
+    "noSolid": {
+     "magnetite": 1,
+     "tennantite": 1,
+     "tetrahedrite": 1
+    },
     "bulkPb": 55,
     "voxPb": 54.93630936248225,
     "uraniniteNegativeZones": 0,
@@ -2388,6 +2504,9 @@
    "B": {
     "refund=1": {
      "fill": 0.8982155894816575,
+     "maxFill": 0.8982155894816575,
+     "maxFillStep": 120,
+     "first70": 83,
      "full": null,
      "lastGrowth": 120,
      "species": {
@@ -2430,16 +2549,6 @@
        "n": 1,
        "max_um": 3427.2352497476422,
        "last": 84
-      },
-      "tetrahedrite": {
-       "n": 1,
-       "max_um": 0,
-       "last": 0
-      },
-      "tennantite": {
-       "n": 1,
-       "max_um": 0,
-       "last": 0
       },
       "galena": {
        "n": 4,
@@ -2487,6 +2596,10 @@
        "last": 120
       }
      },
+     "noSolid": {
+      "tennantite": 1,
+      "tetrahedrite": 1
+     },
      "bulkPb": 55,
      "voxPb": 55,
      "uraniniteNegativeZones": 0,
@@ -2495,11 +2608,13 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
-     "speciesCount": 19,
-     "gained": [],
+     "auditMoved": false,
+     "speciesCount": 17,
+     "gained": [
+      "magnetite"
+     ],
      "lost": [],
      "moved": [
       "acanthite",
@@ -2509,11 +2624,11 @@
       "galena",
       "goethite",
       "hematite",
-      "magnetite",
       "malachite",
       "molybdenite",
       "pyrite"
-     ]
+     ],
+     "sameAsShipped": false
     }
    }
   },
@@ -2523,6 +2638,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 1.7059696060117908e-7,
+    "maxFill": 1.7059696060117908e-7,
+    "maxFillStep": 100,
+    "first70": null,
     "full": null,
     "lastGrowth": 100,
     "species": {
@@ -2537,6 +2655,7 @@
       "last": 65
      }
     },
+    "noSolid": {},
     "bulkPb": 0,
     "voxPb": 0,
     "uraniniteNegativeZones": 0,
@@ -2551,6 +2670,9 @@
    "B": {
     "refund=1": {
      "fill": 1.7950462352392747e-7,
+     "maxFill": 1.7950462352392747e-7,
+     "maxFillStep": 100,
+     "first70": null,
      "full": null,
      "lastGrowth": 100,
      "species": {
@@ -2565,6 +2687,7 @@
        "last": 65
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -2573,13 +2696,14 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 2,
      "gained": [],
      "lost": [],
-     "moved": []
+     "moved": [],
+     "sameAsShipped": false
     }
    }
   },
@@ -2589,6 +2713,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 1,
+    "maxFill": 1,
+    "maxFillStep": 59,
+    "first70": 36,
     "full": 59,
     "lastGrowth": 94,
     "species": {
@@ -2641,17 +2768,11 @@
       "n": 4,
       "max_um": 388.445232659896,
       "last": 50
-     },
-     "opal": {
-      "n": 5,
-      "max_um": 0,
-      "last": 0
-     },
-     "plumbogummite": {
-      "n": 3,
-      "max_um": 0,
-      "last": 0
      }
+    },
+    "noSolid": {
+     "opal": 5,
+     "plumbogummite": 3
     },
     "bulkPb": 147.15031471932483,
     "voxPb": 30,
@@ -2667,11 +2788,14 @@
    "B": {
     "refund=1": {
      "fill": 1.0000000000000002,
+     "maxFill": 1.0000000000000002,
+     "maxFillStep": 120,
+     "first70": 12,
      "full": 17,
      "lastGrowth": 120,
      "species": {
       "uraninite": {
-       "n": 3,
+       "n": 2,
        "max_um": 1441.370992411807,
        "last": 17
       },
@@ -2706,12 +2830,12 @@
        "last": 16
       },
       "lepidolite": {
-       "n": 5,
+       "n": 2,
        "max_um": 85.7603847603013,
        "last": 16
       },
       "cassiterite": {
-       "n": 7,
+       "n": 4,
        "max_um": 31.802574347709683,
        "last": 16
       },
@@ -2721,11 +2845,12 @@
        "last": 119
       },
       "plumbogummite": {
-       "n": 3,
+       "n": 1,
        "max_um": 0.7336522566462582,
        "last": 110
       }
      },
+     "noSolid": {},
      "bulkPb": 68.92123977609123,
      "voxPb": 30,
      "uraniniteNegativeZones": 91,
@@ -2734,11 +2859,14 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 12,
-     "gained": [],
+     "gained": [
+      "opal",
+      "plumbogummite"
+     ],
      "lost": [
       "topaz"
      ],
@@ -2748,13 +2876,12 @@
       "feldspar",
       "lepidolite",
       "morganite",
-      "opal",
-      "plumbogummite",
       "quartz",
       "spodumene",
       "tourmaline",
       "uraninite"
-     ]
+     ],
+     "sameAsShipped": false
     }
    }
   },
@@ -2764,6 +2891,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 0.24268169864087247,
+    "maxFill": 0.24281741425656556,
+    "maxFillStep": 117,
+    "first70": null,
     "full": null,
     "lastGrowth": 160,
     "species": {
@@ -2776,11 +2906,6 @@
       "n": 1,
       "max_um": 3716.531670357751,
       "last": 117
-     },
-     "native_silver": {
-      "n": 3,
-      "max_um": 0,
-      "last": 19
      },
      "calcite": {
       "n": 1,
@@ -2828,6 +2953,9 @@
       "last": 117
      }
     },
+    "noSolid": {
+     "native_silver": 3
+    },
     "bulkPb": 0,
     "voxPb": 0,
     "uraniniteNegativeZones": 0,
@@ -2842,6 +2970,9 @@
    "B": {
     "refund=1": {
      "fill": 0.2941622531147006,
+     "maxFill": 0.2943155484227484,
+     "maxFillStep": 117,
+     "first70": null,
      "full": null,
      "lastGrowth": 160,
      "species": {
@@ -2854,11 +2985,6 @@
        "n": 1,
        "max_um": 3815.05732916039,
        "last": 117
-      },
-      "native_silver": {
-       "n": 3,
-       "max_um": 0,
-       "last": 19
       },
       "calcite": {
        "n": 1,
@@ -2906,6 +3032,9 @@
        "last": 117
       }
      },
+     "noSolid": {
+      "native_silver": 3
+     },
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -2914,16 +3043,17 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
-     "speciesCount": 12,
+     "auditMoved": false,
+     "speciesCount": 11,
      "gained": [],
      "lost": [],
      "moved": [
       "acanthite",
       "greenockite"
-     ]
+     ],
+     "sameAsShipped": false
     }
    }
   },
@@ -2933,6 +3063,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 0.0010014215585635257,
+    "maxFill": 0.0010014215585635257,
+    "maxFillStep": 120,
+    "first70": null,
     "full": null,
     "lastGrowth": 120,
     "species": {
@@ -2962,6 +3095,7 @@
       "last": 92
      }
     },
+    "noSolid": {},
     "bulkPb": 30,
     "voxPb": 29.997548298716275,
     "uraniniteNegativeZones": 0,
@@ -2976,6 +3110,9 @@
    "B": {
     "refund=1": {
      "fill": 0.0010608825503343247,
+     "maxFill": 0.0010608825503343247,
+     "maxFillStep": 120,
+     "first70": null,
      "full": null,
      "lastGrowth": 120,
      "species": {
@@ -3005,6 +3142,7 @@
        "last": 92
       }
      },
+     "noSolid": {},
      "bulkPb": 30,
      "voxPb": 30,
      "uraniniteNegativeZones": 0,
@@ -3013,13 +3151,14 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 45,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 5,
      "gained": [],
      "lost": [],
-     "moved": []
+     "moved": [],
+     "sameAsShipped": false
     }
    }
   },
@@ -3029,6 +3168,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 0.6698895899595195,
+    "maxFill": 0.6698895899595195,
+    "maxFillStep": 240,
+    "first70": null,
     "full": null,
     "lastGrowth": 240,
     "species": {
@@ -3073,7 +3215,7 @@
       "last": 59
      },
      "acanthite": {
-      "n": 4,
+      "n": 1,
       "max_um": 130.53199362795476,
       "last": 59
      },
@@ -3122,11 +3264,6 @@
       "max_um": 1178.7737168754068,
       "last": 179
      },
-     "mimetite": {
-      "n": 1,
-      "max_um": 0,
-      "last": 0
-     },
      "aurichalcite": {
       "n": 4,
       "max_um": 619.6377352704153,
@@ -3148,6 +3285,9 @@
       "last": 240
      }
     },
+    "noSolid": {
+     "mimetite": 1
+    },
     "bulkPb": 95,
     "voxPb": 94.43181950903958,
     "uraniniteNegativeZones": 0,
@@ -3162,6 +3302,9 @@
    "B": {
     "refund=1": {
      "fill": 0.9848965233461214,
+     "maxFill": 0.9879724835375248,
+     "maxFillStep": 59,
+     "first70": 43,
      "full": null,
      "lastGrowth": 240,
      "species": {
@@ -3201,19 +3344,14 @@
        "last": 59
       },
       "chalcocite": {
-       "n": 5,
+       "n": 4,
        "max_um": 741.6664626339034,
        "last": 59
       },
       "acanthite": {
-       "n": 4,
+       "n": 3,
        "max_um": 327.36681428502857,
-       "last": 59
-      },
-      "calcite": {
-       "n": 1,
-       "max_um": 0,
-       "last": 59
+       "last": 57
       },
       "malachite": {
        "n": 1,
@@ -3276,6 +3414,9 @@
        "last": 240
       }
      },
+     "noSolid": {
+      "calcite": 1
+     },
      "bulkPb": 95,
      "voxPb": 95,
      "uraniniteNegativeZones": 0,
@@ -3284,12 +3425,15 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 23,
-     "gained": [],
+     "gained": [
+      "mimetite"
+     ],
      "lost": [
+      "calcite",
       "mottramite"
      ],
      "moved": [
@@ -3298,14 +3442,12 @@
       "aurichalcite",
       "azurite",
       "brochantite",
-      "calcite",
       "cerussite",
       "chalcocite",
       "chalcopyrite",
       "chrysocolla",
       "hemimorphite",
       "malachite",
-      "mimetite",
       "plumbogummite",
       "pyrite",
       "pyromorphite",
@@ -3313,7 +3455,8 @@
       "smithsonite",
       "tennantite",
       "tetrahedrite"
-     ]
+     ],
+     "sameAsShipped": false
     }
    }
   },
@@ -3323,6 +3466,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 0.02510135430811252,
+    "maxFill": 0.02510135430811252,
+    "maxFillStep": 260,
+    "first70": null,
     "full": null,
     "lastGrowth": 260,
     "species": {
@@ -3357,6 +3503,7 @@
       "last": 239
      }
     },
+    "noSolid": {},
     "bulkPb": 0,
     "voxPb": 0,
     "uraniniteNegativeZones": 0,
@@ -3371,6 +3518,9 @@
    "B": {
     "refund=1": {
      "fill": 0.027571952735901586,
+     "maxFill": 0.027571952735901586,
+     "maxFillStep": 260,
+     "first70": null,
      "full": null,
      "lastGrowth": 260,
      "species": {
@@ -3405,6 +3555,7 @@
        "last": 239
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -3413,9 +3564,9 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 6,
      "gained": [],
      "lost": [],
@@ -3423,7 +3574,8 @@
       "HMC",
       "calcite",
       "dolomite"
-     ]
+     ],
+     "sameAsShipped": false
     }
    }
   },
@@ -3433,6 +3585,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 0.10621615373266169,
+    "maxFill": 0.10621615373266169,
+    "maxFillStep": 160,
+    "first70": null,
     "full": null,
     "lastGrowth": 160,
     "species": {
@@ -3467,14 +3622,9 @@
       "last": 69
      },
      "acanthite": {
-      "n": 4,
+      "n": 3,
       "max_um": 1060.9070588860773,
       "last": 84
-     },
-     "cobaltite": {
-      "n": 5,
-      "max_um": 230.4152053645894,
-      "last": 38
      },
      "nickeline": {
       "n": 4,
@@ -3487,14 +3637,14 @@
       "last": 19
      },
      "topaz": {
-      "n": 6,
+      "n": 3,
       "max_um": 16.92205520010013,
       "last": 25
      },
-     "tennantite": {
-      "n": 1,
-      "max_um": 0,
-      "last": 0
+     "cobaltite": {
+      "n": 2,
+      "max_um": 230.4152053645894,
+      "last": 36
      },
      "proustite": {
       "n": 2,
@@ -3502,7 +3652,7 @@
       "last": 84
      },
      "native_arsenic": {
-      "n": 5,
+      "n": 2,
       "max_um": 170.6071995928597,
       "last": 84
      },
@@ -3511,13 +3661,8 @@
       "max_um": 63.29576006711058,
       "last": 84
      },
-     "native_silver": {
-      "n": 4,
-      "max_um": 0,
-      "last": 84
-     },
      "naumannite": {
-      "n": 2,
+      "n": 1,
       "max_um": 66.11317852622513,
       "last": 84
      },
@@ -3525,11 +3670,6 @@
       "n": 5,
       "max_um": 3359.651572423288,
       "last": 124
-     },
-     "cuprite": {
-      "n": 1,
-      "max_um": 0,
-      "last": 90
      },
      "turquoise": {
       "n": 1,
@@ -3567,7 +3707,7 @@
       "last": 160
      },
      "goethite": {
-      "n": 3,
+      "n": 2,
       "max_um": 25.493301834725983,
       "last": 148
      },
@@ -3581,6 +3721,11 @@
       "max_um": 671.0292852482224,
       "last": 160
      }
+    },
+    "noSolid": {
+     "cuprite": 1,
+     "native_silver": 4,
+     "tennantite": 1
     },
     "bulkPb": 217.48936058357472,
     "voxPb": 5,
@@ -3596,6 +3741,9 @@
    "B": {
     "refund=1": {
      "fill": 0.16668824063778984,
+     "maxFill": 0.16668824063778984,
+     "maxFillStep": 160,
+     "first70": null,
      "full": null,
      "lastGrowth": 160,
      "species": {
@@ -3630,12 +3778,12 @@
        "last": 69
       },
       "acanthite": {
-       "n": 4,
+       "n": 3,
        "max_um": 1160.655597846689,
        "last": 84
       },
       "cobaltite": {
-       "n": 5,
+       "n": 4,
        "max_um": 448.7729888156768,
        "last": 39
       },
@@ -3654,33 +3802,18 @@
        "max_um": 579.3698228680232,
        "last": 53
       },
-      "tennantite": {
-       "n": 1,
-       "max_um": 0,
-       "last": 0
-      },
       "proustite": {
-       "n": 2,
+       "n": 1,
        "max_um": 890.6028344475219,
        "last": 84
       },
       "native_arsenic": {
-       "n": 5,
+       "n": 2,
        "max_um": 179.91100573209147,
        "last": 84
       },
-      "native_bismuth": {
-       "n": 1,
-       "max_um": 0,
-       "last": 84
-      },
-      "native_silver": {
-       "n": 4,
-       "max_um": 0,
-       "last": 84
-      },
       "naumannite": {
-       "n": 2,
+       "n": 1,
        "max_um": 68.34504978679973,
        "last": 84
       },
@@ -3688,11 +3821,6 @@
        "n": 5,
        "max_um": 3474.1920817657465,
        "last": 124
-      },
-      "cuprite": {
-       "n": 1,
-       "max_um": 0,
-       "last": 90
       },
       "turquoise": {
        "n": 1,
@@ -3745,6 +3873,12 @@
        "last": 160
       }
      },
+     "noSolid": {
+      "cuprite": 1,
+      "native_bismuth": 1,
+      "native_silver": 4,
+      "tennantite": 1
+     },
      "bulkPb": 176.6175210908787,
      "voxPb": 5,
      "uraniniteNegativeZones": 79,
@@ -3753,12 +3887,14 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
-     "speciesCount": 29,
+     "auditMoved": false,
+     "speciesCount": 26,
      "gained": [],
-     "lost": [],
+     "lost": [
+      "native_bismuth"
+     ],
      "moved": [
       "annabergite",
       "arsenopyrite",
@@ -3766,9 +3902,10 @@
       "feldspar",
       "goethite",
       "morganite",
-      "native_bismuth",
+      "proustite",
       "topaz"
-     ]
+     ],
+     "sameAsShipped": false
     }
    }
   },
@@ -3778,6 +3915,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 0.8940899507030098,
+    "maxFill": 1,
+    "maxFillStep": 189,
+    "first70": 181,
     "full": 188,
     "lastGrowth": 300,
     "species": {
@@ -3791,26 +3931,20 @@
       "max_um": 338.39622583255107,
       "last": 300
      },
-     "mirabilite": {
-      "n": 8,
-      "max_um": 0,
-      "last": 0
-     },
-     "halite": {
-      "n": 25,
-      "max_um": 0,
-      "last": 243
-     },
      "tincalconite": {
       "n": 8,
       "max_um": 9590.707075643915,
       "last": 180
      },
      "thenardite": {
-      "n": 6,
+      "n": 4,
       "max_um": 54055.190116443075,
       "last": 244
      }
+    },
+    "noSolid": {
+     "halite": 25,
+     "mirabilite": 8
     },
     "bulkPb": 0,
     "voxPb": 0,
@@ -3826,6 +3960,9 @@
    "B": {
     "refund=1": {
      "fill": 0.8967960686107145,
+     "maxFill": 1,
+     "maxFillStep": 187,
+     "first70": 180,
      "full": 187,
      "lastGrowth": 300,
      "species": {
@@ -3839,26 +3976,20 @@
        "max_um": 379.61899148734443,
        "last": 300
       },
-      "mirabilite": {
-       "n": 8,
-       "max_um": 0,
-       "last": 0
-      },
-      "halite": {
-       "n": 26,
-       "max_um": 0,
-       "last": 243
-      },
       "tincalconite": {
        "n": 8,
        "max_um": 10472.952909011161,
        "last": 180
       },
       "thenardite": {
-       "n": 6,
+       "n": 3,
        "max_um": 54528.35778696635,
        "last": 244
       }
+     },
+     "noSolid": {
+      "halite": 26,
+      "mirabilite": 8
      },
      "bulkPb": 0,
      "voxPb": 0,
@@ -3868,16 +3999,17 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
-     "speciesCount": 6,
+     "auditMoved": false,
+     "speciesCount": 4,
      "gained": [],
      "lost": [],
      "moved": [
       "calcite",
-      "halite"
-     ]
+      "thenardite"
+     ],
+     "sameAsShipped": false
     }
    }
   },
@@ -3887,6 +4019,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 0.9037260097767852,
+    "maxFill": 0.9037260097767852,
+    "maxFillStep": 70,
+    "first70": 59,
     "full": null,
     "lastGrowth": 70,
     "species": {
@@ -3916,11 +4051,12 @@
       "last": 64
      }
     },
+    "noSolid": {},
     "bulkPb": 0,
     "voxPb": 0,
     "uraniniteNegativeZones": 0,
     "audit": {
-     "eventRefusals": 1,
+     "eventRefusals": 0,
      "failedCarbonateTransactions": 0,
      "ledgerViolations": 0
     },
@@ -3930,6 +4066,9 @@
    "B": {
     "refund=1": {
      "fill": 1,
+     "maxFill": 1,
+     "maxFillStep": 26,
+     "first70": 16,
      "full": 26,
      "lastGrowth": 26,
      "species": {
@@ -3954,17 +4093,18 @@
        "last": 25
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
      "audit": {
-      "eventRefusals": 1,
+      "eventRefusals": 0,
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 5,
      "gained": [],
      "lost": [
@@ -3975,7 +4115,8 @@
       "feldspar",
       "quartz",
       "tourmaline"
-     ]
+     ],
+     "sameAsShipped": false
     }
    }
   },
@@ -3985,6 +4126,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 0.026141963278156318,
+    "maxFill": 0.026141963278156318,
+    "maxFillStep": 200,
+    "first70": null,
     "full": null,
     "lastGrowth": 200,
     "species": {
@@ -4014,6 +4158,7 @@
       "last": 200
      }
     },
+    "noSolid": {},
     "bulkPb": 0,
     "voxPb": 0,
     "uraniniteNegativeZones": 0,
@@ -4028,6 +4173,9 @@
    "B": {
     "refund=1": {
      "fill": 0.02621751200591259,
+     "maxFill": 0.02621751200591259,
+     "maxFillStep": 200,
+     "first70": null,
      "full": null,
      "lastGrowth": 200,
      "species": {
@@ -4057,6 +4205,7 @@
        "last": 200
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -4065,13 +4214,14 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 5,
      "gained": [],
      "lost": [],
-     "moved": []
+     "moved": [],
+     "sameAsShipped": false
     }
    }
   },
@@ -4081,6 +4231,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 8.720453138214938e-7,
+    "maxFill": 8.720453138214938e-7,
+    "maxFillStep": 100,
+    "first70": null,
     "full": null,
     "lastGrowth": 100,
     "species": {
@@ -4090,6 +4243,7 @@
       "last": 100
      }
     },
+    "noSolid": {},
     "bulkPb": 0,
     "voxPb": 0,
     "uraniniteNegativeZones": 0,
@@ -4104,6 +4258,9 @@
    "B": {
     "refund=1": {
      "fill": 8.730626952864203e-7,
+     "maxFill": 8.730626952864203e-7,
+     "maxFillStep": 100,
+     "first70": null,
      "full": null,
      "lastGrowth": 100,
      "species": {
@@ -4113,6 +4270,7 @@
        "last": 100
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -4121,13 +4279,14 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 1,
      "gained": [],
      "lost": [],
-     "moved": []
+     "moved": [],
+     "sameAsShipped": false
     }
    }
   },
@@ -4137,6 +4296,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 0.28871199387214735,
+    "maxFill": 0.28871199387214735,
+    "maxFillStep": 200,
+    "first70": null,
     "full": null,
     "lastGrowth": 200,
     "species": {
@@ -4176,6 +4338,7 @@
       "last": 200
      }
     },
+    "noSolid": {},
     "bulkPb": 2,
     "voxPb": 2,
     "uraniniteNegativeZones": 0,
@@ -4190,6 +4353,9 @@
    "B": {
     "refund=1": {
      "fill": 0.7026515638983201,
+     "maxFill": 0.7026515638983201,
+     "maxFillStep": 200,
+     "first70": 200,
      "full": null,
      "lastGrowth": 200,
      "species": {
@@ -4229,6 +4395,7 @@
        "last": 200
       }
      },
+     "noSolid": {},
      "bulkPb": 2,
      "voxPb": 2,
      "uraniniteNegativeZones": 0,
@@ -4237,9 +4404,9 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 7,
      "gained": [],
      "lost": [],
@@ -4247,7 +4414,8 @@
       "cinnabar",
       "metacinnabar",
       "orpiment"
-     ]
+     ],
+     "sameAsShipped": false
     }
    }
   },
@@ -4257,6 +4425,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 0.877121224332963,
+    "maxFill": 0.877121224332963,
+    "maxFillStep": 200,
+    "first70": 195,
     "full": null,
     "lastGrowth": 200,
     "species": {
@@ -4301,14 +4472,9 @@
       "last": 200
      },
      "calaverite": {
-      "n": 2,
+      "n": 1,
       "max_um": 14.908446061507146,
       "last": 3
-     },
-     "sylvanite": {
-      "n": 2,
-      "max_um": 0,
-      "last": 0
      },
      "rhodochrosite": {
       "n": 1,
@@ -4334,12 +4500,11 @@
       "n": 1,
       "max_um": 72731.86751679418,
       "last": 200
-     },
-     "native_silver": {
-      "n": 4,
-      "max_um": 0,
-      "last": 0
      }
+    },
+    "noSolid": {
+     "native_silver": 4,
+     "sylvanite": 2
     },
     "bulkPb": 80,
     "voxPb": 79.80870184716049,
@@ -4355,6 +4520,9 @@
    "B": {
     "refund=1": {
      "fill": 0.9885241370457325,
+     "maxFill": 0.9885241370457325,
+     "maxFillStep": 200,
+     "first70": 183,
      "full": null,
      "lastGrowth": 200,
      "species": {
@@ -4432,12 +4600,10 @@
        "n": 1,
        "max_um": 72437.37696611488,
        "last": 200
-      },
-      "native_silver": {
-       "n": 4,
-       "max_um": 0,
-       "last": 0
       }
+     },
+     "noSolid": {
+      "native_silver": 4
      },
      "bulkPb": 80,
      "voxPb": 80,
@@ -4447,21 +4613,23 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
-     "speciesCount": 16,
-     "gained": [],
+     "auditMoved": false,
+     "speciesCount": 15,
+     "gained": [
+      "sylvanite"
+     ],
      "lost": [],
      "moved": [
       "argentite",
       "calaverite",
       "galena",
       "native_gold",
-      "sylvanite",
       "tennantite",
       "tetrahedrite"
-     ]
+     ],
+     "sameAsShipped": false
     }
    }
   },
@@ -4471,6 +4639,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 0.39999861000854525,
+    "maxFill": 0.39999861000854525,
+    "maxFillStep": 200,
+    "first70": null,
     "full": null,
     "lastGrowth": 200,
     "species": {
@@ -4535,7 +4706,7 @@
       "last": 200
      },
      "scorodite": {
-      "n": 8,
+      "n": 6,
       "max_um": 3293.469547852698,
       "last": 159
      },
@@ -4548,11 +4719,6 @@
       "n": 1,
       "max_um": 2850.6932159803027,
       "last": 140
-     },
-     "jarosite": {
-      "n": 11,
-      "max_um": 878.4718470294174,
-      "last": 200
      },
      "azurite": {
       "n": 4,
@@ -4623,8 +4789,14 @@
       "n": 4,
       "max_um": 337.0677415934868,
       "last": 159
+     },
+     "jarosite": {
+      "n": 9,
+      "max_um": 878.4718470294174,
+      "last": 200
      }
     },
+    "noSolid": {},
     "bulkPb": 100,
     "voxPb": 99.62282006709246,
     "uraniniteNegativeZones": 0,
@@ -4639,6 +4811,9 @@
    "B": {
     "refund=1": {
      "fill": 0.9852101994682732,
+     "maxFill": 0.9852101994682732,
+     "maxFillStep": 200,
+     "first70": 137,
      "full": null,
      "lastGrowth": 200,
      "species": {
@@ -4703,7 +4878,7 @@
        "last": 200
       },
       "scorodite": {
-       "n": 8,
+       "n": 6,
        "max_um": 2620.4372345560596,
        "last": 159
       },
@@ -4717,18 +4892,13 @@
        "max_um": 2841.801047647914,
        "last": 133
       },
-      "jarosite": {
-       "n": 7,
-       "max_um": 146.0883808329768,
-       "last": 200
-      },
       "azurite": {
        "n": 4,
        "max_um": 2860.1469121383307,
        "last": 159
       },
       "lepidocrocite": {
-       "n": 2,
+       "n": 1,
        "max_um": 81.2122598971186,
        "last": 108
       },
@@ -4791,8 +4961,14 @@
        "n": 4,
        "max_um": 227.0224414470728,
        "last": 159
+      },
+      "jarosite": {
+       "n": 6,
+       "max_um": 146.0883808329768,
+       "last": 200
       }
      },
+     "noSolid": {},
      "bulkPb": 100,
      "voxPb": 100,
      "uraniniteNegativeZones": 0,
@@ -4801,9 +4977,9 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 3,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 30,
      "gained": [],
      "lost": [],
@@ -4826,7 +5002,8 @@
       "scorodite",
       "selenite",
       "vanadinite"
-     ]
+     ],
+     "sameAsShipped": false
     }
    }
   },
@@ -4836,6 +5013,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 0.029036998039085656,
+    "maxFill": 0.029036998039085656,
+    "maxFillStep": 110,
+    "first70": null,
     "full": null,
     "lastGrowth": 110,
     "species": {
@@ -4850,6 +5030,7 @@
       "last": 110
      }
     },
+    "noSolid": {},
     "bulkPb": 5,
     "voxPb": 5,
     "uraniniteNegativeZones": 0,
@@ -4864,6 +5045,9 @@
    "B": {
     "refund=1": {
      "fill": 0.029352052649792855,
+     "maxFill": 0.029352052649792855,
+     "maxFillStep": 110,
+     "first70": null,
      "full": null,
      "lastGrowth": 110,
      "species": {
@@ -4878,6 +5062,7 @@
        "last": 110
       }
      },
+     "noSolid": {},
      "bulkPb": 5,
      "voxPb": 5,
      "uraniniteNegativeZones": 0,
@@ -4886,13 +5071,14 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 1,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 2,
      "gained": [],
      "lost": [],
-     "moved": []
+     "moved": [],
+     "sameAsShipped": false
     }
    }
   },
@@ -4902,6 +5088,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 0.06301447842245453,
+    "maxFill": 0.06301447842245453,
+    "maxFillStep": 200,
+    "first70": null,
     "full": null,
     "lastGrowth": 200,
     "species": {
@@ -4936,6 +5125,7 @@
       "last": 188
      }
     },
+    "noSolid": {},
     "bulkPb": 0,
     "voxPb": 0,
     "uraniniteNegativeZones": 0,
@@ -4950,6 +5140,9 @@
    "B": {
     "refund=1": {
      "fill": 0.18869806188186242,
+     "maxFill": 0.18869806188186242,
+     "maxFillStep": 200,
+     "first70": null,
      "full": null,
      "lastGrowth": 200,
      "species": {
@@ -4984,6 +5177,7 @@
        "last": 188
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -4992,9 +5186,9 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 6,
      "gained": [],
      "lost": [],
@@ -5002,7 +5196,8 @@
       "albite",
       "epidote",
       "titanite"
-     ]
+     ],
+     "sameAsShipped": false
     }
    }
   },
@@ -5012,6 +5207,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 5.935704432958579e-13,
+    "maxFill": 1.5132181213771291e-9,
+    "maxFillStep": 7,
+    "first70": null,
     "full": null,
     "lastGrowth": 7,
     "species": {
@@ -5021,6 +5219,7 @@
       "last": 7
      }
     },
+    "noSolid": {},
     "bulkPb": 0,
     "voxPb": 0,
     "uraniniteNegativeZones": 0,
@@ -5035,6 +5234,9 @@
    "B": {
     "refund=1": {
      "fill": 5.963680351718028e-13,
+     "maxFill": 1.5153041275824056e-9,
+     "maxFillStep": 7,
+     "first70": null,
      "full": null,
      "lastGrowth": 7,
      "species": {
@@ -5044,6 +5246,7 @@
        "last": 7
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -5052,13 +5255,14 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 1,
      "gained": [],
      "lost": [],
-     "moved": []
+     "moved": [],
+     "sameAsShipped": true
     }
    }
   },
@@ -5068,6 +5272,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 0.00003610282933065552,
+    "maxFill": 0.00003610282933065552,
+    "maxFillStep": 30,
+    "first70": null,
     "full": null,
     "lastGrowth": 30,
     "species": {
@@ -5092,6 +5299,7 @@
       "last": 1
      }
     },
+    "noSolid": {},
     "bulkPb": 0,
     "voxPb": 0,
     "uraniniteNegativeZones": 0,
@@ -5106,6 +5314,9 @@
    "B": {
     "refund=1": {
      "fill": 0.000037099965770225624,
+     "maxFill": 0.000037099965770225624,
+     "maxFillStep": 30,
+     "first70": null,
      "full": null,
      "lastGrowth": 30,
      "species": {
@@ -5130,6 +5341,7 @@
        "last": 1
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -5138,13 +5350,14 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 4,
      "gained": [],
      "lost": [],
-     "moved": []
+     "moved": [],
+     "sameAsShipped": false
     }
    }
   },
@@ -5154,6 +5367,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 0.00003693338521314867,
+    "maxFill": 0.00003693338521314867,
+    "maxFillStep": 60,
+    "first70": null,
     "full": null,
     "lastGrowth": 60,
     "species": {
@@ -5168,6 +5384,7 @@
       "last": 60
      }
     },
+    "noSolid": {},
     "bulkPb": 0,
     "voxPb": 0,
     "uraniniteNegativeZones": 0,
@@ -5182,6 +5399,9 @@
    "B": {
     "refund=1": {
      "fill": 0.000037041990298159834,
+     "maxFill": 0.000037041990298159834,
+     "maxFillStep": 60,
+     "first70": null,
      "full": null,
      "lastGrowth": 60,
      "species": {
@@ -5196,6 +5416,7 @@
        "last": 60
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -5204,13 +5425,14 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 2,
      "gained": [],
      "lost": [],
-     "moved": []
+     "moved": [],
+     "sameAsShipped": false
     }
    }
   },
@@ -5220,14 +5442,12 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 0.01169860445128172,
+    "maxFill": 0.01169860445128172,
+    "maxFillStep": 200,
+    "first70": null,
     "full": null,
     "lastGrowth": 200,
     "species": {
-     "dolomite": {
-      "n": 8,
-      "max_um": 0,
-      "last": 13
-     },
      "opal": {
       "n": 5,
       "max_um": 8298.300934557668,
@@ -5244,6 +5464,9 @@
       "last": 200
      }
     },
+    "noSolid": {
+     "dolomite": 8
+    },
     "bulkPb": 0,
     "voxPb": 0,
     "uraniniteNegativeZones": 0,
@@ -5258,6 +5481,9 @@
    "B": {
     "refund=1": {
      "fill": 0.011984060110518455,
+     "maxFill": 0.011984060110518455,
+     "maxFillStep": 200,
+     "first70": null,
      "full": null,
      "lastGrowth": 200,
      "species": {
@@ -5282,6 +5508,7 @@
        "last": 200
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -5290,15 +5517,16 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 4,
-     "gained": [],
-     "lost": [],
-     "moved": [
+     "gained": [
       "dolomite"
-     ]
+     ],
+     "lost": [],
+     "moved": [],
+     "sameAsShipped": false
     }
    }
   },
@@ -5308,6 +5536,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 0.00005498304447331394,
+    "maxFill": 0.00005498304447331394,
+    "maxFillStep": 220,
+    "first70": null,
     "full": null,
     "lastGrowth": 220,
     "species": {
@@ -5337,7 +5568,7 @@
       "last": 113
      },
      "native_bismuth": {
-      "n": 3,
+      "n": 2,
       "max_um": 53.25050486290934,
       "last": 138
      },
@@ -5372,6 +5603,7 @@
       "last": 212
      }
     },
+    "noSolid": {},
     "bulkPb": 0,
     "voxPb": 0,
     "uraniniteNegativeZones": 0,
@@ -5386,6 +5618,9 @@
    "B": {
     "refund=1": {
      "fill": 0.00012145445330934345,
+     "maxFill": 0.00012145445330934345,
+     "maxFillStep": 220,
+     "first70": null,
      "full": null,
      "lastGrowth": 220,
      "species": {
@@ -5415,7 +5650,7 @@
        "last": 113
       },
       "native_bismuth": {
-       "n": 3,
+       "n": 2,
        "max_um": 53.22435432932434,
        "last": 138
       },
@@ -5450,6 +5685,7 @@
        "last": 212
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -5458,16 +5694,17 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 12,
      "gained": [],
      "lost": [],
      "moved": [
       "annabergite",
       "erythrite"
-     ]
+     ],
+     "sameAsShipped": false
     }
    }
   },
@@ -5477,6 +5714,9 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 0.00000607662100044585,
+    "maxFill": 0.00000607662100044585,
+    "maxFillStep": 150,
+    "first70": null,
     "full": null,
     "lastGrowth": 150,
     "species": {
@@ -5496,6 +5736,7 @@
       "last": 150
      }
     },
+    "noSolid": {},
     "bulkPb": 0,
     "voxPb": 0,
     "uraniniteNegativeZones": 0,
@@ -5510,6 +5751,9 @@
    "B": {
     "refund=1": {
      "fill": 0.00000610524398513822,
+     "maxFill": 0.00000610524398513822,
+     "maxFillStep": 150,
+     "first70": null,
      "full": null,
      "lastGrowth": 150,
      "species": {
@@ -5529,6 +5773,7 @@
        "last": 150
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -5537,13 +5782,14 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 3,
      "gained": [],
      "lost": [],
-     "moved": []
+     "moved": [],
+     "sameAsShipped": false
     }
    }
   }

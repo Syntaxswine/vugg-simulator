@@ -1,0 +1,67 @@
+nucleation functions 169; with a count gate at one active crystal of their own species, in the forms read here, 86; of those, with a side door on the gate's line 62
+  the door's line also compares sigma with a threshold of its own: 62 of 62
+  the function also keeps a hard gate above one on the same list: 35 of 62
+  a bare roll, with neither: 0
+
+  azurite                82-nucleation-carbonate.ts         !existing_azr.length || (sigma_azr > 2.0 && rng.random() < 0.25))
+  cerussite              82-nucleation-carbonate.ts         !existing_cer.length || (sigma_cer > 1.8 && rng.random() < 0.3))
+  lepidocrocite          84-nucleation-hydroxide.ts         !existing_lep.length || (sigma_lep > 1.7 && rng.random() < 0.25))
+  native_bismuth         86-nucleation-native.ts            !existing_nbi.length || (sigma_nbi > 2.0 && rng.random() < 0.15))
+  native_copper          86-nucleation-native.ts            !existing_nc_nuc.length || (sigma_nc > 2.2 && rng.random() < 0.15))
+  native_gold            86-nucleation-native.ts            !existing_au.length || (sigma_au > 1.5 && rng.random() < 0.2))
+  awaruite               86-nucleation-native.ts            !existing.length || (sigma > 2.0 && rng.random() < 0.18))   [hard gate at 3]
+  uraninite              87-nucleation-oxide.ts             !existing_urn.length || (sigma_urn > 2.5 && rng.random() < 0.3))   [hard gate at 3]
+  magnetite              87-nucleation-oxide.ts             !existing_mag.length || (sigma_mag > 1.7 && rng.random() < 0.2))
+  cuprite                87-nucleation-oxide.ts             !existing_cpr.length || (sigma_cpr > 1.8 && rng.random() < 0.2))
+  pyrolusite             87-nucleation-oxide.ts             !existing.length || (sigma > 1.8 && rng.random() < 0.18))   [hard gate at 3]
+  brucite                87-nucleation-oxide.ts             !existing.length || (sigma > 2.0 && rng.random() < 0.22))   [hard gate at 4]
+  clinobisvanite         88-nucleation-phosphate.ts         !existing_cbv.length || (sigma_cbv > 2.0 && rng.random() < 0.3))
+  pyromorphite           88-nucleation-phosphate.ts         !existing_pyr.length || (sigma_pyr > 1.8 && rng.random() < 0.3))
+  vanadinite             88-nucleation-phosphate.ts         !existing_vnd.length || (sigma_vnd > 1.8 && rng.random() < 0.3))
+  plumbogummite          88-nucleation-phosphate.ts         !existing.length || (sigma > 1.8 && rng.random() < 0.18))   [hard gate at 3]
+  quartz                 89-nucleation-silicate.ts          !existing_quartz.length || (sigma_q > 2.0 && rng.random() < 0.3))   [hard gate at 3]
+  chalcedony             89-nucleation-silicate.ts          existing.length && !(sigma > 1.8 && rng.random() < 0.22)) return;   [hard gate at 4]
+  feldspar               89-nucleation-silicate.ts          !existing_feld.length || (sigma_feld > 1.8 && rng.random() < 0.3))   [hard gate at 3]
+  albite                 89-nucleation-silicate.ts          !existing_alb.length || (sigma_alb > 1.5 && rng.random() < 0.25))   [hard gate at 2]
+  chrysocolla            89-nucleation-silicate.ts          !existing_chry.length || (sigma_chry > 1.8 && rng.random() < 0.25))
+  spodumene              89-nucleation-silicate.ts          !existing_spd.length || (sigma_spd > 2.5 && rng.random() < 0.15))
+  tourmaline             89-nucleation-silicate.ts          !existing_tml.length || (sigma_tml > 2.0 && rng.random() < 0.25))
+  topaz                  89-nucleation-silicate.ts          !existing_tpz.length || (sigma_tpz > 2.0 && rng.random() < 0.3))
+  andalusite             89-nucleation-silicate.ts          existing.length && !(sigma_and > MINERAL_GATES_andalusite.sigma_crit + 0.5 && rng.random() < 0.2
+  lepidolite             89-nucleation-silicate.ts          !existing_lep.length || (sigma_lep > 2.0 && rng.random() < 0.25))   [hard gate at 3]
+  dioptase               89-nucleation-silicate.ts          !existing.length || (sigma > 2.0 && rng.random() < 0.20))
+  shattuckite            89-nucleation-silicate.ts          !existing.length || (sigma > 2.0 && rng.random() < 0.20))
+  tigers_eye             89-nucleation-silicate.ts          !existing.length || (sigma > 2.0 && rng.random() < 0.22))   [hard gate at 3]
+  chrysotile             89-nucleation-silicate.ts          !existing.length || (sigma > 2.0 && rng.random() < 0.25))   [hard gate at 5]
+  pectolite              89-nucleation-silicate.ts          !existing.length || (sigma > 2.0 && rng.random() < 0.22))   [hard gate at 4]
+  wollastonite           89-nucleation-silicate.ts          !existing.length || (sigma > 2.0 && rng.random() < 0.20))   [hard gate at 4]
+  prehnite               89-nucleation-silicate.ts          !existing.length || (sigma > 2.0 && rng.random() < 0.20))   [hard gate at 4]
+  epidote                89-nucleation-silicate.ts          !existing.length || (sigma > 2.0 && rng.random() < 0.20))   [hard gate at 5]
+  titanite               89-nucleation-silicate.ts          !existing.length || (sigma > 2.0 && rng.random() < 0.20))   [hard gate at 3]
+  grossular              89-nucleation-silicate.ts          !existing.length || (sigma > 2.0 && rng.random() < 0.20))   [hard gate at 4]
+  diopside               89-nucleation-silicate.ts          !existing.length || (sigma > 2.0 && rng.random() < 0.20))   [hard gate at 4]
+  vesuvianite            89-nucleation-silicate.ts          !existing.length || (sigma > 2.0 && rng.random() < 0.18))   [hard gate at 4]
+  datolite               89-nucleation-silicate.ts          !existing.length || (sigma > 2.0 && rng.random() < 0.20))   [hard gate at 3]
+  stilbite               89-nucleation-silicate.ts          !existing.length || (sigma > 2.0 && rng.random() < 0.20))   [hard gate at 5]
+  heulandite             89-nucleation-silicate.ts          !existing.length || (sigma > 2.0 && rng.random() < 0.20))   [hard gate at 5]
+  thomsonite             89-nucleation-silicate.ts          !existing.length || (sigma > 1.4 && rng.random() < 0.30))   [hard gate at 5]
+  scolecite              89-nucleation-silicate.ts          !existing.length || (sigma > 2.0 && rng.random() < 0.20))   [hard gate at 5]
+  mesolite               89-nucleation-silicate.ts          !existing.length || (sigma > 2.0 && rng.random() < 0.20))   [hard gate at 5]
+  chabazite              89-nucleation-silicate.ts          !existing.length || (sigma > 2.0 && rng.random() < 0.20))   [hard gate at 5]
+  tremolite              89a-nucleation-amphibole.ts        !existing.length || (sigma > 2.0 && rng.random() < 0.20))   [hard gate at 4]
+  actinolite             89a-nucleation-amphibole.ts        !existing.length || (sigma > 2.0 && rng.random() < 0.20))   [hard gate at 4]
+  anthophyllite          89a-nucleation-amphibole.ts        !existing.length || (sigma > 2.0 && rng.random() < 0.20))   [hard gate at 3]
+  amosite                89a-nucleation-amphibole.ts        !existing.length || (sigma > 2.0 && rng.random() < 0.20))   [hard gate at 3]
+  crocidolite            89a-nucleation-amphibole.ts        !existing.length || (sigma > 2.0 && rng.random() < 0.20))   [hard gate at 3]
+  selenite               90-nucleation-sulfate.ts           !existing_sel.length || (sigma_sel > 1.8 && rng.random() < 0.3))   [hard gate at 2]
+  anglesite              90-nucleation-sulfate.ts           !existing_ang.length || (sigma_ang > 1.8 && rng.random() < 0.25))
+  galena                 91-nucleation-sulfide.ts           !existing_gal.length || (sigma_gal > 2.0 && rng.random() < 0.3))   [hard gate at 4]
+  molybdenite            91-nucleation-sulfide.ts           !existing_moly.length || (sigma_moly > 1.5 && rng.random() < 0.25))   [hard gate at 3]
+  stibnite               91-nucleation-sulfide.ts           !existing_stb.length || (sigma_stb > 1.8 && rng.random() < 0.2))
+  cinnabar               91-nucleation-sulfide.ts           !existing_cb.length || (sigma_cb > 1.8 && rng.random() < 0.2))
+  realgar                91-nucleation-sulfide.ts           !existing_rlg.length || (sigma_rlg > 1.8 && rng.random() < 0.2))
+  orpiment               91-nucleation-sulfide.ts           !existing_orp.length || (sigma_orp > 1.8 && rng.random() < 0.2))
+  bismuthinite           91-nucleation-sulfide.ts           !existing_bmt.length || (sigma_bmt > 1.8 && rng.random() < 0.2))
+  bornite                91-nucleation-sulfide.ts           !existing_brn.length || (sigma_brn > 1.7 && rng.random() < 0.2))
+  chalcocite             91-nucleation-sulfide.ts           !existing_chc.length || (sigma_chc > 1.7 && rng.random() < 0.25))
+  covellite              91-nucleation-sulfide.ts           !existing_cov.length || (sigma_cov > 1.7 && rng.random() < 0.2))

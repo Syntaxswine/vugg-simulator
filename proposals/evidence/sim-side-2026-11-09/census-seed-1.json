@@ -3,7 +3,7 @@
  "sim_version": 286,
  "seed": 1,
  "inputs": "05da5a017fec8da93cab5175ac0feb264748d7258a0f961de41e8a071dad5590",
- "tool_sha256": "a1eca64df002f9fe14b401d4f67a8e6a72cb9e8379e1e418e83cba09675e7c0d",
+ "tool_sha256": "d6c854fbd6211d9ec689018da55984cb9fc6aef564a825eef5e6b3d599174b43",
  "scenarios": 41,
  "controls": [
   {
@@ -72,9 +72,9 @@
   {
    "id": "draw-down",
    "kind": "positive",
-   "label": "shigar_pegmatite stores more than half its growth on a cell under half the reference's excess, drawn down through its ingredients",
+   "label": "colorado_plateau stores more than a quarter of its growth on a cell under half the reference's excess, drawn down through its ingredients",
    "pass": true,
-   "detail": "82.7 % of 787 mm stored; through albite:Na 457 mm, feldspar:K 183 mm"
+   "detail": "38.7 % of 70.5 mm stored; through uranophane:U 27.2 mm"
   },
   {
    "id": "draw-down",
@@ -142,9 +142,9 @@
   {
    "id": "count-envelope",
    "kind": "negative",
-   "label": "mvt installs no localized-nucleation envelope, and no species-step is past sigma_crit on an envelope only",
+   "label": "mvt installs no localized-nucleation envelope: none of its nucleation passes is read under one",
    "pass": true,
-   "detail": "0 passes under an envelope; 0 species-steps on which the two readings disagree"
+   "detail": "0 of 120 passes under an envelope"
   },
   {
    "id": "strangled",

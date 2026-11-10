@@ -1,6 +1,6 @@
-sim-side census mutations — 35 mutants of tools/sim-side-census.mjs (sha256 a1eca64df002); the census as committed runs once on bisbee, colorado_plateau, cooling, epithermal_telluride, gem_pegmatite, great_salt_plains, mvt, porphyry, radioactive_pegmatite, schneeberg, shigar_pegmatite, sunnyside_american_tunnel, tn457_barite_pulses, tormiq_alpine_cleft, zoned_dripstone_cave (seed 42)
+sim-side census mutations — 35 mutants of tools/sim-side-census.mjs (sha256 d6c854fbd621); the census as committed runs once on bisbee, colorado_plateau, cooling, epithermal_telluride, gem_pegmatite, great_salt_plains, mvt, porphyry, radioactive_pegmatite, schneeberg, sunnyside_american_tunnel, tn457_barite_pulses, tormiq_alpine_cleft, zoned_dripstone_cave (seed 42)
 
-the census as committed (15 of 15 runs reproduce the baseline):
+the census as committed (14 of 14 runs reproduce the baseline):
   [PASS] positive competition-log — 64/64/60/60/65 = 313
   [PASS] positive supply — 268 zones on Au; scenario-wide 268 rationed, 45 budget-cut
   [PASS] positive supply-share — 1.68 %
@@ -10,7 +10,7 @@ the census as committed (15 of 15 runs reproduce the baseline):
   [PASS] negative space+end — first step at fill >= 0.7: never; fill at end 8.7 %, last growth at step 120 of 120, "pocket full" 0 %
   [PASS] positive time — calcite 34.6 mm: still growing on the final step
   [PASS] negative time — 0 crystal(s)
-  [PASS] positive draw-down — 83.1 % of 782 mm stored; through albite:Na 455 mm, feldspar:K 182 mm
+  [PASS] positive draw-down — 36.7 % of 71.5 mm stored; through uranophane:U 26.2 mm
   [PASS] negative draw-down — 0.00 % of 31.2 mm stored
   [PASS] positive pause — 175 pauses on a cell run short (galena ×156, tetrahedrite ×11, argentite ×4); 0 on a cell that reads saturated
   [PASS] positive count — 33 steps past sigma_crit, 33 not licensed
@@ -20,7 +20,7 @@ the census as committed (15 of 15 runs reproduce the baseline):
   [PASS] positive count-cap — 200 steps past sigma_crit, 183 at the count cap
   [PASS] positive count-gate — 88 steps past sigma_crit, 87 at its own gate, 87 of them with a side door
   [PASS] positive count-envelope — 150 of 150 passes under the envelope; aragonite past sigma_crit on the envelope only on 150 steps
-  [PASS] negative count-envelope — 0 passes under an envelope; 0 species-steps on which the two readings disagree
+  [PASS] negative count-envelope — 0 of 120 passes under an envelope
   [PASS] positive strangled — 6 of 18 calls refused; ingredient Pb ×6
   [PASS] negative strangled — 0 of 300 calls refused
   [PASS] positive enclosed — 33 enclosed, 33 with the encloser named
@@ -69,11 +69,11 @@ any-growth-is-final       negative time               PASS       FAIL     a crys
                                                       committed: 0 crystal(s)
                                                       mutant:    12 crystal(s)
 cell-reads-bulk           positive draw-down          PASS       FAIL     the crystal's own cell is read from the bulk handle
-                                                      committed: 83.1 % of 782 mm stored; through albite:Na 455 mm, feldspar:K 182 mm
-                                                      mutant:    0.0 % of 782 mm stored; through nothing
+                                                      committed: 36.7 % of 71.5 mm stored; through uranophane:U 26.2 mm
+                                                      mutant:    0.0 % of 71.5 mm stored; through nothing
 ingredients-not-restored  positive draw-down          PASS       FAIL     the attribution never sets the ingredient fields to the bulk handle's values
-                                                      committed: 83.1 % of 782 mm stored; through albite:Na 455 mm, feldspar:K 182 mm
-                                                      mutant:    0.0 % of 782 mm stored; through nothing
+                                                      committed: 36.7 % of 71.5 mm stored; through uranophane:U 26.2 mm
+                                                      mutant:    0.0 % of 71.5 mm stored; through nothing
 share-reads-zero          negative draw-down          PASS       FAIL     the cell's excess as a share of the reference's is read as 0
                                                       committed: 0.00 % of 31.2 mm stored
                                                       mutant:    100.00 % of 31.2 mm stored
@@ -108,8 +108,8 @@ envelope-read-as-bulk     positive count-envelope     PASS       FAIL     the en
                                                       committed: 150 of 150 passes under the envelope; aragonite past sigma_crit on the envelope only on 150 steps
                                                       mutant:    150 of 150 passes under the envelope; aragonite past sigma_crit on the envelope only on 0 steps
 envelope-always-claimed   negative count-envelope     PASS       FAIL     every pass is counted as running under an envelope
-                                                      committed: 0 passes under an envelope; 0 species-steps on which the two readings disagree
-                                                      mutant:    120 passes under an envelope; 0 species-steps on which the two readings disagree
+                                                      committed: 0 of 120 passes under an envelope
+                                                      mutant:    120 of 120 passes under an envelope
 strangle-verdict-ignored  positive strangled          PASS       FAIL     a refusal by _wallStrangledFor is never counted
                                                       committed: 6 of 18 calls refused; ingredient Pb ×6
                                                       mutant:    0 of 18 calls refused; ingredient Pb ×6

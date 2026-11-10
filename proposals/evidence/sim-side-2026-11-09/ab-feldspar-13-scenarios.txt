@@ -3,616 +3,676 @@ self-check on schneeberg, seed 42: shipped arm reproduces the baseline; neutral 
 
 ### bisbee — 340 steps — events: 25 Primary Cooling | 65 Uplift + Weathering | 95 Enrichment Blanket | 120 Reducing Pulse | 145 Oxidation Zone | 180 Azurite Peak | 225 pCO2 Drop | 265 Silica Seep | 305 Final Drying
 seed 42 (shipped arm reproduces the baseline)
-  A shipped        fill  95.6 %  full at step   —  last growth at step 340
-      malachite ×1 @ 66.0 (→264), chalcopyrite ×1 @ 56.9 (→119), pyrite ×1 @ 14.5 (→119), atacamite ×8 @ 13.9 (→340), albite ×2 @ 8.2 (→64), chrysocolla ×5 @ 5.9 (→340), goethite ×3 @ 5.2 (→340), chalcedony ×4 @ 4.6 (→179), acanthite ×5 @ 3.6 (→119), jarosite ×6 @ 3.5 (→116), feldspar ×2 @ 3.4 (→64), opal ×6 @ 3.2 (→340), hematite ×1 @ 2.0 (→340), brochantite ×5 @ 1.5 (→116), siderite ×2 @ 1.1 (→145), marcasite ×1 @ 0.956 (→119), native_gold ×11 @ 0.815 (→340), chalcocite ×5 @ 0.787 (→119), turquoise ×4 @ 0.599 (→340), lepidocrocite ×11 @ 0.453 (→340), alunite ×5 @ 0.423 (→116), bornite ×3 @ 0.332 (→119), cuprite ×1 @ 0.312 (→156), covellite ×4 @ 0.310 (→119), azurite ×5 @ 0.288 (→224), dioptase ×7 @ 0.074 (→340), mimetite ×1 @ 0.063 (→340), native_copper ×1 @ 0.057 (→143), native_silver ×4 @ 0.001 (→139), tetrahedrite ×1 @ 0.000 (→0), tennantite ×1 @ 0.000 (→0)
-  B cap=8          fill  95.6 %  full at step   —  last growth at step 340
-      malachite ×1 @ 66.0 (→264), chalcopyrite ×1 @ 56.9 (→119), pyrite ×1 @ 14.5 (→119), atacamite ×8 @ 13.9 (→340), albite ×2 @ 8.1 (→64), chrysocolla ×5 @ 5.9 (→340), goethite ×3 @ 5.2 (→340), chalcedony ×4 @ 4.6 (→179), acanthite ×5 @ 3.6 (→119), jarosite ×6 @ 3.5 (→116), feldspar ×2 @ 3.4 (→64), opal ×6 @ 3.2 (→340), hematite ×1 @ 2.0 (→340), brochantite ×5 @ 1.5 (→116), siderite ×2 @ 1.1 (→145), marcasite ×1 @ 0.956 (→119), native_gold ×11 @ 0.815 (→340), chalcocite ×5 @ 0.787 (→119), turquoise ×4 @ 0.599 (→340), lepidocrocite ×11 @ 0.453 (→340), alunite ×5 @ 0.423 (→116), bornite ×3 @ 0.332 (→119), cuprite ×1 @ 0.312 (→156), covellite ×4 @ 0.310 (→119), azurite ×5 @ 0.288 (→224), dioptase ×7 @ 0.074 (→340), mimetite ×1 @ 0.063 (→340), native_copper ×1 @ 0.057 (→143), native_silver ×4 @ 0.001 (→139), tetrahedrite ×1 @ 0.000 (→0), tennantite ×1 @ 0.000 (→0)
-      against A: 31 species; moved 0; gained none; lost none
-  B rclamp=7       fill  95.6 %  full at step   —  last growth at step 340
-      malachite ×1 @ 66.0 (→264), chalcopyrite ×1 @ 56.9 (→119), pyrite ×1 @ 14.5 (→119), atacamite ×8 @ 13.9 (→340), albite ×2 @ 8.1 (→64), chrysocolla ×5 @ 5.9 (→340), goethite ×3 @ 5.2 (→340), chalcedony ×4 @ 4.6 (→179), acanthite ×5 @ 3.6 (→119), jarosite ×6 @ 3.5 (→116), feldspar ×2 @ 3.4 (→64), opal ×6 @ 3.2 (→340), hematite ×1 @ 2.0 (→340), brochantite ×5 @ 1.5 (→116), siderite ×2 @ 1.1 (→145), marcasite ×1 @ 0.956 (→119), native_gold ×11 @ 0.815 (→340), chalcocite ×5 @ 0.787 (→119), turquoise ×4 @ 0.599 (→340), lepidocrocite ×11 @ 0.453 (→340), alunite ×5 @ 0.423 (→116), bornite ×3 @ 0.332 (→119), cuprite ×1 @ 0.312 (→156), covellite ×4 @ 0.310 (→119), azurite ×5 @ 0.288 (→224), dioptase ×7 @ 0.074 (→340), mimetite ×1 @ 0.063 (→340), native_copper ×1 @ 0.057 (→143), native_silver ×4 @ 0.001 (→139), tetrahedrite ×1 @ 0.000 (→0), tennantite ×1 @ 0.000 (→0)
-      against A: 31 species; moved 0; gained none; lost none
-  B fcap=2         fill  95.6 %  full at step   —  last growth at step 340
-      malachite ×1 @ 66.0 (→264), chalcopyrite ×1 @ 56.9 (→119), pyrite ×1 @ 14.5 (→119), atacamite ×8 @ 13.9 (→340), chrysocolla ×5 @ 5.9 (→340), goethite ×3 @ 5.2 (→340), chalcedony ×4 @ 4.6 (→179), albite ×2 @ 4.5 (→64), acanthite ×5 @ 3.6 (→119), jarosite ×6 @ 3.5 (→116), feldspar ×2 @ 3.4 (→64), opal ×6 @ 3.2 (→340), hematite ×1 @ 2.0 (→340), brochantite ×5 @ 1.5 (→116), siderite ×2 @ 1.1 (→145), marcasite ×1 @ 0.956 (→119), native_gold ×11 @ 0.854 (→340), chalcocite ×5 @ 0.787 (→119), turquoise ×4 @ 0.600 (→340), lepidocrocite ×11 @ 0.454 (→340), alunite ×5 @ 0.423 (→116), bornite ×3 @ 0.332 (→119), cuprite ×1 @ 0.312 (→156), covellite ×4 @ 0.310 (→119), azurite ×5 @ 0.289 (→224), dioptase ×7 @ 0.075 (→340), mimetite ×1 @ 0.063 (→340), native_copper ×1 @ 0.057 (→143), native_silver ×4 @ 0.001 (→139), tetrahedrite ×1 @ 0.000 (→0), tennantite ×1 @ 0.000 (→0)
-      against A: 31 species; moved 1 (albite); gained none; lost none
-  B root=3         fill  95.4 %  full at step   —  last growth at step 340
-      malachite ×1 @ 65.3 (→264), chalcopyrite ×1 @ 57.7 (→119), atacamite ×8 @ 14.6 (→340), pyrite ×1 @ 14.6 (→119), chrysocolla ×5 @ 6.1 (→340), goethite ×3 @ 5.2 (→340), chalcedony ×4 @ 4.6 (→179), acanthite ×5 @ 3.6 (→119), jarosite ×6 @ 3.4 (→116), opal ×7 @ 3.2 (→340), hematite ×1 @ 2.0 (→340), brochantite ×5 @ 1.6 (→116), marcasite ×1 @ 1.5 (→119), albite ×2 @ 1.3 (→64), siderite ×2 @ 1.2 (→145), native_gold ×10 @ 0.848 (→340), chalcocite ×5 @ 0.735 (→119), feldspar ×1 @ 0.631 (→64), turquoise ×4 @ 0.612 (→340), lepidocrocite ×10 @ 0.490 (→340), alunite ×5 @ 0.402 (→116), bornite ×3 @ 0.317 (→119), covellite ×4 @ 0.315 (→119), cuprite ×3 @ 0.268 (→156), azurite ×7 @ 0.122 (→224), mimetite ×1 @ 0.065 (→340), native_copper ×1 @ 0.064 (→143), dioptase ×7 @ 0.060 (→340), native_silver ×4 @ 0.001 (→139), tetrahedrite ×1 @ 0.000 (→0), tennantite ×1 @ 0.000 (→0)
-      against A: 31 species; moved 8 (albite, azurite, cuprite, feldspar, lepidocrocite, marcasite, native_gold, opal); gained none; lost none
+  A shipped        fill  95.6 % (largest 97.8 % at step 264; first >= 0.7 at step 204)  full at step   —  last growth at step 340
+      malachite ×1 @ 66.0 (→264), chalcopyrite ×1 @ 56.9 (→119), pyrite ×1 @ 14.5 (→119), atacamite ×8 @ 13.9 (→340), albite ×2 @ 8.2 (→64), chrysocolla ×5 @ 5.9 (→340), goethite ×3 @ 5.2 (→340), chalcedony ×4 @ 4.6 (→179), acanthite ×5 @ 3.6 (→119), jarosite ×6 @ 3.5 (→116), feldspar ×2 @ 3.4 (→64), opal ×6 @ 3.2 (→340), hematite ×1 @ 2.0 (→340), brochantite ×5 @ 1.5 (→116), siderite ×2 @ 1.1 (→145), marcasite ×1 @ 0.956 (→119), native_gold ×11 @ 0.815 (→340), chalcocite ×5 @ 0.787 (→119), turquoise ×4 @ 0.599 (→340), lepidocrocite ×11 @ 0.453 (→340), alunite ×1 @ 0.423 (→116), bornite ×3 @ 0.332 (→119), cuprite ×1 @ 0.312 (→156), covellite ×3 @ 0.310 (→119), azurite ×4 @ 0.288 (→224), dioptase ×7 @ 0.074 (→340), mimetite ×1 @ 0.063 (→340), native_copper ×1 @ 0.057 (→143), native_silver ×1 @ 0.001 (→139)
+      no solid left: tennantite (1 record), tetrahedrite (1 record)
+  B cap=8          fill  95.6 % (largest 97.8 % at step 264; first >= 0.7 at step 204)  full at step   —  last growth at step 340
+      malachite ×1 @ 66.0 (→264), chalcopyrite ×1 @ 56.9 (→119), pyrite ×1 @ 14.5 (→119), atacamite ×8 @ 13.9 (→340), albite ×2 @ 8.1 (→64), chrysocolla ×5 @ 5.9 (→340), goethite ×3 @ 5.2 (→340), chalcedony ×4 @ 4.6 (→179), acanthite ×5 @ 3.6 (→119), jarosite ×6 @ 3.5 (→116), feldspar ×2 @ 3.4 (→64), opal ×6 @ 3.2 (→340), hematite ×1 @ 2.0 (→340), brochantite ×5 @ 1.5 (→116), siderite ×2 @ 1.1 (→145), marcasite ×1 @ 0.956 (→119), native_gold ×11 @ 0.815 (→340), chalcocite ×5 @ 0.787 (→119), turquoise ×4 @ 0.599 (→340), lepidocrocite ×11 @ 0.453 (→340), alunite ×1 @ 0.423 (→116), bornite ×3 @ 0.332 (→119), cuprite ×1 @ 0.312 (→156), covellite ×3 @ 0.310 (→119), azurite ×4 @ 0.288 (→224), dioptase ×7 @ 0.074 (→340), mimetite ×1 @ 0.063 (→340), native_copper ×1 @ 0.057 (→143), native_silver ×1 @ 0.001 (→139)
+      no solid left: tennantite (1 record), tetrahedrite (1 record)
+      against A: 29 species present in either arm; moved 0; gained none; lost none; the baseline summary differs
+  B rclamp=7       fill  95.6 % (largest 97.8 % at step 264; first >= 0.7 at step 204)  full at step   —  last growth at step 340
+      malachite ×1 @ 66.0 (→264), chalcopyrite ×1 @ 56.9 (→119), pyrite ×1 @ 14.5 (→119), atacamite ×8 @ 13.9 (→340), albite ×2 @ 8.1 (→64), chrysocolla ×5 @ 5.9 (→340), goethite ×3 @ 5.2 (→340), chalcedony ×4 @ 4.6 (→179), acanthite ×5 @ 3.6 (→119), jarosite ×6 @ 3.5 (→116), feldspar ×2 @ 3.4 (→64), opal ×6 @ 3.2 (→340), hematite ×1 @ 2.0 (→340), brochantite ×5 @ 1.5 (→116), siderite ×2 @ 1.1 (→145), marcasite ×1 @ 0.956 (→119), native_gold ×11 @ 0.815 (→340), chalcocite ×5 @ 0.787 (→119), turquoise ×4 @ 0.599 (→340), lepidocrocite ×11 @ 0.453 (→340), alunite ×1 @ 0.423 (→116), bornite ×3 @ 0.332 (→119), cuprite ×1 @ 0.312 (→156), covellite ×3 @ 0.310 (→119), azurite ×4 @ 0.288 (→224), dioptase ×7 @ 0.074 (→340), mimetite ×1 @ 0.063 (→340), native_copper ×1 @ 0.057 (→143), native_silver ×1 @ 0.001 (→139)
+      no solid left: tennantite (1 record), tetrahedrite (1 record)
+      against A: 29 species present in either arm; moved 0; gained none; lost none; the baseline summary differs
+  B fcap=2         fill  95.6 % (largest 97.8 % at step 264; first >= 0.7 at step 204)  full at step   —  last growth at step 340
+      malachite ×1 @ 66.0 (→264), chalcopyrite ×1 @ 56.9 (→119), pyrite ×1 @ 14.5 (→119), atacamite ×8 @ 13.9 (→340), chrysocolla ×5 @ 5.9 (→340), goethite ×3 @ 5.2 (→340), chalcedony ×4 @ 4.6 (→179), albite ×2 @ 4.5 (→64), acanthite ×5 @ 3.6 (→119), jarosite ×6 @ 3.5 (→116), feldspar ×2 @ 3.4 (→64), opal ×6 @ 3.2 (→340), hematite ×1 @ 2.0 (→340), brochantite ×5 @ 1.5 (→116), siderite ×2 @ 1.1 (→145), marcasite ×1 @ 0.956 (→119), native_gold ×11 @ 0.854 (→340), chalcocite ×5 @ 0.787 (→119), turquoise ×4 @ 0.600 (→340), lepidocrocite ×11 @ 0.454 (→340), alunite ×1 @ 0.423 (→116), bornite ×3 @ 0.332 (→119), cuprite ×1 @ 0.312 (→156), covellite ×3 @ 0.310 (→119), azurite ×4 @ 0.289 (→224), dioptase ×7 @ 0.075 (→340), mimetite ×1 @ 0.063 (→340), native_copper ×1 @ 0.057 (→143), native_silver ×1 @ 0.001 (→139)
+      no solid left: tennantite (1 record), tetrahedrite (1 record)
+      against A: 29 species present in either arm; moved 1 (albite); gained none; lost none; the baseline summary differs
+  B root=3         fill  95.4 % (largest 97.6 % at step 264; first >= 0.7 at step 203)  full at step   —  last growth at step 340
+      malachite ×1 @ 65.3 (→264), chalcopyrite ×1 @ 57.7 (→119), atacamite ×8 @ 14.6 (→340), pyrite ×1 @ 14.6 (→119), chrysocolla ×5 @ 6.1 (→340), goethite ×3 @ 5.2 (→340), chalcedony ×4 @ 4.6 (→179), acanthite ×5 @ 3.6 (→119), jarosite ×5 @ 3.4 (→116), opal ×7 @ 3.2 (→340), hematite ×1 @ 2.0 (→340), brochantite ×5 @ 1.6 (→116), marcasite ×1 @ 1.5 (→119), albite ×2 @ 1.3 (→64), siderite ×2 @ 1.2 (→145), native_gold ×10 @ 0.848 (→340), chalcocite ×5 @ 0.735 (→119), feldspar ×1 @ 0.631 (→64), turquoise ×4 @ 0.612 (→340), lepidocrocite ×10 @ 0.490 (→340), alunite ×1 @ 0.402 (→116), bornite ×3 @ 0.317 (→119), covellite ×3 @ 0.315 (→119), cuprite ×3 @ 0.268 (→156), azurite ×4 @ 0.122 (→221), mimetite ×1 @ 0.065 (→340), native_copper ×1 @ 0.064 (→143), dioptase ×7 @ 0.060 (→340), native_silver ×1 @ 0.001 (→139)
+      no solid left: tennantite (1 record), tetrahedrite (1 record)
+      against A: 29 species present in either arm; moved 9 (albite, azurite, cuprite, feldspar, jarosite, lepidocrocite, marcasite, native_gold, opal); gained none; lost none; the baseline summary differs
       wall dissolution withheld as too small to resolve: on 41 steps in A, 38 in B
 seed 1
-  A shipped        fill  90.9 %  full at step   —  last growth at step 340
-      chalcopyrite ×1 @ 56.6 (→119), atacamite ×8 @ 43.1 (→340), chrysocolla ×5 @ 17.3 (→340), malachite ×1 @ 13.6 (→264), goethite ×3 @ 12.3 (→340), pyrite ×1 @ 9.6 (→119), albite ×2 @ 8.0 (→64), opal ×6 @ 7.9 (→340), hematite ×1 @ 5.3 (→340), chalcedony ×4 @ 4.6 (→179), jarosite ×6 @ 3.5 (→116), feldspar ×2 @ 3.4 (→64), acanthite ×4 @ 3.1 (→119), brochantite ×5 @ 2.1 (→116), covellite ×4 @ 2.0 (→119), turquoise ×4 @ 1.8 (→340), lepidocrocite ×10 @ 1.8 (→340), native_gold ×14 @ 1.6 (→336), marcasite ×1 @ 1.5 (→119), dioptase ×4 @ 0.751 (→340), azurite ×4 @ 0.622 (→224), bornite ×3 @ 0.398 (→119), cuprite ×1 @ 0.375 (→156), chalcocite ×5 @ 0.340 (→119), siderite ×2 @ 0.310 (→145), alunite ×5 @ 0.115 (→116), native_silver ×3 @ 0.004 (→139), mimetite ×3 @ 0.003 (→247), tetrahedrite ×1 @ 0.000 (→0), tennantite ×1 @ 0.000 (→0), native_copper ×1 @ 0.000 (→143)
-  B cap=8          fill  90.9 %  full at step   —  last growth at step 340
-      chalcopyrite ×1 @ 56.6 (→119), atacamite ×8 @ 43.1 (→340), chrysocolla ×5 @ 17.3 (→340), malachite ×1 @ 13.6 (→264), goethite ×3 @ 12.3 (→340), pyrite ×1 @ 9.6 (→119), opal ×6 @ 7.9 (→340), albite ×2 @ 7.9 (→64), hematite ×1 @ 5.3 (→340), chalcedony ×4 @ 4.6 (→179), jarosite ×6 @ 3.5 (→116), feldspar ×2 @ 3.4 (→64), acanthite ×4 @ 3.1 (→119), brochantite ×5 @ 2.1 (→116), covellite ×4 @ 2.0 (→119), turquoise ×4 @ 1.8 (→340), lepidocrocite ×10 @ 1.8 (→340), native_gold ×14 @ 1.6 (→336), marcasite ×1 @ 1.5 (→119), dioptase ×4 @ 0.751 (→340), azurite ×4 @ 0.622 (→224), bornite ×3 @ 0.398 (→119), cuprite ×1 @ 0.375 (→156), chalcocite ×5 @ 0.340 (→119), siderite ×2 @ 0.310 (→145), alunite ×5 @ 0.115 (→116), native_silver ×3 @ 0.004 (→139), mimetite ×3 @ 0.003 (→247), tetrahedrite ×1 @ 0.000 (→0), tennantite ×1 @ 0.000 (→0), native_copper ×1 @ 0.000 (→143)
-      against A: 31 species; moved 0; gained none; lost none
-  B rclamp=7       fill  90.9 %  full at step   —  last growth at step 340
-      chalcopyrite ×1 @ 56.6 (→119), atacamite ×8 @ 43.1 (→340), chrysocolla ×5 @ 17.3 (→340), malachite ×1 @ 13.6 (→264), goethite ×3 @ 12.3 (→340), pyrite ×1 @ 9.6 (→119), opal ×6 @ 7.9 (→340), albite ×2 @ 7.9 (→64), hematite ×1 @ 5.3 (→340), chalcedony ×4 @ 4.6 (→179), jarosite ×6 @ 3.5 (→116), feldspar ×2 @ 3.4 (→64), acanthite ×4 @ 3.1 (→119), brochantite ×5 @ 2.1 (→116), covellite ×4 @ 2.0 (→119), turquoise ×4 @ 1.8 (→340), lepidocrocite ×10 @ 1.8 (→340), native_gold ×14 @ 1.6 (→336), marcasite ×1 @ 1.5 (→119), dioptase ×4 @ 0.751 (→340), azurite ×4 @ 0.622 (→224), bornite ×3 @ 0.398 (→119), cuprite ×1 @ 0.375 (→156), chalcocite ×5 @ 0.340 (→119), siderite ×2 @ 0.310 (→145), alunite ×5 @ 0.115 (→116), native_silver ×3 @ 0.004 (→139), mimetite ×3 @ 0.003 (→247), tetrahedrite ×1 @ 0.000 (→0), tennantite ×1 @ 0.000 (→0), native_copper ×1 @ 0.000 (→143)
-      against A: 31 species; moved 0; gained none; lost none
-  B fcap=2         fill  90.9 %  full at step   —  last growth at step 340
-      chalcopyrite ×1 @ 56.6 (→119), atacamite ×8 @ 43.1 (→340), chrysocolla ×5 @ 17.3 (→340), malachite ×1 @ 13.6 (→264), goethite ×3 @ 12.3 (→340), pyrite ×1 @ 9.6 (→119), opal ×6 @ 7.9 (→340), hematite ×1 @ 5.3 (→340), chalcedony ×4 @ 4.6 (→179), albite ×2 @ 4.4 (→64), jarosite ×6 @ 3.5 (→116), feldspar ×2 @ 3.4 (→64), acanthite ×4 @ 3.1 (→119), brochantite ×5 @ 2.1 (→116), covellite ×4 @ 2.0 (→119), turquoise ×4 @ 1.8 (→340), lepidocrocite ×10 @ 1.8 (→340), native_gold ×11 @ 1.8 (→340), marcasite ×1 @ 1.5 (→119), dioptase ×4 @ 0.746 (→340), azurite ×4 @ 0.622 (→224), bornite ×3 @ 0.398 (→119), cuprite ×1 @ 0.375 (→156), chalcocite ×5 @ 0.340 (→119), siderite ×2 @ 0.310 (→145), alunite ×5 @ 0.115 (→116), native_silver ×3 @ 0.004 (→139), mimetite ×3 @ 0.003 (→247), tetrahedrite ×1 @ 0.000 (→0), tennantite ×1 @ 0.000 (→0), native_copper ×1 @ 0.000 (→143)
-      against A: 31 species; moved 2 (albite, native_gold); gained none; lost none
-  B root=3         fill  90.7 %  full at step   —  last growth at step 340
-      chalcopyrite ×1 @ 54.2 (→119), atacamite ×8 @ 43.6 (→340), chrysocolla ×5 @ 17.6 (→340), malachite ×1 @ 13.5 (→264), goethite ×3 @ 12.4 (→340), pyrite ×1 @ 9.8 (→119), opal ×5 @ 8.2 (→340), hematite ×1 @ 5.3 (→340), chalcedony ×4 @ 4.6 (→179), jarosite ×6 @ 3.6 (→116), acanthite ×4 @ 3.1 (→119), brochantite ×5 @ 2.1 (→116), turquoise ×4 @ 1.8 (→340), lepidocrocite ×10 @ 1.8 (→340), covellite ×4 @ 1.7 (→119), native_gold ×13 @ 1.6 (→335), marcasite ×1 @ 1.3 (→119), albite ×2 @ 1.3 (→64), siderite ×2 @ 1.0 (→145), dioptase ×4 @ 0.772 (→340), feldspar ×1 @ 0.629 (→64), azurite ×4 @ 0.623 (→224), chalcocite ×5 @ 0.622 (→119), bornite ×3 @ 0.411 (→119), cuprite ×1 @ 0.367 (→156), native_silver ×3 @ 0.004 (→139), mimetite ×3 @ 0.003 (→248), tetrahedrite ×1 @ 0.000 (→0), tennantite ×1 @ 0.000 (→0), alunite ×5 @ 0.000 (→116), native_copper ×1 @ 0.000 (→143)
-      against A: 31 species; moved 7 (albite, alunite, chalcocite, feldspar, native_gold, opal, siderite); gained none; lost none
+  A shipped        fill  90.9 % (largest 90.9 % at step 340; first >= 0.7 at step 305)  full at step   —  last growth at step 340
+      chalcopyrite ×1 @ 56.6 (→119), atacamite ×8 @ 43.1 (→340), chrysocolla ×5 @ 17.3 (→340), malachite ×1 @ 13.6 (→264), goethite ×3 @ 12.3 (→340), pyrite ×1 @ 9.6 (→119), albite ×2 @ 8.0 (→64), opal ×6 @ 7.9 (→340), hematite ×1 @ 5.3 (→340), chalcedony ×4 @ 4.6 (→179), jarosite ×6 @ 3.5 (→116), feldspar ×2 @ 3.4 (→64), acanthite ×4 @ 3.1 (→119), brochantite ×5 @ 2.1 (→116), covellite ×4 @ 2.0 (→119), turquoise ×4 @ 1.8 (→340), lepidocrocite ×10 @ 1.8 (→340), native_gold ×14 @ 1.6 (→336), marcasite ×1 @ 1.5 (→119), dioptase ×4 @ 0.751 (→340), azurite ×4 @ 0.622 (→224), bornite ×3 @ 0.398 (→119), cuprite ×1 @ 0.375 (→156), chalcocite ×4 @ 0.340 (→119), siderite ×2 @ 0.310 (→145), alunite ×1 @ 0.115 (→116), native_silver ×1 @ 0.004 (→139), mimetite ×3 @ 0.003 (→247)
+      no solid left: native_copper (1 record), tennantite (1 record), tetrahedrite (1 record)
+  B cap=8          fill  90.9 % (largest 90.9 % at step 340; first >= 0.7 at step 305)  full at step   —  last growth at step 340
+      chalcopyrite ×1 @ 56.6 (→119), atacamite ×8 @ 43.1 (→340), chrysocolla ×5 @ 17.3 (→340), malachite ×1 @ 13.6 (→264), goethite ×3 @ 12.3 (→340), pyrite ×1 @ 9.6 (→119), opal ×6 @ 7.9 (→340), albite ×2 @ 7.9 (→64), hematite ×1 @ 5.3 (→340), chalcedony ×4 @ 4.6 (→179), jarosite ×6 @ 3.5 (→116), feldspar ×2 @ 3.4 (→64), acanthite ×4 @ 3.1 (→119), brochantite ×5 @ 2.1 (→116), covellite ×4 @ 2.0 (→119), turquoise ×4 @ 1.8 (→340), lepidocrocite ×10 @ 1.8 (→340), native_gold ×14 @ 1.6 (→336), marcasite ×1 @ 1.5 (→119), dioptase ×4 @ 0.751 (→340), azurite ×4 @ 0.622 (→224), bornite ×3 @ 0.398 (→119), cuprite ×1 @ 0.375 (→156), chalcocite ×4 @ 0.340 (→119), siderite ×2 @ 0.310 (→145), alunite ×1 @ 0.115 (→116), native_silver ×1 @ 0.004 (→139), mimetite ×3 @ 0.003 (→247)
+      no solid left: native_copper (1 record), tennantite (1 record), tetrahedrite (1 record)
+      against A: 28 species present in either arm; moved 0; gained none; lost none; the baseline summary differs
+  B rclamp=7       fill  90.9 % (largest 90.9 % at step 340; first >= 0.7 at step 305)  full at step   —  last growth at step 340
+      chalcopyrite ×1 @ 56.6 (→119), atacamite ×8 @ 43.1 (→340), chrysocolla ×5 @ 17.3 (→340), malachite ×1 @ 13.6 (→264), goethite ×3 @ 12.3 (→340), pyrite ×1 @ 9.6 (→119), opal ×6 @ 7.9 (→340), albite ×2 @ 7.9 (→64), hematite ×1 @ 5.3 (→340), chalcedony ×4 @ 4.6 (→179), jarosite ×6 @ 3.5 (→116), feldspar ×2 @ 3.4 (→64), acanthite ×4 @ 3.1 (→119), brochantite ×5 @ 2.1 (→116), covellite ×4 @ 2.0 (→119), turquoise ×4 @ 1.8 (→340), lepidocrocite ×10 @ 1.8 (→340), native_gold ×14 @ 1.6 (→336), marcasite ×1 @ 1.5 (→119), dioptase ×4 @ 0.751 (→340), azurite ×4 @ 0.622 (→224), bornite ×3 @ 0.398 (→119), cuprite ×1 @ 0.375 (→156), chalcocite ×4 @ 0.340 (→119), siderite ×2 @ 0.310 (→145), alunite ×1 @ 0.115 (→116), native_silver ×1 @ 0.004 (→139), mimetite ×3 @ 0.003 (→247)
+      no solid left: native_copper (1 record), tennantite (1 record), tetrahedrite (1 record)
+      against A: 28 species present in either arm; moved 0; gained none; lost none; the baseline summary differs
+  B fcap=2         fill  90.9 % (largest 90.9 % at step 340; first >= 0.7 at step 305)  full at step   —  last growth at step 340
+      chalcopyrite ×1 @ 56.6 (→119), atacamite ×8 @ 43.1 (→340), chrysocolla ×5 @ 17.3 (→340), malachite ×1 @ 13.6 (→264), goethite ×3 @ 12.3 (→340), pyrite ×1 @ 9.6 (→119), opal ×6 @ 7.9 (→340), hematite ×1 @ 5.3 (→340), chalcedony ×4 @ 4.6 (→179), albite ×2 @ 4.4 (→64), jarosite ×6 @ 3.5 (→116), feldspar ×2 @ 3.4 (→64), acanthite ×4 @ 3.1 (→119), brochantite ×5 @ 2.1 (→116), covellite ×4 @ 2.0 (→119), turquoise ×4 @ 1.8 (→340), lepidocrocite ×10 @ 1.8 (→340), native_gold ×11 @ 1.8 (→340), marcasite ×1 @ 1.5 (→119), dioptase ×4 @ 0.746 (→340), azurite ×4 @ 0.622 (→224), bornite ×3 @ 0.398 (→119), cuprite ×1 @ 0.375 (→156), chalcocite ×4 @ 0.340 (→119), siderite ×2 @ 0.310 (→145), alunite ×1 @ 0.115 (→116), native_silver ×1 @ 0.004 (→139), mimetite ×3 @ 0.003 (→247)
+      no solid left: native_copper (1 record), tennantite (1 record), tetrahedrite (1 record)
+      against A: 28 species present in either arm; moved 2 (albite, native_gold); gained none; lost none; the baseline summary differs
+  B root=3         fill  90.7 % (largest 90.7 % at step 340; first >= 0.7 at step 309)  full at step   —  last growth at step 340
+      chalcopyrite ×1 @ 54.2 (→119), atacamite ×8 @ 43.6 (→340), chrysocolla ×5 @ 17.6 (→340), malachite ×1 @ 13.5 (→264), goethite ×3 @ 12.4 (→340), pyrite ×1 @ 9.8 (→119), opal ×5 @ 8.2 (→340), hematite ×1 @ 5.3 (→340), chalcedony ×4 @ 4.6 (→179), jarosite ×6 @ 3.6 (→116), acanthite ×4 @ 3.1 (→119), brochantite ×5 @ 2.1 (→116), turquoise ×4 @ 1.8 (→340), lepidocrocite ×10 @ 1.8 (→340), covellite ×4 @ 1.7 (→119), native_gold ×13 @ 1.6 (→335), marcasite ×1 @ 1.3 (→119), albite ×2 @ 1.3 (→64), siderite ×2 @ 1.0 (→145), dioptase ×4 @ 0.772 (→340), feldspar ×1 @ 0.629 (→64), azurite ×4 @ 0.623 (→224), chalcocite ×4 @ 0.622 (→119), bornite ×3 @ 0.411 (→119), cuprite ×1 @ 0.367 (→156), native_silver ×1 @ 0.004 (→139), mimetite ×3 @ 0.003 (→248)
+      no solid left: alunite (5 records), native_copper (1 record), tennantite (1 record), tetrahedrite (1 record)
+      against A: 28 species present in either arm; moved 6 (albite, chalcocite, feldspar, native_gold, opal, siderite); gained none; lost alunite (5 records, no solid); the baseline summary differs
       wall dissolution withheld as too small to resolve: on 45 steps in A, 50 in B
 seed 2
-  A shipped        fill  92.0 %  full at step   —  last growth at step 340
-      chalcopyrite ×1 @ 59.4 (→119), atacamite ×8 @ 41.0 (→340), chrysocolla ×5 @ 16.7 (→340), malachite ×1 @ 13.7 (→264), pyrite ×1 @ 12.6 (→119), goethite ×3 @ 11.8 (→340), albite ×2 @ 8.5 (→64), opal ×6 @ 7.9 (→340), hematite ×1 @ 5.0 (→340), chalcedony ×4 @ 4.6 (→179), acanthite ×4 @ 3.6 (→119), jarosite ×6 @ 3.6 (→116), feldspar ×2 @ 3.3 (→64), covellite ×4 @ 2.0 (→119), brochantite ×5 @ 1.9 (→116), native_gold ×9 @ 1.7 (→340), lepidocrocite ×11 @ 1.6 (→340), marcasite ×1 @ 1.5 (→119), turquoise ×4 @ 1.3 (→340), siderite ×2 @ 1.0 (→145), chalcocite ×5 @ 0.884 (→119), dioptase ×4 @ 0.698 (→340), azurite ×4 @ 0.645 (→224), alunite ×5 @ 0.501 (→116), bornite ×3 @ 0.386 (→119), cuprite ×1 @ 0.373 (→156), mimetite ×3 @ 0.246 (→340), native_copper ×1 @ 0.021 (→143), tetrahedrite ×1 @ 0.000 (→0), tennantite ×1 @ 0.000 (→0), native_silver ×2 @ 0.000 (→140)
-  B cap=8          fill  92.0 %  full at step   —  last growth at step 340
-      chalcopyrite ×1 @ 59.4 (→119), atacamite ×8 @ 41.0 (→340), chrysocolla ×5 @ 16.7 (→340), malachite ×1 @ 13.7 (→264), pyrite ×1 @ 12.6 (→119), goethite ×3 @ 11.8 (→340), albite ×2 @ 8.3 (→64), opal ×6 @ 7.9 (→340), hematite ×1 @ 5.0 (→340), chalcedony ×4 @ 4.6 (→179), acanthite ×4 @ 3.6 (→119), jarosite ×6 @ 3.6 (→116), feldspar ×2 @ 3.3 (→64), covellite ×4 @ 2.0 (→119), brochantite ×5 @ 1.9 (→116), native_gold ×9 @ 1.7 (→340), lepidocrocite ×11 @ 1.6 (→340), marcasite ×1 @ 1.5 (→119), turquoise ×4 @ 1.3 (→340), siderite ×2 @ 1.0 (→145), chalcocite ×5 @ 0.884 (→119), dioptase ×4 @ 0.698 (→340), azurite ×4 @ 0.645 (→224), alunite ×5 @ 0.501 (→116), bornite ×3 @ 0.386 (→119), cuprite ×1 @ 0.373 (→156), mimetite ×3 @ 0.246 (→340), native_copper ×1 @ 0.021 (→143), tetrahedrite ×1 @ 0.000 (→0), tennantite ×1 @ 0.000 (→0), native_silver ×2 @ 0.000 (→140)
-      against A: 31 species; moved 0; gained none; lost none
-  B rclamp=7       fill  92.0 %  full at step   —  last growth at step 340
-      chalcopyrite ×1 @ 59.4 (→119), atacamite ×8 @ 41.0 (→340), chrysocolla ×5 @ 16.7 (→340), malachite ×1 @ 13.7 (→264), pyrite ×1 @ 12.6 (→119), goethite ×3 @ 11.8 (→340), albite ×2 @ 8.3 (→64), opal ×6 @ 7.9 (→340), hematite ×1 @ 5.0 (→340), chalcedony ×4 @ 4.6 (→179), acanthite ×4 @ 3.6 (→119), jarosite ×6 @ 3.6 (→116), feldspar ×2 @ 3.3 (→64), covellite ×4 @ 2.0 (→119), brochantite ×5 @ 1.9 (→116), native_gold ×9 @ 1.7 (→340), lepidocrocite ×11 @ 1.6 (→340), marcasite ×1 @ 1.5 (→119), turquoise ×4 @ 1.3 (→340), siderite ×2 @ 1.0 (→145), chalcocite ×5 @ 0.884 (→119), dioptase ×4 @ 0.698 (→340), azurite ×4 @ 0.645 (→224), alunite ×5 @ 0.501 (→116), bornite ×3 @ 0.386 (→119), cuprite ×1 @ 0.373 (→156), mimetite ×3 @ 0.246 (→340), native_copper ×1 @ 0.021 (→143), tetrahedrite ×1 @ 0.000 (→0), tennantite ×1 @ 0.000 (→0), native_silver ×2 @ 0.000 (→140)
-      against A: 31 species; moved 0; gained none; lost none
-  B fcap=2         fill  92.0 %  full at step   —  last growth at step 340
-      chalcopyrite ×1 @ 59.4 (→119), atacamite ×8 @ 41.0 (→340), chrysocolla ×5 @ 16.7 (→340), malachite ×1 @ 13.7 (→264), pyrite ×1 @ 12.6 (→119), goethite ×3 @ 11.8 (→340), opal ×6 @ 7.9 (→340), hematite ×1 @ 5.0 (→340), albite ×2 @ 4.7 (→64), chalcedony ×4 @ 4.6 (→179), acanthite ×4 @ 3.6 (→119), jarosite ×6 @ 3.6 (→116), feldspar ×2 @ 3.4 (→64), covellite ×4 @ 2.0 (→119), brochantite ×5 @ 1.9 (→116), native_gold ×9 @ 1.7 (→340), lepidocrocite ×11 @ 1.6 (→340), marcasite ×1 @ 1.5 (→119), turquoise ×4 @ 1.3 (→340), siderite ×2 @ 1.0 (→145), chalcocite ×5 @ 0.884 (→119), dioptase ×4 @ 0.698 (→340), azurite ×4 @ 0.645 (→224), alunite ×5 @ 0.501 (→116), bornite ×3 @ 0.386 (→119), cuprite ×1 @ 0.373 (→156), mimetite ×3 @ 0.247 (→340), native_copper ×1 @ 0.021 (→143), tetrahedrite ×1 @ 0.000 (→0), tennantite ×1 @ 0.000 (→0), native_silver ×2 @ 0.000 (→140)
-      against A: 31 species; moved 1 (albite); gained none; lost none
-  B root=3         fill  95.3 %  full at step   —  last growth at step 340
-      malachite ×1 @ 65.4 (→264), chalcopyrite ×1 @ 57.7 (→119), pyrite ×1 @ 14.6 (→119), atacamite ×8 @ 13.3 (→340), chrysocolla ×7 @ 6.4 (→340), goethite ×3 @ 5.2 (→340), chalcedony ×4 @ 4.6 (→179), jarosite ×6 @ 4.0 (→116), acanthite ×4 @ 4.0 (→119), opal ×5 @ 3.2 (→340), covellite ×4 @ 2.0 (→119), hematite ×1 @ 2.0 (→340), brochantite ×5 @ 1.9 (→116), marcasite ×1 @ 1.4 (→119), albite ×2 @ 1.3 (→64), siderite ×2 @ 1.1 (→145), chalcocite ×5 @ 0.981 (→119), native_gold ×12 @ 0.900 (→340), turquoise ×3 @ 0.656 (→340), feldspar ×1 @ 0.648 (→64), alunite ×5 @ 0.513 (→116), azurite ×4 @ 0.421 (→224), cuprite ×1 @ 0.364 (→156), lepidocrocite ×11 @ 0.345 (→340), bornite ×3 @ 0.279 (→119), dioptase ×4 @ 0.081 (→340), native_copper ×1 @ 0.051 (→143), native_silver ×2 @ 0.005 (→140), mimetite ×3 @ 0.001 (→295), tetrahedrite ×1 @ 0.000 (→0), tennantite ×1 @ 0.000 (→0)
-      against A: 31 species; moved 17 (albite, atacamite, azurite, bornite, chrysocolla, dioptase, feldspar, goethite, hematite, lepidocrocite, malachite, mimetite, native_copper, native_gold, native_silver, opal, turquoise); gained none; lost none
+  A shipped        fill  92.0 % (largest 92.0 % at step 340; first >= 0.7 at step 295)  full at step   —  last growth at step 340
+      chalcopyrite ×1 @ 59.4 (→119), atacamite ×8 @ 41.0 (→340), chrysocolla ×5 @ 16.7 (→340), malachite ×1 @ 13.7 (→264), pyrite ×1 @ 12.6 (→119), goethite ×3 @ 11.8 (→340), albite ×2 @ 8.5 (→64), opal ×6 @ 7.9 (→340), hematite ×1 @ 5.0 (→340), chalcedony ×4 @ 4.6 (→179), acanthite ×4 @ 3.6 (→119), jarosite ×6 @ 3.6 (→116), feldspar ×2 @ 3.3 (→64), covellite ×4 @ 2.0 (→119), brochantite ×5 @ 1.9 (→116), native_gold ×9 @ 1.7 (→340), lepidocrocite ×11 @ 1.6 (→340), marcasite ×1 @ 1.5 (→119), turquoise ×4 @ 1.3 (→340), siderite ×2 @ 1.0 (→145), chalcocite ×5 @ 0.884 (→119), dioptase ×4 @ 0.698 (→340), azurite ×4 @ 0.645 (→224), alunite ×2 @ 0.501 (→116), bornite ×3 @ 0.386 (→119), cuprite ×1 @ 0.373 (→156), mimetite ×3 @ 0.246 (→340), native_copper ×1 @ 0.021 (→143)
+      no solid left: native_silver (2 records), tennantite (1 record), tetrahedrite (1 record)
+  B cap=8          fill  92.0 % (largest 92.0 % at step 340; first >= 0.7 at step 295)  full at step   —  last growth at step 340
+      chalcopyrite ×1 @ 59.4 (→119), atacamite ×8 @ 41.0 (→340), chrysocolla ×5 @ 16.7 (→340), malachite ×1 @ 13.7 (→264), pyrite ×1 @ 12.6 (→119), goethite ×3 @ 11.8 (→340), albite ×2 @ 8.3 (→64), opal ×6 @ 7.9 (→340), hematite ×1 @ 5.0 (→340), chalcedony ×4 @ 4.6 (→179), acanthite ×4 @ 3.6 (→119), jarosite ×6 @ 3.6 (→116), feldspar ×2 @ 3.3 (→64), covellite ×4 @ 2.0 (→119), brochantite ×5 @ 1.9 (→116), native_gold ×9 @ 1.7 (→340), lepidocrocite ×11 @ 1.6 (→340), marcasite ×1 @ 1.5 (→119), turquoise ×4 @ 1.3 (→340), siderite ×2 @ 1.0 (→145), chalcocite ×5 @ 0.884 (→119), dioptase ×4 @ 0.698 (→340), azurite ×4 @ 0.645 (→224), alunite ×2 @ 0.501 (→116), bornite ×3 @ 0.386 (→119), cuprite ×1 @ 0.373 (→156), mimetite ×3 @ 0.246 (→340), native_copper ×1 @ 0.021 (→143)
+      no solid left: native_silver (2 records), tennantite (1 record), tetrahedrite (1 record)
+      against A: 28 species present in either arm; moved 0; gained none; lost none; the baseline summary differs
+  B rclamp=7       fill  92.0 % (largest 92.0 % at step 340; first >= 0.7 at step 295)  full at step   —  last growth at step 340
+      chalcopyrite ×1 @ 59.4 (→119), atacamite ×8 @ 41.0 (→340), chrysocolla ×5 @ 16.7 (→340), malachite ×1 @ 13.7 (→264), pyrite ×1 @ 12.6 (→119), goethite ×3 @ 11.8 (→340), albite ×2 @ 8.3 (→64), opal ×6 @ 7.9 (→340), hematite ×1 @ 5.0 (→340), chalcedony ×4 @ 4.6 (→179), acanthite ×4 @ 3.6 (→119), jarosite ×6 @ 3.6 (→116), feldspar ×2 @ 3.3 (→64), covellite ×4 @ 2.0 (→119), brochantite ×5 @ 1.9 (→116), native_gold ×9 @ 1.7 (→340), lepidocrocite ×11 @ 1.6 (→340), marcasite ×1 @ 1.5 (→119), turquoise ×4 @ 1.3 (→340), siderite ×2 @ 1.0 (→145), chalcocite ×5 @ 0.884 (→119), dioptase ×4 @ 0.698 (→340), azurite ×4 @ 0.645 (→224), alunite ×2 @ 0.501 (→116), bornite ×3 @ 0.386 (→119), cuprite ×1 @ 0.373 (→156), mimetite ×3 @ 0.246 (→340), native_copper ×1 @ 0.021 (→143)
+      no solid left: native_silver (2 records), tennantite (1 record), tetrahedrite (1 record)
+      against A: 28 species present in either arm; moved 0; gained none; lost none; the baseline summary differs
+  B fcap=2         fill  92.0 % (largest 92.0 % at step 340; first >= 0.7 at step 295)  full at step   —  last growth at step 340
+      chalcopyrite ×1 @ 59.4 (→119), atacamite ×8 @ 41.0 (→340), chrysocolla ×5 @ 16.7 (→340), malachite ×1 @ 13.7 (→264), pyrite ×1 @ 12.6 (→119), goethite ×3 @ 11.8 (→340), opal ×6 @ 7.9 (→340), hematite ×1 @ 5.0 (→340), albite ×2 @ 4.7 (→64), chalcedony ×4 @ 4.6 (→179), acanthite ×4 @ 3.6 (→119), jarosite ×6 @ 3.6 (→116), feldspar ×2 @ 3.4 (→64), covellite ×4 @ 2.0 (→119), brochantite ×5 @ 1.9 (→116), native_gold ×9 @ 1.7 (→340), lepidocrocite ×11 @ 1.6 (→340), marcasite ×1 @ 1.5 (→119), turquoise ×4 @ 1.3 (→340), siderite ×2 @ 1.0 (→145), chalcocite ×5 @ 0.884 (→119), dioptase ×4 @ 0.698 (→340), azurite ×4 @ 0.645 (→224), alunite ×2 @ 0.501 (→116), bornite ×3 @ 0.386 (→119), cuprite ×1 @ 0.373 (→156), mimetite ×3 @ 0.247 (→340), native_copper ×1 @ 0.021 (→143)
+      no solid left: native_silver (2 records), tennantite (1 record), tetrahedrite (1 record)
+      against A: 28 species present in either arm; moved 1 (albite); gained none; lost none; the baseline summary differs
+  B root=3         fill  95.3 % (largest 97.7 % at step 264; first >= 0.7 at step 203)  full at step   —  last growth at step 340
+      malachite ×1 @ 65.4 (→264), chalcopyrite ×1 @ 57.7 (→119), pyrite ×1 @ 14.6 (→119), atacamite ×8 @ 13.3 (→340), chrysocolla ×7 @ 6.4 (→340), goethite ×3 @ 5.2 (→340), chalcedony ×4 @ 4.6 (→179), jarosite ×6 @ 4.0 (→116), acanthite ×4 @ 4.0 (→119), opal ×5 @ 3.2 (→340), covellite ×4 @ 2.0 (→119), hematite ×1 @ 2.0 (→340), brochantite ×5 @ 1.9 (→116), marcasite ×1 @ 1.4 (→119), albite ×2 @ 1.3 (→64), siderite ×2 @ 1.1 (→145), chalcocite ×5 @ 0.981 (→119), native_gold ×12 @ 0.900 (→340), turquoise ×3 @ 0.656 (→340), feldspar ×1 @ 0.648 (→64), alunite ×3 @ 0.513 (→116), azurite ×4 @ 0.421 (→224), cuprite ×1 @ 0.364 (→156), lepidocrocite ×11 @ 0.345 (→340), bornite ×3 @ 0.279 (→119), dioptase ×4 @ 0.081 (→340), native_copper ×1 @ 0.051 (→143), native_silver ×1 @ 0.005 (→140), mimetite ×3 @ 0.001 (→295)
+      no solid left: tennantite (1 record), tetrahedrite (1 record)
+      against A: 29 species present in either arm; moved 17 (albite, alunite, atacamite, azurite, bornite, chrysocolla, dioptase, feldspar, goethite, hematite, lepidocrocite, malachite, mimetite, native_copper, native_gold, opal, turquoise); gained native_silver; lost none; the baseline summary differs
       wall dissolution withheld as too small to resolve: on 38 steps in A, 39 in B
 
 ### chiastolite_hornfels — 120 steps — events: 
 seed 42 (shipped arm reproduces the baseline)
-  A shipped        fill   0.0 %  full at step   —  last growth at step 120
+  A shipped        fill   0.0 % (largest 0.0 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120
       andalusite ×5 @ 1.2 (→120), feldspar ×1 @ 0.710 (→120), albite ×1 @ 0.001 (→1)
-  B cap=8          fill   0.0 %  full at step   —  last growth at step 120
+  B cap=8          fill   0.0 % (largest 0.0 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120
       andalusite ×5 @ 1.2 (→120), feldspar ×1 @ 0.710 (→120), albite ×1 @ 0.001 (→1)
-      against A: 3 species; moved 0; gained none; lost none
-  B rclamp=7       fill   0.0 %  full at step   —  last growth at step 120
+      against A: 3 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+  B rclamp=7       fill   0.0 % (largest 0.0 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120
       andalusite ×5 @ 1.2 (→120), feldspar ×1 @ 0.710 (→120), albite ×1 @ 0.001 (→1)
-      against A: 3 species; moved 0; gained none; lost none
-  B fcap=2         fill   0.0 %  full at step   —  last growth at step 120
+      against A: 3 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+  B fcap=2         fill   0.0 % (largest 0.0 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120
       andalusite ×5 @ 1.2 (→120)
-      against A: 3 species; moved 0; gained none; lost albite, feldspar
-  B root=3         fill   0.0 %  full at step   —  last growth at step 120
+      against A: 3 species present in either arm; moved 0; gained none; lost albite, feldspar; the baseline summary differs
+  B root=3         fill   0.0 % (largest 0.0 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120
       andalusite ×5 @ 1.2 (→120), feldspar ×1 @ 0.213 (→120), albite ×1 @ 0.001 (→33)
-      against A: 3 species; moved 2 (albite, feldspar); gained none; lost none
+      against A: 3 species present in either arm; moved 2 (albite, feldspar); gained none; lost none; the baseline summary differs
 seed 1
-  A shipped        fill   0.0 %  full at step   —  last growth at step 120
+  A shipped        fill   0.0 % (largest 0.0 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120
       andalusite ×5 @ 1.2 (→120), feldspar ×1 @ 0.664 (→120), albite ×1 @ 0.001 (→1)
-  B cap=8          fill   0.0 %  full at step   —  last growth at step 120
+  B cap=8          fill   0.0 % (largest 0.0 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120
       andalusite ×5 @ 1.2 (→120), feldspar ×1 @ 0.664 (→120), albite ×1 @ 0.001 (→1)
-      against A: 3 species; moved 0; gained none; lost none
-  B rclamp=7       fill   0.0 %  full at step   —  last growth at step 120
+      against A: 3 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+  B rclamp=7       fill   0.0 % (largest 0.0 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120
       andalusite ×5 @ 1.2 (→120), feldspar ×1 @ 0.664 (→120), albite ×1 @ 0.001 (→1)
-      against A: 3 species; moved 0; gained none; lost none
-  B fcap=2         fill   0.0 %  full at step   —  last growth at step 120
+      against A: 3 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+  B fcap=2         fill   0.0 % (largest 0.0 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120
       andalusite ×5 @ 1.2 (→120)
-      against A: 3 species; moved 0; gained none; lost albite, feldspar
-  B root=3         fill   0.0 %  full at step   —  last growth at step 120
+      against A: 3 species present in either arm; moved 0; gained none; lost albite, feldspar; the baseline summary differs
+  B root=3         fill   0.0 % (largest 0.0 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120
       andalusite ×5 @ 1.2 (→120), feldspar ×1 @ 0.214 (→120), albite ×1 @ 0.001 (→2)
-      against A: 3 species; moved 2 (albite, feldspar); gained none; lost none
+      against A: 3 species present in either arm; moved 2 (albite, feldspar); gained none; lost none; the baseline summary differs
 seed 2
-  A shipped        fill   0.0 %  full at step   —  last growth at step 120
+  A shipped        fill   0.0 % (largest 0.0 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120
       andalusite ×5 @ 1.2 (→120), feldspar ×1 @ 0.697 (→120), albite ×1 @ 0.001 (→1)
-  B cap=8          fill   0.0 %  full at step   —  last growth at step 120
+  B cap=8          fill   0.0 % (largest 0.0 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120
       andalusite ×5 @ 1.2 (→120), feldspar ×1 @ 0.697 (→120), albite ×1 @ 0.001 (→1)
-      against A: 3 species; moved 0; gained none; lost none
-  B rclamp=7       fill   0.0 %  full at step   —  last growth at step 120
+      against A: 3 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+  B rclamp=7       fill   0.0 % (largest 0.0 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120
       andalusite ×5 @ 1.2 (→120), feldspar ×1 @ 0.697 (→120), albite ×1 @ 0.001 (→1)
-      against A: 3 species; moved 0; gained none; lost none
-  B fcap=2         fill   0.0 %  full at step   —  last growth at step 120
+      against A: 3 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+  B fcap=2         fill   0.0 % (largest 0.0 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120
       andalusite ×5 @ 1.2 (→120)
-      against A: 3 species; moved 0; gained none; lost albite, feldspar
-  B root=3         fill   0.0 %  full at step   —  last growth at step 120
+      against A: 3 species present in either arm; moved 0; gained none; lost albite, feldspar; the baseline summary differs
+  B root=3         fill   0.0 % (largest 0.0 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120
       andalusite ×5 @ 1.2 (→120), feldspar ×1 @ 0.209 (→120), albite ×1 @ 0.001 (→10)
-      against A: 3 species; moved 2 (albite, feldspar); gained none; lost none
+      against A: 3 species present in either arm; moved 2 (albite, feldspar); gained none; lost none; the baseline summary differs
 
 ### deccan_zeolite — 200 steps — events: 20 Silica Veneer | 35 Fe-Silica Replenishment | 55 Silica Maturation | 70 Zeolite Stage IIa | 90 Zeolite Stage IIb | 110 Apophyllite Stage III | 160 Late Cooling
 seed 42 (shipped arm reproduces the baseline)
-  A shipped        fill   0.2 %  full at step   —  last growth at step 200
-      quartz ×3 @ 8.3 (→159), albite ×3 @ 4.2 (→159), heulandite ×4 @ 3.3 (→159), hematite ×1 @ 2.3 (→200), goethite ×1 @ 2.2 (→200), calcite ×1 @ 1.7 (→200), chalcedony ×4 @ 1.7 (→200), pectolite ×4 @ 1.3 (→159), scolecite ×2 @ 1.3 (→200), mesolite ×1 @ 0.845 (→200), stilbite ×4 @ 0.660 (→159), apophyllite ×1 @ 0.349 (→159), prehnite ×1 @ 0.273 (→159), feldspar ×1 @ 0.000 (→0)
-  B cap=8          fill   0.2 %  full at step   —  last growth at step 200
-      quartz ×3 @ 8.3 (→159), albite ×3 @ 4.2 (→159), heulandite ×4 @ 3.3 (→159), hematite ×1 @ 2.3 (→200), goethite ×1 @ 2.2 (→200), calcite ×1 @ 1.7 (→200), chalcedony ×4 @ 1.7 (→200), pectolite ×4 @ 1.3 (→159), scolecite ×2 @ 1.3 (→200), mesolite ×1 @ 0.845 (→200), stilbite ×4 @ 0.660 (→159), apophyllite ×1 @ 0.349 (→159), prehnite ×1 @ 0.273 (→159), feldspar ×1 @ 0.000 (→0)
-      against A: 14 species; moved 0; gained none; lost none
-  B rclamp=7       fill   0.2 %  full at step   —  last growth at step 200
-      quartz ×3 @ 8.3 (→159), albite ×3 @ 4.2 (→159), heulandite ×4 @ 3.3 (→159), hematite ×1 @ 2.3 (→200), goethite ×1 @ 2.2 (→200), calcite ×1 @ 1.7 (→200), chalcedony ×4 @ 1.7 (→200), pectolite ×4 @ 1.3 (→159), scolecite ×2 @ 1.3 (→200), mesolite ×1 @ 0.845 (→200), stilbite ×4 @ 0.660 (→159), apophyllite ×1 @ 0.349 (→159), prehnite ×1 @ 0.273 (→159), feldspar ×1 @ 0.000 (→0)
-      against A: 14 species; moved 0; gained none; lost none
-  B fcap=2         fill   0.1 %  full at step   —  last growth at step 200
+  A shipped        fill   0.2 % (largest 0.2 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
+      quartz ×3 @ 8.3 (→159), albite ×3 @ 4.2 (→159), heulandite ×4 @ 3.3 (→159), hematite ×1 @ 2.3 (→200), goethite ×1 @ 2.2 (→200), calcite ×1 @ 1.7 (→200), chalcedony ×4 @ 1.7 (→200), pectolite ×4 @ 1.3 (→159), scolecite ×2 @ 1.3 (→200), mesolite ×1 @ 0.845 (→200), stilbite ×4 @ 0.660 (→159), apophyllite ×1 @ 0.349 (→159), prehnite ×1 @ 0.273 (→159)
+      no solid left: feldspar (1 record)
+  B cap=8          fill   0.2 % (largest 0.2 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
+      quartz ×3 @ 8.3 (→159), albite ×3 @ 4.2 (→159), heulandite ×4 @ 3.3 (→159), hematite ×1 @ 2.3 (→200), goethite ×1 @ 2.2 (→200), calcite ×1 @ 1.7 (→200), chalcedony ×4 @ 1.7 (→200), pectolite ×4 @ 1.3 (→159), scolecite ×2 @ 1.3 (→200), mesolite ×1 @ 0.845 (→200), stilbite ×4 @ 0.660 (→159), apophyllite ×1 @ 0.349 (→159), prehnite ×1 @ 0.273 (→159)
+      no solid left: feldspar (1 record)
+      against A: 13 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+  B rclamp=7       fill   0.2 % (largest 0.2 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
+      quartz ×3 @ 8.3 (→159), albite ×3 @ 4.2 (→159), heulandite ×4 @ 3.3 (→159), hematite ×1 @ 2.3 (→200), goethite ×1 @ 2.2 (→200), calcite ×1 @ 1.7 (→200), chalcedony ×4 @ 1.7 (→200), pectolite ×4 @ 1.3 (→159), scolecite ×2 @ 1.3 (→200), mesolite ×1 @ 0.845 (→200), stilbite ×4 @ 0.660 (→159), apophyllite ×1 @ 0.349 (→159), prehnite ×1 @ 0.273 (→159)
+      no solid left: feldspar (1 record)
+      against A: 13 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+  B fcap=2         fill   0.1 % (largest 0.1 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       quartz ×3 @ 8.4 (→159), hematite ×1 @ 3.3 (→200), heulandite ×4 @ 3.2 (→159), goethite ×1 @ 2.1 (→200), chalcedony ×4 @ 1.7 (→200), calcite ×1 @ 1.7 (→200), pectolite ×4 @ 1.3 (→159), scolecite ×2 @ 1.3 (→200), stilbite ×4 @ 0.890 (→159), mesolite ×1 @ 0.831 (→200), albite ×2 @ 0.623 (→159), apophyllite ×1 @ 0.341 (→159), prehnite ×1 @ 0.269 (→159)
-      against A: 14 species; moved 3 (albite, hematite, stilbite); gained none; lost feldspar
-  B root=3         fill   0.2 %  full at step   —  last growth at step 200
-      quartz ×3 @ 8.2 (→159), heulandite ×4 @ 3.3 (→159), hematite ×1 @ 3.3 (→200), goethite ×1 @ 2.2 (→200), calcite ×1 @ 1.7 (→200), chalcedony ×4 @ 1.7 (→200), apophyllite ×1 @ 1.7 (→159), pectolite ×4 @ 1.3 (→159), scolecite ×2 @ 1.3 (→200), albite ×3 @ 0.845 (→159), mesolite ×1 @ 0.819 (→200), stilbite ×4 @ 0.775 (→159), prehnite ×1 @ 0.272 (→159), feldspar ×1 @ 0.000 (→0)
-      against A: 14 species; moved 3 (albite, apophyllite, hematite); gained none; lost none
+      against A: 13 species present in either arm; moved 3 (albite, hematite, stilbite); gained none; lost none; the baseline summary differs
+  B root=3         fill   0.2 % (largest 0.2 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
+      quartz ×3 @ 8.2 (→159), heulandite ×4 @ 3.3 (→159), hematite ×1 @ 3.3 (→200), goethite ×1 @ 2.2 (→200), calcite ×1 @ 1.7 (→200), chalcedony ×4 @ 1.7 (→200), apophyllite ×1 @ 1.7 (→159), pectolite ×4 @ 1.3 (→159), scolecite ×2 @ 1.3 (→200), albite ×3 @ 0.845 (→159), mesolite ×1 @ 0.819 (→200), stilbite ×4 @ 0.775 (→159), prehnite ×1 @ 0.272 (→159)
+      no solid left: feldspar (1 record)
+      against A: 13 species present in either arm; moved 3 (albite, apophyllite, hematite); gained none; lost none; the baseline summary differs
 seed 1
-  A shipped        fill   0.3 %  full at step   —  last growth at step 200
-      quartz ×3 @ 8.0 (→159), albite ×2 @ 4.2 (→159), hematite ×1 @ 3.6 (→200), heulandite ×5 @ 3.6 (→159), goethite ×1 @ 2.1 (→200), chalcedony ×4 @ 1.7 (→200), calcite ×1 @ 1.7 (→200), pectolite ×4 @ 1.3 (→159), scolecite ×1 @ 1.1 (→200), stilbite ×5 @ 0.825 (→159), apophyllite ×1 @ 0.360 (→159), prehnite ×1 @ 0.271 (→159), mesolite ×1 @ 0.021 (→94), feldspar ×1 @ 0.000 (→0)
-  B cap=8          fill   0.3 %  full at step   —  last growth at step 200
-      quartz ×3 @ 8.0 (→159), albite ×2 @ 4.2 (→159), hematite ×1 @ 3.6 (→200), heulandite ×5 @ 3.6 (→159), goethite ×1 @ 2.1 (→200), chalcedony ×4 @ 1.7 (→200), calcite ×1 @ 1.7 (→200), pectolite ×4 @ 1.3 (→159), scolecite ×1 @ 1.1 (→200), stilbite ×5 @ 0.825 (→159), apophyllite ×1 @ 0.360 (→159), prehnite ×1 @ 0.271 (→159), mesolite ×1 @ 0.021 (→94), feldspar ×1 @ 0.000 (→0)
-      against A: 14 species; moved 0; gained none; lost none
-  B rclamp=7       fill   0.3 %  full at step   —  last growth at step 200
-      quartz ×3 @ 8.0 (→159), albite ×2 @ 4.2 (→159), hematite ×1 @ 3.6 (→200), heulandite ×5 @ 3.6 (→159), goethite ×1 @ 2.1 (→200), chalcedony ×4 @ 1.7 (→200), calcite ×1 @ 1.7 (→200), pectolite ×4 @ 1.3 (→159), scolecite ×1 @ 1.1 (→200), stilbite ×5 @ 0.825 (→159), apophyllite ×1 @ 0.360 (→159), prehnite ×1 @ 0.271 (→159), mesolite ×1 @ 0.021 (→94), feldspar ×1 @ 0.000 (→0)
-      against A: 14 species; moved 0; gained none; lost none
-  B fcap=2         fill   0.3 %  full at step   —  last growth at step 200
+  A shipped        fill   0.3 % (largest 0.3 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
+      quartz ×3 @ 8.0 (→159), albite ×2 @ 4.2 (→159), hematite ×1 @ 3.6 (→200), heulandite ×5 @ 3.6 (→159), goethite ×1 @ 2.1 (→200), chalcedony ×4 @ 1.7 (→200), calcite ×1 @ 1.7 (→200), pectolite ×4 @ 1.3 (→159), scolecite ×1 @ 1.1 (→200), stilbite ×5 @ 0.825 (→159), apophyllite ×1 @ 0.360 (→159), prehnite ×1 @ 0.271 (→159), mesolite ×1 @ 0.021 (→94)
+      no solid left: feldspar (1 record)
+  B cap=8          fill   0.3 % (largest 0.3 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
+      quartz ×3 @ 8.0 (→159), albite ×2 @ 4.2 (→159), hematite ×1 @ 3.6 (→200), heulandite ×5 @ 3.6 (→159), goethite ×1 @ 2.1 (→200), chalcedony ×4 @ 1.7 (→200), calcite ×1 @ 1.7 (→200), pectolite ×4 @ 1.3 (→159), scolecite ×1 @ 1.1 (→200), stilbite ×5 @ 0.825 (→159), apophyllite ×1 @ 0.360 (→159), prehnite ×1 @ 0.271 (→159), mesolite ×1 @ 0.021 (→94)
+      no solid left: feldspar (1 record)
+      against A: 13 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+  B rclamp=7       fill   0.3 % (largest 0.3 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
+      quartz ×3 @ 8.0 (→159), albite ×2 @ 4.2 (→159), hematite ×1 @ 3.6 (→200), heulandite ×5 @ 3.6 (→159), goethite ×1 @ 2.1 (→200), chalcedony ×4 @ 1.7 (→200), calcite ×1 @ 1.7 (→200), pectolite ×4 @ 1.3 (→159), scolecite ×1 @ 1.1 (→200), stilbite ×5 @ 0.825 (→159), apophyllite ×1 @ 0.360 (→159), prehnite ×1 @ 0.271 (→159), mesolite ×1 @ 0.021 (→94)
+      no solid left: feldspar (1 record)
+      against A: 13 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+  B fcap=2         fill   0.3 % (largest 0.3 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       quartz ×3 @ 8.0 (→159), hematite ×1 @ 3.7 (→200), heulandite ×5 @ 3.1 (→159), goethite ×1 @ 2.2 (→200), calcite ×1 @ 1.7 (→200), chalcedony ×4 @ 1.6 (→200), scolecite ×2 @ 1.3 (→200), pectolite ×4 @ 1.3 (→159), stilbite ×5 @ 0.832 (→159), albite ×3 @ 0.643 (→159), apophyllite ×1 @ 0.364 (→159), prehnite ×1 @ 0.268 (→159), mesolite ×1 @ 0.018 (→93)
-      against A: 14 species; moved 2 (albite, scolecite); gained none; lost feldspar
-  B root=3         fill   0.3 %  full at step   —  last growth at step 200
-      quartz ×3 @ 8.1 (→159), hematite ×1 @ 3.7 (→200), heulandite ×5 @ 3.5 (→159), goethite ×1 @ 2.1 (→200), calcite ×1 @ 1.7 (→200), chalcedony ×4 @ 1.7 (→200), pectolite ×4 @ 1.3 (→159), scolecite ×1 @ 1.1 (→200), albite ×2 @ 0.842 (→159), stilbite ×5 @ 0.836 (→159), apophyllite ×1 @ 0.391 (→159), prehnite ×1 @ 0.274 (→159), mesolite ×1 @ 0.019 (→93), feldspar ×1 @ 0.000 (→0)
-      against A: 14 species; moved 1 (albite); gained none; lost none
+      against A: 13 species present in either arm; moved 2 (albite, scolecite); gained none; lost none; the baseline summary differs
+  B root=3         fill   0.3 % (largest 0.3 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
+      quartz ×3 @ 8.1 (→159), hematite ×1 @ 3.7 (→200), heulandite ×5 @ 3.5 (→159), goethite ×1 @ 2.1 (→200), calcite ×1 @ 1.7 (→200), chalcedony ×4 @ 1.7 (→200), pectolite ×4 @ 1.3 (→159), scolecite ×1 @ 1.1 (→200), albite ×2 @ 0.842 (→159), stilbite ×5 @ 0.836 (→159), apophyllite ×1 @ 0.391 (→159), prehnite ×1 @ 0.274 (→159), mesolite ×1 @ 0.019 (→93)
+      no solid left: feldspar (1 record)
+      against A: 13 species present in either arm; moved 1 (albite); gained none; lost none; the baseline summary differs
 seed 2
-  A shipped        fill   0.2 %  full at step   —  last growth at step 200
-      quartz ×3 @ 8.1 (→159), albite ×2 @ 4.2 (→159), hematite ×1 @ 3.7 (→200), heulandite ×5 @ 3.3 (→159), goethite ×1 @ 2.2 (→200), calcite ×1 @ 1.7 (→200), chalcedony ×4 @ 1.6 (→200), apophyllite ×1 @ 1.6 (→159), pectolite ×4 @ 1.3 (→159), stilbite ×4 @ 0.656 (→159), prehnite ×1 @ 0.277 (→159), scolecite ×3 @ 0.074 (→113), mesolite ×1 @ 0.017 (→93), feldspar ×1 @ 0.000 (→0)
-  B cap=8          fill   0.2 %  full at step   —  last growth at step 200
-      quartz ×3 @ 8.1 (→159), albite ×2 @ 4.2 (→159), hematite ×1 @ 3.7 (→200), heulandite ×5 @ 3.3 (→159), goethite ×1 @ 2.2 (→200), calcite ×1 @ 1.7 (→200), chalcedony ×4 @ 1.6 (→200), apophyllite ×1 @ 1.6 (→159), pectolite ×4 @ 1.3 (→159), stilbite ×4 @ 0.656 (→159), prehnite ×1 @ 0.277 (→159), scolecite ×3 @ 0.074 (→113), mesolite ×1 @ 0.017 (→93), feldspar ×1 @ 0.000 (→0)
-      against A: 14 species; moved 0; gained none; lost none
-  B rclamp=7       fill   0.2 %  full at step   —  last growth at step 200
-      quartz ×3 @ 8.1 (→159), albite ×2 @ 4.2 (→159), hematite ×1 @ 3.7 (→200), heulandite ×5 @ 3.3 (→159), goethite ×1 @ 2.2 (→200), calcite ×1 @ 1.7 (→200), chalcedony ×4 @ 1.6 (→200), apophyllite ×1 @ 1.6 (→159), pectolite ×4 @ 1.3 (→159), stilbite ×4 @ 0.656 (→159), prehnite ×1 @ 0.277 (→159), scolecite ×3 @ 0.074 (→113), mesolite ×1 @ 0.017 (→93), feldspar ×1 @ 0.000 (→0)
-      against A: 14 species; moved 0; gained none; lost none
-  B fcap=2         fill   0.2 %  full at step   —  last growth at step 200
+  A shipped        fill   0.2 % (largest 0.2 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
+      quartz ×3 @ 8.1 (→159), albite ×2 @ 4.2 (→159), hematite ×1 @ 3.7 (→200), heulandite ×5 @ 3.3 (→159), goethite ×1 @ 2.2 (→200), calcite ×1 @ 1.7 (→200), chalcedony ×4 @ 1.6 (→200), apophyllite ×1 @ 1.6 (→159), pectolite ×4 @ 1.3 (→159), stilbite ×4 @ 0.656 (→159), prehnite ×1 @ 0.277 (→159), scolecite ×3 @ 0.074 (→113), mesolite ×1 @ 0.017 (→93)
+      no solid left: feldspar (1 record)
+  B cap=8          fill   0.2 % (largest 0.2 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
+      quartz ×3 @ 8.1 (→159), albite ×2 @ 4.2 (→159), hematite ×1 @ 3.7 (→200), heulandite ×5 @ 3.3 (→159), goethite ×1 @ 2.2 (→200), calcite ×1 @ 1.7 (→200), chalcedony ×4 @ 1.6 (→200), apophyllite ×1 @ 1.6 (→159), pectolite ×4 @ 1.3 (→159), stilbite ×4 @ 0.656 (→159), prehnite ×1 @ 0.277 (→159), scolecite ×3 @ 0.074 (→113), mesolite ×1 @ 0.017 (→93)
+      no solid left: feldspar (1 record)
+      against A: 13 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+  B rclamp=7       fill   0.2 % (largest 0.2 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
+      quartz ×3 @ 8.1 (→159), albite ×2 @ 4.2 (→159), hematite ×1 @ 3.7 (→200), heulandite ×5 @ 3.3 (→159), goethite ×1 @ 2.2 (→200), calcite ×1 @ 1.7 (→200), chalcedony ×4 @ 1.6 (→200), apophyllite ×1 @ 1.6 (→159), pectolite ×4 @ 1.3 (→159), stilbite ×4 @ 0.656 (→159), prehnite ×1 @ 0.277 (→159), scolecite ×3 @ 0.074 (→113), mesolite ×1 @ 0.017 (→93)
+      no solid left: feldspar (1 record)
+      against A: 13 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+  B fcap=2         fill   0.2 % (largest 0.2 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       quartz ×3 @ 7.8 (→159), hematite ×1 @ 3.7 (→200), heulandite ×5 @ 3.3 (→159), goethite ×1 @ 2.1 (→200), apophyllite ×1 @ 1.7 (→159), calcite ×1 @ 1.7 (→200), chalcedony ×4 @ 1.6 (→200), pectolite ×4 @ 1.3 (→159), stilbite ×4 @ 0.686 (→159), albite ×4 @ 0.384 (→159), prehnite ×1 @ 0.275 (→159), scolecite ×3 @ 0.075 (→113), mesolite ×1 @ 0.018 (→93)
-      against A: 14 species; moved 1 (albite); gained none; lost feldspar
-  B root=3         fill   0.2 %  full at step   —  last growth at step 200
-      quartz ×3 @ 8.1 (→159), hematite ×1 @ 3.7 (→200), heulandite ×5 @ 3.3 (→159), goethite ×1 @ 2.2 (→200), calcite ×1 @ 1.7 (→200), chalcedony ×4 @ 1.7 (→200), apophyllite ×1 @ 1.6 (→159), pectolite ×4 @ 1.3 (→159), albite ×2 @ 0.830 (→159), stilbite ×4 @ 0.707 (→159), prehnite ×1 @ 0.263 (→159), scolecite ×3 @ 0.076 (→113), mesolite ×1 @ 0.016 (→93), feldspar ×1 @ 0.000 (→0)
-      against A: 14 species; moved 1 (albite); gained none; lost none
+      against A: 13 species present in either arm; moved 1 (albite); gained none; lost none; the baseline summary differs
+  B root=3         fill   0.2 % (largest 0.2 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
+      quartz ×3 @ 8.1 (→159), hematite ×1 @ 3.7 (→200), heulandite ×5 @ 3.3 (→159), goethite ×1 @ 2.2 (→200), calcite ×1 @ 1.7 (→200), chalcedony ×4 @ 1.7 (→200), apophyllite ×1 @ 1.6 (→159), pectolite ×4 @ 1.3 (→159), albite ×2 @ 0.830 (→159), stilbite ×4 @ 0.707 (→159), prehnite ×1 @ 0.263 (→159), scolecite ×3 @ 0.076 (→113), mesolite ×1 @ 0.016 (→93)
+      no solid left: feldspar (1 record)
+      against A: 13 species present in either arm; moved 1 (albite); gained none; lost none; the baseline summary differs
 
 ### epithermal_telluride — 180 steps — events: 30 Telluride Recharge | 70 First Cooling | 110 Second Pulse | 145 Final Cooling
 seed 42 (shipped arm reproduces the baseline)
-  A shipped        fill   9.6 %  full at step   —  last growth at step 180
+  A shipped        fill   9.6 % (largest 9.6 % at step 180; first >= 0.7 at step —)  full at step   —  last growth at step 180
       hessite ×3 @ 17.2 (→68), sylvanite ×2 @ 10.1 (→95), calaverite ×2 @ 10.1 (→126), feldspar ×2 @ 8.7 (→180), native_silver ×4 @ 5.5 (→180), quartz ×3 @ 3.6 (→180), native_gold ×4 @ 3.2 (→180), albite ×3 @ 1.3 (→180), native_tellurium ×4 @ 0.037 (→29)
-  B cap=8          fill   9.6 %  full at step   —  last growth at step 180
+  B cap=8          fill   9.6 % (largest 9.6 % at step 180; first >= 0.7 at step —)  full at step   —  last growth at step 180
       hessite ×3 @ 17.2 (→68), sylvanite ×2 @ 10.1 (→95), calaverite ×2 @ 10.1 (→126), feldspar ×2 @ 8.7 (→180), native_silver ×4 @ 5.5 (→180), quartz ×3 @ 3.6 (→180), native_gold ×4 @ 3.2 (→180), albite ×3 @ 1.3 (→180), native_tellurium ×4 @ 0.037 (→29)
-      against A: 9 species; moved 0; gained none; lost none
-  B rclamp=7       fill   9.6 %  full at step   —  last growth at step 180
+      against A: 9 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+  B rclamp=7       fill   9.6 % (largest 9.6 % at step 180; first >= 0.7 at step —)  full at step   —  last growth at step 180
       hessite ×3 @ 17.2 (→68), sylvanite ×2 @ 10.1 (→95), calaverite ×2 @ 10.1 (→126), feldspar ×2 @ 8.7 (→180), native_silver ×4 @ 5.5 (→180), quartz ×3 @ 3.6 (→180), native_gold ×4 @ 3.2 (→180), albite ×3 @ 1.3 (→180), native_tellurium ×4 @ 0.037 (→29)
-      against A: 9 species; moved 0; gained none; lost none
-  B fcap=2         fill   9.2 %  full at step   —  last growth at step 180
+      against A: 9 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+  B fcap=2         fill   9.2 % (largest 9.2 % at step 180; first >= 0.7 at step —)  full at step   —  last growth at step 180
       hessite ×3 @ 17.2 (→68), sylvanite ×2 @ 10.1 (→95), calaverite ×2 @ 10.1 (→126), native_silver ×4 @ 5.4 (→180), quartz ×3 @ 3.5 (→180), native_gold ×4 @ 3.1 (→180), feldspar ×2 @ 1.5 (→180), albite ×2 @ 1.2 (→180), native_tellurium ×4 @ 0.036 (→29)
-      against A: 9 species; moved 2 (albite, feldspar); gained none; lost none
-  B root=3         fill   9.3 %  full at step   —  last growth at step 180
+      against A: 9 species present in either arm; moved 2 (albite, feldspar); gained none; lost none; the baseline summary differs
+  B root=3         fill   9.3 % (largest 9.3 % at step 180; first >= 0.7 at step —)  full at step   —  last growth at step 180
       hessite ×3 @ 17.3 (→68), sylvanite ×2 @ 10.1 (→95), calaverite ×2 @ 10.1 (→126), native_silver ×4 @ 5.5 (→180), quartz ×3 @ 3.4 (→180), native_gold ×4 @ 3.1 (→180), feldspar ×2 @ 1.7 (→180), albite ×1 @ 0.395 (→180), native_tellurium ×4 @ 0.036 (→29)
-      against A: 9 species; moved 2 (albite, feldspar); gained none; lost none
+      against A: 9 species present in either arm; moved 2 (albite, feldspar); gained none; lost none; the baseline summary differs
 seed 1
-  A shipped        fill   9.9 %  full at step   —  last growth at step 180
+  A shipped        fill   9.9 % (largest 9.9 % at step 180; first >= 0.7 at step —)  full at step   —  last growth at step 180
       hessite ×3 @ 17.3 (→68), sylvanite ×2 @ 10.1 (→80), calaverite ×2 @ 10.0 (→80), feldspar ×2 @ 7.2 (→180), native_silver ×4 @ 7.1 (→180), quartz ×3 @ 4.7 (→180), native_gold ×4 @ 3.1 (→180), albite ×4 @ 0.144 (→66), native_tellurium ×3 @ 0.030 (→29)
-  B cap=8          fill   9.9 %  full at step   —  last growth at step 180
+  B cap=8          fill   9.9 % (largest 9.9 % at step 180; first >= 0.7 at step —)  full at step   —  last growth at step 180
       hessite ×3 @ 17.3 (→68), sylvanite ×2 @ 10.1 (→80), calaverite ×2 @ 10.0 (→80), feldspar ×2 @ 7.2 (→180), native_silver ×4 @ 7.1 (→180), quartz ×3 @ 4.7 (→180), native_gold ×4 @ 3.1 (→180), albite ×4 @ 0.144 (→66), native_tellurium ×3 @ 0.030 (→29)
-      against A: 9 species; moved 0; gained none; lost none
-  B rclamp=7       fill   9.9 %  full at step   —  last growth at step 180
+      against A: 9 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+  B rclamp=7       fill   9.9 % (largest 9.9 % at step 180; first >= 0.7 at step —)  full at step   —  last growth at step 180
       hessite ×3 @ 17.3 (→68), sylvanite ×2 @ 10.1 (→80), calaverite ×2 @ 10.0 (→80), feldspar ×2 @ 7.2 (→180), native_silver ×4 @ 7.1 (→180), quartz ×3 @ 4.7 (→180), native_gold ×4 @ 3.1 (→180), albite ×4 @ 0.144 (→66), native_tellurium ×3 @ 0.030 (→29)
-      against A: 9 species; moved 0; gained none; lost none
-  B fcap=2         fill   9.7 %  full at step   —  last growth at step 180
+      against A: 9 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+  B fcap=2         fill   9.7 % (largest 9.7 % at step 180; first >= 0.7 at step —)  full at step   —  last growth at step 180
       hessite ×3 @ 17.2 (→68), sylvanite ×2 @ 10.1 (→80), calaverite ×2 @ 10.0 (→80), native_silver ×4 @ 7.1 (→180), quartz ×3 @ 4.6 (→180), native_gold ×4 @ 2.9 (→180), feldspar ×2 @ 0.988 (→180), albite ×2 @ 0.695 (→180), native_tellurium ×3 @ 0.031 (→29)
-      against A: 9 species; moved 2 (albite, feldspar); gained none; lost none
-  B root=3         fill   9.6 %  full at step   —  last growth at step 180
+      against A: 9 species present in either arm; moved 2 (albite, feldspar); gained none; lost none; the baseline summary differs
+  B root=3         fill   9.6 % (largest 9.6 % at step 180; first >= 0.7 at step —)  full at step   —  last growth at step 180
       hessite ×3 @ 17.2 (→68), sylvanite ×2 @ 10.1 (→80), calaverite ×2 @ 10.0 (→80), native_silver ×4 @ 7.1 (→180), quartz ×3 @ 4.6 (→180), native_gold ×4 @ 3.1 (→180), feldspar ×2 @ 1.5 (→180), albite ×4 @ 0.047 (→41), native_tellurium ×3 @ 0.031 (→29)
-      against A: 9 species; moved 2 (albite, feldspar); gained none; lost none
+      against A: 9 species present in either arm; moved 2 (albite, feldspar); gained none; lost none; the baseline summary differs
 seed 2
-  A shipped        fill   9.5 %  full at step   —  last growth at step 180
+  A shipped        fill   9.5 % (largest 9.5 % at step 180; first >= 0.7 at step —)  full at step   —  last growth at step 180
       hessite ×3 @ 17.3 (→125), calaverite ×2 @ 10.1 (→168), sylvanite ×2 @ 10.1 (→180), feldspar ×2 @ 8.5 (→180), native_silver ×4 @ 6.2 (→180), native_gold ×4 @ 3.1 (→180), quartz ×4 @ 3.1 (→180), albite ×2 @ 1.3 (→180), native_tellurium ×4 @ 0.036 (→29)
-  B cap=8          fill   9.5 %  full at step   —  last growth at step 180
+  B cap=8          fill   9.5 % (largest 9.5 % at step 180; first >= 0.7 at step —)  full at step   —  last growth at step 180
       hessite ×3 @ 17.3 (→125), calaverite ×2 @ 10.1 (→168), sylvanite ×2 @ 10.1 (→180), feldspar ×2 @ 8.5 (→180), native_silver ×4 @ 6.2 (→180), native_gold ×4 @ 3.1 (→180), quartz ×4 @ 3.1 (→180), albite ×2 @ 1.3 (→180), native_tellurium ×4 @ 0.036 (→29)
-      against A: 9 species; moved 0; gained none; lost none
-  B rclamp=7       fill   9.5 %  full at step   —  last growth at step 180
+      against A: 9 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+  B rclamp=7       fill   9.5 % (largest 9.5 % at step 180; first >= 0.7 at step —)  full at step   —  last growth at step 180
       hessite ×3 @ 17.3 (→125), calaverite ×2 @ 10.1 (→168), sylvanite ×2 @ 10.1 (→180), feldspar ×2 @ 8.5 (→180), native_silver ×4 @ 6.2 (→180), native_gold ×4 @ 3.1 (→180), quartz ×4 @ 3.1 (→180), albite ×2 @ 1.3 (→180), native_tellurium ×4 @ 0.036 (→29)
-      against A: 9 species; moved 0; gained none; lost none
-  B fcap=2         fill   8.8 %  full at step   —  last growth at step 180
+      against A: 9 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+  B fcap=2         fill   8.8 % (largest 8.8 % at step 180; first >= 0.7 at step —)  full at step   —  last growth at step 180
       hessite ×3 @ 17.1 (→124), calaverite ×2 @ 10.1 (→168), sylvanite ×2 @ 10.1 (→180), native_silver ×4 @ 6.3 (→180), native_gold ×4 @ 3.1 (→180), quartz ×4 @ 3.0 (→180), albite ×2 @ 1.1 (→180), feldspar ×3 @ 1.1 (→180), native_tellurium ×4 @ 0.037 (→29)
-      against A: 9 species; moved 1 (feldspar); gained none; lost none
-  B root=3         fill   9.0 %  full at step   —  last growth at step 180
+      against A: 9 species present in either arm; moved 1 (feldspar); gained none; lost none; the baseline summary differs
+  B root=3         fill   9.0 % (largest 9.0 % at step 180; first >= 0.7 at step —)  full at step   —  last growth at step 180
       hessite ×3 @ 17.2 (→68), calaverite ×2 @ 10.1 (→168), sylvanite ×2 @ 10.1 (→180), native_silver ×4 @ 6.2 (→180), native_gold ×4 @ 3.1 (→180), quartz ×4 @ 3.0 (→180), feldspar ×2 @ 1.7 (→180), albite ×1 @ 0.376 (→180), native_tellurium ×4 @ 0.036 (→29)
-      against A: 9 species; moved 2 (albite, feldspar); gained none; lost none
+      against A: 9 species present in either arm; moved 2 (albite, feldspar); gained none; lost none; the baseline summary differs
 
 ### gem_pegmatite — 230 steps — events: 5 Outer Shell | 30 Schorl Arrives | 60 Albitization | 90 Be Saturation | 130 Li Phase | 160 Late Hydrothermal | 190 Clay Softening | 215 Final Cooling
 seed 42 (shipped arm reproduces the baseline)
-  A shipped        fill 100.0 %  full at step   9  last growth at step   9
-      feldspar ×2 @ 31.7 (→9), albite ×2 @ 24.6 (→9), quartz ×3 @ 1.7 (→9), tourmaline ×2 @ 0.294 (→9), spodumene ×1 @ 0.125 (→9), cassiterite ×4 @ 0.008 (→8), lepidolite ×3 @ 0.007 (→9)
-  B cap=8          fill  42.1 %  full at step   —  last growth at step 230
+  A shipped        fill 100.0 % (largest 100.0 % at step 9; first >= 0.7 at step 6)  full at step   9  last growth at step   9
+      feldspar ×2 @ 31.7 (→9), albite ×2 @ 24.6 (→9), quartz ×3 @ 1.7 (→9), tourmaline ×2 @ 0.294 (→9), spodumene ×1 @ 0.125 (→9), cassiterite ×1 @ 0.008 (→8), lepidolite ×1 @ 0.007 (→9)
+  B cap=8          fill  42.1 % (largest 42.1 % at step 230; first >= 0.7 at step —)  full at step   —  last growth at step 230
       quartz ×3 @ 37.5 (→230), albite ×2 @ 32.3 (→230), feldspar ×2 @ 24.1 (→230), tourmaline ×8 @ 12.0 (→197), lepidolite ×5 @ 4.7 (→159), spodumene ×4 @ 4.2 (→159), topaz ×6 @ 2.5 (→215), cassiterite ×10 @ 1.4 (→230)
-      against A: 8 species; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none
-  B rclamp=7       fill  42.1 %  full at step   —  last growth at step 230
+      against A: 8 species present in either arm; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none; the baseline summary differs
+  B rclamp=7       fill  42.1 % (largest 42.1 % at step 230; first >= 0.7 at step —)  full at step   —  last growth at step 230
       quartz ×3 @ 37.5 (→230), albite ×2 @ 32.3 (→230), feldspar ×2 @ 24.1 (→230), tourmaline ×8 @ 12.0 (→197), lepidolite ×5 @ 4.7 (→159), spodumene ×4 @ 4.2 (→159), topaz ×6 @ 2.5 (→215), cassiterite ×10 @ 1.4 (→230)
-      against A: 8 species; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none
-  B fcap=2         fill  27.2 %  full at step   —  last growth at step 230
+      against A: 8 species present in either arm; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none; the baseline summary differs
+  B fcap=2         fill  27.2 % (largest 27.2 % at step 230; first >= 0.7 at step —)  full at step   —  last growth at step 230
       quartz ×3 @ 37.4 (→230), albite ×2 @ 25.3 (→230), feldspar ×2 @ 14.3 (→230), tourmaline ×8 @ 12.0 (→197), lepidolite ×5 @ 4.7 (→159), spodumene ×4 @ 4.2 (→159), topaz ×6 @ 2.5 (→215), cassiterite ×10 @ 1.4 (→230)
-      against A: 8 species; moved 6 (cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none
-  B root=3         fill  38.8 %  full at step   —  last growth at step 230
+      against A: 8 species present in either arm; moved 6 (cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none; the baseline summary differs
+  B root=3         fill  38.8 % (largest 38.8 % at step 230; first >= 0.7 at step —)  full at step   —  last growth at step 230
       quartz ×3 @ 37.4 (→230), albite ×2 @ 33.0 (→230), feldspar ×2 @ 21.6 (→230), tourmaline ×8 @ 12.0 (→197), lepidolite ×5 @ 4.7 (→159), spodumene ×4 @ 4.2 (→159), topaz ×6 @ 2.5 (→215), cassiterite ×10 @ 1.4 (→230)
-      against A: 8 species; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none
+      against A: 8 species present in either arm; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none; the baseline summary differs
 seed 1
-  A shipped        fill 100.0 %  full at step  10  last growth at step  10
-      feldspar ×2 @ 33.4 (→10), albite ×2 @ 24.2 (→10), quartz ×3 @ 1.5 (→10), tourmaline ×3 @ 0.368 (→9), spodumene ×1 @ 0.197 (→9), cassiterite ×4 @ 0.041 (→10), lepidolite ×4 @ 0.016 (→9)
-  B cap=8          fill  41.4 %  full at step   —  last growth at step 230
+  A shipped        fill 100.0 % (largest 100.0 % at step 10; first >= 0.7 at step 7)  full at step  10  last growth at step  10
+      feldspar ×2 @ 33.4 (→10), albite ×2 @ 24.2 (→10), quartz ×3 @ 1.5 (→10), tourmaline ×3 @ 0.368 (→9), spodumene ×1 @ 0.197 (→9), cassiterite ×2 @ 0.041 (→10), lepidolite ×1 @ 0.016 (→9)
+  B cap=8          fill  41.4 % (largest 41.4 % at step 230; first >= 0.7 at step —)  full at step   —  last growth at step 230
       quartz ×3 @ 36.7 (→230), albite ×2 @ 32.2 (→230), feldspar ×2 @ 24.7 (→230), tourmaline ×8 @ 11.9 (→197), lepidolite ×3 @ 4.0 (→159), topaz ×6 @ 2.5 (→215), spodumene ×5 @ 2.2 (→158), cassiterite ×8 @ 1.5 (→230)
-      against A: 8 species; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none
-  B rclamp=7       fill  41.4 %  full at step   —  last growth at step 230
+      against A: 8 species present in either arm; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none; the baseline summary differs
+  B rclamp=7       fill  41.4 % (largest 41.4 % at step 230; first >= 0.7 at step —)  full at step   —  last growth at step 230
       quartz ×3 @ 36.7 (→230), albite ×2 @ 32.2 (→230), feldspar ×2 @ 24.7 (→230), tourmaline ×8 @ 11.9 (→197), lepidolite ×3 @ 4.0 (→159), topaz ×6 @ 2.5 (→215), spodumene ×5 @ 2.2 (→158), cassiterite ×8 @ 1.5 (→230)
-      against A: 8 species; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none
-  B fcap=2         fill  27.0 %  full at step   —  last growth at step 230
+      against A: 8 species present in either arm; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none; the baseline summary differs
+  B fcap=2         fill  27.0 % (largest 27.0 % at step 230; first >= 0.7 at step —)  full at step   —  last growth at step 230
       quartz ×3 @ 37.0 (→230), albite ×2 @ 25.1 (→230), feldspar ×2 @ 14.4 (→230), tourmaline ×8 @ 11.9 (→197), lepidolite ×3 @ 4.0 (→159), topaz ×6 @ 2.5 (→215), spodumene ×5 @ 2.2 (→158), cassiterite ×8 @ 1.5 (→230)
-      against A: 8 species; moved 6 (cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none
-  B root=3         fill  38.5 %  full at step   —  last growth at step 230
+      against A: 8 species present in either arm; moved 6 (cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none; the baseline summary differs
+  B root=3         fill  38.5 % (largest 38.5 % at step 230; first >= 0.7 at step —)  full at step   —  last growth at step 230
       quartz ×3 @ 37.2 (→230), albite ×2 @ 32.4 (→230), feldspar ×2 @ 21.8 (→230), tourmaline ×8 @ 12.0 (→197), lepidolite ×3 @ 4.0 (→159), topaz ×6 @ 2.5 (→215), spodumene ×5 @ 2.2 (→158), cassiterite ×8 @ 1.5 (→230)
-      against A: 8 species; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none
+      against A: 8 species present in either arm; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none; the baseline summary differs
 seed 2
-  A shipped        fill 100.0 %  full at step  10  last growth at step  10
-      feldspar ×2 @ 36.8 (→10), albite ×1 @ 29.6 (→10), quartz ×3 @ 1.6 (→10), tourmaline ×3 @ 0.390 (→9), spodumene ×4 @ 0.130 (→9), cassiterite ×4 @ 0.014 (→9), lepidolite ×4 @ 0.012 (→9)
-  B cap=8          fill  41.0 %  full at step   —  last growth at step 230
+  A shipped        fill 100.0 % (largest 100.0 % at step 10; first >= 0.7 at step 7)  full at step  10  last growth at step  10
+      feldspar ×2 @ 36.8 (→10), albite ×1 @ 29.6 (→10), quartz ×2 @ 1.6 (→10), tourmaline ×3 @ 0.390 (→9), spodumene ×4 @ 0.130 (→9), cassiterite ×2 @ 0.014 (→9), lepidolite ×1 @ 0.012 (→9)
+  B cap=8          fill  41.0 % (largest 41.0 % at step 230; first >= 0.7 at step —)  full at step   —  last growth at step 230
       quartz ×3 @ 37.3 (→230), albite ×2 @ 32.5 (→230), feldspar ×2 @ 24.7 (→230), tourmaline ×8 @ 12.0 (→197), spodumene ×4 @ 5.1 (→159), lepidolite ×4 @ 3.4 (→159), topaz ×6 @ 2.5 (→215), cassiterite ×5 @ 1.4 (→230)
-      against A: 8 species; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none
-  B rclamp=7       fill  41.0 %  full at step   —  last growth at step 230
+      against A: 8 species present in either arm; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none; the baseline summary differs
+  B rclamp=7       fill  41.0 % (largest 41.0 % at step 230; first >= 0.7 at step —)  full at step   —  last growth at step 230
       quartz ×3 @ 37.3 (→230), albite ×2 @ 32.5 (→230), feldspar ×2 @ 24.7 (→230), tourmaline ×8 @ 12.0 (→197), spodumene ×4 @ 5.1 (→159), lepidolite ×4 @ 3.4 (→159), topaz ×6 @ 2.5 (→215), cassiterite ×5 @ 1.4 (→230)
-      against A: 8 species; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none
-  B fcap=2         fill  25.9 %  full at step   —  last growth at step 230
+      against A: 8 species present in either arm; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none; the baseline summary differs
+  B fcap=2         fill  25.9 % (largest 25.9 % at step 230; first >= 0.7 at step —)  full at step   —  last growth at step 230
       quartz ×3 @ 36.4 (→230), albite ×2 @ 25.5 (→230), feldspar ×2 @ 14.6 (→230), tourmaline ×8 @ 12.0 (→197), spodumene ×4 @ 5.1 (→159), lepidolite ×4 @ 3.4 (→159), topaz ×6 @ 2.5 (→215), cassiterite ×5 @ 1.4 (→230)
-      against A: 8 species; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none
-  B root=3         fill  37.2 %  full at step   —  last growth at step 230
+      against A: 8 species present in either arm; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none; the baseline summary differs
+  B root=3         fill  37.2 % (largest 37.2 % at step 230; first >= 0.7 at step —)  full at step   —  last growth at step 230
       quartz ×3 @ 37.3 (→230), albite ×2 @ 33.2 (→230), feldspar ×2 @ 21.7 (→230), tourmaline ×8 @ 12.0 (→197), spodumene ×4 @ 5.1 (→159), lepidolite ×4 @ 3.4 (→159), topaz ×6 @ 2.5 (→215), cassiterite ×5 @ 1.4 (→230)
-      against A: 8 species; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none
+      against A: 8 species present in either arm; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none; the baseline summary differs
 
 ### grimsel_alpine_cleft — 200 steps — events: 15 Cleft Opens (D1) | 45 Fissure Seals | 65 Cleft Re-opens (D2) | 90 Iron-Rose Stage | 115 Fissure Re-seals | 135 Cleft Re-opens (D3) | 165 Late Carbonate Stage
 seed 42 (shipped arm reproduces the baseline)
-  A shipped        fill   0.1 %  full at step   —  last growth at step 200
+  A shipped        fill   0.1 % (largest 0.1 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       calcite ×1 @ 13.0 (→200), quartz ×4 @ 6.7 (→200), albite ×2 @ 6.5 (→114), feldspar ×2 @ 5.3 (→114), apophyllite ×2 @ 2.3 (→200), apatite ×6 @ 1.6 (→200), hematite ×2 @ 1.2 (→200), titanite ×6 @ 1.1 (→200), epidote ×7 @ 1.0 (→171), fluorite ×1 @ 0.514 (→200)
-  B cap=8          fill   0.1 %  full at step   —  last growth at step 200
+  B cap=8          fill   0.1 % (largest 0.1 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       calcite ×1 @ 13.0 (→200), quartz ×4 @ 6.7 (→200), albite ×2 @ 6.5 (→114), feldspar ×2 @ 5.3 (→114), apophyllite ×2 @ 2.3 (→200), apatite ×6 @ 1.6 (→200), hematite ×2 @ 1.2 (→200), titanite ×6 @ 1.1 (→200), epidote ×7 @ 1.0 (→171), fluorite ×1 @ 0.514 (→200)
-      against A: 10 species; moved 0; gained none; lost none
-  B rclamp=7       fill   0.1 %  full at step   —  last growth at step 200
+      against A: 10 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+  B rclamp=7       fill   0.1 % (largest 0.1 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       calcite ×1 @ 13.0 (→200), quartz ×4 @ 6.7 (→200), albite ×2 @ 6.5 (→114), feldspar ×2 @ 5.3 (→114), apophyllite ×2 @ 2.3 (→200), apatite ×6 @ 1.6 (→200), hematite ×2 @ 1.2 (→200), titanite ×6 @ 1.1 (→200), epidote ×7 @ 1.0 (→171), fluorite ×1 @ 0.514 (→200)
-      against A: 10 species; moved 0; gained none; lost none
-  B fcap=2         fill   0.1 %  full at step   —  last growth at step 200
+      against A: 10 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+  B fcap=2         fill   0.1 % (largest 0.1 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       calcite ×1 @ 13.2 (→200), quartz ×4 @ 6.8 (→200), apophyllite ×1 @ 2.3 (→200), apatite ×6 @ 1.6 (→200), hematite ×1 @ 1.3 (→200), titanite ×3 @ 1.1 (→200), epidote ×5 @ 1.0 (→170), fluorite ×1 @ 0.531 (→200)
-      against A: 10 species; moved 4 (apophyllite, epidote, hematite, titanite); gained none; lost albite, feldspar
-  B root=3         fill   0.1 %  full at step   —  last growth at step 200
+      against A: 10 species present in either arm; moved 4 (apophyllite, epidote, hematite, titanite); gained none; lost albite, feldspar; the baseline summary differs
+  B root=3         fill   0.1 % (largest 0.1 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       calcite ×1 @ 12.9 (→200), quartz ×4 @ 6.9 (→200), apophyllite ×1 @ 2.3 (→200), apatite ×6 @ 1.6 (→200), albite ×2 @ 1.4 (→114), hematite ×1 @ 1.3 (→200), titanite ×4 @ 1.1 (→200), feldspar ×1 @ 1.1 (→114), epidote ×6 @ 0.999 (→170), fluorite ×1 @ 0.506 (→200)
-      against A: 10 species; moved 6 (albite, apophyllite, epidote, feldspar, hematite, titanite); gained none; lost none
+      against A: 10 species present in either arm; moved 6 (albite, apophyllite, epidote, feldspar, hematite, titanite); gained none; lost none; the baseline summary differs
 seed 1
-  A shipped        fill   0.1 %  full at step   —  last growth at step 200
+  A shipped        fill   0.1 % (largest 0.1 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       calcite ×1 @ 12.7 (→200), quartz ×4 @ 6.7 (→200), albite ×2 @ 6.6 (→114), feldspar ×2 @ 5.2 (→114), apophyllite ×1 @ 2.2 (→200), apatite ×6 @ 1.6 (→200), hematite ×1 @ 1.3 (→200), titanite ×3 @ 1.1 (→200), epidote ×6 @ 1.0 (→171), fluorite ×1 @ 0.512 (→200)
-  B cap=8          fill   0.1 %  full at step   —  last growth at step 200
+  B cap=8          fill   0.1 % (largest 0.1 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       calcite ×1 @ 12.7 (→200), quartz ×4 @ 6.7 (→200), albite ×2 @ 6.6 (→114), feldspar ×2 @ 5.2 (→114), apophyllite ×1 @ 2.2 (→200), apatite ×6 @ 1.6 (→200), hematite ×1 @ 1.3 (→200), titanite ×3 @ 1.1 (→200), epidote ×6 @ 1.0 (→171), fluorite ×1 @ 0.512 (→200)
-      against A: 10 species; moved 0; gained none; lost none
-  B rclamp=7       fill   0.1 %  full at step   —  last growth at step 200
+      against A: 10 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+  B rclamp=7       fill   0.1 % (largest 0.1 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       calcite ×1 @ 12.7 (→200), quartz ×4 @ 6.7 (→200), albite ×2 @ 6.6 (→114), feldspar ×2 @ 5.2 (→114), apophyllite ×1 @ 2.2 (→200), apatite ×6 @ 1.6 (→200), hematite ×1 @ 1.3 (→200), titanite ×3 @ 1.1 (→200), epidote ×6 @ 1.0 (→171), fluorite ×1 @ 0.512 (→200)
-      against A: 10 species; moved 0; gained none; lost none
-  B fcap=2         fill   0.1 %  full at step   —  last growth at step 200
+      against A: 10 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+  B fcap=2         fill   0.1 % (largest 0.1 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       calcite ×1 @ 12.9 (→200), quartz ×4 @ 6.6 (→200), apophyllite ×1 @ 2.3 (→200), apatite ×6 @ 1.6 (→200), hematite ×2 @ 1.2 (→200), titanite ×3 @ 1.1 (→200), epidote ×5 @ 1.0 (→170), fluorite ×1 @ 0.509 (→200)
-      against A: 10 species; moved 2 (epidote, hematite); gained none; lost albite, feldspar
-  B root=3         fill   0.1 %  full at step   —  last growth at step 200
+      against A: 10 species present in either arm; moved 2 (epidote, hematite); gained none; lost albite, feldspar; the baseline summary differs
+  B root=3         fill   0.1 % (largest 0.1 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       calcite ×1 @ 13.4 (→200), quartz ×3 @ 6.9 (→200), apophyllite ×1 @ 2.2 (→200), apatite ×6 @ 1.6 (→200), albite ×2 @ 1.3 (→114), hematite ×2 @ 1.2 (→200), titanite ×3 @ 1.1 (→200), feldspar ×1 @ 1.0 (→114), epidote ×6 @ 1.0 (→171), fluorite ×1 @ 0.514 (→200)
-      against A: 10 species; moved 4 (albite, feldspar, hematite, quartz); gained none; lost none
+      against A: 10 species present in either arm; moved 4 (albite, feldspar, hematite, quartz); gained none; lost none; the baseline summary differs
 seed 2
-  A shipped        fill   0.1 %  full at step   —  last growth at step 200
+  A shipped        fill   0.1 % (largest 0.1 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       calcite ×1 @ 13.3 (→200), quartz ×3 @ 6.8 (→200), albite ×2 @ 6.5 (→114), feldspar ×2 @ 5.3 (→114), apophyllite ×1 @ 2.2 (→200), apatite ×6 @ 1.7 (→200), hematite ×1 @ 1.3 (→200), titanite ×4 @ 1.1 (→200), epidote ×6 @ 1.0 (→170), fluorite ×1 @ 0.493 (→200)
-  B cap=8          fill   0.1 %  full at step   —  last growth at step 200
+  B cap=8          fill   0.1 % (largest 0.1 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       calcite ×1 @ 13.3 (→200), quartz ×3 @ 6.8 (→200), albite ×2 @ 6.5 (→114), feldspar ×2 @ 5.3 (→114), apophyllite ×1 @ 2.2 (→200), apatite ×6 @ 1.7 (→200), hematite ×1 @ 1.3 (→200), titanite ×4 @ 1.1 (→200), epidote ×6 @ 1.0 (→170), fluorite ×1 @ 0.493 (→200)
-      against A: 10 species; moved 0; gained none; lost none
-  B rclamp=7       fill   0.1 %  full at step   —  last growth at step 200
+      against A: 10 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+  B rclamp=7       fill   0.1 % (largest 0.1 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       calcite ×1 @ 13.3 (→200), quartz ×3 @ 6.8 (→200), albite ×2 @ 6.5 (→114), feldspar ×2 @ 5.3 (→114), apophyllite ×1 @ 2.2 (→200), apatite ×6 @ 1.7 (→200), hematite ×1 @ 1.3 (→200), titanite ×4 @ 1.1 (→200), epidote ×6 @ 1.0 (→170), fluorite ×1 @ 0.493 (→200)
-      against A: 10 species; moved 0; gained none; lost none
-  B fcap=2         fill   0.1 %  full at step   —  last growth at step 200
+      against A: 10 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+  B fcap=2         fill   0.1 % (largest 0.1 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       calcite ×1 @ 12.9 (→200), quartz ×3 @ 6.6 (→200), apophyllite ×1 @ 2.3 (→200), apatite ×6 @ 1.6 (→200), hematite ×1 @ 1.3 (→200), titanite ×3 @ 1.1 (→200), epidote ×5 @ 1.0 (→171), fluorite ×1 @ 0.521 (→200)
-      against A: 10 species; moved 2 (epidote, titanite); gained none; lost albite, feldspar
-  B root=3         fill   0.1 %  full at step   —  last growth at step 200
+      against A: 10 species present in either arm; moved 2 (epidote, titanite); gained none; lost albite, feldspar; the baseline summary differs
+  B root=3         fill   0.1 % (largest 0.1 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       calcite ×1 @ 12.6 (→200), quartz ×4 @ 6.9 (→200), apophyllite ×1 @ 2.3 (→200), apatite ×6 @ 1.7 (→200), albite ×2 @ 1.3 (→114), hematite ×1 @ 1.3 (→200), feldspar ×1 @ 1.1 (→114), titanite ×6 @ 1.0 (→200), epidote ×5 @ 1.0 (→171), fluorite ×1 @ 0.499 (→200)
-      against A: 10 species; moved 5 (albite, epidote, feldspar, quartz, titanite); gained none; lost none
+      against A: 10 species present in either arm; moved 5 (albite, epidote, feldspar, quartz, titanite); gained none; lost none; the baseline summary differs
 
 ### jeffrey_mine — 200 steps — events: 25 Serpentinization Onset | 60 Mafic Dike Alteration | 100 Mid-Rodingite (Cyprine) | 140 Late Ca-Silicates | 170 Terminal Datolite
 seed 42 (shipped arm reproduces the baseline)
-  A shipped        fill   1.2 %  full at step   —  last growth at step 200
+  A shipped        fill   1.2 % (largest 1.2 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       vesuvianite ×4 @ 13.1 (→200), albite ×2 @ 11.0 (→200), diopside ×4 @ 9.1 (→200), grossular ×8 @ 6.4 (→200), actinolite ×4 @ 4.4 (→200), awaruite ×3 @ 3.5 (→200), prehnite ×5 @ 2.6 (→200), calcite ×1 @ 2.2 (→139), chrysotile ×1 @ 1.9 (→200), brucite ×2 @ 0.788 (→153), datolite ×3 @ 0.396 (→200), wollastonite ×1 @ 0.390 (→172), pectolite ×4 @ 0.311 (→181)
-  B cap=8          fill   1.2 %  full at step   —  last growth at step 200
+  B cap=8          fill   1.2 % (largest 1.2 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       vesuvianite ×4 @ 13.1 (→200), diopside ×4 @ 9.1 (→200), albite ×2 @ 8.4 (→200), grossular ×8 @ 6.4 (→200), actinolite ×4 @ 4.4 (→200), awaruite ×3 @ 3.5 (→200), prehnite ×5 @ 2.6 (→200), calcite ×1 @ 2.2 (→139), chrysotile ×1 @ 1.9 (→200), brucite ×2 @ 0.788 (→153), datolite ×3 @ 0.396 (→200), wollastonite ×1 @ 0.390 (→172), pectolite ×4 @ 0.311 (→181)
-      against A: 13 species; moved 1 (albite); gained none; lost none
-  B rclamp=7       fill   1.2 %  full at step   —  last growth at step 200
+      against A: 13 species present in either arm; moved 1 (albite); gained none; lost none; the baseline summary differs
+  B rclamp=7       fill   1.2 % (largest 1.2 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       vesuvianite ×4 @ 13.1 (→200), diopside ×4 @ 9.1 (→200), albite ×2 @ 8.4 (→200), grossular ×8 @ 6.4 (→200), actinolite ×4 @ 4.4 (→200), awaruite ×3 @ 3.5 (→200), prehnite ×5 @ 2.6 (→200), calcite ×1 @ 2.2 (→139), chrysotile ×1 @ 1.9 (→200), brucite ×2 @ 0.788 (→153), datolite ×3 @ 0.396 (→200), wollastonite ×1 @ 0.390 (→172), pectolite ×4 @ 0.311 (→181)
-      against A: 13 species; moved 1 (albite); gained none; lost none
-  B fcap=2         fill   1.2 %  full at step   —  last growth at step 200
+      against A: 13 species present in either arm; moved 1 (albite); gained none; lost none; the baseline summary differs
+  B fcap=2         fill   1.2 % (largest 1.2 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       vesuvianite ×4 @ 13.1 (→200), diopside ×4 @ 9.1 (→200), grossular ×8 @ 6.4 (→200), actinolite ×4 @ 4.4 (→200), awaruite ×3 @ 3.5 (→200), prehnite ×5 @ 2.6 (→200), albite ×2 @ 2.5 (→200), calcite ×1 @ 2.2 (→139), chrysotile ×1 @ 1.9 (→200), brucite ×2 @ 0.788 (→153), datolite ×3 @ 0.396 (→200), wollastonite ×1 @ 0.390 (→172), pectolite ×4 @ 0.311 (→181)
-      against A: 13 species; moved 1 (albite); gained none; lost none
-  B root=3         fill   1.2 %  full at step   —  last growth at step 200
+      against A: 13 species present in either arm; moved 1 (albite); gained none; lost none; the baseline summary differs
+  B root=3         fill   1.2 % (largest 1.2 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       vesuvianite ×4 @ 13.1 (→200), diopside ×4 @ 9.1 (→200), grossular ×8 @ 6.4 (→200), actinolite ×4 @ 4.4 (→200), awaruite ×3 @ 3.5 (→200), prehnite ×5 @ 2.6 (→200), calcite ×1 @ 2.2 (→139), chrysotile ×1 @ 1.9 (→200), albite ×2 @ 1.5 (→200), brucite ×2 @ 0.788 (→153), datolite ×3 @ 0.396 (→200), wollastonite ×1 @ 0.390 (→172), pectolite ×4 @ 0.311 (→181)
-      against A: 13 species; moved 1 (albite); gained none; lost none
+      against A: 13 species present in either arm; moved 1 (albite); gained none; lost none; the baseline summary differs
 seed 1
-  A shipped        fill   1.1 %  full at step   —  last growth at step 200
+  A shipped        fill   1.1 % (largest 1.1 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       vesuvianite ×4 @ 12.5 (→200), albite ×2 @ 10.4 (→200), diopside ×4 @ 8.9 (→200), grossular ×5 @ 4.7 (→200), actinolite ×4 @ 4.5 (→200), awaruite ×3 @ 3.6 (→200), prehnite ×5 @ 3.1 (→200), calcite ×1 @ 2.0 (→155), chrysotile ×1 @ 1.9 (→200), brucite ×4 @ 1.2 (→190), datolite ×3 @ 0.544 (→200), wollastonite ×2 @ 0.343 (→200), pectolite ×4 @ 0.303 (→190)
-  B cap=8          fill   1.0 %  full at step   —  last growth at step 200
+  B cap=8          fill   1.0 % (largest 1.0 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       vesuvianite ×4 @ 12.5 (→200), diopside ×4 @ 8.9 (→200), albite ×2 @ 8.2 (→200), grossular ×5 @ 4.7 (→200), actinolite ×4 @ 4.5 (→200), awaruite ×3 @ 3.6 (→200), prehnite ×5 @ 3.1 (→200), calcite ×1 @ 2.0 (→155), chrysotile ×1 @ 1.9 (→200), brucite ×4 @ 1.2 (→190), datolite ×3 @ 0.544 (→200), wollastonite ×2 @ 0.343 (→200), pectolite ×4 @ 0.303 (→190)
-      against A: 13 species; moved 1 (albite); gained none; lost none
-  B rclamp=7       fill   1.0 %  full at step   —  last growth at step 200
+      against A: 13 species present in either arm; moved 1 (albite); gained none; lost none; the baseline summary differs
+  B rclamp=7       fill   1.0 % (largest 1.0 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       vesuvianite ×4 @ 12.5 (→200), diopside ×4 @ 8.9 (→200), albite ×2 @ 8.2 (→200), grossular ×5 @ 4.7 (→200), actinolite ×4 @ 4.5 (→200), awaruite ×3 @ 3.6 (→200), prehnite ×5 @ 3.1 (→200), calcite ×1 @ 2.0 (→155), chrysotile ×1 @ 1.9 (→200), brucite ×4 @ 1.2 (→190), datolite ×3 @ 0.544 (→200), wollastonite ×2 @ 0.343 (→200), pectolite ×4 @ 0.303 (→190)
-      against A: 13 species; moved 1 (albite); gained none; lost none
-  B fcap=2         fill   1.0 %  full at step   —  last growth at step 200
+      against A: 13 species present in either arm; moved 1 (albite); gained none; lost none; the baseline summary differs
+  B fcap=2         fill   1.0 % (largest 1.0 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       vesuvianite ×4 @ 12.5 (→200), diopside ×4 @ 9.0 (→200), grossular ×5 @ 4.8 (→200), actinolite ×4 @ 4.5 (→200), awaruite ×3 @ 3.5 (→200), prehnite ×4 @ 3.1 (→200), albite ×2 @ 2.4 (→200), calcite ×1 @ 2.0 (→155), chrysotile ×1 @ 1.9 (→200), brucite ×4 @ 1.2 (→190), datolite ×3 @ 0.545 (→200), wollastonite ×2 @ 0.340 (→200), pectolite ×4 @ 0.307 (→190)
-      against A: 13 species; moved 2 (albite, prehnite); gained none; lost none
-  B root=3         fill   1.0 %  full at step   —  last growth at step 200
+      against A: 13 species present in either arm; moved 2 (albite, prehnite); gained none; lost none; the baseline summary differs
+  B root=3         fill   1.0 % (largest 1.0 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       vesuvianite ×4 @ 12.5 (→200), diopside ×4 @ 9.0 (→200), grossular ×5 @ 4.8 (→200), actinolite ×4 @ 4.5 (→200), awaruite ×3 @ 3.5 (→200), prehnite ×4 @ 3.1 (→200), calcite ×1 @ 2.0 (→155), chrysotile ×1 @ 1.9 (→200), albite ×2 @ 1.4 (→200), brucite ×4 @ 1.2 (→190), datolite ×3 @ 0.545 (→200), wollastonite ×2 @ 0.339 (→200), pectolite ×4 @ 0.309 (→190)
-      against A: 13 species; moved 2 (albite, prehnite); gained none; lost none
+      against A: 13 species present in either arm; moved 2 (albite, prehnite); gained none; lost none; the baseline summary differs
 seed 2
-  A shipped        fill   1.4 %  full at step   —  last growth at step 200
+  A shipped        fill   1.4 % (largest 1.4 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       vesuvianite ×4 @ 12.7 (→200), albite ×2 @ 11.2 (→200), diopside ×4 @ 9.1 (→200), grossular ×4 @ 6.2 (→200), actinolite ×4 @ 4.3 (→200), awaruite ×3 @ 3.4 (→200), prehnite ×4 @ 3.3 (→200), calcite ×1 @ 2.1 (→139), chrysotile ×1 @ 1.9 (→200), brucite ×4 @ 1.0 (→189), datolite ×3 @ 0.585 (→200), wollastonite ×1 @ 0.455 (→200), pectolite ×5 @ 0.440 (→189)
-  B cap=8          fill   1.3 %  full at step   —  last growth at step 200
+  B cap=8          fill   1.3 % (largest 1.3 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       vesuvianite ×4 @ 12.7 (→200), diopside ×4 @ 9.1 (→200), albite ×2 @ 8.6 (→200), grossular ×4 @ 6.2 (→200), actinolite ×4 @ 4.3 (→200), awaruite ×3 @ 3.4 (→200), prehnite ×4 @ 3.3 (→200), calcite ×1 @ 2.1 (→139), chrysotile ×1 @ 1.9 (→200), brucite ×4 @ 1.0 (→189), datolite ×3 @ 0.585 (→200), wollastonite ×1 @ 0.455 (→200), pectolite ×5 @ 0.440 (→189)
-      against A: 13 species; moved 1 (albite); gained none; lost none
-  B rclamp=7       fill   1.3 %  full at step   —  last growth at step 200
+      against A: 13 species present in either arm; moved 1 (albite); gained none; lost none; the baseline summary differs
+  B rclamp=7       fill   1.3 % (largest 1.3 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       vesuvianite ×4 @ 12.7 (→200), diopside ×4 @ 9.1 (→200), albite ×2 @ 8.6 (→200), grossular ×4 @ 6.2 (→200), actinolite ×4 @ 4.3 (→200), awaruite ×3 @ 3.4 (→200), prehnite ×4 @ 3.3 (→200), calcite ×1 @ 2.1 (→139), chrysotile ×1 @ 1.9 (→200), brucite ×4 @ 1.0 (→189), datolite ×3 @ 0.585 (→200), wollastonite ×1 @ 0.455 (→200), pectolite ×5 @ 0.440 (→189)
-      against A: 13 species; moved 1 (albite); gained none; lost none
-  B fcap=2         fill   1.3 %  full at step   —  last growth at step 200
+      against A: 13 species present in either arm; moved 1 (albite); gained none; lost none; the baseline summary differs
+  B fcap=2         fill   1.3 % (largest 1.3 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       vesuvianite ×4 @ 12.7 (→200), diopside ×4 @ 9.1 (→200), grossular ×4 @ 6.2 (→200), actinolite ×4 @ 4.3 (→200), awaruite ×3 @ 3.4 (→200), prehnite ×4 @ 3.3 (→200), albite ×2 @ 2.5 (→200), calcite ×1 @ 2.1 (→139), chrysotile ×1 @ 1.9 (→200), brucite ×4 @ 1.0 (→189), datolite ×3 @ 0.585 (→200), wollastonite ×1 @ 0.455 (→200), pectolite ×5 @ 0.440 (→189)
-      against A: 13 species; moved 1 (albite); gained none; lost none
-  B root=3         fill   1.3 %  full at step   —  last growth at step 200
+      against A: 13 species present in either arm; moved 1 (albite); gained none; lost none; the baseline summary differs
+  B root=3         fill   1.3 % (largest 1.3 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       vesuvianite ×4 @ 12.7 (→200), diopside ×4 @ 9.1 (→200), grossular ×4 @ 6.2 (→200), actinolite ×4 @ 4.3 (→200), awaruite ×3 @ 3.4 (→200), prehnite ×4 @ 3.3 (→200), calcite ×1 @ 2.1 (→139), chrysotile ×1 @ 1.9 (→200), albite ×2 @ 1.5 (→200), brucite ×4 @ 1.0 (→189), datolite ×3 @ 0.585 (→200), wollastonite ×1 @ 0.455 (→200), pectolite ×5 @ 0.440 (→189)
-      against A: 13 species; moved 1 (albite); gained none; lost none
+      against A: 13 species present in either arm; moved 1 (albite); gained none; lost none; the baseline summary differs
 
 ### ouro_preto — 260 steps — events: 5 Vein Opening | 35 F-Pulse | 55 Cr Leach | 90 Steady Cooling | 150 Late Hydrothermal | 200 Oxidation Stain | 240 Final Cooling
 seed 42 (shipped arm reproduces the baseline)
-  A shipped        fill  28.8 %  full at step   —  last growth at step 260
+  A shipped        fill  28.8 % (largest 28.8 % at step 260; first >= 0.7 at step —)  full at step   —  last growth at step 260
       albite ×2 @ 39.6 (→260), feldspar ×2 @ 16.9 (→260), topaz ×6 @ 5.3 (→239), quartz ×7 @ 5.0 (→260)
-  B cap=8          fill  21.9 %  full at step   —  last growth at step 260
+  B cap=8          fill  21.9 % (largest 21.9 % at step 260; first >= 0.7 at step —)  full at step   —  last growth at step 260
       albite ×2 @ 30.7 (→260), feldspar ×2 @ 16.9 (→260), topaz ×6 @ 5.3 (→239), quartz ×5 @ 5.0 (→260)
-      against A: 4 species; moved 2 (albite, quartz); gained none; lost none
-  B rclamp=7       fill  21.9 %  full at step   —  last growth at step 260
+      against A: 4 species present in either arm; moved 2 (albite, quartz); gained none; lost none; the baseline summary differs
+  B rclamp=7       fill  21.9 % (largest 21.9 % at step 260; first >= 0.7 at step —)  full at step   —  last growth at step 260
       albite ×2 @ 30.7 (→260), feldspar ×2 @ 16.9 (→260), topaz ×6 @ 5.3 (→239), quartz ×5 @ 5.0 (→260)
-      against A: 4 species; moved 2 (albite, quartz); gained none; lost none
-  B fcap=2         fill   4.1 %  full at step   —  last growth at step 260
+      against A: 4 species present in either arm; moved 2 (albite, quartz); gained none; lost none; the baseline summary differs
+  B fcap=2         fill   4.1 % (largest 4.1 % at step 260; first >= 0.7 at step —)  full at step   —  last growth at step 260
       albite ×2 @ 21.2 (→260), feldspar ×2 @ 7.8 (→260), topaz ×6 @ 5.3 (→239), quartz ×5 @ 5.0 (→260)
-      against A: 4 species; moved 3 (albite, feldspar, quartz); gained none; lost none
-  B root=3         fill   0.3 %  full at step   —  last growth at step 260
+      against A: 4 species present in either arm; moved 3 (albite, feldspar, quartz); gained none; lost none; the baseline summary differs
+  B root=3         fill   0.3 % (largest 0.3 % at step 260; first >= 0.7 at step —)  full at step   —  last growth at step 260
       albite ×2 @ 5.6 (→260), topaz ×6 @ 5.3 (→239), quartz ×3 @ 5.3 (→260), feldspar ×2 @ 2.8 (→260)
-      against A: 4 species; moved 3 (albite, feldspar, quartz); gained none; lost none
+      against A: 4 species present in either arm; moved 3 (albite, feldspar, quartz); gained none; lost none; the baseline summary differs
 seed 1
-  A shipped        fill  32.3 %  full at step   —  last growth at step 260
+  A shipped        fill  32.3 % (largest 32.3 % at step 260; first >= 0.7 at step —)  full at step   —  last growth at step 260
       albite ×2 @ 41.3 (→260), feldspar ×2 @ 17.4 (→260), topaz ×6 @ 5.5 (→260), quartz ×6 @ 4.3 (→247)
-  B cap=8          fill  24.3 %  full at step   —  last growth at step 260
+  B cap=8          fill  24.3 % (largest 24.3 % at step 260; first >= 0.7 at step —)  full at step   —  last growth at step 260
       albite ×2 @ 31.8 (→260), feldspar ×2 @ 17.4 (→260), topaz ×6 @ 5.5 (→260), quartz ×6 @ 4.1 (→247)
-      against A: 4 species; moved 1 (albite); gained none; lost none
-  B rclamp=7       fill  24.3 %  full at step   —  last growth at step 260
+      against A: 4 species present in either arm; moved 1 (albite); gained none; lost none; the baseline summary differs
+  B rclamp=7       fill  24.3 % (largest 24.3 % at step 260; first >= 0.7 at step —)  full at step   —  last growth at step 260
       albite ×2 @ 31.8 (→260), feldspar ×2 @ 17.4 (→260), topaz ×6 @ 5.5 (→260), quartz ×6 @ 4.1 (→247)
-      against A: 4 species; moved 1 (albite); gained none; lost none
-  B fcap=2         fill   4.5 %  full at step   —  last growth at step 260
+      against A: 4 species present in either arm; moved 1 (albite); gained none; lost none; the baseline summary differs
+  B fcap=2         fill   4.5 % (largest 4.5 % at step 260; first >= 0.7 at step —)  full at step   —  last growth at step 260
       albite ×2 @ 22.1 (→260), feldspar ×2 @ 8.0 (→260), topaz ×6 @ 5.6 (→260), quartz ×6 @ 4.1 (→247)
-      against A: 4 species; moved 2 (albite, feldspar); gained none; lost none
-  B root=3         fill   0.3 %  full at step   —  last growth at step 260
+      against A: 4 species present in either arm; moved 2 (albite, feldspar); gained none; lost none; the baseline summary differs
+  B root=3         fill   0.3 % (largest 0.3 % at step 260; first >= 0.7 at step —)  full at step   —  last growth at step 260
       albite ×2 @ 5.8 (→260), topaz ×6 @ 5.6 (→260), quartz ×4 @ 4.3 (→247), feldspar ×2 @ 3.0 (→260)
-      against A: 4 species; moved 3 (albite, feldspar, quartz); gained none; lost none
+      against A: 4 species present in either arm; moved 3 (albite, feldspar, quartz); gained none; lost none; the baseline summary differs
 seed 2
-  A shipped        fill  22.8 %  full at step   —  last growth at step 260
+  A shipped        fill  22.8 % (largest 22.8 % at step 260; first >= 0.7 at step —)  full at step   —  last growth at step 260
       albite ×2 @ 36.8 (→260), feldspar ×2 @ 15.8 (→260), topaz ×6 @ 5.0 (→179), quartz ×6 @ 3.0 (→260)
-  B cap=8          fill  17.0 %  full at step   —  last growth at step 260
+  B cap=8          fill  17.0 % (largest 17.0 % at step 260; first >= 0.7 at step —)  full at step   —  last growth at step 260
       albite ×2 @ 27.9 (→260), feldspar ×2 @ 15.5 (→260), topaz ×6 @ 5.0 (→179), quartz ×5 @ 3.0 (→260)
-      against A: 4 species; moved 2 (albite, quartz); gained none; lost none
-  B rclamp=7       fill  17.0 %  full at step   —  last growth at step 260
+      against A: 4 species present in either arm; moved 2 (albite, quartz); gained none; lost none; the baseline summary differs
+  B rclamp=7       fill  17.0 % (largest 17.0 % at step 260; first >= 0.7 at step —)  full at step   —  last growth at step 260
       albite ×2 @ 27.9 (→260), feldspar ×2 @ 15.5 (→260), topaz ×6 @ 5.0 (→179), quartz ×5 @ 3.0 (→260)
-      against A: 4 species; moved 2 (albite, quartz); gained none; lost none
-  B fcap=2         fill   3.3 %  full at step   —  last growth at step 260
+      against A: 4 species present in either arm; moved 2 (albite, quartz); gained none; lost none; the baseline summary differs
+  B fcap=2         fill   3.3 % (largest 3.3 % at step 260; first >= 0.7 at step —)  full at step   —  last growth at step 260
       albite ×2 @ 19.8 (→257), feldspar ×2 @ 7.4 (→199), topaz ×6 @ 5.1 (→179), quartz ×5 @ 2.9 (→260)
-      against A: 4 species; moved 3 (albite, feldspar, quartz); gained none; lost none
-  B root=3         fill   0.2 %  full at step   —  last growth at step 260
+      against A: 4 species present in either arm; moved 3 (albite, feldspar, quartz); gained none; lost none; the baseline summary differs
+  B root=3         fill   0.2 % (largest 0.2 % at step 260; first >= 0.7 at step —)  full at step   —  last growth at step 260
       albite ×2 @ 5.1 (→260), topaz ×6 @ 5.0 (→179), quartz ×5 @ 2.9 (→260), feldspar ×2 @ 2.6 (→260)
-      against A: 4 species; moved 3 (albite, feldspar, quartz); gained none; lost none
+      against A: 4 species present in either arm; moved 3 (albite, feldspar, quartz); gained none; lost none; the baseline summary differs
 
 ### porphyry — 120 steps — events: 25 Copper Pulse | 45 Molybdenum Pulse | 60 Second Cu Pulse | 85 Exhumation + Oxidation | 95 Supergene Maturation
 seed 42 (shipped arm reproduces the baseline)
-  A shipped        fill  11.6 %  full at step   —  last growth at step 120
-      molybdenite ×3 @ 33.4 (→84), ferrimolybdite ×3 @ 13.5 (→120), galena ×4 @ 11.1 (→84), chalcopyrite ×1 @ 9.9 (→84), arsenopyrite ×4 @ 9.7 (→84), brochantite ×5 @ 4.6 (→120), acanthite ×4 @ 3.4 (→84), feldspar ×2 @ 2.5 (→84), albite ×2 @ 2.0 (→84), bismuthinite ×4 @ 1.2 (→84), malachite ×1 @ 0.888 (→120), anglesite ×4 @ 0.774 (→120), pyrite ×1 @ 0.647 (→84), hematite ×1 @ 0.444 (→120), goethite ×2 @ 0.336 (→120), stibnite ×2 @ 0.003 (→84), tetrahedrite ×1 @ 0.000 (→0), tennantite ×1 @ 0.000 (→0), magnetite ×1 @ 0.000 (→84)
-  B cap=8          fill  11.6 %  full at step   —  last growth at step 120
-      molybdenite ×3 @ 33.4 (→84), ferrimolybdite ×3 @ 13.5 (→120), galena ×4 @ 11.1 (→84), chalcopyrite ×1 @ 9.9 (→84), arsenopyrite ×4 @ 9.7 (→84), brochantite ×5 @ 4.6 (→120), acanthite ×4 @ 3.4 (→84), feldspar ×2 @ 2.5 (→84), albite ×2 @ 2.0 (→84), bismuthinite ×4 @ 1.2 (→84), malachite ×1 @ 0.888 (→120), anglesite ×4 @ 0.774 (→120), pyrite ×1 @ 0.647 (→84), hematite ×1 @ 0.444 (→120), goethite ×2 @ 0.336 (→120), stibnite ×2 @ 0.003 (→84), tetrahedrite ×1 @ 0.000 (→0), tennantite ×1 @ 0.000 (→0), magnetite ×1 @ 0.000 (→84)
-      against A: 19 species; moved 0; gained none; lost none
-  B rclamp=7       fill  11.6 %  full at step   —  last growth at step 120
-      molybdenite ×3 @ 33.4 (→84), ferrimolybdite ×3 @ 13.5 (→120), galena ×4 @ 11.1 (→84), chalcopyrite ×1 @ 9.9 (→84), arsenopyrite ×4 @ 9.7 (→84), brochantite ×5 @ 4.6 (→120), acanthite ×4 @ 3.4 (→84), feldspar ×2 @ 2.5 (→84), albite ×2 @ 2.0 (→84), bismuthinite ×4 @ 1.2 (→84), malachite ×1 @ 0.888 (→120), anglesite ×4 @ 0.774 (→120), pyrite ×1 @ 0.647 (→84), hematite ×1 @ 0.444 (→120), goethite ×2 @ 0.336 (→120), stibnite ×2 @ 0.003 (→84), tetrahedrite ×1 @ 0.000 (→0), tennantite ×1 @ 0.000 (→0), magnetite ×1 @ 0.000 (→84)
-      against A: 19 species; moved 0; gained none; lost none
-  B fcap=2         fill  12.3 %  full at step   —  last growth at step 120
-      molybdenite ×3 @ 35.0 (→84), ferrimolybdite ×3 @ 13.8 (→120), galena ×4 @ 11.1 (→84), chalcopyrite ×1 @ 10.1 (→84), arsenopyrite ×4 @ 9.6 (→84), brochantite ×5 @ 4.5 (→120), acanthite ×4 @ 3.4 (→84), feldspar ×2 @ 2.0 (→84), albite ×2 @ 1.5 (→84), bismuthinite ×4 @ 1.2 (→84), malachite ×1 @ 0.883 (→120), anglesite ×4 @ 0.752 (→120), pyrite ×1 @ 0.662 (→84), hematite ×1 @ 0.441 (→120), goethite ×2 @ 0.312 (→120), stibnite ×2 @ 0.003 (→84), tetrahedrite ×1 @ 0.000 (→0), tennantite ×1 @ 0.000 (→0), magnetite ×1 @ 0.000 (→84)
-      against A: 19 species; moved 1 (albite); gained none; lost none
-  B root=3         fill  12.0 %  full at step   —  last growth at step 120
-      molybdenite ×3 @ 33.9 (→84), galena ×4 @ 11.1 (→84), chalcopyrite ×1 @ 10.2 (→84), arsenopyrite ×4 @ 9.7 (→84), ferrimolybdite ×3 @ 6.5 (→120), brochantite ×5 @ 4.3 (→120), acanthite ×4 @ 3.4 (→84), goethite ×2 @ 1.2 (→120), bismuthinite ×4 @ 1.2 (→84), malachite ×1 @ 0.917 (→120), anglesite ×4 @ 0.776 (→120), albite ×1 @ 0.517 (→84), pyrite ×1 @ 0.511 (→84), hematite ×1 @ 0.458 (→120), feldspar ×1 @ 0.185 (→84), stibnite ×2 @ 0.003 (→84), tetrahedrite ×1 @ 0.000 (→0), tennantite ×1 @ 0.000 (→0), magnetite ×1 @ 0.000 (→84)
-      against A: 19 species; moved 5 (albite, feldspar, ferrimolybdite, goethite, pyrite); gained none; lost none
+  A shipped        fill  11.6 % (largest 12.1 % at step 84; first >= 0.7 at step —)  full at step   —  last growth at step 120
+      molybdenite ×3 @ 33.4 (→84), ferrimolybdite ×3 @ 13.5 (→120), galena ×4 @ 11.1 (→84), chalcopyrite ×1 @ 9.9 (→84), arsenopyrite ×4 @ 9.7 (→84), brochantite ×5 @ 4.6 (→120), acanthite ×4 @ 3.4 (→84), feldspar ×2 @ 2.5 (→84), albite ×2 @ 2.0 (→84), bismuthinite ×4 @ 1.2 (→84), malachite ×1 @ 0.888 (→120), anglesite ×4 @ 0.774 (→120), pyrite ×1 @ 0.647 (→84), hematite ×1 @ 0.444 (→120), goethite ×2 @ 0.336 (→120), stibnite ×2 @ 0.003 (→84)
+      no solid left: magnetite (1 record), tennantite (1 record), tetrahedrite (1 record)
+  B cap=8          fill  11.6 % (largest 12.1 % at step 84; first >= 0.7 at step —)  full at step   —  last growth at step 120
+      molybdenite ×3 @ 33.4 (→84), ferrimolybdite ×3 @ 13.5 (→120), galena ×4 @ 11.1 (→84), chalcopyrite ×1 @ 9.9 (→84), arsenopyrite ×4 @ 9.7 (→84), brochantite ×5 @ 4.6 (→120), acanthite ×4 @ 3.4 (→84), feldspar ×2 @ 2.5 (→84), albite ×2 @ 2.0 (→84), bismuthinite ×4 @ 1.2 (→84), malachite ×1 @ 0.888 (→120), anglesite ×4 @ 0.774 (→120), pyrite ×1 @ 0.647 (→84), hematite ×1 @ 0.444 (→120), goethite ×2 @ 0.336 (→120), stibnite ×2 @ 0.003 (→84)
+      no solid left: magnetite (1 record), tennantite (1 record), tetrahedrite (1 record)
+      against A: 16 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+  B rclamp=7       fill  11.6 % (largest 12.1 % at step 84; first >= 0.7 at step —)  full at step   —  last growth at step 120
+      molybdenite ×3 @ 33.4 (→84), ferrimolybdite ×3 @ 13.5 (→120), galena ×4 @ 11.1 (→84), chalcopyrite ×1 @ 9.9 (→84), arsenopyrite ×4 @ 9.7 (→84), brochantite ×5 @ 4.6 (→120), acanthite ×4 @ 3.4 (→84), feldspar ×2 @ 2.5 (→84), albite ×2 @ 2.0 (→84), bismuthinite ×4 @ 1.2 (→84), malachite ×1 @ 0.888 (→120), anglesite ×4 @ 0.774 (→120), pyrite ×1 @ 0.647 (→84), hematite ×1 @ 0.444 (→120), goethite ×2 @ 0.336 (→120), stibnite ×2 @ 0.003 (→84)
+      no solid left: magnetite (1 record), tennantite (1 record), tetrahedrite (1 record)
+      against A: 16 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+  B fcap=2         fill  12.3 % (largest 12.8 % at step 84; first >= 0.7 at step —)  full at step   —  last growth at step 120
+      molybdenite ×3 @ 35.0 (→84), ferrimolybdite ×3 @ 13.8 (→120), galena ×4 @ 11.1 (→84), chalcopyrite ×1 @ 10.1 (→84), arsenopyrite ×4 @ 9.6 (→84), brochantite ×5 @ 4.5 (→120), acanthite ×4 @ 3.4 (→84), feldspar ×2 @ 2.0 (→84), albite ×2 @ 1.5 (→84), bismuthinite ×4 @ 1.2 (→84), malachite ×1 @ 0.883 (→120), anglesite ×4 @ 0.752 (→120), pyrite ×1 @ 0.662 (→84), hematite ×1 @ 0.441 (→120), goethite ×2 @ 0.312 (→120), stibnite ×2 @ 0.003 (→84)
+      no solid left: magnetite (1 record), tennantite (1 record), tetrahedrite (1 record)
+      against A: 16 species present in either arm; moved 1 (albite); gained none; lost none; the baseline summary differs
+  B root=3         fill  12.0 % (largest 12.9 % at step 84; first >= 0.7 at step —)  full at step   —  last growth at step 120
+      molybdenite ×3 @ 33.9 (→84), galena ×4 @ 11.1 (→84), chalcopyrite ×1 @ 10.2 (→84), arsenopyrite ×4 @ 9.7 (→84), ferrimolybdite ×3 @ 6.5 (→120), brochantite ×5 @ 4.3 (→120), acanthite ×4 @ 3.4 (→84), goethite ×2 @ 1.2 (→120), bismuthinite ×4 @ 1.2 (→84), malachite ×1 @ 0.917 (→120), anglesite ×4 @ 0.776 (→120), albite ×1 @ 0.517 (→84), pyrite ×1 @ 0.511 (→84), hematite ×1 @ 0.458 (→120), feldspar ×1 @ 0.185 (→84), stibnite ×2 @ 0.003 (→84)
+      no solid left: magnetite (1 record), tennantite (1 record), tetrahedrite (1 record)
+      against A: 16 species present in either arm; moved 5 (albite, feldspar, ferrimolybdite, goethite, pyrite); gained none; lost none; the baseline summary differs
 seed 1
-  A shipped        fill  13.8 %  full at step   —  last growth at step 120
-      molybdenite ×3 @ 30.9 (→84), ferrimolybdite ×6 @ 18.5 (→120), galena ×4 @ 11.1 (→84), arsenopyrite ×4 @ 9.4 (→84), brochantite ×4 @ 4.3 (→120), acanthite ×4 @ 3.2 (→84), chalcopyrite ×1 @ 2.9 (→84), feldspar ×2 @ 2.6 (→84), pyrite ×1 @ 2.5 (→84), albite ×2 @ 1.9 (→84), goethite ×2 @ 1.2 (→120), bismuthinite ×4 @ 1.1 (→84), anglesite ×4 @ 0.748 (→120), hematite ×1 @ 0.441 (→120), malachite ×1 @ 0.216 (→120), stibnite ×2 @ 0.003 (→84), tetrahedrite ×1 @ 0.000 (→0), tennantite ×1 @ 0.000 (→0), magnetite ×1 @ 0.000 (→84)
-  B cap=8          fill  13.8 %  full at step   —  last growth at step 120
-      molybdenite ×3 @ 30.9 (→84), ferrimolybdite ×6 @ 18.5 (→120), galena ×4 @ 11.1 (→84), arsenopyrite ×4 @ 9.4 (→84), brochantite ×4 @ 4.3 (→120), acanthite ×4 @ 3.2 (→84), chalcopyrite ×1 @ 2.9 (→84), feldspar ×2 @ 2.6 (→84), pyrite ×1 @ 2.5 (→84), albite ×2 @ 1.9 (→84), goethite ×2 @ 1.2 (→120), bismuthinite ×4 @ 1.1 (→84), anglesite ×4 @ 0.748 (→120), hematite ×1 @ 0.441 (→120), malachite ×1 @ 0.216 (→120), stibnite ×2 @ 0.003 (→84), tetrahedrite ×1 @ 0.000 (→0), tennantite ×1 @ 0.000 (→0), magnetite ×1 @ 0.000 (→84)
-      against A: 19 species; moved 0; gained none; lost none
-  B rclamp=7       fill  13.8 %  full at step   —  last growth at step 120
-      molybdenite ×3 @ 30.9 (→84), ferrimolybdite ×6 @ 18.5 (→120), galena ×4 @ 11.1 (→84), arsenopyrite ×4 @ 9.4 (→84), brochantite ×4 @ 4.3 (→120), acanthite ×4 @ 3.2 (→84), chalcopyrite ×1 @ 2.9 (→84), feldspar ×2 @ 2.6 (→84), pyrite ×1 @ 2.5 (→84), albite ×2 @ 1.9 (→84), goethite ×2 @ 1.2 (→120), bismuthinite ×4 @ 1.1 (→84), anglesite ×4 @ 0.748 (→120), hematite ×1 @ 0.441 (→120), malachite ×1 @ 0.216 (→120), stibnite ×2 @ 0.003 (→84), tetrahedrite ×1 @ 0.000 (→0), tennantite ×1 @ 0.000 (→0), magnetite ×1 @ 0.000 (→84)
-      against A: 19 species; moved 0; gained none; lost none
-  B fcap=2         fill  14.0 %  full at step   —  last growth at step 120
-      molybdenite ×3 @ 31.1 (→84), ferrimolybdite ×6 @ 18.5 (→120), galena ×4 @ 11.1 (→84), arsenopyrite ×4 @ 9.5 (→84), brochantite ×4 @ 4.4 (→120), acanthite ×4 @ 3.3 (→84), chalcopyrite ×1 @ 3.0 (→84), pyrite ×1 @ 2.5 (→84), feldspar ×2 @ 2.0 (→84), albite ×2 @ 1.4 (→84), goethite ×2 @ 1.2 (→120), bismuthinite ×4 @ 1.2 (→84), anglesite ×4 @ 0.737 (→120), hematite ×1 @ 0.447 (→120), malachite ×1 @ 0.228 (→120), stibnite ×2 @ 0.003 (→84), tetrahedrite ×1 @ 0.000 (→0), tennantite ×1 @ 0.000 (→0), magnetite ×1 @ 0.000 (→84)
-      against A: 19 species; moved 2 (albite, feldspar); gained none; lost none
-  B root=3         fill  14.0 %  full at step   —  last growth at step 120
-      molybdenite ×3 @ 31.6 (→84), ferrimolybdite ×6 @ 18.2 (→120), galena ×4 @ 11.1 (→84), arsenopyrite ×4 @ 9.7 (→84), chalcopyrite ×1 @ 9.2 (→84), brochantite ×4 @ 4.2 (→120), acanthite ×4 @ 3.3 (→84), pyrite ×1 @ 2.5 (→84), bismuthinite ×4 @ 1.2 (→84), goethite ×2 @ 1.1 (→120), malachite ×1 @ 0.874 (→120), anglesite ×4 @ 0.769 (→120), feldspar ×1 @ 0.573 (→84), albite ×2 @ 0.445 (→84), hematite ×1 @ 0.434 (→120), stibnite ×2 @ 0.003 (→84), tetrahedrite ×1 @ 0.000 (→0), tennantite ×1 @ 0.000 (→0), magnetite ×1 @ 0.000 (→84)
-      against A: 19 species; moved 4 (albite, chalcopyrite, feldspar, malachite); gained none; lost none
+  A shipped        fill  13.8 % (largest 13.8 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120
+      molybdenite ×3 @ 30.9 (→84), ferrimolybdite ×6 @ 18.5 (→120), galena ×4 @ 11.1 (→84), arsenopyrite ×4 @ 9.4 (→84), brochantite ×4 @ 4.3 (→120), acanthite ×4 @ 3.2 (→84), chalcopyrite ×1 @ 2.9 (→84), feldspar ×2 @ 2.6 (→84), pyrite ×1 @ 2.5 (→84), albite ×2 @ 1.9 (→84), goethite ×2 @ 1.2 (→120), bismuthinite ×4 @ 1.1 (→84), anglesite ×4 @ 0.748 (→120), hematite ×1 @ 0.441 (→120), malachite ×1 @ 0.216 (→120), stibnite ×2 @ 0.003 (→84)
+      no solid left: magnetite (1 record), tennantite (1 record), tetrahedrite (1 record)
+  B cap=8          fill  13.8 % (largest 13.8 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120
+      molybdenite ×3 @ 30.9 (→84), ferrimolybdite ×6 @ 18.5 (→120), galena ×4 @ 11.1 (→84), arsenopyrite ×4 @ 9.4 (→84), brochantite ×4 @ 4.3 (→120), acanthite ×4 @ 3.2 (→84), chalcopyrite ×1 @ 2.9 (→84), feldspar ×2 @ 2.6 (→84), pyrite ×1 @ 2.5 (→84), albite ×2 @ 1.9 (→84), goethite ×2 @ 1.2 (→120), bismuthinite ×4 @ 1.1 (→84), anglesite ×4 @ 0.748 (→120), hematite ×1 @ 0.441 (→120), malachite ×1 @ 0.216 (→120), stibnite ×2 @ 0.003 (→84)
+      no solid left: magnetite (1 record), tennantite (1 record), tetrahedrite (1 record)
+      against A: 16 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+  B rclamp=7       fill  13.8 % (largest 13.8 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120
+      molybdenite ×3 @ 30.9 (→84), ferrimolybdite ×6 @ 18.5 (→120), galena ×4 @ 11.1 (→84), arsenopyrite ×4 @ 9.4 (→84), brochantite ×4 @ 4.3 (→120), acanthite ×4 @ 3.2 (→84), chalcopyrite ×1 @ 2.9 (→84), feldspar ×2 @ 2.6 (→84), pyrite ×1 @ 2.5 (→84), albite ×2 @ 1.9 (→84), goethite ×2 @ 1.2 (→120), bismuthinite ×4 @ 1.1 (→84), anglesite ×4 @ 0.748 (→120), hematite ×1 @ 0.441 (→120), malachite ×1 @ 0.216 (→120), stibnite ×2 @ 0.003 (→84)
+      no solid left: magnetite (1 record), tennantite (1 record), tetrahedrite (1 record)
+      against A: 16 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+  B fcap=2         fill  14.0 % (largest 14.0 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120
+      molybdenite ×3 @ 31.1 (→84), ferrimolybdite ×6 @ 18.5 (→120), galena ×4 @ 11.1 (→84), arsenopyrite ×4 @ 9.5 (→84), brochantite ×4 @ 4.4 (→120), acanthite ×4 @ 3.3 (→84), chalcopyrite ×1 @ 3.0 (→84), pyrite ×1 @ 2.5 (→84), feldspar ×2 @ 2.0 (→84), albite ×2 @ 1.4 (→84), goethite ×2 @ 1.2 (→120), bismuthinite ×4 @ 1.2 (→84), anglesite ×4 @ 0.737 (→120), hematite ×1 @ 0.447 (→120), malachite ×1 @ 0.228 (→120), stibnite ×2 @ 0.003 (→84)
+      no solid left: magnetite (1 record), tennantite (1 record), tetrahedrite (1 record)
+      against A: 16 species present in either arm; moved 2 (albite, feldspar); gained none; lost none; the baseline summary differs
+  B root=3         fill  14.0 % (largest 14.0 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120
+      molybdenite ×3 @ 31.6 (→84), ferrimolybdite ×6 @ 18.2 (→120), galena ×4 @ 11.1 (→84), arsenopyrite ×4 @ 9.7 (→84), chalcopyrite ×1 @ 9.2 (→84), brochantite ×4 @ 4.2 (→120), acanthite ×4 @ 3.3 (→84), pyrite ×1 @ 2.5 (→84), bismuthinite ×4 @ 1.2 (→84), goethite ×2 @ 1.1 (→120), malachite ×1 @ 0.874 (→120), anglesite ×4 @ 0.769 (→120), feldspar ×1 @ 0.573 (→84), albite ×2 @ 0.445 (→84), hematite ×1 @ 0.434 (→120), stibnite ×2 @ 0.003 (→84)
+      no solid left: magnetite (1 record), tennantite (1 record), tetrahedrite (1 record)
+      against A: 16 species present in either arm; moved 4 (albite, chalcopyrite, feldspar, malachite); gained none; lost none; the baseline summary differs
 seed 2
-  A shipped        fill  12.3 %  full at step   —  last growth at step 120
-      molybdenite ×3 @ 32.9 (→84), ferrimolybdite ×3 @ 14.1 (→120), galena ×4 @ 11.0 (→84), arsenopyrite ×4 @ 9.7 (→84), brochantite ×5 @ 4.2 (→120), acanthite ×4 @ 3.5 (→84), chalcopyrite ×1 @ 3.0 (→84), feldspar ×2 @ 2.5 (→84), albite ×2 @ 2.0 (→84), bismuthinite ×4 @ 1.2 (→84), goethite ×2 @ 1.2 (→120), malachite ×1 @ 0.940 (→120), anglesite ×4 @ 0.712 (→120), hematite ×1 @ 0.430 (→120), pyrite ×1 @ 0.128 (→84), stibnite ×1 @ 0.003 (→84), tetrahedrite ×1 @ 0.000 (→0), tennantite ×1 @ 0.000 (→0), magnetite ×1 @ 0.000 (→84)
-  B cap=8          fill  12.3 %  full at step   —  last growth at step 120
-      molybdenite ×3 @ 32.9 (→84), ferrimolybdite ×3 @ 14.1 (→120), galena ×4 @ 11.0 (→84), arsenopyrite ×4 @ 9.7 (→84), brochantite ×5 @ 4.2 (→120), acanthite ×4 @ 3.5 (→84), chalcopyrite ×1 @ 3.0 (→84), feldspar ×2 @ 2.5 (→84), albite ×2 @ 2.0 (→84), bismuthinite ×4 @ 1.2 (→84), goethite ×2 @ 1.2 (→120), malachite ×1 @ 0.940 (→120), anglesite ×4 @ 0.712 (→120), hematite ×1 @ 0.430 (→120), pyrite ×1 @ 0.128 (→84), stibnite ×1 @ 0.003 (→84), tetrahedrite ×1 @ 0.000 (→0), tennantite ×1 @ 0.000 (→0), magnetite ×1 @ 0.000 (→84)
-      against A: 19 species; moved 0; gained none; lost none
-  B rclamp=7       fill  12.3 %  full at step   —  last growth at step 120
-      molybdenite ×3 @ 32.9 (→84), ferrimolybdite ×3 @ 14.1 (→120), galena ×4 @ 11.0 (→84), arsenopyrite ×4 @ 9.7 (→84), brochantite ×5 @ 4.2 (→120), acanthite ×4 @ 3.5 (→84), chalcopyrite ×1 @ 3.0 (→84), feldspar ×2 @ 2.5 (→84), albite ×2 @ 2.0 (→84), bismuthinite ×4 @ 1.2 (→84), goethite ×2 @ 1.2 (→120), malachite ×1 @ 0.940 (→120), anglesite ×4 @ 0.712 (→120), hematite ×1 @ 0.430 (→120), pyrite ×1 @ 0.128 (→84), stibnite ×1 @ 0.003 (→84), tetrahedrite ×1 @ 0.000 (→0), tennantite ×1 @ 0.000 (→0), magnetite ×1 @ 0.000 (→84)
-      against A: 19 species; moved 0; gained none; lost none
-  B fcap=2         fill  12.1 %  full at step   —  last growth at step 120
-      molybdenite ×3 @ 32.5 (→84), ferrimolybdite ×3 @ 14.2 (→120), galena ×4 @ 11.1 (→84), arsenopyrite ×4 @ 9.8 (→84), brochantite ×5 @ 4.4 (→120), acanthite ×4 @ 3.4 (→84), chalcopyrite ×1 @ 3.3 (→84), feldspar ×2 @ 1.9 (→84), albite ×2 @ 1.5 (→84), goethite ×2 @ 1.2 (→120), bismuthinite ×4 @ 1.2 (→84), malachite ×1 @ 0.901 (→120), anglesite ×4 @ 0.694 (→120), pyrite ×1 @ 0.117 (→84), hematite ×1 @ 0.110 (→120), stibnite ×1 @ 0.003 (→84), tetrahedrite ×1 @ 0.000 (→0), tennantite ×1 @ 0.000 (→0), magnetite ×1 @ 0.000 (→84)
-      against A: 19 species; moved 3 (albite, feldspar, hematite); gained none; lost none
-  B root=3         fill  11.7 %  full at step   —  last growth at step 120
-      molybdenite ×3 @ 31.9 (→84), galena ×4 @ 11.0 (→84), arsenopyrite ×4 @ 9.7 (→84), ferrimolybdite ×3 @ 9.7 (→120), brochantite ×5 @ 4.3 (→120), acanthite ×4 @ 3.4 (→84), chalcopyrite ×1 @ 2.5 (→84), goethite ×2 @ 1.2 (→120), bismuthinite ×4 @ 1.1 (→84), malachite ×1 @ 0.931 (→120), feldspar ×1 @ 0.553 (→84), albite ×1 @ 0.517 (→84), anglesite ×4 @ 0.298 (→120), hematite ×1 @ 0.107 (→120), pyrite ×1 @ 0.089 (→84), stibnite ×1 @ 0.002 (→84), tetrahedrite ×1 @ 0.000 (→0), tennantite ×1 @ 0.000 (→0), magnetite ×1 @ 0.000 (→84)
-      against A: 19 species; moved 6 (albite, anglesite, feldspar, ferrimolybdite, hematite, pyrite); gained none; lost none
+  A shipped        fill  12.3 % (largest 12.6 % at step 84; first >= 0.7 at step —)  full at step   —  last growth at step 120
+      molybdenite ×3 @ 32.9 (→84), ferrimolybdite ×3 @ 14.1 (→120), galena ×4 @ 11.0 (→84), arsenopyrite ×4 @ 9.7 (→84), brochantite ×5 @ 4.2 (→120), acanthite ×4 @ 3.5 (→84), chalcopyrite ×1 @ 3.0 (→84), feldspar ×2 @ 2.5 (→84), albite ×2 @ 2.0 (→84), bismuthinite ×4 @ 1.2 (→84), goethite ×2 @ 1.2 (→120), malachite ×1 @ 0.940 (→120), anglesite ×4 @ 0.712 (→120), hematite ×1 @ 0.430 (→120), pyrite ×1 @ 0.128 (→84), stibnite ×1 @ 0.003 (→84)
+      no solid left: magnetite (1 record), tennantite (1 record), tetrahedrite (1 record)
+  B cap=8          fill  12.3 % (largest 12.6 % at step 84; first >= 0.7 at step —)  full at step   —  last growth at step 120
+      molybdenite ×3 @ 32.9 (→84), ferrimolybdite ×3 @ 14.1 (→120), galena ×4 @ 11.0 (→84), arsenopyrite ×4 @ 9.7 (→84), brochantite ×5 @ 4.2 (→120), acanthite ×4 @ 3.5 (→84), chalcopyrite ×1 @ 3.0 (→84), feldspar ×2 @ 2.5 (→84), albite ×2 @ 2.0 (→84), bismuthinite ×4 @ 1.2 (→84), goethite ×2 @ 1.2 (→120), malachite ×1 @ 0.940 (→120), anglesite ×4 @ 0.712 (→120), hematite ×1 @ 0.430 (→120), pyrite ×1 @ 0.128 (→84), stibnite ×1 @ 0.003 (→84)
+      no solid left: magnetite (1 record), tennantite (1 record), tetrahedrite (1 record)
+      against A: 16 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+  B rclamp=7       fill  12.3 % (largest 12.6 % at step 84; first >= 0.7 at step —)  full at step   —  last growth at step 120
+      molybdenite ×3 @ 32.9 (→84), ferrimolybdite ×3 @ 14.1 (→120), galena ×4 @ 11.0 (→84), arsenopyrite ×4 @ 9.7 (→84), brochantite ×5 @ 4.2 (→120), acanthite ×4 @ 3.5 (→84), chalcopyrite ×1 @ 3.0 (→84), feldspar ×2 @ 2.5 (→84), albite ×2 @ 2.0 (→84), bismuthinite ×4 @ 1.2 (→84), goethite ×2 @ 1.2 (→120), malachite ×1 @ 0.940 (→120), anglesite ×4 @ 0.712 (→120), hematite ×1 @ 0.430 (→120), pyrite ×1 @ 0.128 (→84), stibnite ×1 @ 0.003 (→84)
+      no solid left: magnetite (1 record), tennantite (1 record), tetrahedrite (1 record)
+      against A: 16 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+  B fcap=2         fill  12.1 % (largest 12.4 % at step 84; first >= 0.7 at step —)  full at step   —  last growth at step 120
+      molybdenite ×3 @ 32.5 (→84), ferrimolybdite ×3 @ 14.2 (→120), galena ×4 @ 11.1 (→84), arsenopyrite ×4 @ 9.8 (→84), brochantite ×5 @ 4.4 (→120), acanthite ×4 @ 3.4 (→84), chalcopyrite ×1 @ 3.3 (→84), feldspar ×2 @ 1.9 (→84), albite ×2 @ 1.5 (→84), goethite ×2 @ 1.2 (→120), bismuthinite ×4 @ 1.2 (→84), malachite ×1 @ 0.901 (→120), anglesite ×4 @ 0.694 (→120), pyrite ×1 @ 0.117 (→84), hematite ×1 @ 0.110 (→120), stibnite ×1 @ 0.003 (→84)
+      no solid left: magnetite (1 record), tennantite (1 record), tetrahedrite (1 record)
+      against A: 16 species present in either arm; moved 3 (albite, feldspar, hematite); gained none; lost none; the baseline summary differs
+  B root=3         fill  11.7 % (largest 12.3 % at step 84; first >= 0.7 at step —)  full at step   —  last growth at step 120
+      molybdenite ×3 @ 31.9 (→84), galena ×4 @ 11.0 (→84), arsenopyrite ×4 @ 9.7 (→84), ferrimolybdite ×3 @ 9.7 (→120), brochantite ×5 @ 4.3 (→120), acanthite ×4 @ 3.4 (→84), chalcopyrite ×1 @ 2.5 (→84), goethite ×2 @ 1.2 (→120), bismuthinite ×4 @ 1.1 (→84), malachite ×1 @ 0.931 (→120), feldspar ×1 @ 0.553 (→84), albite ×1 @ 0.517 (→84), anglesite ×4 @ 0.298 (→120), hematite ×1 @ 0.107 (→120), pyrite ×1 @ 0.089 (→84), stibnite ×1 @ 0.002 (→84)
+      no solid left: magnetite (1 record), tennantite (1 record), tetrahedrite (1 record)
+      against A: 16 species present in either arm; moved 6 (albite, anglesite, feldspar, ferrimolybdite, hematite, pyrite); gained none; lost none; the baseline summary differs
 
 ### radioactive_pegmatite — 120 steps — events: 20 Pegmatite Crystallization | 50 Deep Time | 80 Oxidizing Fluids | 100 Final Cooling
 seed 42 (shipped arm reproduces the baseline)
-  A shipped        fill 100.0 %  full at step  61  last growth at step  80
-      albite ×2 @ 61.4 (→61), feldspar ×2 @ 50.2 (→80), morganite ×4 @ 14.3 (→61), quartz ×3 @ 11.2 (→80), uraninite ×3 @ 6.9 (→61), tourmaline ×8 @ 2.6 (→49), spodumene ×4 @ 2.0 (→49), lepidolite ×6 @ 0.883 (→49), topaz ×3 @ 0.175 (→49), cassiterite ×5 @ 0.141 (→47), opal ×5 @ 0.000 (→0), plumbogummite ×2 @ 0.000 (→0)
-  B cap=8          fill  98.3 %  full at step   —  last growth at step 120
+  A shipped        fill 100.0 % (largest 100.0 % at step 61; first >= 0.7 at step 37)  full at step  61  last growth at step  80
+      albite ×2 @ 61.4 (→61), feldspar ×2 @ 50.2 (→80), morganite ×4 @ 14.3 (→61), quartz ×3 @ 11.2 (→80), uraninite ×3 @ 6.9 (→61), tourmaline ×8 @ 2.6 (→49), spodumene ×4 @ 2.0 (→49), lepidolite ×6 @ 0.883 (→49), topaz ×3 @ 0.175 (→49), cassiterite ×5 @ 0.141 (→47)
+      no solid left: opal (5 records), plumbogummite (2 records)
+  B cap=8          fill  98.3 % (largest 98.3 % at step 120; first >= 0.7 at step 86)  full at step   —  last growth at step 120
       quartz ×3 @ 53.0 (→93), morganite ×4 @ 23.4 (→79), albite ×2 @ 12.8 (→120), uraninite ×3 @ 12.2 (→79), feldspar ×2 @ 9.2 (→120), tourmaline ×8 @ 2.9 (→49), spodumene ×4 @ 2.1 (→49), lepidolite ×4 @ 1.1 (→49), topaz ×4 @ 0.237 (→49), cassiterite ×5 @ 0.159 (→49), opal ×5 @ 0.114 (→120), plumbogummite ×2 @ 0.000 (→114)
-      against A: 12 species; moved 8 (albite, feldspar, lepidolite, morganite, opal, quartz, topaz, uraninite); gained none; lost none
-  B rclamp=7       fill  98.3 %  full at step   —  last growth at step 120
+      against A: 12 species present in either arm; moved 7 (albite, feldspar, lepidolite, morganite, quartz, topaz, uraninite); gained opal, plumbogummite; lost none; the baseline summary differs
+  B rclamp=7       fill  98.3 % (largest 98.3 % at step 120; first >= 0.7 at step 86)  full at step   —  last growth at step 120
       quartz ×3 @ 53.0 (→93), morganite ×4 @ 23.4 (→79), albite ×2 @ 12.8 (→120), uraninite ×3 @ 12.2 (→79), feldspar ×2 @ 9.2 (→120), tourmaline ×8 @ 2.9 (→49), spodumene ×4 @ 2.1 (→49), lepidolite ×4 @ 1.1 (→49), topaz ×4 @ 0.237 (→49), cassiterite ×5 @ 0.159 (→49), opal ×5 @ 0.114 (→120), plumbogummite ×2 @ 0.000 (→114)
-      against A: 12 species; moved 8 (albite, feldspar, lepidolite, morganite, opal, quartz, topaz, uraninite); gained none; lost none
-  B fcap=2         fill  98.4 %  full at step   —  last growth at step 120
+      against A: 12 species present in either arm; moved 7 (albite, feldspar, lepidolite, morganite, quartz, topaz, uraninite); gained opal, plumbogummite; lost none; the baseline summary differs
+  B fcap=2         fill  98.4 % (largest 98.4 % at step 120; first >= 0.7 at step 86)  full at step   —  last growth at step 120
       quartz ×3 @ 52.9 (→93), morganite ×4 @ 23.5 (→79), uraninite ×3 @ 12.2 (→79), albite ×2 @ 6.2 (→79), feldspar ×2 @ 6.1 (→89), tourmaline ×8 @ 2.9 (→49), spodumene ×4 @ 2.1 (→49), lepidolite ×4 @ 1.1 (→49), topaz ×4 @ 0.237 (→49), cassiterite ×5 @ 0.159 (→49), opal ×5 @ 0.115 (→120), plumbogummite ×2 @ 0.000 (→114)
-      against A: 12 species; moved 9 (albite, feldspar, lepidolite, morganite, opal, plumbogummite, quartz, topaz, uraninite); gained none; lost none
-  B root=3         fill  98.4 %  full at step   —  last growth at step 120
+      against A: 12 species present in either arm; moved 7 (albite, feldspar, lepidolite, morganite, quartz, topaz, uraninite); gained opal, plumbogummite; lost none; the baseline summary differs
+  B root=3         fill  98.4 % (largest 98.4 % at step 120; first >= 0.7 at step 86)  full at step   —  last growth at step 120
       quartz ×3 @ 53.0 (→93), morganite ×4 @ 23.5 (→79), uraninite ×3 @ 12.2 (→79), albite ×2 @ 6.8 (→120), feldspar ×2 @ 4.8 (→120), tourmaline ×8 @ 2.9 (→49), spodumene ×4 @ 2.1 (→49), lepidolite ×4 @ 1.1 (→49), topaz ×4 @ 0.237 (→49), cassiterite ×5 @ 0.159 (→49), opal ×5 @ 0.116 (→120), plumbogummite ×2 @ 0.000 (→114)
-      against A: 12 species; moved 9 (albite, feldspar, lepidolite, morganite, opal, plumbogummite, quartz, topaz, uraninite); gained none; lost none
+      against A: 12 species present in either arm; moved 7 (albite, feldspar, lepidolite, morganite, quartz, topaz, uraninite); gained opal, plumbogummite; lost none; the baseline summary differs
 seed 1
-  A shipped        fill 100.0 %  full at step  55  last growth at step  82
-      feldspar ×2 @ 51.2 (→82), albite ×2 @ 49.5 (→82), morganite ×4 @ 16.8 (→55), quartz ×3 @ 9.8 (→82), uraninite ×3 @ 5.7 (→55), tourmaline ×9 @ 2.2 (→49), spodumene ×4 @ 1.5 (→49), lepidolite ×4 @ 0.537 (→49), cassiterite ×6 @ 0.145 (→43), topaz ×1 @ 0.077 (→39), opal ×5 @ 0.000 (→0), plumbogummite ×3 @ 0.000 (→0)
-  B cap=8          fill  98.6 %  full at step   —  last growth at step 120
+  A shipped        fill 100.0 % (largest 100.0 % at step 82; first >= 0.7 at step 31)  full at step  55  last growth at step  82
+      feldspar ×2 @ 51.2 (→82), albite ×2 @ 49.5 (→82), morganite ×4 @ 16.8 (→55), quartz ×3 @ 9.8 (→82), uraninite ×3 @ 5.7 (→55), tourmaline ×9 @ 2.2 (→49), spodumene ×4 @ 1.5 (→49), lepidolite ×4 @ 0.537 (→49), cassiterite ×6 @ 0.145 (→43), topaz ×1 @ 0.077 (→39)
+      no solid left: opal (5 records), plumbogummite (3 records)
+  B cap=8          fill  98.6 % (largest 98.6 % at step 120; first >= 0.7 at step 86)  full at step   —  last growth at step 120
       quartz ×3 @ 53.6 (→93), morganite ×4 @ 26.5 (→79), albite ×2 @ 12.6 (→120), uraninite ×3 @ 11.8 (→79), feldspar ×2 @ 9.5 (→120), tourmaline ×8 @ 2.8 (→49), spodumene ×4 @ 2.2 (→49), lepidolite ×4 @ 0.921 (→49), topaz ×3 @ 0.291 (→49), cassiterite ×6 @ 0.182 (→49), opal ×5 @ 0.113 (→120), plumbogummite ×3 @ 0.000 (→111)
-      against A: 12 species; moved 12 (albite, cassiterite, feldspar, lepidolite, morganite, opal, plumbogummite, quartz, spodumene, topaz, tourmaline, uraninite); gained none; lost none
-  B rclamp=7       fill  98.6 %  full at step   —  last growth at step 120
+      against A: 12 species present in either arm; moved 10 (albite, cassiterite, feldspar, lepidolite, morganite, quartz, spodumene, topaz, tourmaline, uraninite); gained opal, plumbogummite; lost none; the baseline summary differs
+  B rclamp=7       fill  98.6 % (largest 98.6 % at step 120; first >= 0.7 at step 86)  full at step   —  last growth at step 120
       quartz ×3 @ 53.6 (→93), morganite ×4 @ 26.5 (→79), albite ×2 @ 12.6 (→120), uraninite ×3 @ 11.8 (→79), feldspar ×2 @ 9.5 (→120), tourmaline ×8 @ 2.8 (→49), spodumene ×4 @ 2.2 (→49), lepidolite ×4 @ 0.921 (→49), topaz ×3 @ 0.291 (→49), cassiterite ×6 @ 0.182 (→49), opal ×5 @ 0.113 (→120), plumbogummite ×3 @ 0.000 (→111)
-      against A: 12 species; moved 12 (albite, cassiterite, feldspar, lepidolite, morganite, opal, plumbogummite, quartz, spodumene, topaz, tourmaline, uraninite); gained none; lost none
-  B fcap=2         fill  98.7 %  full at step   —  last growth at step 120
+      against A: 12 species present in either arm; moved 10 (albite, cassiterite, feldspar, lepidolite, morganite, quartz, spodumene, topaz, tourmaline, uraninite); gained opal, plumbogummite; lost none; the baseline summary differs
+  B fcap=2         fill  98.7 % (largest 98.7 % at step 120; first >= 0.7 at step 86)  full at step   —  last growth at step 120
       quartz ×3 @ 53.3 (→93), morganite ×4 @ 26.5 (→79), uraninite ×3 @ 11.8 (→79), feldspar ×3 @ 6.9 (→91), albite ×2 @ 6.1 (→79), tourmaline ×8 @ 2.8 (→49), spodumene ×4 @ 2.2 (→49), lepidolite ×4 @ 0.958 (→49), topaz ×3 @ 0.291 (→49), cassiterite ×6 @ 0.182 (→49), opal ×5 @ 0.110 (→120), plumbogummite ×3 @ 0.000 (→111)
-      against A: 12 species; moved 12 (albite, cassiterite, feldspar, lepidolite, morganite, opal, plumbogummite, quartz, spodumene, topaz, tourmaline, uraninite); gained none; lost none
-  B root=3         fill  98.7 %  full at step   —  last growth at step 120
+      against A: 12 species present in either arm; moved 10 (albite, cassiterite, feldspar, lepidolite, morganite, quartz, spodumene, topaz, tourmaline, uraninite); gained opal, plumbogummite; lost none; the baseline summary differs
+  B root=3         fill  98.7 % (largest 98.7 % at step 120; first >= 0.7 at step 86)  full at step   —  last growth at step 120
       quartz ×3 @ 53.7 (→93), morganite ×4 @ 26.5 (→79), uraninite ×3 @ 11.8 (→79), albite ×2 @ 6.6 (→120), feldspar ×2 @ 5.7 (→120), tourmaline ×8 @ 2.8 (→49), spodumene ×4 @ 2.2 (→49), lepidolite ×4 @ 0.971 (→49), topaz ×3 @ 0.291 (→49), cassiterite ×6 @ 0.182 (→49), opal ×5 @ 0.112 (→120), plumbogummite ×3 @ 0.000 (→111)
-      against A: 12 species; moved 12 (albite, cassiterite, feldspar, lepidolite, morganite, opal, plumbogummite, quartz, spodumene, topaz, tourmaline, uraninite); gained none; lost none
+      against A: 12 species present in either arm; moved 10 (albite, cassiterite, feldspar, lepidolite, morganite, quartz, spodumene, topaz, tourmaline, uraninite); gained opal, plumbogummite; lost none; the baseline summary differs
 seed 2
-  A shipped        fill 100.0 %  full at step  59  last growth at step  94
-      albite ×2 @ 59.9 (→94), feldspar ×2 @ 47.2 (→94), morganite ×4 @ 19.5 (→59), quartz ×3 @ 11.0 (→93), uraninite ×3 @ 6.6 (→59), tourmaline ×8 @ 2.0 (→49), spodumene ×4 @ 2.0 (→49), lepidolite ×6 @ 0.798 (→49), topaz ×4 @ 0.388 (→50), cassiterite ×5 @ 0.139 (→49), opal ×5 @ 0.000 (→0), plumbogummite ×3 @ 0.000 (→0)
-  B cap=8          fill  98.7 %  full at step   —  last growth at step 120
+  A shipped        fill 100.0 % (largest 100.0 % at step 59; first >= 0.7 at step 36)  full at step  59  last growth at step  94
+      albite ×2 @ 59.9 (→94), feldspar ×2 @ 47.2 (→94), morganite ×4 @ 19.5 (→59), quartz ×3 @ 11.0 (→93), uraninite ×3 @ 6.6 (→59), tourmaline ×8 @ 2.0 (→49), spodumene ×4 @ 2.0 (→49), lepidolite ×6 @ 0.798 (→49), topaz ×4 @ 0.388 (→50), cassiterite ×5 @ 0.139 (→49)
+      no solid left: opal (5 records), plumbogummite (3 records)
+  B cap=8          fill  98.7 % (largest 98.7 % at step 120; first >= 0.7 at step 86)  full at step   —  last growth at step 120
       quartz ×3 @ 54.6 (→93), morganite ×4 @ 27.5 (→79), albite ×2 @ 12.4 (→120), uraninite ×3 @ 11.9 (→79), feldspar ×2 @ 9.0 (→120), tourmaline ×8 @ 2.4 (→49), spodumene ×4 @ 2.2 (→49), lepidolite ×4 @ 1.0 (→49), topaz ×4 @ 0.532 (→50), cassiterite ×4 @ 0.162 (→49), opal ×5 @ 0.112 (→120), plumbogummite ×3 @ 0.000 (→112)
-      against A: 12 species; moved 10 (albite, cassiterite, feldspar, lepidolite, morganite, opal, plumbogummite, quartz, topaz, uraninite); gained none; lost none
-  B rclamp=7       fill  98.7 %  full at step   —  last growth at step 120
+      against A: 12 species present in either arm; moved 8 (albite, cassiterite, feldspar, lepidolite, morganite, quartz, topaz, uraninite); gained opal, plumbogummite; lost none; the baseline summary differs
+  B rclamp=7       fill  98.7 % (largest 98.7 % at step 120; first >= 0.7 at step 86)  full at step   —  last growth at step 120
       quartz ×3 @ 54.6 (→93), morganite ×4 @ 27.5 (→79), albite ×2 @ 12.4 (→120), uraninite ×3 @ 11.9 (→79), feldspar ×2 @ 9.0 (→120), tourmaline ×8 @ 2.4 (→49), spodumene ×4 @ 2.2 (→49), lepidolite ×4 @ 1.0 (→49), topaz ×4 @ 0.532 (→50), cassiterite ×4 @ 0.162 (→49), opal ×5 @ 0.112 (→120), plumbogummite ×3 @ 0.000 (→112)
-      against A: 12 species; moved 10 (albite, cassiterite, feldspar, lepidolite, morganite, opal, plumbogummite, quartz, topaz, uraninite); gained none; lost none
-  B fcap=2         fill  98.3 %  full at step   —  last growth at step 120
+      against A: 12 species present in either arm; moved 8 (albite, cassiterite, feldspar, lepidolite, morganite, quartz, topaz, uraninite); gained opal, plumbogummite; lost none; the baseline summary differs
+  B fcap=2         fill  98.3 % (largest 98.3 % at step 120; first >= 0.7 at step 86)  full at step   —  last growth at step 120
       quartz ×3 @ 53.5 (→93), morganite ×4 @ 27.5 (→79), uraninite ×3 @ 11.9 (→79), feldspar ×2 @ 6.5 (→88), albite ×2 @ 6.1 (→79), tourmaline ×8 @ 2.4 (→49), spodumene ×4 @ 2.2 (→49), lepidolite ×4 @ 1.0 (→49), topaz ×4 @ 0.532 (→50), cassiterite ×4 @ 0.162 (→49), opal ×5 @ 0.118 (→120), plumbogummite ×3 @ 0.000 (→112)
-      against A: 12 species; moved 10 (albite, cassiterite, feldspar, lepidolite, morganite, opal, plumbogummite, quartz, topaz, uraninite); gained none; lost none
-  B root=3         fill  98.6 %  full at step   —  last growth at step 120
+      against A: 12 species present in either arm; moved 8 (albite, cassiterite, feldspar, lepidolite, morganite, quartz, topaz, uraninite); gained opal, plumbogummite; lost none; the baseline summary differs
+  B root=3         fill  98.6 % (largest 98.6 % at step 120; first >= 0.7 at step 86)  full at step   —  last growth at step 120
       quartz ×3 @ 54.7 (→93), morganite ×4 @ 27.5 (→79), uraninite ×3 @ 11.9 (→79), albite ×2 @ 6.6 (→120), feldspar ×2 @ 4.9 (→120), tourmaline ×8 @ 2.4 (→49), spodumene ×4 @ 2.1 (→49), lepidolite ×4 @ 1.0 (→49), topaz ×4 @ 0.532 (→50), cassiterite ×4 @ 0.162 (→49), opal ×5 @ 0.113 (→120), plumbogummite ×3 @ 0.000 (→112)
-      against A: 12 species; moved 10 (albite, cassiterite, feldspar, lepidolite, morganite, opal, plumbogummite, quartz, topaz, uraninite); gained none; lost none
+      against A: 12 species present in either arm; moved 8 (albite, cassiterite, feldspar, lepidolite, morganite, quartz, topaz, uraninite); gained opal, plumbogummite; lost none; the baseline summary differs
 
 ### schneeberg — 160 steps — events: 20 Pegmatite Crystallization | 70 Cooling | 85 Cu+P Oxidation | 105 Cu+As Pulse | 110 Vein Exhumed (water table drops) | 125 Cu Depletion | 145 Late As Pulse
 seed 42 (shipped arm reproduces the baseline)
-  A shipped        fill  11.1 %  full at step   —  last growth at step 160
-      feldspar ×2 @ 27.6 (→160), quartz ×3 @ 24.4 (→84), uraninite ×3 @ 8.3 (→87), arsenopyrite ×4 @ 4.3 (→69), chrysocolla ×5 @ 3.5 (→124), uranophane ×3 @ 2.4 (→160), acanthite ×5 @ 1.2 (→84), pharmacolite ×5 @ 1.1 (→160), nickeline ×4 @ 1.0 (→69), autunite ×4 @ 0.839 (→144), proustite ×2 @ 0.800 (→84), uranospinite ×4 @ 0.735 (→160), metatorbernite ×1 @ 0.724 (→104), erythrite ×1 @ 0.706 (→160), metazeunerite ×4 @ 0.649 (→124), brochantite ×4 @ 0.481 (→124), annabergite ×1 @ 0.268 (→160), native_arsenic ×3 @ 0.240 (→84), native_silver ×3 @ 0.224 (→84), turquoise ×2 @ 0.224 (→104), morganite ×1 @ 0.115 (→1), cobaltite ×4 @ 0.093 (→39), native_bismuth ×1 @ 0.067 (→84), spodumene ×1 @ 0.042 (→8), cassiterite ×4 @ 0.028 (→19), topaz ×2 @ 0.021 (→29), cuprite ×1 @ 0.005 (→90), goethite ×2 @ 0.004 (→113), tennantite ×1 @ 0.000 (→0), naumannite ×2 @ 0.000 (→84)
-  B cap=8          fill   7.0 %  full at step   —  last growth at step 160
-      quartz ×3 @ 23.9 (→84), feldspar ×2 @ 10.3 (→160), uraninite ×3 @ 6.9 (→87), chrysocolla ×5 @ 3.5 (→124), arsenopyrite ×4 @ 3.3 (→69), uranophane ×3 @ 1.8 (→160), pharmacolite ×5 @ 0.974 (→160), autunite ×4 @ 0.895 (→144), nickeline ×4 @ 0.771 (→69), acanthite ×4 @ 0.734 (→84), erythrite ×1 @ 0.705 (→160), metatorbernite ×1 @ 0.696 (→104), uranospinite ×4 @ 0.694 (→160), metazeunerite ×4 @ 0.644 (→124), brochantite ×4 @ 0.503 (→124), native_arsenic ×3 @ 0.250 (→84), annabergite ×1 @ 0.248 (→160), turquoise ×2 @ 0.240 (→104), native_silver ×3 @ 0.221 (→84), morganite ×1 @ 0.115 (→1), spodumene ×1 @ 0.042 (→8), cassiterite ×4 @ 0.028 (→19), native_bismuth ×1 @ 0.026 (→84), topaz ×2 @ 0.019 (→29), cobaltite ×4 @ 0.018 (→39), proustite ×2 @ 0.007 (→84), cuprite ×1 @ 0.004 (→90), goethite ×2 @ 0.003 (→112), tennantite ×1 @ 0.000 (→0), naumannite ×2 @ 0.000 (→84)
-      against A: 30 species; moved 9 (acanthite, arsenopyrite, cobaltite, feldspar, goethite, native_bismuth, nickeline, proustite, uranophane); gained none; lost none
-  B rclamp=7       fill   7.0 %  full at step   —  last growth at step 160
-      quartz ×3 @ 23.9 (→84), feldspar ×2 @ 10.3 (→160), uraninite ×3 @ 6.9 (→87), chrysocolla ×5 @ 3.5 (→124), arsenopyrite ×4 @ 3.3 (→69), uranophane ×3 @ 1.8 (→160), pharmacolite ×5 @ 0.974 (→160), autunite ×4 @ 0.895 (→144), nickeline ×4 @ 0.771 (→69), acanthite ×4 @ 0.734 (→84), erythrite ×1 @ 0.705 (→160), metatorbernite ×1 @ 0.696 (→104), uranospinite ×4 @ 0.694 (→160), metazeunerite ×4 @ 0.644 (→124), brochantite ×4 @ 0.503 (→124), native_arsenic ×3 @ 0.250 (→84), annabergite ×1 @ 0.248 (→160), turquoise ×2 @ 0.240 (→104), native_silver ×3 @ 0.221 (→84), morganite ×1 @ 0.115 (→1), spodumene ×1 @ 0.042 (→8), cassiterite ×4 @ 0.028 (→19), native_bismuth ×1 @ 0.026 (→84), topaz ×2 @ 0.019 (→29), cobaltite ×4 @ 0.018 (→39), proustite ×2 @ 0.007 (→84), cuprite ×1 @ 0.004 (→90), goethite ×2 @ 0.003 (→112), tennantite ×1 @ 0.000 (→0), naumannite ×2 @ 0.000 (→84)
-      against A: 30 species; moved 9 (acanthite, arsenopyrite, cobaltite, feldspar, goethite, native_bismuth, nickeline, proustite, uranophane); gained none; lost none
-  B fcap=2         fill   6.8 %  full at step   —  last growth at step 160
-      quartz ×3 @ 24.7 (→84), uraninite ×3 @ 7.0 (→87), chrysocolla ×5 @ 3.5 (→124), arsenopyrite ×4 @ 2.9 (→69), uranophane ×3 @ 1.8 (→160), feldspar ×2 @ 1.8 (→69), pharmacolite ×5 @ 1.0 (→160), autunite ×4 @ 0.823 (→144), acanthite ×4 @ 0.761 (→84), nickeline ×4 @ 0.753 (→69), uranospinite ×4 @ 0.732 (→160), erythrite ×1 @ 0.696 (→160), metatorbernite ×1 @ 0.664 (→104), metazeunerite ×4 @ 0.650 (→124), brochantite ×4 @ 0.501 (→124), annabergite ×1 @ 0.250 (→160), turquoise ×2 @ 0.233 (→104), morganite ×1 @ 0.115 (→1), goethite ×1 @ 0.048 (→160), spodumene ×1 @ 0.042 (→8), cassiterite ×4 @ 0.029 (→19), native_bismuth ×1 @ 0.027 (→84), topaz ×2 @ 0.017 (→29), proustite ×2 @ 0.007 (→84), cobaltite ×4 @ 0.000 (→39), tennantite ×1 @ 0.000 (→0), native_arsenic ×3 @ 0.000 (→84), naumannite ×2 @ 0.000 (→84), native_silver ×3 @ 0.000 (→84), cuprite ×1 @ 0.000 (→90)
-      against A: 30 species; moved 12 (acanthite, arsenopyrite, cobaltite, cuprite, feldspar, goethite, native_arsenic, native_bismuth, native_silver, nickeline, proustite, uranophane); gained none; lost none
-  B root=3         fill   7.2 %  full at step   —  last growth at step 160
-      quartz ×3 @ 24.6 (→84), uraninite ×3 @ 6.9 (→87), chrysocolla ×5 @ 3.4 (→124), arsenopyrite ×4 @ 3.0 (→69), feldspar ×2 @ 3.0 (→160), uranophane ×3 @ 1.8 (→160), pharmacolite ×5 @ 1.0 (→160), autunite ×4 @ 0.875 (→144), uranospinite ×4 @ 0.787 (→160), nickeline ×4 @ 0.771 (→69), acanthite ×4 @ 0.734 (→84), erythrite ×1 @ 0.676 (→160), metatorbernite ×1 @ 0.660 (→104), metazeunerite ×4 @ 0.658 (→124), brochantite ×4 @ 0.491 (→124), annabergite ×1 @ 0.270 (→160), turquoise ×2 @ 0.246 (→104), morganite ×1 @ 0.115 (→1), goethite ×1 @ 0.046 (→160), spodumene ×1 @ 0.042 (→8), cassiterite ×4 @ 0.028 (→19), native_bismuth ×1 @ 0.028 (→84), topaz ×2 @ 0.019 (→29), cobaltite ×4 @ 0.018 (→39), proustite ×2 @ 0.007 (→84), tennantite ×1 @ 0.000 (→0), native_arsenic ×3 @ 0.000 (→84), naumannite ×2 @ 0.000 (→84), native_silver ×3 @ 0.000 (→84), cuprite ×1 @ 0.000 (→90)
-      against A: 30 species; moved 12 (acanthite, arsenopyrite, cobaltite, cuprite, feldspar, goethite, native_arsenic, native_bismuth, native_silver, nickeline, proustite, uranophane); gained none; lost none
+  A shipped        fill  11.1 % (largest 11.1 % at step 160; first >= 0.7 at step —)  full at step   —  last growth at step 160
+      feldspar ×2 @ 27.6 (→160), quartz ×3 @ 24.4 (→84), uraninite ×3 @ 8.3 (→87), arsenopyrite ×4 @ 4.3 (→69), chrysocolla ×5 @ 3.5 (→124), uranophane ×3 @ 2.4 (→160), acanthite ×4 @ 1.2 (→84), pharmacolite ×5 @ 1.1 (→160), nickeline ×4 @ 1.0 (→69), autunite ×4 @ 0.839 (→144), proustite ×2 @ 0.800 (→84), uranospinite ×4 @ 0.735 (→160), metatorbernite ×1 @ 0.724 (→104), erythrite ×1 @ 0.706 (→160), metazeunerite ×4 @ 0.649 (→124), brochantite ×4 @ 0.481 (→124), annabergite ×1 @ 0.268 (→160), native_arsenic ×2 @ 0.240 (→84), native_silver ×2 @ 0.224 (→84), turquoise ×2 @ 0.224 (→104), morganite ×1 @ 0.115 (→1), cobaltite ×3 @ 0.093 (→38), native_bismuth ×1 @ 0.067 (→84), spodumene ×1 @ 0.042 (→8), cassiterite ×4 @ 0.028 (→19), topaz ×2 @ 0.021 (→29), cuprite ×1 @ 0.005 (→90), goethite ×1 @ 0.004 (→113)
+      no solid left: naumannite (2 records), tennantite (1 record)
+  B cap=8          fill   7.0 % (largest 7.1 % at step 87; first >= 0.7 at step —)  full at step   —  last growth at step 160
+      quartz ×3 @ 23.9 (→84), feldspar ×2 @ 10.3 (→160), uraninite ×3 @ 6.9 (→87), chrysocolla ×5 @ 3.5 (→124), arsenopyrite ×4 @ 3.3 (→69), uranophane ×3 @ 1.8 (→160), pharmacolite ×4 @ 0.974 (→160), autunite ×4 @ 0.895 (→144), nickeline ×4 @ 0.771 (→69), acanthite ×4 @ 0.734 (→84), erythrite ×1 @ 0.705 (→160), metatorbernite ×1 @ 0.696 (→104), uranospinite ×4 @ 0.694 (→160), metazeunerite ×4 @ 0.644 (→124), brochantite ×4 @ 0.503 (→124), native_arsenic ×1 @ 0.250 (→84), annabergite ×1 @ 0.248 (→160), turquoise ×2 @ 0.240 (→104), native_silver ×1 @ 0.221 (→84), morganite ×1 @ 0.115 (→1), spodumene ×1 @ 0.042 (→8), cassiterite ×4 @ 0.028 (→19), native_bismuth ×1 @ 0.026 (→84), topaz ×2 @ 0.019 (→29), cobaltite ×1 @ 0.018 (→37), proustite ×2 @ 0.007 (→84), cuprite ×1 @ 0.004 (→90), goethite ×1 @ 0.003 (→112)
+      no solid left: naumannite (2 records), tennantite (1 record)
+      against A: 28 species present in either arm; moved 12 (acanthite, arsenopyrite, cobaltite, feldspar, goethite, native_arsenic, native_bismuth, native_silver, nickeline, pharmacolite, proustite, uranophane); gained none; lost none; the baseline summary differs
+  B rclamp=7       fill   7.0 % (largest 7.1 % at step 87; first >= 0.7 at step —)  full at step   —  last growth at step 160
+      quartz ×3 @ 23.9 (→84), feldspar ×2 @ 10.3 (→160), uraninite ×3 @ 6.9 (→87), chrysocolla ×5 @ 3.5 (→124), arsenopyrite ×4 @ 3.3 (→69), uranophane ×3 @ 1.8 (→160), pharmacolite ×4 @ 0.974 (→160), autunite ×4 @ 0.895 (→144), nickeline ×4 @ 0.771 (→69), acanthite ×4 @ 0.734 (→84), erythrite ×1 @ 0.705 (→160), metatorbernite ×1 @ 0.696 (→104), uranospinite ×4 @ 0.694 (→160), metazeunerite ×4 @ 0.644 (→124), brochantite ×4 @ 0.503 (→124), native_arsenic ×1 @ 0.250 (→84), annabergite ×1 @ 0.248 (→160), turquoise ×2 @ 0.240 (→104), native_silver ×1 @ 0.221 (→84), morganite ×1 @ 0.115 (→1), spodumene ×1 @ 0.042 (→8), cassiterite ×4 @ 0.028 (→19), native_bismuth ×1 @ 0.026 (→84), topaz ×2 @ 0.019 (→29), cobaltite ×1 @ 0.018 (→37), proustite ×2 @ 0.007 (→84), cuprite ×1 @ 0.004 (→90), goethite ×1 @ 0.003 (→112)
+      no solid left: naumannite (2 records), tennantite (1 record)
+      against A: 28 species present in either arm; moved 12 (acanthite, arsenopyrite, cobaltite, feldspar, goethite, native_arsenic, native_bismuth, native_silver, nickeline, pharmacolite, proustite, uranophane); gained none; lost none; the baseline summary differs
+  B fcap=2         fill   6.8 % (largest 6.9 % at step 87; first >= 0.7 at step —)  full at step   —  last growth at step 160
+      quartz ×3 @ 24.7 (→84), uraninite ×3 @ 7.0 (→87), chrysocolla ×5 @ 3.5 (→124), arsenopyrite ×4 @ 2.9 (→69), uranophane ×3 @ 1.8 (→160), feldspar ×2 @ 1.8 (→69), pharmacolite ×4 @ 1.0 (→160), autunite ×4 @ 0.823 (→144), acanthite ×4 @ 0.761 (→84), nickeline ×4 @ 0.753 (→69), uranospinite ×4 @ 0.732 (→160), erythrite ×1 @ 0.696 (→160), metatorbernite ×1 @ 0.664 (→104), metazeunerite ×4 @ 0.650 (→124), brochantite ×4 @ 0.501 (→124), annabergite ×1 @ 0.250 (→160), turquoise ×2 @ 0.233 (→104), morganite ×1 @ 0.115 (→1), goethite ×1 @ 0.048 (→160), spodumene ×1 @ 0.042 (→8), cassiterite ×4 @ 0.029 (→19), native_bismuth ×1 @ 0.027 (→84), topaz ×2 @ 0.017 (→29), proustite ×2 @ 0.007 (→84)
+      no solid left: cobaltite (4 records), cuprite (1 record), native_arsenic (3 records), native_silver (3 records), naumannite (2 records), tennantite (1 record)
+      against A: 28 species present in either arm; moved 9 (acanthite, arsenopyrite, feldspar, goethite, native_bismuth, nickeline, pharmacolite, proustite, uranophane); gained none; lost cobaltite (4 records, no solid), cuprite (1 record, no solid), native_arsenic (3 records, no solid), native_silver (3 records, no solid); the baseline summary differs
+  B root=3         fill   7.2 % (largest 7.3 % at step 87; first >= 0.7 at step —)  full at step   —  last growth at step 160
+      quartz ×3 @ 24.6 (→84), uraninite ×3 @ 6.9 (→87), chrysocolla ×5 @ 3.4 (→124), arsenopyrite ×4 @ 3.0 (→69), feldspar ×2 @ 3.0 (→160), uranophane ×3 @ 1.8 (→160), pharmacolite ×4 @ 1.0 (→160), autunite ×4 @ 0.875 (→144), uranospinite ×4 @ 0.787 (→160), nickeline ×4 @ 0.771 (→69), acanthite ×4 @ 0.734 (→84), erythrite ×1 @ 0.676 (→160), metatorbernite ×1 @ 0.660 (→104), metazeunerite ×4 @ 0.658 (→124), brochantite ×4 @ 0.491 (→124), annabergite ×1 @ 0.270 (→160), turquoise ×2 @ 0.246 (→104), morganite ×1 @ 0.115 (→1), goethite ×1 @ 0.046 (→160), spodumene ×1 @ 0.042 (→8), cassiterite ×4 @ 0.028 (→19), native_bismuth ×1 @ 0.028 (→84), topaz ×2 @ 0.019 (→29), cobaltite ×1 @ 0.018 (→37), proustite ×2 @ 0.007 (→84)
+      no solid left: cuprite (1 record), native_arsenic (3 records), native_silver (3 records), naumannite (2 records), tennantite (1 record)
+      against A: 28 species present in either arm; moved 10 (acanthite, arsenopyrite, cobaltite, feldspar, goethite, native_bismuth, nickeline, pharmacolite, proustite, uranophane); gained none; lost cuprite (1 record, no solid), native_arsenic (3 records, no solid), native_silver (3 records, no solid); the baseline summary differs
 seed 1
-  A shipped        fill  11.0 %  full at step   —  last growth at step 160
-      feldspar ×2 @ 26.6 (→160), quartz ×3 @ 24.9 (→84), uraninite ×3 @ 7.8 (→87), chrysocolla ×5 @ 3.5 (→124), arsenopyrite ×4 @ 2.6 (→69), uranophane ×3 @ 1.6 (→160), autunite ×5 @ 1.2 (→144), metatorbernite ×4 @ 0.791 (→104), erythrite ×1 @ 0.740 (→160), nickeline ×4 @ 0.551 (→69), metazeunerite ×3 @ 0.544 (→124), pharmacolite ×3 @ 0.462 (→160), uranospinite ×2 @ 0.458 (→160), brochantite ×2 @ 0.421 (→124), native_arsenic ×4 @ 0.246 (→84), cobaltite ×4 @ 0.187 (→39), zeunerite ×1 @ 0.145 (→124), morganite ×1 @ 0.138 (→1), annabergite ×2 @ 0.137 (→160), spodumene ×1 @ 0.111 (→19), acanthite ×4 @ 0.091 (→84), native_bismuth ×1 @ 0.066 (→84), cassiterite ×4 @ 0.046 (→19), native_silver ×2 @ 0.022 (→84), topaz ×5 @ 0.022 (→21), proustite ×2 @ 0.012 (→84), cuprite ×1 @ 0.004 (→90), tennantite ×1 @ 0.000 (→0), naumannite ×1 @ 0.000 (→84), goethite ×1 @ 0.000 (→0)
-  B cap=8          fill   7.1 %  full at step   —  last growth at step 160
-      quartz ×3 @ 24.7 (→84), feldspar ×2 @ 9.8 (→160), uraninite ×3 @ 7.1 (→87), chrysocolla ×5 @ 3.4 (→124), arsenopyrite ×4 @ 2.6 (→69), uranophane ×3 @ 1.6 (→160), autunite ×5 @ 1.2 (→144), metatorbernite ×4 @ 0.755 (→104), erythrite ×1 @ 0.715 (→160), metazeunerite ×3 @ 0.598 (→124), nickeline ×4 @ 0.548 (→69), pharmacolite ×3 @ 0.475 (→160), uranospinite ×2 @ 0.458 (→160), brochantite ×2 @ 0.433 (→124), annabergite ×2 @ 0.222 (→160), morganite ×1 @ 0.138 (→1), zeunerite ×1 @ 0.133 (→124), spodumene ×1 @ 0.111 (→19), acanthite ×4 @ 0.094 (→84), cassiterite ×4 @ 0.046 (→19), native_silver ×2 @ 0.022 (→84), topaz ×5 @ 0.022 (→21), proustite ×2 @ 0.011 (→84), cobaltite ×4 @ 0.000 (→39), tennantite ×1 @ 0.000 (→0), native_arsenic ×4 @ 0.000 (→84), naumannite ×1 @ 0.000 (→84), native_bismuth ×1 @ 0.000 (→84), cuprite ×1 @ 0.000 (→90), goethite ×1 @ 0.000 (→0)
-      against A: 30 species; moved 6 (annabergite, cobaltite, cuprite, feldspar, native_arsenic, native_bismuth); gained none; lost none
-  B rclamp=7       fill   7.1 %  full at step   —  last growth at step 160
-      quartz ×3 @ 24.7 (→84), feldspar ×2 @ 9.8 (→160), uraninite ×3 @ 7.1 (→87), chrysocolla ×5 @ 3.4 (→124), arsenopyrite ×4 @ 2.6 (→69), uranophane ×3 @ 1.6 (→160), autunite ×5 @ 1.2 (→144), metatorbernite ×4 @ 0.755 (→104), erythrite ×1 @ 0.715 (→160), metazeunerite ×3 @ 0.598 (→124), nickeline ×4 @ 0.548 (→69), pharmacolite ×3 @ 0.475 (→160), uranospinite ×2 @ 0.458 (→160), brochantite ×2 @ 0.433 (→124), annabergite ×2 @ 0.222 (→160), morganite ×1 @ 0.138 (→1), zeunerite ×1 @ 0.133 (→124), spodumene ×1 @ 0.111 (→19), acanthite ×4 @ 0.094 (→84), cassiterite ×4 @ 0.046 (→19), native_silver ×2 @ 0.022 (→84), topaz ×5 @ 0.022 (→21), proustite ×2 @ 0.011 (→84), cobaltite ×4 @ 0.000 (→39), tennantite ×1 @ 0.000 (→0), native_arsenic ×4 @ 0.000 (→84), naumannite ×1 @ 0.000 (→84), native_bismuth ×1 @ 0.000 (→84), cuprite ×1 @ 0.000 (→90), goethite ×1 @ 0.000 (→0)
-      against A: 30 species; moved 6 (annabergite, cobaltite, cuprite, feldspar, native_arsenic, native_bismuth); gained none; lost none
-  B fcap=2         fill   6.6 %  full at step   —  last growth at step 160
-      quartz ×3 @ 24.2 (→84), uraninite ×3 @ 6.9 (→87), chrysocolla ×5 @ 3.4 (→124), arsenopyrite ×4 @ 2.7 (→69), feldspar ×2 @ 1.7 (→69), uranophane ×3 @ 1.5 (→160), autunite ×5 @ 1.2 (→144), acanthite ×4 @ 1.0 (→84), metatorbernite ×4 @ 0.820 (→104), erythrite ×1 @ 0.717 (→160), metazeunerite ×3 @ 0.566 (→124), nickeline ×4 @ 0.564 (→69), uranospinite ×2 @ 0.482 (→160), pharmacolite ×3 @ 0.472 (→160), brochantite ×2 @ 0.423 (→124), annabergite ×2 @ 0.171 (→160), morganite ×1 @ 0.138 (→1), zeunerite ×1 @ 0.118 (→124), spodumene ×1 @ 0.112 (→19), cassiterite ×4 @ 0.045 (→19), topaz ×5 @ 0.022 (→21), proustite ×2 @ 0.007 (→84), cuprite ×1 @ 0.004 (→90), cobaltite ×4 @ 0.000 (→39), tennantite ×1 @ 0.000 (→0), native_arsenic ×4 @ 0.000 (→84), naumannite ×1 @ 0.000 (→84), native_bismuth ×1 @ 0.000 (→84), native_silver ×2 @ 0.000 (→84), goethite ×1 @ 0.000 (→0)
-      against A: 30 species; moved 7 (acanthite, cobaltite, feldspar, native_arsenic, native_bismuth, native_silver, proustite); gained none; lost none
-  B root=3         fill   7.1 %  full at step   —  last growth at step 160
-      quartz ×3 @ 25.0 (→84), uraninite ×3 @ 7.1 (→87), chrysocolla ×5 @ 3.4 (→124), feldspar ×2 @ 2.8 (→160), arsenopyrite ×4 @ 2.6 (→69), uranophane ×3 @ 1.6 (→160), autunite ×5 @ 1.1 (→144), acanthite ×4 @ 1.0 (→84), metatorbernite ×4 @ 0.785 (→104), erythrite ×1 @ 0.722 (→160), metazeunerite ×3 @ 0.575 (→124), nickeline ×4 @ 0.548 (→69), uranospinite ×2 @ 0.495 (→160), pharmacolite ×3 @ 0.436 (→160), brochantite ×2 @ 0.423 (→124), morganite ×1 @ 0.138 (→1), annabergite ×2 @ 0.126 (→160), zeunerite ×1 @ 0.117 (→124), spodumene ×1 @ 0.111 (→19), cassiterite ×4 @ 0.046 (→19), topaz ×5 @ 0.022 (→21), proustite ×2 @ 0.007 (→84), cuprite ×1 @ 0.004 (→90), cobaltite ×4 @ 0.000 (→39), tennantite ×1 @ 0.000 (→0), native_arsenic ×4 @ 0.000 (→84), naumannite ×1 @ 0.000 (→84), native_bismuth ×1 @ 0.000 (→84), native_silver ×2 @ 0.000 (→84), goethite ×1 @ 0.000 (→0)
-      against A: 30 species; moved 7 (acanthite, cobaltite, feldspar, native_arsenic, native_bismuth, native_silver, proustite); gained none; lost none
+  A shipped        fill  11.0 % (largest 11.0 % at step 160; first >= 0.7 at step —)  full at step   —  last growth at step 160
+      feldspar ×2 @ 26.6 (→160), quartz ×3 @ 24.9 (→84), uraninite ×3 @ 7.8 (→87), chrysocolla ×5 @ 3.5 (→124), arsenopyrite ×4 @ 2.6 (→69), uranophane ×3 @ 1.6 (→160), autunite ×5 @ 1.2 (→144), metatorbernite ×4 @ 0.791 (→104), erythrite ×1 @ 0.740 (→160), nickeline ×2 @ 0.551 (→69), metazeunerite ×3 @ 0.544 (→124), pharmacolite ×1 @ 0.462 (→160), uranospinite ×2 @ 0.458 (→160), brochantite ×2 @ 0.421 (→124), native_arsenic ×1 @ 0.246 (→84), cobaltite ×1 @ 0.187 (→37), zeunerite ×1 @ 0.145 (→124), morganite ×1 @ 0.138 (→1), annabergite ×2 @ 0.137 (→160), spodumene ×1 @ 0.111 (→19), acanthite ×3 @ 0.091 (→84), native_bismuth ×1 @ 0.066 (→84), cassiterite ×4 @ 0.046 (→19), native_silver ×1 @ 0.022 (→84), topaz ×3 @ 0.022 (→21), proustite ×1 @ 0.012 (→84), cuprite ×1 @ 0.004 (→90)
+      no solid left: goethite (1 record), naumannite (1 record), tennantite (1 record)
+  B cap=8          fill   7.1 % (largest 7.2 % at step 87; first >= 0.7 at step —)  full at step   —  last growth at step 160
+      quartz ×3 @ 24.7 (→84), feldspar ×2 @ 9.8 (→160), uraninite ×3 @ 7.1 (→87), chrysocolla ×5 @ 3.4 (→124), arsenopyrite ×4 @ 2.6 (→69), uranophane ×3 @ 1.6 (→160), autunite ×5 @ 1.2 (→144), metatorbernite ×4 @ 0.755 (→104), erythrite ×1 @ 0.715 (→160), metazeunerite ×3 @ 0.598 (→124), nickeline ×2 @ 0.548 (→69), pharmacolite ×1 @ 0.475 (→160), uranospinite ×2 @ 0.458 (→160), brochantite ×2 @ 0.433 (→124), annabergite ×2 @ 0.222 (→160), morganite ×1 @ 0.138 (→1), zeunerite ×1 @ 0.133 (→124), spodumene ×1 @ 0.111 (→19), acanthite ×3 @ 0.094 (→84), cassiterite ×4 @ 0.046 (→19), native_silver ×1 @ 0.022 (→84), topaz ×3 @ 0.022 (→21), proustite ×2 @ 0.011 (→84)
+      no solid left: cobaltite (4 records), cuprite (1 record), goethite (1 record), native_arsenic (4 records), native_bismuth (1 record), naumannite (1 record), tennantite (1 record)
+      against A: 27 species present in either arm; moved 3 (annabergite, feldspar, proustite); gained none; lost cobaltite (4 records, no solid), cuprite (1 record, no solid), native_arsenic (4 records, no solid), native_bismuth (1 record, no solid); the baseline summary differs
+  B rclamp=7       fill   7.1 % (largest 7.2 % at step 87; first >= 0.7 at step —)  full at step   —  last growth at step 160
+      quartz ×3 @ 24.7 (→84), feldspar ×2 @ 9.8 (→160), uraninite ×3 @ 7.1 (→87), chrysocolla ×5 @ 3.4 (→124), arsenopyrite ×4 @ 2.6 (→69), uranophane ×3 @ 1.6 (→160), autunite ×5 @ 1.2 (→144), metatorbernite ×4 @ 0.755 (→104), erythrite ×1 @ 0.715 (→160), metazeunerite ×3 @ 0.598 (→124), nickeline ×2 @ 0.548 (→69), pharmacolite ×1 @ 0.475 (→160), uranospinite ×2 @ 0.458 (→160), brochantite ×2 @ 0.433 (→124), annabergite ×2 @ 0.222 (→160), morganite ×1 @ 0.138 (→1), zeunerite ×1 @ 0.133 (→124), spodumene ×1 @ 0.111 (→19), acanthite ×3 @ 0.094 (→84), cassiterite ×4 @ 0.046 (→19), native_silver ×1 @ 0.022 (→84), topaz ×3 @ 0.022 (→21), proustite ×2 @ 0.011 (→84)
+      no solid left: cobaltite (4 records), cuprite (1 record), goethite (1 record), native_arsenic (4 records), native_bismuth (1 record), naumannite (1 record), tennantite (1 record)
+      against A: 27 species present in either arm; moved 3 (annabergite, feldspar, proustite); gained none; lost cobaltite (4 records, no solid), cuprite (1 record, no solid), native_arsenic (4 records, no solid), native_bismuth (1 record, no solid); the baseline summary differs
+  B fcap=2         fill   6.6 % (largest 6.7 % at step 87; first >= 0.7 at step —)  full at step   —  last growth at step 160
+      quartz ×3 @ 24.2 (→84), uraninite ×3 @ 6.9 (→87), chrysocolla ×5 @ 3.4 (→124), arsenopyrite ×4 @ 2.7 (→69), feldspar ×2 @ 1.7 (→69), uranophane ×3 @ 1.5 (→160), autunite ×5 @ 1.2 (→144), acanthite ×4 @ 1.0 (→84), metatorbernite ×4 @ 0.820 (→104), erythrite ×1 @ 0.717 (→160), metazeunerite ×3 @ 0.566 (→124), nickeline ×2 @ 0.564 (→69), uranospinite ×2 @ 0.482 (→160), pharmacolite ×1 @ 0.472 (→160), brochantite ×2 @ 0.423 (→124), annabergite ×2 @ 0.171 (→160), morganite ×1 @ 0.138 (→1), zeunerite ×1 @ 0.118 (→124), spodumene ×1 @ 0.112 (→19), cassiterite ×4 @ 0.045 (→19), topaz ×3 @ 0.022 (→21), proustite ×2 @ 0.007 (→84), cuprite ×1 @ 0.004 (→90)
+      no solid left: cobaltite (4 records), goethite (1 record), native_arsenic (4 records), native_bismuth (1 record), native_silver (2 records), naumannite (1 record), tennantite (1 record)
+      against A: 27 species present in either arm; moved 3 (acanthite, feldspar, proustite); gained none; lost cobaltite (4 records, no solid), native_arsenic (4 records, no solid), native_bismuth (1 record, no solid), native_silver (2 records, no solid); the baseline summary differs
+  B root=3         fill   7.1 % (largest 7.2 % at step 87; first >= 0.7 at step —)  full at step   —  last growth at step 160
+      quartz ×3 @ 25.0 (→84), uraninite ×3 @ 7.1 (→87), chrysocolla ×5 @ 3.4 (→124), feldspar ×2 @ 2.8 (→160), arsenopyrite ×4 @ 2.6 (→69), uranophane ×3 @ 1.6 (→160), autunite ×5 @ 1.1 (→144), acanthite ×3 @ 1.0 (→84), metatorbernite ×4 @ 0.785 (→104), erythrite ×1 @ 0.722 (→160), metazeunerite ×3 @ 0.575 (→124), nickeline ×2 @ 0.548 (→69), uranospinite ×2 @ 0.495 (→160), pharmacolite ×1 @ 0.436 (→160), brochantite ×2 @ 0.423 (→124), morganite ×1 @ 0.138 (→1), annabergite ×2 @ 0.126 (→160), zeunerite ×1 @ 0.117 (→124), spodumene ×1 @ 0.111 (→19), cassiterite ×4 @ 0.046 (→19), topaz ×3 @ 0.022 (→21), proustite ×2 @ 0.007 (→84), cuprite ×1 @ 0.004 (→90)
+      no solid left: cobaltite (4 records), goethite (1 record), native_arsenic (4 records), native_bismuth (1 record), native_silver (2 records), naumannite (1 record), tennantite (1 record)
+      against A: 27 species present in either arm; moved 3 (acanthite, feldspar, proustite); gained none; lost cobaltite (4 records, no solid), native_arsenic (4 records, no solid), native_bismuth (1 record, no solid), native_silver (2 records, no solid); the baseline summary differs
 seed 2
-  A shipped        fill  10.6 %  full at step   —  last growth at step 160
-      feldspar ×2 @ 26.7 (→160), quartz ×3 @ 24.4 (→84), uraninite ×3 @ 7.8 (→87), chrysocolla ×5 @ 3.4 (→124), arsenopyrite ×4 @ 3.2 (→69), uranophane ×3 @ 1.7 (→160), nickeline ×4 @ 1.6 (→69), autunite ×2 @ 1.1 (→144), acanthite ×4 @ 1.1 (→84), metazeunerite ×4 @ 0.859 (→124), metatorbernite ×2 @ 0.755 (→104), erythrite ×1 @ 0.729 (→160), proustite ×2 @ 0.716 (→84), uranospinite ×3 @ 0.671 (→160), brochantite ×5 @ 0.433 (→124), turquoise ×1 @ 0.253 (→104), cobaltite ×5 @ 0.230 (→38), annabergite ×2 @ 0.214 (→160), native_arsenic ×5 @ 0.171 (→84), morganite ×1 @ 0.127 (→1), spodumene ×1 @ 0.115 (→19), naumannite ×2 @ 0.066 (→84), native_bismuth ×1 @ 0.063 (→84), cassiterite ×4 @ 0.034 (→19), goethite ×3 @ 0.025 (→148), topaz ×6 @ 0.017 (→25), tennantite ×1 @ 0.000 (→0), native_silver ×4 @ 0.000 (→84), cuprite ×1 @ 0.000 (→90)
-  B cap=8          fill   7.2 %  full at step   —  last growth at step 160
-      quartz ×3 @ 25.0 (→84), feldspar ×2 @ 9.8 (→160), uraninite ×3 @ 6.9 (→87), chrysocolla ×5 @ 3.4 (→124), arsenopyrite ×4 @ 3.1 (→69), uranophane ×3 @ 1.7 (→160), nickeline ×4 @ 1.6 (→69), autunite ×2 @ 1.1 (→144), metazeunerite ×4 @ 0.884 (→124), metatorbernite ×2 @ 0.706 (→104), uranospinite ×3 @ 0.677 (→160), erythrite ×1 @ 0.674 (→160), brochantite ×5 @ 0.444 (→124), annabergite ×1 @ 0.289 (→160), turquoise ×1 @ 0.254 (→104), cobaltite ×5 @ 0.230 (→38), acanthite ×4 @ 0.148 (→84), morganite ×1 @ 0.127 (→1), spodumene ×1 @ 0.115 (→19), goethite ×1 @ 0.055 (→160), cassiterite ×4 @ 0.034 (→19), topaz ×6 @ 0.017 (→25), proustite ×2 @ 0.007 (→84), tennantite ×1 @ 0.000 (→0), native_arsenic ×4 @ 0.000 (→84), native_bismuth ×1 @ 0.000 (→84), native_silver ×4 @ 0.000 (→84), naumannite ×2 @ 0.000 (→84), cuprite ×1 @ 0.000 (→90)
-      against A: 29 species; moved 8 (acanthite, annabergite, feldspar, goethite, native_arsenic, native_bismuth, naumannite, proustite); gained none; lost none
-  B rclamp=7       fill   7.2 %  full at step   —  last growth at step 160
-      quartz ×3 @ 25.0 (→84), feldspar ×2 @ 9.8 (→160), uraninite ×3 @ 6.9 (→87), chrysocolla ×5 @ 3.4 (→124), arsenopyrite ×4 @ 3.1 (→69), uranophane ×3 @ 1.7 (→160), nickeline ×4 @ 1.6 (→69), autunite ×2 @ 1.1 (→144), metazeunerite ×4 @ 0.884 (→124), metatorbernite ×2 @ 0.706 (→104), uranospinite ×3 @ 0.677 (→160), erythrite ×1 @ 0.674 (→160), brochantite ×5 @ 0.444 (→124), annabergite ×1 @ 0.289 (→160), turquoise ×1 @ 0.254 (→104), cobaltite ×5 @ 0.230 (→38), acanthite ×4 @ 0.148 (→84), morganite ×1 @ 0.127 (→1), spodumene ×1 @ 0.115 (→19), goethite ×1 @ 0.055 (→160), cassiterite ×4 @ 0.034 (→19), topaz ×6 @ 0.017 (→25), proustite ×2 @ 0.007 (→84), tennantite ×1 @ 0.000 (→0), native_arsenic ×4 @ 0.000 (→84), native_bismuth ×1 @ 0.000 (→84), native_silver ×4 @ 0.000 (→84), naumannite ×2 @ 0.000 (→84), cuprite ×1 @ 0.000 (→90)
-      against A: 29 species; moved 8 (acanthite, annabergite, feldspar, goethite, native_arsenic, native_bismuth, naumannite, proustite); gained none; lost none
-  B fcap=2         fill   6.5 %  full at step   —  last growth at step 160
-      quartz ×3 @ 24.4 (→84), uraninite ×3 @ 7.1 (→87), chrysocolla ×5 @ 3.3 (→124), arsenopyrite ×4 @ 3.2 (→69), uranophane ×3 @ 1.7 (→160), feldspar ×2 @ 1.7 (→69), autunite ×2 @ 1.1 (→144), metazeunerite ×4 @ 0.875 (→124), nickeline ×4 @ 0.824 (→69), metatorbernite ×2 @ 0.730 (→104), erythrite ×1 @ 0.699 (→160), acanthite ×4 @ 0.656 (→84), uranospinite ×3 @ 0.652 (→160), brochantite ×5 @ 0.433 (→124), annabergite ×1 @ 0.277 (→160), turquoise ×1 @ 0.267 (→104), cobaltite ×5 @ 0.235 (→38), morganite ×1 @ 0.127 (→1), spodumene ×1 @ 0.112 (→19), goethite ×1 @ 0.057 (→160), cassiterite ×4 @ 0.034 (→19), topaz ×6 @ 0.022 (→25), proustite ×2 @ 0.006 (→84), tennantite ×1 @ 0.000 (→0), native_arsenic ×4 @ 0.000 (→84), native_bismuth ×1 @ 0.000 (→84), native_silver ×4 @ 0.000 (→84), naumannite ×2 @ 0.000 (→84), cuprite ×1 @ 0.000 (→90)
-      against A: 29 species; moved 10 (acanthite, annabergite, feldspar, goethite, native_arsenic, native_bismuth, naumannite, nickeline, proustite, topaz); gained none; lost none
-  B root=3         fill   6.9 %  full at step   —  last growth at step 160
-      quartz ×3 @ 24.9 (→84), uraninite ×3 @ 6.9 (→87), chrysocolla ×5 @ 3.3 (→124), arsenopyrite ×4 @ 3.1 (→69), feldspar ×2 @ 2.8 (→160), uranophane ×3 @ 1.7 (→160), autunite ×2 @ 1.1 (→144), nickeline ×4 @ 0.912 (→69), metazeunerite ×4 @ 0.861 (→124), erythrite ×1 @ 0.734 (→160), metatorbernite ×2 @ 0.716 (→104), acanthite ×4 @ 0.691 (→84), uranospinite ×3 @ 0.680 (→160), brochantite ×5 @ 0.451 (→124), turquoise ×1 @ 0.259 (→104), annabergite ×1 @ 0.258 (→160), cobaltite ×5 @ 0.230 (→38), morganite ×1 @ 0.127 (→1), spodumene ×1 @ 0.115 (→19), goethite ×1 @ 0.058 (→160), cassiterite ×4 @ 0.034 (→19), topaz ×6 @ 0.017 (→25), proustite ×2 @ 0.007 (→84), tennantite ×1 @ 0.000 (→0), native_arsenic ×4 @ 0.000 (→84), native_bismuth ×1 @ 0.000 (→84), native_silver ×4 @ 0.000 (→84), naumannite ×2 @ 0.000 (→84), cuprite ×1 @ 0.000 (→90)
-      against A: 29 species; moved 9 (acanthite, annabergite, feldspar, goethite, native_arsenic, native_bismuth, naumannite, nickeline, proustite); gained none; lost none
+  A shipped        fill  10.6 % (largest 10.6 % at step 160; first >= 0.7 at step —)  full at step   —  last growth at step 160
+      feldspar ×2 @ 26.7 (→160), quartz ×3 @ 24.4 (→84), uraninite ×3 @ 7.8 (→87), chrysocolla ×5 @ 3.4 (→124), arsenopyrite ×4 @ 3.2 (→69), uranophane ×3 @ 1.7 (→160), nickeline ×4 @ 1.6 (→69), autunite ×2 @ 1.1 (→144), acanthite ×3 @ 1.1 (→84), metazeunerite ×4 @ 0.859 (→124), metatorbernite ×2 @ 0.755 (→104), erythrite ×1 @ 0.729 (→160), proustite ×2 @ 0.716 (→84), uranospinite ×3 @ 0.671 (→160), brochantite ×5 @ 0.433 (→124), turquoise ×1 @ 0.253 (→104), cobaltite ×2 @ 0.230 (→36), annabergite ×2 @ 0.214 (→160), native_arsenic ×2 @ 0.171 (→84), morganite ×1 @ 0.127 (→1), spodumene ×1 @ 0.115 (→19), naumannite ×1 @ 0.066 (→84), native_bismuth ×1 @ 0.063 (→84), cassiterite ×4 @ 0.034 (→19), goethite ×2 @ 0.025 (→148), topaz ×3 @ 0.017 (→25)
+      no solid left: cuprite (1 record), native_silver (4 records), tennantite (1 record)
+  B cap=8          fill   7.2 % (largest 7.3 % at step 87; first >= 0.7 at step —)  full at step   —  last growth at step 160
+      quartz ×3 @ 25.0 (→84), feldspar ×2 @ 9.8 (→160), uraninite ×3 @ 6.9 (→87), chrysocolla ×5 @ 3.4 (→124), arsenopyrite ×4 @ 3.1 (→69), uranophane ×3 @ 1.7 (→160), nickeline ×4 @ 1.6 (→69), autunite ×2 @ 1.1 (→144), metazeunerite ×4 @ 0.884 (→124), metatorbernite ×2 @ 0.706 (→104), uranospinite ×3 @ 0.677 (→160), erythrite ×1 @ 0.674 (→160), brochantite ×5 @ 0.444 (→124), annabergite ×1 @ 0.289 (→160), turquoise ×1 @ 0.254 (→104), cobaltite ×2 @ 0.230 (→36), acanthite ×3 @ 0.148 (→84), morganite ×1 @ 0.127 (→1), spodumene ×1 @ 0.115 (→19), goethite ×1 @ 0.055 (→160), cassiterite ×4 @ 0.034 (→19), topaz ×3 @ 0.017 (→25), proustite ×2 @ 0.007 (→84)
+      no solid left: cuprite (1 record), native_arsenic (4 records), native_bismuth (1 record), native_silver (4 records), naumannite (2 records), tennantite (1 record)
+      against A: 26 species present in either arm; moved 5 (acanthite, annabergite, feldspar, goethite, proustite); gained none; lost native_arsenic (4 records, no solid), native_bismuth (1 record, no solid), naumannite (2 records, no solid); the baseline summary differs
+  B rclamp=7       fill   7.2 % (largest 7.3 % at step 87; first >= 0.7 at step —)  full at step   —  last growth at step 160
+      quartz ×3 @ 25.0 (→84), feldspar ×2 @ 9.8 (→160), uraninite ×3 @ 6.9 (→87), chrysocolla ×5 @ 3.4 (→124), arsenopyrite ×4 @ 3.1 (→69), uranophane ×3 @ 1.7 (→160), nickeline ×4 @ 1.6 (→69), autunite ×2 @ 1.1 (→144), metazeunerite ×4 @ 0.884 (→124), metatorbernite ×2 @ 0.706 (→104), uranospinite ×3 @ 0.677 (→160), erythrite ×1 @ 0.674 (→160), brochantite ×5 @ 0.444 (→124), annabergite ×1 @ 0.289 (→160), turquoise ×1 @ 0.254 (→104), cobaltite ×2 @ 0.230 (→36), acanthite ×3 @ 0.148 (→84), morganite ×1 @ 0.127 (→1), spodumene ×1 @ 0.115 (→19), goethite ×1 @ 0.055 (→160), cassiterite ×4 @ 0.034 (→19), topaz ×3 @ 0.017 (→25), proustite ×2 @ 0.007 (→84)
+      no solid left: cuprite (1 record), native_arsenic (4 records), native_bismuth (1 record), native_silver (4 records), naumannite (2 records), tennantite (1 record)
+      against A: 26 species present in either arm; moved 5 (acanthite, annabergite, feldspar, goethite, proustite); gained none; lost native_arsenic (4 records, no solid), native_bismuth (1 record, no solid), naumannite (2 records, no solid); the baseline summary differs
+  B fcap=2         fill   6.5 % (largest 6.7 % at step 87; first >= 0.7 at step —)  full at step   —  last growth at step 160
+      quartz ×3 @ 24.4 (→84), uraninite ×3 @ 7.1 (→87), chrysocolla ×5 @ 3.3 (→124), arsenopyrite ×4 @ 3.2 (→69), uranophane ×3 @ 1.7 (→160), feldspar ×2 @ 1.7 (→69), autunite ×2 @ 1.1 (→144), metazeunerite ×4 @ 0.875 (→124), nickeline ×4 @ 0.824 (→69), metatorbernite ×2 @ 0.730 (→104), erythrite ×1 @ 0.699 (→160), acanthite ×3 @ 0.656 (→84), uranospinite ×3 @ 0.652 (→160), brochantite ×5 @ 0.433 (→124), annabergite ×1 @ 0.277 (→160), turquoise ×1 @ 0.267 (→104), cobaltite ×3 @ 0.235 (→36), morganite ×1 @ 0.127 (→1), spodumene ×1 @ 0.112 (→19), goethite ×1 @ 0.057 (→160), cassiterite ×4 @ 0.034 (→19), topaz ×3 @ 0.022 (→25), proustite ×1 @ 0.006 (→84)
+      no solid left: cuprite (1 record), native_arsenic (4 records), native_bismuth (1 record), native_silver (4 records), naumannite (2 records), tennantite (1 record)
+      against A: 26 species present in either arm; moved 8 (acanthite, annabergite, cobaltite, feldspar, goethite, nickeline, proustite, topaz); gained none; lost native_arsenic (4 records, no solid), native_bismuth (1 record, no solid), naumannite (2 records, no solid); the baseline summary differs
+  B root=3         fill   6.9 % (largest 7.0 % at step 87; first >= 0.7 at step —)  full at step   —  last growth at step 160
+      quartz ×3 @ 24.9 (→84), uraninite ×3 @ 6.9 (→87), chrysocolla ×5 @ 3.3 (→124), arsenopyrite ×4 @ 3.1 (→69), feldspar ×2 @ 2.8 (→160), uranophane ×3 @ 1.7 (→160), autunite ×2 @ 1.1 (→144), nickeline ×4 @ 0.912 (→69), metazeunerite ×4 @ 0.861 (→124), erythrite ×1 @ 0.734 (→160), metatorbernite ×2 @ 0.716 (→104), acanthite ×3 @ 0.691 (→84), uranospinite ×3 @ 0.680 (→160), brochantite ×5 @ 0.451 (→124), turquoise ×1 @ 0.259 (→104), annabergite ×1 @ 0.258 (→160), cobaltite ×2 @ 0.230 (→36), morganite ×1 @ 0.127 (→1), spodumene ×1 @ 0.115 (→19), goethite ×1 @ 0.058 (→160), cassiterite ×4 @ 0.034 (→19), topaz ×3 @ 0.017 (→25), proustite ×2 @ 0.007 (→84)
+      no solid left: cuprite (1 record), native_arsenic (4 records), native_bismuth (1 record), native_silver (4 records), naumannite (2 records), tennantite (1 record)
+      against A: 26 species present in either arm; moved 6 (acanthite, annabergite, feldspar, goethite, nickeline, proustite); gained none; lost native_arsenic (4 records, no solid), native_bismuth (1 record, no solid), naumannite (2 records, no solid); the baseline summary differs
 
 ### shigar_pegmatite — 70 steps — events: 5 Outer Shell | 12 Schorl Arrives | 22 Cleavelandite | 32 Aquamarine Boundary | 48 Topaz Window | 58 The Etch | 65 Final Cooling
 seed 42 (shipped arm reproduces the baseline)
-  A shipped        fill  92.5 %  full at step   —  last growth at step  70
+  A shipped        fill  92.5 % (largest 92.5 % at step 70; first >= 0.7 at step 56)  full at step   —  last growth at step  70
       albite ×2 @ 269.8 (→70), feldspar ×2 @ 114.1 (→70), quartz ×3 @ 10.7 (→70), tourmaline ×7 @ 1.8 (→57), topaz ×4 @ 0.601 (→64)
-  B cap=8          fill   0.0 %  full at step   —  last growth at step  70
+  B cap=8          fill   0.0 % (largest 0.0 % at step 70; first >= 0.7 at step —)  full at step   —  last growth at step  70
       quartz ×3 @ 13.2 (→70), albite ×2 @ 9.7 (→70), feldspar ×2 @ 7.5 (→70), tourmaline ×7 @ 1.8 (→57), topaz ×6 @ 0.662 (→64)
-      against A: 5 species; moved 3 (albite, feldspar, topaz); gained none; lost none
-  B rclamp=7       fill   0.0 %  full at step   —  last growth at step  70
+      against A: 5 species present in either arm; moved 3 (albite, feldspar, topaz); gained none; lost none; the baseline summary differs
+  B rclamp=7       fill   0.0 % (largest 0.0 % at step 70; first >= 0.7 at step —)  full at step   —  last growth at step  70
       quartz ×3 @ 13.2 (→70), albite ×2 @ 9.7 (→70), feldspar ×2 @ 7.5 (→70), tourmaline ×7 @ 1.8 (→57), topaz ×6 @ 0.662 (→64)
-      against A: 5 species; moved 3 (albite, feldspar, topaz); gained none; lost none
-  B fcap=2         fill   0.0 %  full at step   —  last growth at step  70
+      against A: 5 species present in either arm; moved 3 (albite, feldspar, topaz); gained none; lost none; the baseline summary differs
+  B fcap=2         fill   0.0 % (largest 0.0 % at step 70; first >= 0.7 at step —)  full at step   —  last growth at step  70
       quartz ×3 @ 13.0 (→70), albite ×2 @ 7.4 (→70), feldspar ×2 @ 3.2 (→70), tourmaline ×7 @ 1.8 (→57), topaz ×6 @ 0.714 (→64)
-      against A: 5 species; moved 3 (albite, feldspar, topaz); gained none; lost none
-  B root=3         fill   0.0 %  full at step   —  last growth at step  70
+      against A: 5 species present in either arm; moved 3 (albite, feldspar, topaz); gained none; lost none; the baseline summary differs
+  B root=3         fill   0.0 % (largest 0.0 % at step 70; first >= 0.7 at step —)  full at step   —  last growth at step  70
       quartz ×3 @ 13.2 (→70), albite ×2 @ 9.8 (→70), feldspar ×2 @ 5.8 (→70), tourmaline ×7 @ 1.8 (→57), topaz ×6 @ 0.662 (→64)
-      against A: 5 species; moved 3 (albite, feldspar, topaz); gained none; lost none
+      against A: 5 species present in either arm; moved 3 (albite, feldspar, topaz); gained none; lost none; the baseline summary differs
 seed 1
-  A shipped        fill  91.6 %  full at step   —  last growth at step  70
+  A shipped        fill  91.6 % (largest 91.6 % at step 70; first >= 0.7 at step 57)  full at step   —  last growth at step  70
       albite ×2 @ 267.9 (→70), feldspar ×2 @ 115.0 (→70), quartz ×3 @ 11.0 (→70), tourmaline ×8 @ 1.8 (→57), topaz ×2 @ 0.641 (→64)
-  B cap=8          fill   0.0 %  full at step   —  last growth at step  70
+  B cap=8          fill   0.0 % (largest 0.0 % at step 70; first >= 0.7 at step —)  full at step   —  last growth at step  70
       quartz ×3 @ 12.8 (→70), albite ×2 @ 9.7 (→70), feldspar ×2 @ 7.3 (→70), tourmaline ×8 @ 1.8 (→57), topaz ×4 @ 0.709 (→64)
-      against A: 5 species; moved 3 (albite, feldspar, topaz); gained none; lost none
-  B rclamp=7       fill   0.0 %  full at step   —  last growth at step  70
+      against A: 5 species present in either arm; moved 3 (albite, feldspar, topaz); gained none; lost none; the baseline summary differs
+  B rclamp=7       fill   0.0 % (largest 0.0 % at step 70; first >= 0.7 at step —)  full at step   —  last growth at step  70
       quartz ×3 @ 12.8 (→70), albite ×2 @ 9.7 (→70), feldspar ×2 @ 7.3 (→70), tourmaline ×8 @ 1.8 (→57), topaz ×4 @ 0.709 (→64)
-      against A: 5 species; moved 3 (albite, feldspar, topaz); gained none; lost none
-  B fcap=2         fill   0.0 %  full at step   —  last growth at step  70
+      against A: 5 species present in either arm; moved 3 (albite, feldspar, topaz); gained none; lost none; the baseline summary differs
+  B fcap=2         fill   0.0 % (largest 0.0 % at step 70; first >= 0.7 at step —)  full at step   —  last growth at step  70
       quartz ×3 @ 12.9 (→70), albite ×2 @ 7.3 (→70), feldspar ×2 @ 3.0 (→70), tourmaline ×8 @ 1.8 (→57), topaz ×4 @ 0.678 (→64)
-      against A: 5 species; moved 3 (albite, feldspar, topaz); gained none; lost none
-  B root=3         fill   0.0 %  full at step   —  last growth at step  70
+      against A: 5 species present in either arm; moved 3 (albite, feldspar, topaz); gained none; lost none; the baseline summary differs
+  B root=3         fill   0.0 % (largest 0.0 % at step 70; first >= 0.7 at step —)  full at step   —  last growth at step  70
       quartz ×3 @ 12.8 (→70), albite ×2 @ 9.6 (→70), feldspar ×2 @ 5.6 (→70), tourmaline ×8 @ 1.8 (→57), topaz ×4 @ 0.709 (→64)
-      against A: 5 species; moved 3 (albite, feldspar, topaz); gained none; lost none
+      against A: 5 species present in either arm; moved 3 (albite, feldspar, topaz); gained none; lost none; the baseline summary differs
 seed 2
-  A shipped        fill  90.4 %  full at step   —  last growth at step  70
+  A shipped        fill  90.4 % (largest 90.4 % at step 70; first >= 0.7 at step 59)  full at step   —  last growth at step  70
       albite ×2 @ 276.8 (→70), feldspar ×2 @ 112.2 (→70), quartz ×3 @ 11.3 (→70), tourmaline ×8 @ 1.9 (→57), topaz ×6 @ 0.629 (→64)
-  B cap=8          fill   0.0 %  full at step   —  last growth at step  70
+  B cap=8          fill   0.0 % (largest 0.0 % at step 70; first >= 0.7 at step —)  full at step   —  last growth at step  70
       quartz ×3 @ 12.8 (→70), albite ×2 @ 9.9 (→70), feldspar ×2 @ 7.3 (→70), tourmaline ×8 @ 1.8 (→57), topaz ×6 @ 0.682 (→64)
-      against A: 5 species; moved 2 (albite, feldspar); gained none; lost none
-  B rclamp=7       fill   0.0 %  full at step   —  last growth at step  70
+      against A: 5 species present in either arm; moved 2 (albite, feldspar); gained none; lost none; the baseline summary differs
+  B rclamp=7       fill   0.0 % (largest 0.0 % at step 70; first >= 0.7 at step —)  full at step   —  last growth at step  70
       quartz ×3 @ 12.8 (→70), albite ×2 @ 9.9 (→70), feldspar ×2 @ 7.3 (→70), tourmaline ×8 @ 1.8 (→57), topaz ×6 @ 0.682 (→64)
-      against A: 5 species; moved 2 (albite, feldspar); gained none; lost none
-  B fcap=2         fill   0.0 %  full at step   —  last growth at step  70
+      against A: 5 species present in either arm; moved 2 (albite, feldspar); gained none; lost none; the baseline summary differs
+  B fcap=2         fill   0.0 % (largest 0.0 % at step 70; first >= 0.7 at step —)  full at step   —  last growth at step  70
       quartz ×3 @ 12.9 (→70), albite ×2 @ 7.2 (→70), feldspar ×2 @ 3.1 (→70), tourmaline ×8 @ 1.9 (→57), topaz ×6 @ 0.681 (→64)
-      against A: 5 species; moved 2 (albite, feldspar); gained none; lost none
-  B root=3         fill   0.0 %  full at step   —  last growth at step  70
+      against A: 5 species present in either arm; moved 2 (albite, feldspar); gained none; lost none; the baseline summary differs
+  B root=3         fill   0.0 % (largest 0.0 % at step 70; first >= 0.7 at step —)  full at step   —  last growth at step  70
       quartz ×3 @ 12.8 (→70), albite ×2 @ 9.9 (→70), feldspar ×2 @ 5.6 (→70), tourmaline ×8 @ 1.8 (→57), topaz ×6 @ 0.682 (→64)
-      against A: 5 species; moved 2 (albite, feldspar); gained none; lost none
+      against A: 5 species present in either arm; moved 2 (albite, feldspar); gained none; lost none; the baseline summary differs
 
 ### tormiq_alpine_cleft — 200 steps — events: 25 Cleft Opens — Quartz Lining | 50 Ti-Fe Oxide Stage | 80 The Epidote Stage | 110 Byssolite Sprays | 140 Adularia Stage | 170 Late Calcite — Cooling | 188 Late Karakoram-Thrust Shearing
 seed 42 (shipped arm reproduces the baseline)
-  A shipped        fill   7.7 %  full at step   —  last growth at step 200
+  A shipped        fill   7.7 % (largest 7.7 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       albite ×2 @ 65.8 (→200), feldspar ×2 @ 36.5 (→200), epidote ×5 @ 24.1 (→200), titanite ×3 @ 5.3 (→200), actinolite ×4 @ 1.4 (→200), quartz ×1 @ 0.008 (→153)
-  B cap=8          fill   1.3 %  full at step   —  last growth at step 200
+  B cap=8          fill   1.3 % (largest 1.3 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       albite ×2 @ 26.7 (→200), epidote ×5 @ 24.1 (→200), feldspar ×2 @ 19.0 (→200), titanite ×3 @ 5.3 (→200), actinolite ×4 @ 1.4 (→200), quartz ×1 @ 0.008 (→153)
-      against A: 6 species; moved 2 (albite, feldspar); gained none; lost none
-  B rclamp=7       fill   1.3 %  full at step   —  last growth at step 200
+      against A: 6 species present in either arm; moved 2 (albite, feldspar); gained none; lost none; the baseline summary differs
+  B rclamp=7       fill   1.3 % (largest 1.3 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       albite ×2 @ 26.7 (→200), epidote ×5 @ 24.1 (→200), feldspar ×2 @ 19.0 (→200), titanite ×3 @ 5.3 (→200), actinolite ×4 @ 1.4 (→200), quartz ×1 @ 0.008 (→153)
-      against A: 6 species; moved 2 (albite, feldspar); gained none; lost none
-  B fcap=2         fill   0.8 %  full at step   —  last growth at step 200
+      against A: 6 species present in either arm; moved 2 (albite, feldspar); gained none; lost none; the baseline summary differs
+  B fcap=2         fill   0.8 % (largest 0.8 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       epidote ×5 @ 24.2 (→200), albite ×3 @ 14.6 (→200), feldspar ×2 @ 11.2 (→200), titanite ×3 @ 5.3 (→200), actinolite ×4 @ 1.4 (→200), quartz ×1 @ 0.010 (→153)
-      against A: 6 species; moved 2 (albite, feldspar); gained none; lost none
-  B root=3         fill   0.7 %  full at step   —  last growth at step 200
+      against A: 6 species present in either arm; moved 2 (albite, feldspar); gained none; lost none; the baseline summary differs
+  B root=3         fill   0.7 % (largest 0.7 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       epidote ×5 @ 23.9 (→200), albite ×2 @ 7.3 (→200), titanite ×3 @ 5.3 (→200), feldspar ×2 @ 4.2 (→200), actinolite ×4 @ 1.4 (→200), quartz ×1 @ 0.009 (→153)
-      against A: 6 species; moved 2 (albite, feldspar); gained none; lost none
+      against A: 6 species present in either arm; moved 2 (albite, feldspar); gained none; lost none; the baseline summary differs
 seed 1
-  A shipped        fill   8.3 %  full at step   —  last growth at step 200
+  A shipped        fill   8.3 % (largest 8.3 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       albite ×2 @ 66.5 (→200), feldspar ×2 @ 37.2 (→200), epidote ×5 @ 24.0 (→200), titanite ×3 @ 5.3 (→200), actinolite ×4 @ 1.4 (→200), quartz ×2 @ 0.053 (→155)
-  B cap=8          fill   2.0 %  full at step   —  last growth at step 200
+  B cap=8          fill   2.0 % (largest 2.0 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       albite ×2 @ 26.5 (→200), epidote ×5 @ 23.9 (→200), feldspar ×2 @ 18.8 (→200), titanite ×3 @ 5.3 (→200), actinolite ×4 @ 1.4 (→200), quartz ×2 @ 0.042 (→155)
-      against A: 6 species; moved 2 (albite, feldspar); gained none; lost none
-  B rclamp=7       fill   2.0 %  full at step   —  last growth at step 200
+      against A: 6 species present in either arm; moved 2 (albite, feldspar); gained none; lost none; the baseline summary differs
+  B rclamp=7       fill   2.0 % (largest 2.0 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       albite ×2 @ 26.5 (→200), epidote ×5 @ 23.9 (→200), feldspar ×2 @ 18.8 (→200), titanite ×3 @ 5.3 (→200), actinolite ×4 @ 1.4 (→200), quartz ×2 @ 0.042 (→155)
-      against A: 6 species; moved 2 (albite, feldspar); gained none; lost none
-  B fcap=2         fill   1.4 %  full at step   —  last growth at step 200
+      against A: 6 species present in either arm; moved 2 (albite, feldspar); gained none; lost none; the baseline summary differs
+  B fcap=2         fill   1.4 % (largest 1.4 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       epidote ×5 @ 23.9 (→200), albite ×3 @ 14.8 (→200), feldspar ×2 @ 11.2 (→200), titanite ×3 @ 5.2 (→200), actinolite ×4 @ 1.4 (→200), quartz ×2 @ 0.032 (→155)
-      against A: 6 species; moved 3 (albite, feldspar, quartz); gained none; lost none
-  B root=3         fill   1.3 %  full at step   —  last growth at step 200
+      against A: 6 species present in either arm; moved 3 (albite, feldspar, quartz); gained none; lost none; the baseline summary differs
+  B root=3         fill   1.3 % (largest 1.3 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       epidote ×5 @ 23.8 (→200), albite ×2 @ 7.2 (→200), titanite ×3 @ 5.2 (→200), feldspar ×2 @ 4.2 (→200), actinolite ×4 @ 1.4 (→200), quartz ×1 @ 0.059 (→155)
-      against A: 6 species; moved 3 (albite, feldspar, quartz); gained none; lost none
+      against A: 6 species present in either arm; moved 3 (albite, feldspar, quartz); gained none; lost none; the baseline summary differs
 seed 2
-  A shipped        fill   6.3 %  full at step   —  last growth at step 200
+  A shipped        fill   6.3 % (largest 6.3 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       albite ×2 @ 66.5 (→200), feldspar ×2 @ 37.4 (→200), epidote ×5 @ 24.1 (→200), titanite ×3 @ 5.1 (→200), actinolite ×4 @ 1.4 (→200), quartz ×3 @ 0.103 (→188)
-  B cap=8          fill   1.1 %  full at step   —  last growth at step 200
+  B cap=8          fill   1.1 % (largest 1.1 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       albite ×2 @ 26.3 (→200), epidote ×5 @ 24.1 (→200), feldspar ×2 @ 18.9 (→200), titanite ×3 @ 5.1 (→200), actinolite ×4 @ 1.4 (→200), quartz ×3 @ 0.103 (→188)
-      against A: 6 species; moved 2 (albite, feldspar); gained none; lost none
-  B rclamp=7       fill   1.1 %  full at step   —  last growth at step 200
+      against A: 6 species present in either arm; moved 2 (albite, feldspar); gained none; lost none; the baseline summary differs
+  B rclamp=7       fill   1.1 % (largest 1.1 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       albite ×2 @ 26.3 (→200), epidote ×5 @ 24.1 (→200), feldspar ×2 @ 18.9 (→200), titanite ×3 @ 5.1 (→200), actinolite ×4 @ 1.4 (→200), quartz ×3 @ 0.103 (→188)
-      against A: 6 species; moved 2 (albite, feldspar); gained none; lost none
-  B fcap=2         fill   0.7 %  full at step   —  last growth at step 200
+      against A: 6 species present in either arm; moved 2 (albite, feldspar); gained none; lost none; the baseline summary differs
+  B fcap=2         fill   0.7 % (largest 0.7 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       epidote ×5 @ 24.1 (→200), albite ×2 @ 14.5 (→200), feldspar ×2 @ 11.1 (→200), titanite ×3 @ 5.1 (→200), actinolite ×4 @ 1.4 (→200), quartz ×3 @ 0.120 (→188)
-      against A: 6 species; moved 2 (albite, feldspar); gained none; lost none
-  B root=3         fill   0.7 %  full at step   —  last growth at step 200
+      against A: 6 species present in either arm; moved 2 (albite, feldspar); gained none; lost none; the baseline summary differs
+  B root=3         fill   0.7 % (largest 0.7 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
       epidote ×5 @ 23.8 (→200), albite ×2 @ 7.4 (→200), titanite ×3 @ 5.1 (→200), feldspar ×2 @ 4.2 (→200), actinolite ×4 @ 1.4 (→200), quartz ×3 @ 0.099 (→188)
-      against A: 6 species; moved 2 (albite, feldspar); gained none; lost none
+      against A: 6 species present in either arm; moved 2 (albite, feldspar); gained none; lost none; the baseline summary differs
 
 audits: every arm run reads the simulator's audits as the shipped arm does

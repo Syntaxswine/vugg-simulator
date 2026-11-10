@@ -32,11 +32,15 @@
  *   pb             The radiogenic Pb the uraninite block adds to the bulk handle (js/85-simulator.ts,
  *                  `conditions.fluid.Pb += 0.1 * u_size`) is also added to every voxel, the way
  *                  _propagateGlobalDelta carries an event's change. Applied by wrapping _check_enclosure,
- *                  the first call after that block; the increment is recomputed from the same crystals.
- *   nopb           The same increment is taken off the bulk handle again, in the same place: radiogenic
- *                  lead that stays in the uraninite and is never released. It is the no-release limit
- *                  of "book the lead in the crystal and release it on alteration"; the arm reports how
- *                  many negative zones the uraninites took, which is how often a release would fire.
+ *                  the first call after that block; the increment is the change in the bulk handle's
+ *                  Pb across the block.
+ *   nopb           The bulk handle's Pb is put back, in the same place, to the value it had just before
+ *                  the uraninite block ran (read at the _sealVugIfFilled call that precedes the block):
+ *                  radiogenic lead that reaches no fluid at all. The value is RESTORED, not subtracted.
+ *                  (30 + a + b + c) − (a + b + c) need not be 30, and several sigma functions switch
+ *                  on a field being below a threshold (supersaturation_plumbogummite returns 0 when
+ *                  Pb < 30, and that broth starts at exactly 30). The arm reports how many negative
+ *                  zones the uraninites took, which is how often an alteration could release lead.
  *   mul=<F>:<x>    The scenario's initial fluid field <F> is multiplied by <x> before the simulator is
  *                  built (every voxel is cloned from it).
  *   refund=<f>     Every positive zone's debit is returned, times <f>, to the cell it was taken from as
@@ -49,7 +53,9 @@
  *                  against the receipts (js/85c); the arm rewrites the receipt of a refunded zone to
  *                  the change its cell now shows (withdrawn when that is none), as the ledger itself
  *                  would have written it. Without that the audit fails and pauses the scenario's CO2
- *                  events, which is an effect of the arm and not of supply. refund=0 is the neutral
+ *                  events, which is an effect of the arm and not of supply. At refund=1 a field that
+ *                  the return brings back to within rounding of its value before the debit is set to
+ *                  that value exactly, for the reason given under nopb. refund=0 is the neutral
  *                  setting. It applies to every mineral and ignores --minerals.
  *
  * Each B arm is `--arm <intervention>[,<intervention>…]`; several --arm flags give several B arms.
@@ -62,17 +68,25 @@
  * saturation because the whole fluid does or because it has drawn its own cell down. The traced
  * shipped arm is still compared with the baseline at seed 42, so the trace is shown not to move a run.
  *
- * Reported per scenario and seed, for A and each B: cavity fill at run end, the first step at
- * fill >= 0.999, the last step on which any crystal stored a positive zone, each species' count and
- * largest crystal with the last step it grew, and against A the species gained, lost and moved (count
- * changed, or largest crystal changed by a factor of more than 1.25 either way, so a shrink of a
- * fifth counts). With `pb` or `nopb`, bulk and voxel-mean Pb at run end and the uraninites' negative
- * zones.
+ * Reported per scenario and seed, for A and each B: cavity fill at run end, the largest fill of the
+ * run with its step, the first steps at fill >= 0.7 and >= 0.999, the last step on which any crystal
+ * stored a positive zone, and each species' crystals. A species is PRESENT in a run when at least
+ * one of its crystals has solid left at run end (total_growth_um > 0). A crystal that dissolved away,
+ * or was born and never grew, is a record with no solid: it is listed ("×n records") and is not
+ * presence. For each present species: the number of crystals with solid left, the largest, and the
+ * last step it grew. Against A: species LOST (present in A, not in B, whether or not records
+ * remain), GAINED (the reverse), and MOVED (present in both, and the number of crystals with solid
+ * changed or the largest changed by a factor of more than 1.25 either way, so a shrink of a fifth
+ * counts; the factor is taken on the sizes plus one micrometre, so that two specks do not count).
+ * A scenario's run is also marked IDENTICAL or not: whether every species has the same crystals
+ * with solid and the same largest size to 0.1 µm, which is what the committed baseline records.
+ * With `pb` or `nopb`, bulk and voxel-mean Pb at run end and the uraninites' negative zones.
  *
  * AUDIT. An intervention may trip one of the simulator's own audits, and an audit that fails can
  * cancel an authored event: the run then differs for a reason that is not the intervention's subject.
- * Every run counts the step-log lines in which an event reports itself paused or refused (js/70l),
- * the failed transactions of the carbonate boundary, and the entries of the three violation ledgers
+ * Every run counts the step-log lines in which a CO2 or carbonate event reports itself paused or
+ * refused (js/70l, the only events that do), the failed transactions of the carbonate boundary, and
+ * the entries of the three violation ledgers
  * (sulfur and carbon propagation, fluid boundary). An arm whose counts differ from arm A's is
  * flagged on its own line and in the JSON. Beside the audit, each run records the steps on which
  * the wall's dissolution was withheld as too small to resolve (js/85d). That is a notice, not a
@@ -96,8 +110,9 @@
  *   births there as well as growth. proposals/evidence/sim-side-2026-11-09/probe-nucleation-envelope.mjs
  *   counts those calls.
  *
- * PASSIVE instrument: exits 0 whatever it finds; imports only tools/_harness.mjs and node builtins;
- * writes only .local-evidence/sim-side-ab/.
+ * PASSIVE instrument: exits 0 whatever the runs show (it throws on a bad argument or an unknown
+ * scenario or mineral); imports only tools/_harness.mjs and node builtins; writes only
+ * .local-evidence/sim-side-ab/.
  *
  * Usage:
  *   node tools/sim-side-ab.mjs --arm rind=5000 --arm fcap=2 --seeds 42,1,2 gem_pegmatite
@@ -115,12 +130,15 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const OUT = path.join(ROOT, '.local-evidence', 'sim-side-ab');
 const FULL_FILL = 0.999;
+const HIGH_FILL = 0.7;          // _fillDampenerFor (js/85d) starts to bite here
 // js/39-supersat-silicate.ts: sigma = (K/40)(Al/10)(SiO2/400) for feldspar, (Na/35)(Al/10)(SiO2/400)
 // for albite. Spelled out here: if those functions change, `fcap` no longer previews them.
 const FACTORS = { feldspar: [['K', 40], ['Al', 10], ['SiO2', 400]], albite: [['Na', 35], ['Al', 10], ['SiO2', 400]] };
-// A step-log line in which an event says it did not act (js/70l: "… paused: …", "… refused: …").
-// Counted for the AUDIT comparison.
-const REFUSAL = / (paused|refused): /;
+// A step-log line in which an event says it did not act. Only the CO2 and carbonate events of
+// js/70l do ("CO₂ vent paused: …", "Heated CO₂ vent paused: …", "CO₂ charge refused: …",
+// "Carbonate recharge paused: …"). The pattern names them, so that narration which happens to
+// contain "refused:" is not counted. Counted for the AUDIT comparison.
+const REFUSAL = /(CO₂|Carbonate) [a-z₂ ]*(paused|refused): /;
 // The wall's notice that a dissolution step was too small to resolve (js/85d). Counted beside the
 // audit, not in it.
 const WITHHELD = /WALL DISSOLUTION WITHHELD/;
@@ -179,6 +197,7 @@ const { SCENARIOS, VugSimulator, setSeed, SIM_VERSION, MINERAL_ENGINES, temperat
 });
 for (const n of [...opts.scenarios, ...(opts.selfcheck ? [opts.selfcheckScenario] : [])]) if (!SCENARIOS[n]) throw new Error(`unknown scenario ${n}`);
 for (const m of opts.minerals) if (typeof MINERAL_ENGINES[m] !== 'function') throw new Error(`no growth engine named ${m}`);
+if (opts.trace && typeof MINERAL_ENGINES[opts.trace] !== 'function') throw new Error(`--trace: no growth engine named ${opts.trace}`);
 const baselineFile = path.join(ROOT, 'tests-js', 'baselines', `seed42_v${SIM_VERSION}.json`);
 const BASELINE = fs.existsSync(baselineFile) ? JSON.parse(fs.readFileSync(baselineFile, 'utf8')) : null;
 
@@ -251,12 +270,24 @@ function run(name, seed, arm) {
     const sim = new VugSimulator(conditions, events);
     const grid = sim.wall_state.voxelGridFor(sim);
     if (arm && (arm.pb || arm.nopb)) {
+      // The uraninite block of run_step sits between a call of _sealVugIfFilled and the one call of
+      // _check_enclosure (js/85-simulator.ts). The bulk handle's Pb is read after the first and
+      // again before the second: the difference is exactly what the block added.
+      let before = null;
+      const origSeal = sim._sealVugIfFilled;
+      sim._sealVugIfFilled = function (...a) {
+        const out = origSeal.apply(this, a);
+        before = Number(this.conditions.fluid.Pb);
+        return out;
+      };
       const orig = sim._check_enclosure;
       sim._check_enclosure = function () {
-        let inc = 0;
-        for (const c of this.crystals) if (c.mineral === 'uraninite' && c.active) inc += 0.1 * (c.total_growth_um / 1000);
-        if (inc > 0 && arm.pb) for (const v of grid.voxels) v.fluid.Pb += inc;
-        if (inc > 0 && arm.nopb) this.conditions.fluid.Pb = Math.max(0, this.conditions.fluid.Pb - inc);
+        if (before != null) {
+          const inc = Number(this.conditions.fluid.Pb) - before;
+          if (inc > 0 && arm.pb) for (const v of grid.voxels) v.fluid.Pb += inc;
+          if (arm.nopb) this.conditions.fluid.Pb = before;     // restored, not subtracted (see the header)
+          before = null;
+        }
         return orig.call(this);
       };
     }
@@ -265,10 +296,7 @@ function run(name, seed, arm) {
       const orig = sim._applyZoneGrowthBudget;
       sim._applyZoneGrowthBudget = function (crystal, zone) {
         const receiptsBefore = (this.conditions._pending_carbonate_boundary_transfers || []).length;
-        const out = orig.call(this, crystal, zone);
-        const inv = zone && zone.thickness_um > 0 ? zone._budget_inventory_per_um : null;
-        if (!inv) return out;
-        // The fluid the ledger just debited: the crystal's own cell, with the fallbacks of js/85b.
+        // The fluid the ledger is about to debit: the crystal's own cell, with the fallbacks of js/85b.
         const chem = this.wall_state.chemistryAddressForCrystal(crystal);
         const ringIdx = chem ? chem.ringIdx : null;
         let fluid = this.conditions.fluid;
@@ -276,6 +304,15 @@ function run(name, seed, arm) {
           const cell = mesh.cellOf(crystal, this.wall_state);
           fluid = (cell && cell.fluid) ? cell.fluid : this.ring_fluids[ringIdx];
         }
+        // Every numeric field of that fluid as it stands before the debit, for the exact return below.
+        let pre = null;
+        if (arm.refund === 1 && zone && zone.thickness_um > 0) {
+          pre = {};
+          for (const k of Object.keys(fluid)) if (typeof fluid[k] === 'number') pre[k] = fluid[k];
+        }
+        const out = orig.call(this, crystal, zone);
+        const inv = zone && zone.thickness_um > 0 ? zone._budget_inventory_per_um : null;
+        if (!inv) return out;
         let returnedCarbon = 0;
         for (const sp in inv) {
           const amount = arm.refund * zone.thickness_um * inv[sp];
@@ -285,6 +322,16 @@ function run(name, seed, arm) {
           if (sp === 'CO3') returnedCarbon += amount;
         }
         if (fluid.sulfurPoolsExplicit) syncExplicitSulfurTotal(fluid);
+        // (x − d) + d need not be x. A field the return has brought back to within rounding of its
+        // value before the debit is set to that value exactly, so that the round trip cannot carry a
+        // cell across a threshold a sigma function tests. A field the zone changed for another
+        // reason (an engine's own pH or redox term) is further off than rounding and is left alone.
+        if (pre) {
+          for (const k in pre) {
+            const now = fluid[k];
+            if (typeof now === 'number' && now !== pre[k] && Math.abs(now - pre[k]) <= 1e-9 * Math.max(1, Math.abs(pre[k]))) fluid[k] = pre[k];
+          }
+        }
         // The carbonate receipt the ledger wrote for this zone (js/19) records the change in the
         // cell's CO3 before the refund. Bring it into line with what the cell shows now: add the
         // carbonate returned, and withdraw the receipt when nothing is left of it, as the ledger
@@ -299,7 +346,7 @@ function run(name, seed, arm) {
       };
     }
     const steps = defaultSteps ?? 100;
-    let full = null;
+    let full = null, first70 = null, maxFill = 0, maxFillStep = 0;
     let eventRefusals = 0, wallDissolutionWithheld = 0;
     const traced = { bulk: [], cell: [] };
     const traceStep = () => {
@@ -335,20 +382,26 @@ function run(name, seed, arm) {
         if (REFUSAL.test(line)) eventRefusals++;
         if (WITHHELD.test(line)) wallDissolutionWithheld++;
       }
-      if (full == null && sim.get_vug_fill() >= FULL_FILL) full = sim.step;
+      const fill = sim.get_vug_fill();
+      if (fill > maxFill) { maxFill = fill; maxFillStep = sim.step; }
+      if (first70 == null && fill >= HIGH_FILL) first70 = sim.step;
+      if (full == null && fill >= FULL_FILL) full = sim.step;
     }
     const median = (a) => (a.length ? a.slice().sort((x, y) => x - y)[Math.floor(a.length / 2)] : null);
-    const species = {};
+    // A species is present when one of its crystals has solid left. `species` holds the present ones;
+    // `noSolid` the minerals that left records only (dissolved away, or born and never grown).
+    const species = {}, records = {};
     let lastGrowth = 0, uraniniteNegativeZones = 0;
     for (const c of sim.crystals) {
-      const o = (species[c.mineral] ||= { n: 0, max_um: 0, last: 0 });
-      o.n++;
-      if (c.total_growth_um > o.max_um) o.max_um = c.total_growth_um;
+      records[c.mineral] = (records[c.mineral] || 0) + 1;
+      const o = c.total_growth_um > 0 ? (species[c.mineral] ||= { n: 0, max_um: 0, last: 0 }) : null;
+      if (o) { o.n++; if (c.total_growth_um > o.max_um) o.max_um = c.total_growth_um; }
       for (const z of c.zones) {
-        if (z.thickness_um > 0) { if (z.step > o.last) o.last = z.step; if (z.step > lastGrowth) lastGrowth = z.step; }
+        if (z.thickness_um > 0) { if (o && z.step > o.last) o.last = z.step; if (z.step > lastGrowth) lastGrowth = z.step; }
         else if (z.thickness_um < 0 && c.mineral === 'uraninite') uraniniteNegativeZones++;
       }
     }
+    const noSolid = Object.fromEntries(Object.entries(records).filter(([m]) => !species[m]).sort());
     let pbVox = 0;
     for (const v of grid.voxels) pbVox += Number(v.fluid.Pb) || 0;
     const audit = {
@@ -357,7 +410,7 @@ function run(name, seed, arm) {
       ledgerViolations: (sim._sulfurPropagationViolations || []).length + (sim._carbonPropagationViolations || []).length
         + (sim._fluidBoundaryViolations || []).length,
     };
-    return { steps, fill: sim.get_vug_fill(), full, lastGrowth, species, summary: summarize(sim), audit, wallDissolutionWithheld, uraniniteNegativeZones,
+    return { steps, fill: sim.get_vug_fill(), maxFill, maxFillStep, first70, full, lastGrowth, species, noSolid, summary: summarize(sim), audit, wallDissolutionWithheld, uraniniteNegativeZones,
       bulkPb: Number(sim.conditions.fluid.Pb) || 0, voxPb: pbVox / grid.voxels.length,
       trace: opts.trace ? { mineral: opts.trace, steps: traced.bulk.length, sigmaBulkMedian: median(traced.bulk), sigmaCellMedian: median(traced.cell) } : null,
       events: events.map(e => `${e.step} ${e.name}`) };
@@ -369,14 +422,17 @@ function run(name, seed, arm) {
 const T = [];
 const say = (s = '') => { T.push(s); console.log(s); };
 const mm = (um) => (um / 1000).toFixed(um < 1000 ? 3 : 1);
-const fmt = (sp) => Object.entries(sp).sort((a, b) => b[1].max_um - a[1].max_um)
-  .map(([m, v]) => `${m} ×${v.n} @ ${mm(v.max_um)} (→${v.last})`).join(', ');
+const fmt = (r) => (Object.entries(r.species).sort((a, b) => b[1].max_um - a[1].max_um)
+  .map(([m, v]) => `${m} ×${v.n} @ ${mm(v.max_um)} (→${v.last})`).join(', ') || 'no species has solid left')
+  + (Object.keys(r.noSolid).length ? `\n      no solid left: ${Object.entries(r.noSolid).map(([m, n]) => `${m} (${n} record${n === 1 ? '' : 's'})`).join(', ')}` : '');
+// Presence is solid left at run end (see the header). `sameAsShipped` is the stricter question a
+// baseline asks: is the per-species summary that tests-js/baselines stores unchanged?
 function compare(A, B) {
   const keys = [...new Set([...Object.keys(A.species), ...Object.keys(B.species)])].sort();
   const gained = keys.filter(k => !A.species[k]), lost = keys.filter(k => !B.species[k]);
   const moved = keys.filter(k => A.species[k] && B.species[k] && (A.species[k].n !== B.species[k].n
     || Math.abs(Math.log((B.species[k].max_um + 1) / (A.species[k].max_um + 1))) > Math.log(1.25)));
-  return { speciesCount: keys.length, gained, lost, moved };
+  return { speciesCount: keys.length, gained, lost, moved, sameAsShipped: JSON.stringify(A.summary) === JSON.stringify(B.summary) };
 }
 
 say(`sim-side A/B — SIM ${SIM_VERSION}; arms ${opts.arms.map(a => a.label).join(' | ')}; minerals ${opts.minerals.join(', ')}; seeds ${opts.seeds.join(', ')}`);
@@ -408,18 +464,20 @@ for (const name of opts.scenarios) {
     const base = seed === 42 && BASELINE ? JSON.stringify(A.summary) === JSON.stringify(BASELINE[name]) : null;
     say(`seed ${seed}${base == null ? '' : base ? ' (shipped arm reproduces the baseline)' : ' (SHIPPED ARM DOES NOT REPRODUCE THE BASELINE)'}`);
     const lead = opts.arms.some(a => a.pb || a.nopb);
-    const line = (label, r) => `  ${label.padEnd(16)} fill ${(r.fill * 100).toFixed(1).padStart(5)} %  full at step ${String(r.full ?? '—').padStart(3)}  last growth at step ${String(r.lastGrowth).padStart(3)}${lead ? `  Pb bulk ${r.bulkPb.toFixed(1)} / voxel mean ${r.voxPb.toFixed(2)}  uraninite negative zones ${r.uraniniteNegativeZones}` : ''}${r.trace && r.trace.steps ? `  ${r.trace.mineral} sigma, median over ${r.trace.steps} steps: bulk ${r.trace.sigmaBulkMedian.toFixed(3)}, own cell ${r.trace.sigmaCellMedian.toFixed(3)}` : ''}\n      ${fmt(r.species)}`;
+    const line = (label, r) => `  ${label.padEnd(16)} fill ${(r.fill * 100).toFixed(1).padStart(5)} % (largest ${(r.maxFill * 100).toFixed(1)} % at step ${r.maxFillStep}; first >= 0.7 at step ${r.first70 ?? '—'})  full at step ${String(r.full ?? '—').padStart(3)}  last growth at step ${String(r.lastGrowth).padStart(3)}${lead ? `  Pb bulk ${r.bulkPb.toFixed(1)} / voxel mean ${r.voxPb.toFixed(2)}  uraninite negative zones ${r.uraniniteNegativeZones}` : ''}${r.trace && r.trace.steps ? `  ${r.trace.mineral} sigma, median over ${r.trace.steps} steps: bulk ${r.trace.sigmaBulkMedian.toFixed(3)}, own cell ${r.trace.sigmaCellMedian.toFixed(3)}` : ''}\n      ${fmt(r)}`;
+    const keep = (r) => ({ fill: r.fill, maxFill: r.maxFill, maxFillStep: r.maxFillStep, first70: r.first70, full: r.full, lastGrowth: r.lastGrowth, species: r.species, noSolid: r.noSolid,
+      bulkPb: r.bulkPb, voxPb: r.voxPb, uraniniteNegativeZones: r.uraniniteNegativeZones, audit: r.audit, wallDissolutionWithheld: r.wallDissolutionWithheld, trace: r.trace });
     say(line('A shipped', A));
-    const rec = { scenario: name, seed, shippedReproducesBaseline: base, A: { fill: A.fill, full: A.full, lastGrowth: A.lastGrowth, species: A.species, bulkPb: A.bulkPb, voxPb: A.voxPb, uraniniteNegativeZones: A.uraniniteNegativeZones, audit: A.audit, wallDissolutionWithheld: A.wallDissolutionWithheld, trace: A.trace }, B: {} };
+    const rec = { scenario: name, seed, shippedReproducesBaseline: base, A: keep(A), B: {} };
     for (const arm of opts.arms) {
       const B = run(name, seed, arm);
       const c = compare(A, B);
       const auditMoved = !sameAudit(A.audit, B.audit);
       say(line(`B ${arm.label}`, B));
-      say(`      against A: ${c.speciesCount} species; moved ${c.moved.length}${c.moved.length ? ' (' + c.moved.join(', ') + ')' : ''}; gained ${c.gained.join(', ') || 'none'}; lost ${c.lost.join(', ') || 'none'}`);
+      say(`      against A: ${c.speciesCount} species present in either arm; moved ${c.moved.length}${c.moved.length ? ' (' + c.moved.join(', ') + ')' : ''}; gained ${c.gained.join(', ') || 'none'}; lost ${c.lost.map(k => `${k}${B.noSolid[k] ? ` (${B.noSolid[k]} record${B.noSolid[k] === 1 ? '' : 's'}, no solid)` : ''}`).join(', ') || 'none'}; ${c.sameAsShipped ? 'the baseline summary is unchanged' : 'the baseline summary differs'}`);
       if (auditMoved) say(`      AUDIT — the simulator's own audits read differently under this arm: A ${auditText(A.audit)}; B ${auditText(B.audit)}`);
       if (B.wallDissolutionWithheld !== A.wallDissolutionWithheld) say(`      wall dissolution withheld as too small to resolve: on ${A.wallDissolutionWithheld} steps in A, ${B.wallDissolutionWithheld} in B`);
-      rec.B[arm.label] = { fill: B.fill, full: B.full, lastGrowth: B.lastGrowth, species: B.species, bulkPb: B.bulkPb, voxPb: B.voxPb, uraniniteNegativeZones: B.uraniniteNegativeZones, audit: B.audit, auditMoved, wallDissolutionWithheld: B.wallDissolutionWithheld, trace: B.trace, ...c };
+      rec.B[arm.label] = { ...keep(B), auditMoved, ...c };
     }
     J.runs.push(rec);
   }
@@ -430,7 +488,7 @@ say(`\naudits: ${J.auditMoved.length ? `${J.auditMoved.length} arm run(s) read d
 fs.mkdirSync(OUT, { recursive: true });
 // One file per distinct invocation: arms, minerals, seeds, trace and scenarios all name it, and a name
 // too long for the file system keeps its head and takes a digest of the whole.
-const fullTag = `${opts.arms.map(a => a.label.replace(/[^A-Za-z0-9=.,]+/g, '_')).join('+')}__${opts.minerals.join('+')}__s${opts.seeds.join('+')}${opts.trace ? `__trace-${opts.trace}` : ''}__${opts.scenarios.join('+')}`;
+const fullTag = `${opts.arms.map(a => a.label.replace(/[^A-Za-z0-9=.,]+/g, '_')).join('+')}__${opts.minerals.join('+')}__s${opts.seeds.join('+')}${opts.trace ? `__trace-${opts.trace.replace(/[^A-Za-z0-9_]+/g, '_')}` : ''}__${opts.scenarios.join('+')}`;
 const tag = fullTag.length <= 150 ? fullTag : `${fullTag.slice(0, 140)}~${crypto.createHash('sha256').update(fullTag).digest('hex').slice(0, 8)}`;
 fs.writeFileSync(path.join(OUT, `${tag}.txt`), T.join('\n') + '\n');
 fs.writeFileSync(path.join(OUT, `${tag}.json`), JSON.stringify(J, null, 1) + '\n');

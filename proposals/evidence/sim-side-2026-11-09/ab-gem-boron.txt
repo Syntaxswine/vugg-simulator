@@ -3,58 +3,58 @@ self-check on schneeberg, seed 42: shipped arm reproduces the baseline; neutral 
 
 ### gem_pegmatite — 230 steps — events: 5 Outer Shell | 30 Schorl Arrives | 60 Albitization | 90 Be Saturation | 130 Li Phase | 160 Late Hydrothermal | 190 Clay Softening | 215 Final Cooling
 seed 42 (shipped arm reproduces the baseline)
-  A shipped        fill 100.0 %  full at step   9  last growth at step   9
-      feldspar ×2 @ 31.7 (→9), albite ×2 @ 24.6 (→9), quartz ×3 @ 1.7 (→9), tourmaline ×2 @ 0.294 (→9), spodumene ×1 @ 0.125 (→9), cassiterite ×4 @ 0.008 (→8), lepidolite ×3 @ 0.007 (→9)
-  B mul=B:10       fill 100.0 %  full at step   9  last growth at step   9
-      feldspar ×2 @ 31.7 (→9), albite ×2 @ 24.6 (→9), quartz ×3 @ 1.7 (→9), tourmaline ×2 @ 0.294 (→9), spodumene ×1 @ 0.125 (→9), cassiterite ×4 @ 0.008 (→8), lepidolite ×3 @ 0.007 (→9)
-      against A: 7 species; moved 0; gained none; lost none
-  B mul=B:0.5      fill 100.0 %  full at step   9  last growth at step   9
-      feldspar ×2 @ 31.7 (→9), albite ×2 @ 24.6 (→9), quartz ×3 @ 1.7 (→9), tourmaline ×2 @ 0.135 (→9), spodumene ×1 @ 0.125 (→9), cassiterite ×4 @ 0.008 (→8), lepidolite ×3 @ 0.007 (→9)
-      against A: 7 species; moved 1 (tourmaline); gained none; lost none
-  B mul=B:0.25     fill 100.0 %  full at step   9  last growth at step   9
-      feldspar ×2 @ 33.9 (→9), albite ×2 @ 26.0 (→9), quartz ×3 @ 1.7 (→9), spodumene ×1 @ 0.146 (→9), tourmaline ×1 @ 0.018 (→8), cassiterite ×4 @ 0.009 (→8), lepidolite ×4 @ 0.009 (→9)
-      against A: 7 species; moved 2 (lepidolite, tourmaline); gained none; lost none
-  B cap=8,mul=B:10 fill  42.1 %  full at step   —  last growth at step 230
+  A shipped        fill 100.0 % (largest 100.0 % at step 9; first >= 0.7 at step 6)  full at step   9  last growth at step   9
+      feldspar ×2 @ 31.7 (→9), albite ×2 @ 24.6 (→9), quartz ×3 @ 1.7 (→9), tourmaline ×2 @ 0.294 (→9), spodumene ×1 @ 0.125 (→9), cassiterite ×1 @ 0.008 (→8), lepidolite ×1 @ 0.007 (→9)
+  B mul=B:10       fill 100.0 % (largest 100.0 % at step 9; first >= 0.7 at step 6)  full at step   9  last growth at step   9
+      feldspar ×2 @ 31.7 (→9), albite ×2 @ 24.6 (→9), quartz ×3 @ 1.7 (→9), tourmaline ×2 @ 0.294 (→9), spodumene ×1 @ 0.125 (→9), cassiterite ×1 @ 0.008 (→8), lepidolite ×1 @ 0.007 (→9)
+      against A: 7 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+  B mul=B:0.5      fill 100.0 % (largest 100.0 % at step 9; first >= 0.7 at step 6)  full at step   9  last growth at step   9
+      feldspar ×2 @ 31.7 (→9), albite ×2 @ 24.6 (→9), quartz ×3 @ 1.7 (→9), tourmaline ×2 @ 0.135 (→9), spodumene ×1 @ 0.125 (→9), cassiterite ×1 @ 0.008 (→8), lepidolite ×1 @ 0.007 (→9)
+      against A: 7 species present in either arm; moved 1 (tourmaline); gained none; lost none; the baseline summary differs
+  B mul=B:0.25     fill 100.0 % (largest 100.0 % at step 9; first >= 0.7 at step 6)  full at step   9  last growth at step   9
+      feldspar ×2 @ 33.9 (→9), albite ×2 @ 26.0 (→9), quartz ×3 @ 1.7 (→9), spodumene ×1 @ 0.146 (→9), tourmaline ×1 @ 0.018 (→8), cassiterite ×1 @ 0.009 (→8), lepidolite ×1 @ 0.009 (→9)
+      against A: 7 species present in either arm; moved 2 (lepidolite, tourmaline); gained none; lost none; the baseline summary differs
+  B cap=8,mul=B:10 fill  42.1 % (largest 42.1 % at step 230; first >= 0.7 at step —)  full at step   —  last growth at step 230
       quartz ×3 @ 37.5 (→230), albite ×2 @ 32.3 (→230), feldspar ×2 @ 24.1 (→230), tourmaline ×8 @ 12.0 (→197), lepidolite ×5 @ 4.7 (→159), spodumene ×4 @ 4.2 (→159), topaz ×6 @ 2.5 (→215), cassiterite ×10 @ 1.4 (→230)
-      against A: 8 species; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none
-  B cap=8,mul=B:0.5 fill  40.5 %  full at step   —  last growth at step 230
+      against A: 8 species present in either arm; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none; the baseline summary differs
+  B cap=8,mul=B:0.5 fill  40.5 % (largest 40.5 % at step 230; first >= 0.7 at step —)  full at step   —  last growth at step 230
       quartz ×3 @ 37.7 (→230), albite ×2 @ 32.3 (→230), feldspar ×2 @ 23.9 (→230), tourmaline ×8 @ 5.6 (→183), spodumene ×4 @ 4.2 (→159), lepidolite ×5 @ 3.7 (→159), topaz ×6 @ 2.5 (→215), cassiterite ×11 @ 1.4 (→230)
-      against A: 8 species; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none
+      against A: 8 species present in either arm; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none; the baseline summary differs
 seed 1
-  A shipped        fill 100.0 %  full at step  10  last growth at step  10
-      feldspar ×2 @ 33.4 (→10), albite ×2 @ 24.2 (→10), quartz ×3 @ 1.5 (→10), tourmaline ×3 @ 0.368 (→9), spodumene ×1 @ 0.197 (→9), cassiterite ×4 @ 0.041 (→10), lepidolite ×4 @ 0.016 (→9)
-  B mul=B:10       fill 100.0 %  full at step  10  last growth at step  10
-      feldspar ×2 @ 33.4 (→10), albite ×2 @ 24.2 (→10), quartz ×3 @ 1.5 (→10), tourmaline ×3 @ 0.368 (→9), spodumene ×1 @ 0.197 (→9), cassiterite ×4 @ 0.041 (→10), lepidolite ×4 @ 0.016 (→9)
-      against A: 7 species; moved 0; gained none; lost none
-  B mul=B:0.5      fill 100.0 %  full at step  10  last growth at step  10
-      feldspar ×2 @ 33.4 (→10), albite ×2 @ 24.2 (→10), quartz ×3 @ 1.5 (→10), spodumene ×1 @ 0.197 (→9), tourmaline ×3 @ 0.169 (→9), cassiterite ×4 @ 0.041 (→10), lepidolite ×4 @ 0.017 (→9)
-      against A: 7 species; moved 1 (tourmaline); gained none; lost none
-  B mul=B:0.25     fill 100.0 %  full at step  10  last growth at step  10
-      feldspar ×2 @ 33.8 (→10), albite ×2 @ 24.3 (→9), quartz ×3 @ 1.7 (→10), spodumene ×1 @ 0.197 (→9), cassiterite ×4 @ 0.040 (→10), tourmaline ×1 @ 0.017 (→9), lepidolite ×4 @ 0.017 (→9)
-      against A: 7 species; moved 1 (tourmaline); gained none; lost none
-  B cap=8,mul=B:10 fill  41.4 %  full at step   —  last growth at step 230
+  A shipped        fill 100.0 % (largest 100.0 % at step 10; first >= 0.7 at step 7)  full at step  10  last growth at step  10
+      feldspar ×2 @ 33.4 (→10), albite ×2 @ 24.2 (→10), quartz ×3 @ 1.5 (→10), tourmaline ×3 @ 0.368 (→9), spodumene ×1 @ 0.197 (→9), cassiterite ×2 @ 0.041 (→10), lepidolite ×1 @ 0.016 (→9)
+  B mul=B:10       fill 100.0 % (largest 100.0 % at step 10; first >= 0.7 at step 7)  full at step  10  last growth at step  10
+      feldspar ×2 @ 33.4 (→10), albite ×2 @ 24.2 (→10), quartz ×3 @ 1.5 (→10), tourmaline ×3 @ 0.368 (→9), spodumene ×1 @ 0.197 (→9), cassiterite ×2 @ 0.041 (→10), lepidolite ×1 @ 0.016 (→9)
+      against A: 7 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+  B mul=B:0.5      fill 100.0 % (largest 100.0 % at step 10; first >= 0.7 at step 7)  full at step  10  last growth at step  10
+      feldspar ×2 @ 33.4 (→10), albite ×2 @ 24.2 (→10), quartz ×3 @ 1.5 (→10), spodumene ×1 @ 0.197 (→9), tourmaline ×3 @ 0.169 (→9), cassiterite ×2 @ 0.041 (→10), lepidolite ×1 @ 0.017 (→9)
+      against A: 7 species present in either arm; moved 1 (tourmaline); gained none; lost none; the baseline summary differs
+  B mul=B:0.25     fill 100.0 % (largest 100.0 % at step 10; first >= 0.7 at step 7)  full at step  10  last growth at step  10
+      feldspar ×2 @ 33.8 (→10), albite ×2 @ 24.3 (→9), quartz ×3 @ 1.7 (→10), spodumene ×1 @ 0.197 (→9), cassiterite ×2 @ 0.040 (→10), tourmaline ×1 @ 0.017 (→9), lepidolite ×1 @ 0.017 (→9)
+      against A: 7 species present in either arm; moved 1 (tourmaline); gained none; lost none; the baseline summary differs
+  B cap=8,mul=B:10 fill  41.4 % (largest 41.4 % at step 230; first >= 0.7 at step —)  full at step   —  last growth at step 230
       quartz ×3 @ 36.7 (→230), albite ×2 @ 32.2 (→230), feldspar ×2 @ 24.7 (→230), tourmaline ×8 @ 11.9 (→197), lepidolite ×3 @ 4.0 (→159), topaz ×6 @ 2.5 (→215), spodumene ×5 @ 2.2 (→158), cassiterite ×8 @ 1.5 (→230)
-      against A: 8 species; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none
-  B cap=8,mul=B:0.5 fill  39.9 %  full at step   —  last growth at step 230
+      against A: 8 species present in either arm; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none; the baseline summary differs
+  B cap=8,mul=B:0.5 fill  39.9 % (largest 39.9 % at step 230; first >= 0.7 at step —)  full at step   —  last growth at step 230
       quartz ×3 @ 37.1 (→230), albite ×2 @ 32.0 (→230), feldspar ×2 @ 24.4 (→230), tourmaline ×8 @ 5.6 (→183), spodumene ×4 @ 4.9 (→159), lepidolite ×3 @ 4.5 (→159), topaz ×6 @ 2.5 (→215), cassiterite ×8 @ 1.5 (→230)
-      against A: 8 species; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none
+      against A: 8 species present in either arm; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none; the baseline summary differs
 seed 2
-  A shipped        fill 100.0 %  full at step  10  last growth at step  10
-      feldspar ×2 @ 36.8 (→10), albite ×1 @ 29.6 (→10), quartz ×3 @ 1.6 (→10), tourmaline ×3 @ 0.390 (→9), spodumene ×4 @ 0.130 (→9), cassiterite ×4 @ 0.014 (→9), lepidolite ×4 @ 0.012 (→9)
-  B mul=B:10       fill 100.0 %  full at step  10  last growth at step  10
-      feldspar ×2 @ 36.8 (→10), albite ×1 @ 29.6 (→10), quartz ×3 @ 1.6 (→10), tourmaline ×3 @ 0.390 (→9), spodumene ×4 @ 0.130 (→9), cassiterite ×4 @ 0.014 (→9), lepidolite ×4 @ 0.012 (→9)
-      against A: 7 species; moved 0; gained none; lost none
-  B mul=B:0.5      fill 100.0 %  full at step  10  last growth at step  10
-      feldspar ×2 @ 36.8 (→10), albite ×2 @ 29.6 (→10), quartz ×3 @ 1.6 (→10), tourmaline ×3 @ 0.179 (→9), spodumene ×3 @ 0.132 (→9), cassiterite ×4 @ 0.014 (→9), lepidolite ×4 @ 0.013 (→9)
-      against A: 7 species; moved 3 (albite, spodumene, tourmaline); gained none; lost none
-  B mul=B:0.25     fill 100.0 %  full at step  10  last growth at step  10
-      feldspar ×2 @ 34.5 (→10), albite ×1 @ 27.9 (→10), quartz ×3 @ 1.6 (→10), spodumene ×3 @ 0.130 (→9), tourmaline ×1 @ 0.020 (→9), lepidolite ×3 @ 0.012 (→9), cassiterite ×4 @ 0.012 (→9)
-      against A: 7 species; moved 3 (lepidolite, spodumene, tourmaline); gained none; lost none
-  B cap=8,mul=B:10 fill  41.0 %  full at step   —  last growth at step 230
+  A shipped        fill 100.0 % (largest 100.0 % at step 10; first >= 0.7 at step 7)  full at step  10  last growth at step  10
+      feldspar ×2 @ 36.8 (→10), albite ×1 @ 29.6 (→10), quartz ×2 @ 1.6 (→10), tourmaline ×3 @ 0.390 (→9), spodumene ×4 @ 0.130 (→9), cassiterite ×2 @ 0.014 (→9), lepidolite ×1 @ 0.012 (→9)
+  B mul=B:10       fill 100.0 % (largest 100.0 % at step 10; first >= 0.7 at step 7)  full at step  10  last growth at step  10
+      feldspar ×2 @ 36.8 (→10), albite ×1 @ 29.6 (→10), quartz ×2 @ 1.6 (→10), tourmaline ×3 @ 0.390 (→9), spodumene ×4 @ 0.130 (→9), cassiterite ×2 @ 0.014 (→9), lepidolite ×1 @ 0.012 (→9)
+      against A: 7 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+  B mul=B:0.5      fill 100.0 % (largest 100.0 % at step 10; first >= 0.7 at step 7)  full at step  10  last growth at step  10
+      feldspar ×2 @ 36.8 (→10), albite ×2 @ 29.6 (→10), quartz ×2 @ 1.6 (→10), tourmaline ×3 @ 0.179 (→9), spodumene ×3 @ 0.132 (→9), cassiterite ×2 @ 0.014 (→9), lepidolite ×1 @ 0.013 (→9)
+      against A: 7 species present in either arm; moved 3 (albite, spodumene, tourmaline); gained none; lost none; the baseline summary differs
+  B mul=B:0.25     fill 100.0 % (largest 100.0 % at step 10; first >= 0.7 at step 7)  full at step  10  last growth at step  10
+      feldspar ×2 @ 34.5 (→10), albite ×1 @ 27.9 (→10), quartz ×2 @ 1.6 (→10), spodumene ×3 @ 0.130 (→9), tourmaline ×1 @ 0.020 (→9), lepidolite ×1 @ 0.012 (→9), cassiterite ×2 @ 0.012 (→9)
+      against A: 7 species present in either arm; moved 2 (spodumene, tourmaline); gained none; lost none; the baseline summary differs
+  B cap=8,mul=B:10 fill  41.0 % (largest 41.0 % at step 230; first >= 0.7 at step —)  full at step   —  last growth at step 230
       quartz ×3 @ 37.3 (→230), albite ×2 @ 32.5 (→230), feldspar ×2 @ 24.7 (→230), tourmaline ×8 @ 12.0 (→197), spodumene ×4 @ 5.1 (→159), lepidolite ×4 @ 3.4 (→159), topaz ×6 @ 2.5 (→215), cassiterite ×5 @ 1.4 (→230)
-      against A: 8 species; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none
-  B cap=8,mul=B:0.5 fill  39.5 %  full at step   —  last growth at step 230
+      against A: 8 species present in either arm; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none; the baseline summary differs
+  B cap=8,mul=B:0.5 fill  39.5 % (largest 39.5 % at step 230; first >= 0.7 at step —)  full at step   —  last growth at step 230
       quartz ×3 @ 37.0 (→230), albite ×2 @ 32.4 (→230), feldspar ×2 @ 24.5 (→230), tourmaline ×8 @ 5.4 (→183), spodumene ×4 @ 5.1 (→159), lepidolite ×3 @ 4.0 (→159), topaz ×6 @ 2.4 (→215), cassiterite ×6 @ 1.4 (→230)
-      against A: 8 species; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none
+      against A: 8 species present in either arm; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none; the baseline summary differs
 
 audits: every arm run reads the simulator's audits as the shipped arm does

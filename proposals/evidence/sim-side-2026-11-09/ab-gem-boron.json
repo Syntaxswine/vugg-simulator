@@ -36,6 +36,9 @@
    "shippedReproducesBaseline": true,
    "A": {
     "fill": 1,
+    "maxFill": 1,
+    "maxFillStep": 9,
+    "first70": 6,
     "full": 9,
     "lastGrowth": 9,
     "species": {
@@ -65,16 +68,17 @@
       "last": 9
      },
      "lepidolite": {
-      "n": 3,
+      "n": 1,
       "max_um": 6.888554233177586,
       "last": 9
      },
      "cassiterite": {
-      "n": 4,
+      "n": 1,
       "max_um": 7.501884451789632,
       "last": 8
      }
     },
+    "noSolid": {},
     "bulkPb": 0,
     "voxPb": 0,
     "uraniniteNegativeZones": 0,
@@ -89,6 +93,9 @@
    "B": {
     "mul=B:10": {
      "fill": 1,
+     "maxFill": 1,
+     "maxFillStep": 9,
+     "first70": 6,
      "full": 9,
      "lastGrowth": 9,
      "species": {
@@ -118,16 +125,17 @@
        "last": 9
       },
       "lepidolite": {
-       "n": 3,
+       "n": 1,
        "max_um": 6.888554233177586,
        "last": 9
       },
       "cassiterite": {
-       "n": 4,
+       "n": 1,
        "max_um": 7.501884451789632,
        "last": 8
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -136,16 +144,20 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 7,
      "gained": [],
      "lost": [],
-     "moved": []
+     "moved": [],
+     "sameAsShipped": true
     },
     "mul=B:0.5": {
      "fill": 1,
+     "maxFill": 1,
+     "maxFillStep": 9,
+     "first70": 6,
      "full": 9,
      "lastGrowth": 9,
      "species": {
@@ -175,16 +187,17 @@
        "last": 9
       },
       "lepidolite": {
-       "n": 3,
+       "n": 1,
        "max_um": 6.888554234159247,
        "last": 9
       },
       "cassiterite": {
-       "n": 4,
+       "n": 1,
        "max_um": 7.500386284438193,
        "last": 8
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -193,18 +206,22 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 7,
      "gained": [],
      "lost": [],
      "moved": [
       "tourmaline"
-     ]
+     ],
+     "sameAsShipped": false
     },
     "mul=B:0.25": {
      "fill": 1,
+     "maxFill": 1,
+     "maxFillStep": 9,
+     "first70": 6,
      "full": 9,
      "lastGrowth": 9,
      "species": {
@@ -229,7 +246,7 @@
        "last": 9
       },
       "lepidolite": {
-       "n": 4,
+       "n": 1,
        "max_um": 8.952645628003689,
        "last": 9
       },
@@ -239,11 +256,12 @@
        "last": 8
       },
       "cassiterite": {
-       "n": 4,
+       "n": 1,
        "max_um": 9.096422868167299,
        "last": 8
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -252,19 +270,23 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 7,
      "gained": [],
      "lost": [],
      "moved": [
       "lepidolite",
       "tourmaline"
-     ]
+     ],
+     "sameAsShipped": false
     },
     "cap=8,mul=B:10": {
      "fill": 0.4209569297522651,
+     "maxFill": 0.4209569297522651,
+     "maxFillStep": 230,
+     "first70": null,
      "full": null,
      "lastGrowth": 230,
      "species": {
@@ -309,6 +331,7 @@
        "last": 215
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -317,9 +340,9 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 8,
      "gained": [
       "topaz"
@@ -333,10 +356,14 @@
       "quartz",
       "spodumene",
       "tourmaline"
-     ]
+     ],
+     "sameAsShipped": false
     },
     "cap=8,mul=B:0.5": {
      "fill": 0.4048082087260219,
+     "maxFill": 0.4048082087260219,
+     "maxFillStep": 230,
+     "first70": null,
      "full": null,
      "lastGrowth": 230,
      "species": {
@@ -381,6 +408,7 @@
        "last": 215
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -389,9 +417,9 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 8,
      "gained": [
       "topaz"
@@ -405,7 +433,8 @@
       "quartz",
       "spodumene",
       "tourmaline"
-     ]
+     ],
+     "sameAsShipped": false
     }
    }
   },
@@ -415,11 +444,14 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 1,
+    "maxFill": 1,
+    "maxFillStep": 10,
+    "first70": 7,
     "full": 10,
     "lastGrowth": 10,
     "species": {
      "cassiterite": {
-      "n": 4,
+      "n": 2,
       "max_um": 41.03860320176952,
       "last": 10
      },
@@ -449,11 +481,12 @@
       "last": 9
      },
      "lepidolite": {
-      "n": 4,
+      "n": 1,
       "max_um": 16.08940354978703,
       "last": 9
      }
     },
+    "noSolid": {},
     "bulkPb": 0,
     "voxPb": 0,
     "uraniniteNegativeZones": 0,
@@ -468,11 +501,14 @@
    "B": {
     "mul=B:10": {
      "fill": 1,
+     "maxFill": 1,
+     "maxFillStep": 10,
+     "first70": 7,
      "full": 10,
      "lastGrowth": 10,
      "species": {
       "cassiterite": {
-       "n": 4,
+       "n": 2,
        "max_um": 41.03860320176952,
        "last": 10
       },
@@ -502,11 +538,12 @@
        "last": 9
       },
       "lepidolite": {
-       "n": 4,
+       "n": 1,
        "max_um": 16.08940354978703,
        "last": 9
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -515,21 +552,25 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 7,
      "gained": [],
      "lost": [],
-     "moved": []
+     "moved": [],
+     "sameAsShipped": true
     },
     "mul=B:0.5": {
      "fill": 1,
+     "maxFill": 1,
+     "maxFillStep": 10,
+     "first70": 7,
      "full": 10,
      "lastGrowth": 10,
      "species": {
       "cassiterite": {
-       "n": 4,
+       "n": 2,
        "max_um": 41.03860481811417,
        "last": 10
       },
@@ -559,11 +600,12 @@
        "last": 9
       },
       "lepidolite": {
-       "n": 4,
+       "n": 1,
        "max_um": 16.659197808425795,
        "last": 9
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -572,23 +614,27 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 7,
      "gained": [],
      "lost": [],
      "moved": [
       "tourmaline"
-     ]
+     ],
+     "sameAsShipped": false
     },
     "mul=B:0.25": {
      "fill": 1,
+     "maxFill": 1,
+     "maxFillStep": 10,
+     "first70": 7,
      "full": 10,
      "lastGrowth": 10,
      "species": {
       "cassiterite": {
-       "n": 4,
+       "n": 2,
        "max_um": 39.72739444838592,
        "last": 10
       },
@@ -613,7 +659,7 @@
        "last": 9
       },
       "lepidolite": {
-       "n": 4,
+       "n": 1,
        "max_um": 16.580157791252564,
        "last": 9
       },
@@ -623,6 +669,7 @@
        "last": 9
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -631,18 +678,22 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 7,
      "gained": [],
      "lost": [],
      "moved": [
       "tourmaline"
-     ]
+     ],
+     "sameAsShipped": false
     },
     "cap=8,mul=B:10": {
      "fill": 0.4143979815652113,
+     "maxFill": 0.4143979815652113,
+     "maxFillStep": 230,
+     "first70": null,
      "full": null,
      "lastGrowth": 230,
      "species": {
@@ -687,6 +738,7 @@
        "last": 215
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -695,9 +747,9 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 8,
      "gained": [
       "topaz"
@@ -711,10 +763,14 @@
       "quartz",
       "spodumene",
       "tourmaline"
-     ]
+     ],
+     "sameAsShipped": false
     },
     "cap=8,mul=B:0.5": {
      "fill": 0.39917535434915463,
+     "maxFill": 0.39917535434915463,
+     "maxFillStep": 230,
+     "first70": null,
      "full": null,
      "lastGrowth": 230,
      "species": {
@@ -759,6 +815,7 @@
        "last": 215
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -767,9 +824,9 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 8,
      "gained": [
       "topaz"
@@ -783,7 +840,8 @@
       "quartz",
       "spodumene",
       "tourmaline"
-     ]
+     ],
+     "sameAsShipped": false
     }
    }
   },
@@ -793,11 +851,14 @@
    "shippedReproducesBaseline": null,
    "A": {
     "fill": 1,
+    "maxFill": 1,
+    "maxFillStep": 10,
+    "first70": 7,
     "full": 10,
     "lastGrowth": 10,
     "species": {
      "quartz": {
-      "n": 3,
+      "n": 2,
       "max_um": 1604.1276907141564,
       "last": 10
      },
@@ -822,16 +883,17 @@
       "last": 9
      },
      "lepidolite": {
-      "n": 4,
+      "n": 1,
       "max_um": 12.206375047832328,
       "last": 9
      },
      "cassiterite": {
-      "n": 4,
+      "n": 2,
       "max_um": 14.378489871262197,
       "last": 9
      }
     },
+    "noSolid": {},
     "bulkPb": 0,
     "voxPb": 0,
     "uraniniteNegativeZones": 0,
@@ -846,11 +908,14 @@
    "B": {
     "mul=B:10": {
      "fill": 1,
+     "maxFill": 1,
+     "maxFillStep": 10,
+     "first70": 7,
      "full": 10,
      "lastGrowth": 10,
      "species": {
       "quartz": {
-       "n": 3,
+       "n": 2,
        "max_um": 1604.1276907141564,
        "last": 10
       },
@@ -875,16 +940,17 @@
        "last": 9
       },
       "lepidolite": {
-       "n": 4,
+       "n": 1,
        "max_um": 12.206375047832328,
        "last": 9
       },
       "cassiterite": {
-       "n": 4,
+       "n": 2,
        "max_um": 14.378489871262197,
        "last": 9
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -893,21 +959,25 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 7,
      "gained": [],
      "lost": [],
-     "moved": []
+     "moved": [],
+     "sameAsShipped": true
     },
     "mul=B:0.5": {
      "fill": 1,
+     "maxFill": 1,
+     "maxFillStep": 10,
+     "first70": 7,
      "full": 10,
      "lastGrowth": 10,
      "species": {
       "quartz": {
-       "n": 3,
+       "n": 2,
        "max_um": 1604.4259234211436,
        "last": 10
       },
@@ -932,16 +1002,17 @@
        "last": 9
       },
       "lepidolite": {
-       "n": 4,
+       "n": 1,
        "max_um": 13.340644875149758,
        "last": 9
       },
       "cassiterite": {
-       "n": 4,
+       "n": 2,
        "max_um": 14.336285245149794,
        "last": 9
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -950,9 +1021,9 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 7,
      "gained": [],
      "lost": [],
@@ -960,15 +1031,19 @@
       "albite",
       "spodumene",
       "tourmaline"
-     ]
+     ],
+     "sameAsShipped": false
     },
     "mul=B:0.25": {
      "fill": 1.0000000000000002,
+     "maxFill": 1.0000000000000002,
+     "maxFillStep": 10,
+     "first70": 7,
      "full": 10,
      "lastGrowth": 10,
      "species": {
       "quartz": {
-       "n": 3,
+       "n": 2,
        "max_um": 1591.7826702842492,
        "last": 10
       },
@@ -988,7 +1063,7 @@
        "last": 9
       },
       "lepidolite": {
-       "n": 3,
+       "n": 1,
        "max_um": 12.316110658262215,
        "last": 9
       },
@@ -998,11 +1073,12 @@
        "last": 9
       },
       "cassiterite": {
-       "n": 4,
+       "n": 2,
        "max_um": 11.608998389124668,
        "last": 9
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -1011,20 +1087,23 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 7,
      "gained": [],
      "lost": [],
      "moved": [
-      "lepidolite",
       "spodumene",
       "tourmaline"
-     ]
+     ],
+     "sameAsShipped": false
     },
     "cap=8,mul=B:10": {
      "fill": 0.40984019186216397,
+     "maxFill": 0.40984019186216397,
+     "maxFillStep": 230,
+     "first70": null,
      "full": null,
      "lastGrowth": 230,
      "species": {
@@ -1069,6 +1148,7 @@
        "last": 215
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -1077,9 +1157,9 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 8,
      "gained": [
       "topaz"
@@ -1093,10 +1173,14 @@
       "quartz",
       "spodumene",
       "tourmaline"
-     ]
+     ],
+     "sameAsShipped": false
     },
     "cap=8,mul=B:0.5": {
      "fill": 0.3949153124719063,
+     "maxFill": 0.3949153124719063,
+     "maxFillStep": 230,
+     "first70": null,
      "full": null,
      "lastGrowth": 230,
      "species": {
@@ -1141,6 +1225,7 @@
        "last": 215
       }
      },
+     "noSolid": {},
      "bulkPb": 0,
      "voxPb": 0,
      "uraniniteNegativeZones": 0,
@@ -1149,9 +1234,9 @@
       "failedCarbonateTransactions": 0,
       "ledgerViolations": 0
      },
-     "auditMoved": false,
      "wallDissolutionWithheld": 0,
      "trace": null,
+     "auditMoved": false,
      "speciesCount": 8,
      "gained": [
       "topaz"
@@ -1165,7 +1250,8 @@
       "quartz",
       "spodumene",
       "tourmaline"
-     ]
+     ],
+     "sameAsShipped": false
     }
    }
   }

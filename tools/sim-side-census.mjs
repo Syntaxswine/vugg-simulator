@@ -126,7 +126,9 @@
  *                       reads "pocket full".
  *   + time              mvt's largest crystal is still growing on the final step.
  *   - time              no crystal of gem_pegmatite is.
- *   + draw-down         shigar_pegmatite grows mostly on cells drawn down through their ingredients.
+ *   + draw-down         colorado_plateau grows over a quarter of its thickness on cells drawn down
+ *                       through their ingredients. (It grows no feldspar or albite: the control does
+ *                       not sit on the feldspar pair, whose runaway makes the largest shares.)
  *   - draw-down         tn457_barite_pulses grows nothing that way.
  *   + pause             sunnyside_american_tunnel's crystals pause because their cell ran short, not on
  *                       a cell that reads saturated — which is what a reading taken after the step's
@@ -140,7 +142,7 @@
  *                       keeps a side door.
  *   + count-envelope    zoned_dripstone_cave's aragonite is past sigma_crit on the envelope the pass
  *                       reads and not on the bulk handle.
- *   - count-envelope    mvt installs no envelope, and the two readings never disagree there.
+ *   - count-envelope    mvt installs no envelope on any pass.
  *   + strangled         _wallStrangledFor refuses radioactive_pegmatite's plumbogummite for want of
  *                       lead in the wall cells.
  *   - strangled         it is called in mvt and refuses nothing.
@@ -151,9 +153,11 @@
  * Five controls sit on today's defects — two fluids (+) and strangled (+) on the radiogenic Pb,
  * space/end (+) and time (−) on gem_pegmatite's plug, count (+) on the galena radioactive_pegmatite
  * does not license. The commit that changes one of those turns its control around, and must say so.
- * NO CONTROL: THROUGHPUT, BORN, the three static readings, and within END the classes "undersaturated
+ * NO CONTROL: THROUGHPUT, BORN, the three static readings; within END the classes "undersaturated
  * on its cell and on the bulk handle", "dissolving" (both), "size cap", "at or above saturation on
- * its cell, nothing proposed" and "a zone proposed and not stored".
+ * its cell, nothing proposed" and "a zone proposed and not stored"; within COUNT the "prerequisite"
+ * test (it is zero in every run) and, of the _wallStrangledFor attribution, every branch but the
+ * ingredient one; within DRAW-DOWN, of the one-further-field search, every answer but pH.
  *
  * Integrity: at seed 42 every run is compared with tests-js/baselines/seed42_v<SIM>.json through the
  * per-species summary of tools/gen-js-baseline.mjs (copied, not imported: that file is an evidence
@@ -167,8 +171,9 @@
  * runtime formation, dist, data, the harness, the js/ sources the static readings parse, the
  * dependency lock, the seed-42 reference, and the TEXT of the code that produces a row (runScenario,
  * the static readings, summarize) with the constants it reads. So a change to how a row is made
- * re-runs it, and the report half can change without a re-run. Every report names the sha256 of
- * this file as it ran.
+ * re-runs it, and the report half can change without a re-run. The digest does not cover code
+ * outside those functions: a modified copy of this file that changes a run from elsewhere must
+ * write to a directory of its own. Every report names the sha256 of this file as it ran.
  *
  * Usage:
  *   node tools/sim-side-census.mjs                 # every scenario, seed 42 (about 20 min)
@@ -349,13 +354,13 @@ const CONTROLS = [
       const n = R.gem_pegmatite.crystals.filter(c => !c.dissolved && endOf(c) === END_REASONS[0]).length;
       return { pass: n === 0, detail: `${n} crystal(s)` };
     } },
-  { id: 'draw-down', kind: 'positive', needs: ['shigar_pegmatite'],
-    label: "shigar_pegmatite stores more than half its growth on a cell under half the reference's excess, drawn down through its ingredients",
+  { id: 'draw-down', kind: 'positive', needs: ['colorado_plateau'],
+    label: "colorado_plateau stores more than a quarter of its growth on a cell under half the reference's excess, drawn down through its ingredients",
     test: (R) => {
-      const r = R.shigar_pegmatite, d = r.draw, all = d.t + d.unread;
-      const through = Object.entries(d.lowBy).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([k, um]) => `${k} ${(um / MM).toFixed(0)} mm`);
-      return { pass: all > 0 && d.halfIng / all > 0.5,
-        detail: `${(d.halfIng / Math.max(1e-9, all) * 100).toFixed(1)} % of ${(all / MM).toFixed(0)} mm stored; through ${through.join(', ') || 'nothing'}` };
+      const r = R.colorado_plateau, d = r.draw, all = d.t + d.unread;
+      const through = Object.entries(d.lowBy).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([k, um]) => `${k} ${(um / MM).toFixed(1)} mm`);
+      return { pass: all > 0 && d.halfIng / all > 0.25,
+        detail: `${(d.halfIng / Math.max(1e-9, all) * 100).toFixed(1)} % of ${(all / MM).toFixed(1)} mm stored; through ${through.join(', ') || 'nothing'}` };
     } },
   { id: 'draw-down', kind: 'negative', needs: ['tn457_barite_pulses'],
     label: "tn457_barite_pulses stores under 1 % of its growth on a cell under half the reference's excess",
@@ -416,11 +421,8 @@ const CONTROLS = [
         detail: `${r.envelopePasses} of ${r.steps} passes under the envelope; aragonite past sigma_crit on the envelope only on ${g ? g.envelopeOnly : 0} steps` };
     } },
   { id: 'count-envelope', kind: 'negative', needs: ['mvt'],
-    label: 'mvt installs no localized-nucleation envelope, and no species-step is past sigma_crit on an envelope only',
-    test: (R) => {
-      const n = Object.values(R.mvt.rule).reduce((s, g) => s + g.envelopeOnly + g.bulkOnly, 0);
-      return { pass: R.mvt.envelopePasses === 0 && n === 0, detail: `${R.mvt.envelopePasses} passes under an envelope; ${n} species-steps on which the two readings disagree` };
-    } },
+    label: 'mvt installs no localized-nucleation envelope: none of its nucleation passes is read under one',
+    test: (R) => ({ pass: R.mvt.envelopePasses === 0, detail: `${R.mvt.envelopePasses} of ${R.mvt.steps} passes under an envelope` }) },
   { id: 'strangled', kind: 'positive', needs: ['radioactive_pegmatite'],
     label: "_wallStrangledFor refuses radioactive_pegmatite's plumbogummite at least 3 times, each for want of an ingredient (the lead that reaches only the bulk handle); FLIPS when that lead reaches the voxels or leaves the bulk handle",
     test: (R) => {

@@ -100,26 +100,31 @@ single execution ledger for the science-first AAA completion branch.
   instruments (`tools/sim-side-census.mjs`, `tools/sim-side-census-mutations.mjs`,
   `tools/sim-side-ab.mjs`, `tools/rate-at-saturation-census.mjs`,
   `tools/seed-variety-census.mjs`); nothing shipped moves. The reading: supply binds at a crystal's
-  own cell (returning every debit moves 26 of 41 scenarios) and nowhere above it.
+  own cell (returning every debit moves 26 of 41 scenarios and changes the baseline of 38) and
+  nowhere above it.
   The items below await the boss (the doc's §6), with pre-registered acceptance in its §4. C1–C3
   are SIM bumps; C4 is a pilot; C5 is a habit. They are numbered C so as not to collide with the
   recipe review's R rungs:
-  - [ ] C1 — bound K-feldspar and albite growth far from saturation, so the pegmatite pocket stops
-    plugging (`gem_pegmatite` is full at step 9–10 of 230; 7 of its 8 events fire into a full
-    pocket). Recommended shape: a clamp on the rate. Factor caps at one uniform ceiling delete both
-    feldspars from the Grimsel cleft. The clamp loses no species; at the value that cures the
-    pocket it shrinks the pair in six other scenarios (`tormiq_alpine_cleft`'s albite from 66 to
-    27 mm) and leaves Shigar's pocket nearly empty, so Shigar's outcome is decided with it.
+  - [ ] C1 — bound K-feldspar and albite growth far from saturation in `gem_pegmatite`, whose
+    pocket is full at step 9–10 of 230 (7 of its 8 events fire into a full pocket). Recommended: a
+    clamp on the rate authored on that scenario alone, which changes one baseline. The same clamp
+    in the engines for every scenario changes eight baselines, empties Shigar's pocket, and
+    leaves `schneeberg` without three of the species it expects at seed 1 and two at seed 2.
+    Factor caps at one uniform ceiling delete both feldspars from the Grimsel cleft.
   - [ ] C2 — put galena, molybdenite and uraninite on σ − 1 (they propose a rate at saturation).
-  - [ ] C3 — keep radiogenic Pb in the uraninite and release it on alteration
-    (`js/85-simulator.ts:1276` writes the bulk handle only); and rule on `radioactive_pegmatite`,
-    whose description promises a galena its license does not hold. Without a working release the
-    change costs that scenario its plumbogummite, and the release has little to act on while its
-    pocket plugs, which C1 alone does not cure there.
+  - [ ] C3 — carry radiogenic Pb to the voxels as well as the bulk handle
+    (`js/85-simulator.ts:1276` writes the bulk handle only); decide whether its release should
+    wait for the uraninite's alteration, which is not previewed; and rule on
+    `radioactive_pegmatite`, whose description promises a galena its license does not hold.
   - [ ] C4 — decide whether to pilot a supply with a scale above the cell: a physical debit, a feed
     from the authored `flow_rate` (assigned 103 times, read by no growth code), a clock. Overlaps
     the reservoir arc of PRs #35–#39 and #42.
   - [ ] C5 — decide whether the census and its mutation tool run at each SIM bump.
+  - [ ] Rule on three authored values that sit exactly on a σ threshold (the doc's §3.4):
+    `radioactive_pegmatite`'s broth Pb of 30, `schneeberg`'s event pH of 6.0, and the O2 of 1.0
+    that `supergene_oxidation`'s last event sets, which lands the bulk handle on azurite's redox
+    minimum and the wall cells below it and starts four azurites dissolving. No change is
+    proposed.
 
 ## P2 — scenario and content science
 

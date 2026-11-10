@@ -1,6 +1,6 @@
 {
  "seed": 42,
- "census_sha256": "a1eca64df002f9fe14b401d4f67a8e6a72cb9e8379e1e418e83cba09675e7c0d",
+ "census_sha256": "d6c854fbd6211d9ec689018da55984cb9fc6aef564a825eef5e6b3d599174b43",
  "ok": true,
  "controlsDeclared": 26,
  "controlsWithNoMutant": [],
@@ -127,18 +127,18 @@
    "what": "the crystal's own cell is read from the bulk handle",
    "control": "draw-down positive",
    "committed": "PASS",
-   "committedDetail": "83.1 % of 782 mm stored; through albite:Na 455 mm, feldspar:K 182 mm",
+   "committedDetail": "36.7 % of 71.5 mm stored; through uranophane:U 26.2 mm",
    "mutant_verdict": "FAIL",
-   "mutantDetail": "0.0 % of 782 mm stored; through nothing"
+   "mutantDetail": "0.0 % of 71.5 mm stored; through nothing"
   },
   {
    "mutant": "ingredients-not-restored",
    "what": "the attribution never sets the ingredient fields to the bulk handle's values",
    "control": "draw-down positive",
    "committed": "PASS",
-   "committedDetail": "83.1 % of 782 mm stored; through albite:Na 455 mm, feldspar:K 182 mm",
+   "committedDetail": "36.7 % of 71.5 mm stored; through uranophane:U 26.2 mm",
    "mutant_verdict": "FAIL",
-   "mutantDetail": "0.0 % of 782 mm stored; through nothing"
+   "mutantDetail": "0.0 % of 71.5 mm stored; through nothing"
   },
   {
    "mutant": "share-reads-zero",
@@ -244,9 +244,9 @@
    "what": "every pass is counted as running under an envelope",
    "control": "count-envelope negative",
    "committed": "PASS",
-   "committedDetail": "0 passes under an envelope; 0 species-steps on which the two readings disagree",
+   "committedDetail": "0 of 120 passes under an envelope",
    "mutant_verdict": "FAIL",
-   "mutantDetail": "120 passes under an envelope; 0 species-steps on which the two readings disagree"
+   "mutantDetail": "120 of 120 passes under an envelope"
   },
   {
    "mutant": "strangle-verdict-ignored",

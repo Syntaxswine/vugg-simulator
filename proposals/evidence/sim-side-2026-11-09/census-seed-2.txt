@@ -1,4 +1,4 @@
-sim-side census v5 — SIM 286, seed 2, 41 scenario(s); inputs 71ceeef6c482; tools/sim-side-census.mjs sha256 a1eca64df002
+sim-side census v5 — SIM 286, seed 2, 41 scenario(s); inputs 71ceeef6c482; tools/sim-side-census.mjs sha256 d6c854fbd621
 integrity: no seed-42 baseline applies to this seed; the runs are not compared
 
 CONTROLS
@@ -11,7 +11,7 @@ CONTROLS
   [PASS] negative space+end: mvt never reaches fill 0.7, is still growing on its final step, and no crystal reads "pocket full" — first step at fill >= 0.7: never; fill at end 4.3 %, last growth at step 120 of 120, "pocket full" 0 %
   [PASS] positive time: mvt's largest surviving crystal reads "still growing on the final step" — calcite 26.7 mm: still growing on the final step
   [PASS] negative time: no crystal of gem_pegmatite reads "still growing on the final step" — 0 crystal(s)
-  [PASS] positive draw-down: shigar_pegmatite stores more than half its growth on a cell under half the reference's excess, drawn down through its ingredients — 84.0 % of 779 mm stored; through albite:Na 458 mm, feldspar:K 181 mm
+  [PASS] positive draw-down: colorado_plateau stores more than a quarter of its growth on a cell under half the reference's excess, drawn down through its ingredients — 36.4 % of 72.0 mm stored; through uranophane:U 26.2 mm
   [PASS] negative draw-down: tn457_barite_pulses stores under 1 % of its growth on a cell under half the reference's excess — 0.00 % of 31.1 mm stored
   [PASS] positive pause: sunnyside_american_tunnel's crystals pause at least 5 times because their cell ran short of an ingredient, and more often than they pause on a cell that reads saturated (a cell read after the step's diffusion has been refilled, and reads saturated) — 12 pauses on a cell run short (galena ×4, argentite ×4, tetrahedrite ×2); 0 on a cell that reads saturated
   [PASS] positive count: radioactive_pegmatite's galena is past sigma_crit on the bulk handle on at least 10 steps, and every one of them reads "not licensed" — 30 steps past sigma_crit, 30 not licensed
@@ -21,7 +21,7 @@ CONTROLS
   [PASS] positive count-cap: tormiq_alpine_cleft's titanite is past sigma_crit and reads "count cap" on at least 100 steps — 200 steps past sigma_crit, 187 at the count cap
   [PASS] positive count-gate: cooling's quartz is past sigma_crit and reads "the function's own count gate" on at least 50 steps, every one of them on a gate that keeps a side door — 88 steps past sigma_crit, 87 at its own gate, 87 of them with a side door
   [PASS] positive count-envelope: zoned_dripstone_cave installs the localized-nucleation envelope on every pass, and on at least 20 steps its aragonite is past sigma_crit on the envelope and not on the bulk handle — 150 of 150 passes under the envelope; aragonite past sigma_crit on the envelope only on 150 steps
-  [PASS] negative count-envelope: mvt installs no localized-nucleation envelope, and no species-step is past sigma_crit on an envelope only — 0 passes under an envelope; 0 species-steps on which the two readings disagree
+  [PASS] negative count-envelope: mvt installs no localized-nucleation envelope: none of its nucleation passes is read under one — 0 of 120 passes under an envelope
   [PASS] positive strangled: _wallStrangledFor refuses radioactive_pegmatite's plumbogummite at least 3 times, each for want of an ingredient (the lead that reaches only the bulk handle); FLIPS when that lead reaches the voxels or leaves the bulk handle — 7 of 13 calls refused; ingredient Pb ×7
   [PASS] negative strangled: _wallStrangledFor is called at least 100 times in mvt and refuses nothing — 0 of 289 calls refused
   [PASS] positive enclosed: at least 20 of mvt's surviving crystals read "enclosed", and each names the mineral that enclosed it — 48 enclosed, 48 with the encloser named
