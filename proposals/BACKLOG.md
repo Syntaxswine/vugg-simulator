@@ -32,8 +32,11 @@ Living list of open work items, captured from session conversations so context s
 > pegmatite pockets in Random Vugg); F2 galena, molybdenite and uraninite propose growth at
 > saturation (k·σ where 171 other engines vanish at σ = 1); F3 radiogenic Pb is written to the
 > bulk handle only (`js/85-simulator.ts:1276`), and `radioactive_pegmatite` does not license the
-> galena that its description, its notes and the narration of its last event promise.
-> **This review has been corrected seven times by its own review rounds (the doc's §9 lists each
+> galena that its description, its notes and the narration of its last event promise. (That
+> galena was on record, with no growth, in every baseline from v70 to v159; v160's
+> strangulation gate removed it and its note put that down to depleted walls. The walls were
+> never supplied.)
+> **This review has been corrected eight times by its own review rounds (the doc's §9 lists each
 > set): the first version said supply does not bind; the second costed the recommended fixes
 > too lightly; the third said the feldspar clamp loses no species, having counted a
 > dissolved-away crystal's record as presence, and recommended a lead mechanism that cannot
@@ -43,9 +46,11 @@ Living list of open work items, captured from session conversations so context s
 > measured Zen mode on another mode's clock, counted the galena's places short again, and said
 > a save has to carry state that a save does not hold; the seventh read a bound on a rate at
 > one run length and called it a cure in modes that have no last step, and said the two lead
-> timings differ in one view when they differ wherever the game lists zones. In the last four
-> rounds the measured numbers and source references held; the errors were in what it says its
-> own proposals cost and reach.**
+> timings differ in one view when they differ wherever the game lists zones; the eighth read
+> that bound in the scenario's own cavity when Simulation mode's form offers three others, and
+> counted step-log lines that Simulation mode prints only in part. In the last five rounds
+> the measured numbers and source references held; the errors were in what it says its own
+> proposals cost and reach.**
 > **Awaits the boss:** the seven decisions in the doc's §6. SC1: a clamp on the feldspar pair's
 > rate authored on `gem_pegmatite` ALONE (recommended; one baseline changes), which makes topaz
 > appear at all three locality-gate seeds, so the bump must also PROMOTE TOPAZ out of the
@@ -54,7 +59,10 @@ Living list of open work items, captured from session conversations so context s
 > Creative mode start the scenario it keeps the pocket under 0.7 full for the scenario's own
 > 230 steps and 27–29 more; a run that goes on (the Steps box, or Wait in Creative mode, where
 > the Scenarios menu opens a scenario and there is no last step) SEALS at step 304–306, on
-> quartz, and a bound seven times tighter seals 4–5 steps later. It does not reach Zen mode,
+> quartz, and a bound seven times tighter seals 4–5 steps later. Its value is sized to the
+> scenario's own cavity: Simulation mode's form has a CAVITY SIZE select, and in its 15 mm vug
+> the bounded pocket is full at step 97–99 (its two larger cavities stay open). It does not
+> reach Zen mode,
 > which drops the scenario object and runs at a fifth of the time scale (its `gem_pegmatite`
 > plugs at step 32–33), or Random Vugg's pegmatite archetype, where the boss first reported
 > the plug, which has no scenario at all. Against it: the same
@@ -71,15 +79,18 @@ Living list of open work items, captured from session conversations so context s
 > and release it to the bulk handle and the voxels alike (recommended), and take the galena out
 > of the scenario's OWN TEXTS (the description, the notes, and the step-100 narration in
 > `js/70d-pegmatite-radioactive.ts`, which is code), because under that timing no license can
-> produce galena; other places name galena for the scenario too and are found by search, not
-> counted (the Library's scenario list, the agent API); or keep today's timing and license
+> produce galena; other places tie galena to the scenario too and are found by a search of the
+> tree, not counted (the Library's scenario list, a generated copy of it and three docs pages,
+> a test that counts the scenario among galena's six and passes at exactly four, the agent
+> API); or keep today's timing and license
 > galena, with a source. The held release leaves the cation gate's numbers as commissioned and
 > adds one field to the simulator (saves replay a run and need nothing new); the continuous
 > one moves the gate's share. UNDER EITHER TIMING `schneeberg`'s two largest crystals are
 > NAMED amazonite on their cards where they are named microcline today; the cavity view draws
 > them as before; and wherever the game shows them zone by zone the timings differ: their
 > zone-history bars turn 28 % green under the continuous release and 4 % under the held one,
-> and the step log names 213 of their zones amazonite against 144. SC2 and SC3 meet
+> and the step log names 213 of their zones amazonite against 144 (103 against 74 on the
+> steps Simulation mode prints). SC2 and SC3 meet
 > in `schneeberg`'s pharmacolite, so
 > the second to land is previewed on the tree the first leaves. Whether to pilot a supply with a
 > scale above the cell, SC4. Whether the census joins the SIM-bump routine, SC5. The order

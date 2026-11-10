@@ -116,7 +116,9 @@ single execution ledger for the science-first AAA completion branch.
     a bound on a rate and buys steps, not an end: where Simulation mode, Quick Play and
     Creative mode start the scenario it keeps the pocket under 0.7 full for the scenario's
     own 230 steps and 27–29 more; a run that goes on seals at step 304–306, on quartz, and
-    Creative mode, where the Scenarios menu opens a scenario, has no last step. It does not
+    Creative mode, where the Scenarios menu opens a scenario, has no last step. Its value is
+    sized to the scenario's own cavity: at the 15 mm vug setting of Simulation mode's Cavity
+    Size select the bounded pocket is full at step 97–99. It does not
     reach Zen mode, which drops the scenario object and runs at a fifth of the time scale
     (its `gem_pegmatite` plugs at step 32–33), or Random Vugg's pegmatite archetype, where
     the plug was first reported, which has no scenario (3 of 8 random pockets fill). The same
@@ -129,14 +131,18 @@ single execution ledger for the science-first AAA completion branch.
   - [ ] SC2 — put galena, molybdenite and uraninite on σ − 1 (they propose a rate at saturation).
     At the same constant the uraninites end smaller and write less radiogenic lead, so the bump
     has to recommission the cation gate (`npm run audit:cations`): the Ca share it holds
-    `schneeberg` to at seed 42 moves from 0.582 to 0.630.
+    `schneeberg` to at seed 42 moves from 0.582 to 0.630. One test stands at its floor on
+    galena (`tests-js/cascade-gate-audit.test.ts:107`: a galena on record in four of six
+    scenarios, and exactly four today); the preview keeps all four.
   - [ ] SC3 — carry radiogenic Pb to the voxels as well as the bulk handle
     (`js/85-simulator.ts:1276` writes the bulk handle only). Recommended timing: hold it until a
     uraninite is altered, and take the galena out of `radioactive_pegmatite`'s own texts (the
     description, the notes, and the step-100 narration in `js/70d-pegmatite-radioactive.ts`,
-    which is code), since under that timing no license can produce it. Other places name
-    galena for the scenario too (the Library's scenario list, the agent API); find them by
-    search, do not count them. The other coherent pair keeps today's timing and licenses
+    which is code), since under that timing no license can produce it. Other places tie
+    galena to the scenario too (the Library's scenario list, a generated copy of it and three
+    docs pages, `tests-js/cascade-gate-audit.test.ts:107`, which counts the scenario among
+    galena's six and passes at exactly four, the agent API); find them by a search of the
+    tree, do not count them. The other coherent pair keeps today's timing and licenses
     galena, with a source. The held release leaves the cation gate's two numbers as
     commissioned and adds one field to the simulator (saves replay a run and need nothing
     new); the continuous one moves the gate's share by 62 times the tolerance. Under either

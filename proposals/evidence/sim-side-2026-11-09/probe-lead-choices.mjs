@@ -37,7 +37,11 @@
  *   step log       the line run_step returns for every zone of more than 0.5 µm
  *                  (js/85-simulator.ts, through describe_latest_zone of js/27-geometry-crystal.ts),
  *                  which prints the zone's note: per zone, as text. The probe counts the feldspar
- *                  lines that say "amazonite".
+ *                  lines that say "amazonite", twice: all that run_step returns, which is what
+ *                  Creative mode prints (js/97-ui-fortress.ts, _advanceOneStep), and those on the
+ *                  steps Simulation mode prints. Simulation mode keeps a step's lines on every
+ *                  fifth step and on a step with an event, a nucleation or a wall line
+ *                  (js/91-ui-legends.ts, `show`); the test is copied here.
  *   name, colour   crystalDisplayName and crystalColor (js/12-mineral-art.ts): per crystal. A
  *                  microcline is named "amazonite" and coloured green when ANY one of its zones
  *                  carries the note.
@@ -46,7 +50,9 @@
  *                  consecutive zones of one colour are merged; the probe prints the share of the
  *                  bar's thickness under each colour.
  *   body colour    resolveBodyColour (js/12a-colour-lexicon.ts), the base colour the cavity view
- *                  starts a crystal's body from.
+ *                  starts a crystal's body from. With it, what that colour's rule reads for
+ *                  lead, _bodyFieldVal(crystal, 'Pb'): the crystal's trace lead weighted by zone
+ *                  thickness. Feldspar's amazonite variant asks for more than 5 of it.
  * Other lines of js/ that read the note (the fluorescence line of js/27-geometry-crystal.ts, the
  * feldspar narrator of js/92i-narrators-silicate.ts) use the per-crystal test and are not run.
  * Others print whatever note a zone carries, zone by zone (the Zone History tooltip and zone list
@@ -80,10 +86,10 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.
 const harness = await import(pathToFileURL(path.join(ROOT, 'tools', '_harness.mjs')).href);
 const {
   SCENARIOS, VugSimulator, setSeed, SIM_VERSION, MINERAL_GATES_REGISTRY, MINERAL_ENGINES, crystalDisplayName, crystalColor,
-  groupZonesByChemistry, resolveBodyColour, MINERAL_SPEC,
+  groupZonesByChemistry, resolveBodyColour, _bodyFieldVal, MINERAL_SPEC,
 } = await harness.loadSimBundle({
   toolName: 'probe-lead-choices',
-  extraExports: ['MINERAL_GATES_REGISTRY', 'MINERAL_ENGINES', 'crystalDisplayName', 'crystalColor', 'groupZonesByChemistry', 'resolveBodyColour', 'MINERAL_SPEC'],
+  extraExports: ['MINERAL_GATES_REGISTRY', 'MINERAL_ENGINES', 'crystalDisplayName', 'crystalColor', 'groupZonesByChemistry', 'resolveBodyColour', '_bodyFieldVal', 'MINERAL_SPEC'],
 });
 // tools/sim-side-ab.mjs REFUSAL, copied: a CO2 or carbonate event of js/70l that says it was paused or refused.
 const REFUSAL = /(CO₂|Carbonate) [a-z₂ ]*(paused|refused): /;
@@ -184,11 +190,16 @@ function runOnce(name, seed, { timing = 'shipped', license = false, open = false
     return origNucleation.apply(this, a);
   };
   const steps = defaultSteps ?? 100;
-  let eventRefusals = 0, amazoniteLogLines = 0;
+  let eventRefusals = 0, amazoniteLogLines = 0, amazoniteLogShown = 0, stepsShown = 0;
   for (let i = 0; i < steps; i++) {
-    for (const line of sim.run_step()) {
+    const log = sim.run_step();
+    // js/91-ui-legends.ts, runSimulation: the steps whose lines Simulation mode prints (s is this index)
+    const show = (i % 5 === 0) || log.some(l => l.includes('EVENT') || l.includes('NUCLEATION') || l.includes('🧱'));
+    const shown = show && log.length > 0;
+    if (shown) stepsShown++;
+    for (const line of log) {
       if (REFUSAL.test(line)) eventRefusals++;
-      if (AMAZONITE_LINE.test(line)) amazoniteLogLines++;
+      if (AMAZONITE_LINE.test(line)) { amazoniteLogLines++; if (shown) amazoniteLogShown++; }
     }
   }
   const audit = {
@@ -209,6 +220,7 @@ function runOnce(name, seed, { timing = 'shipped', license = false, open = false
     return `${mm(c.total_growth_um)} mm: ` + Object.entries(by).sort((a, b) => b[1] - a[1]).map(([k, t]) => `${k} ${(t / total * 100).toFixed(1)} %`).join(', ');
   });
   const feldsparBody = withSolid.map(c => `${mm(c.total_growth_um)} mm ${resolveBodyColour(c, MINERAL_SPEC.feldspar)}`);
+  const feldsparBodyLead = withSolid.map(c => `${mm(c.total_growth_um)} mm ${Number(_bodyFieldVal(c, 'Pb')).toFixed(3)}`);
   const of = (m) => {
     const all = sim.crystals.filter(c => c.mineral === m), solid = all.filter(c => c.total_growth_um > 0);
     if (!all.length) return 'none';
@@ -236,7 +248,7 @@ function runOnce(name, seed, { timing = 'shipped', license = false, open = false
     galena: of('galena'), plumbogummite: of('plumbogummite'),
     uraniniteMm: uraninite.length ? Math.max(...uraninite.map(c => c.total_growth_um)) / 1000 : 0,
     negativeZones: negative.length, negativeFrom: negative.length ? Math.min(...negative) : null,
-    releases, released, audit, feldsparShown, feldsparBar, feldsparBody, amazoniteLogLines,
+    releases, released, audit, feldsparShown, feldsparBar, feldsparBody, feldsparBodyLead, amazoniteLogLines, amazoniteLogShown, stepsShown, steps,
     feldsparZones: feldspar.length, amazoniteZones: amazonite.length,
     feldsparMm: feldspar.reduce((s, z) => s + z.thickness_um, 0) / 1000, amazoniteMm: amazonite.reduce((s, z) => s + z.thickness_um, 0) / 1000,
   };
@@ -287,9 +299,11 @@ for (const name of ['radioactive_pegmatite', 'schneeberg']) {
     if (timing !== 'shipped') console.log(`  ${''.padEnd(31)} species moved ${c.map(x => x.moved.length ? `${x.moved.length} (${x.moved.join(', ')})` : '0').join(' / ')}; gained ${c.map(x => x.gained.join('+') || 'none').join(' / ')}; lost ${c.map(x => x.lost.join('+') || 'none').join(' / ')}; the baseline differs ${c.map(x => (x.same ? 'no' : 'yes')).join(' / ')}; minerals on record under the arm and not as shipped ${c.map(x => x.appeared.join('+') || 'none').join(' / ')}, and the reverse ${c.map(x => x.vanished.join('+') || 'none').join(' / ')}`);
     console.log(`  ${''.padEnd(31)} feldspar zones noted amazonite: ${each(r => `${r.amazoniteZones} of ${r.feldsparZones} (${r.amazoniteMm.toFixed(1)} of ${r.feldsparMm.toFixed(1)} mm)`)}`);
     console.log(`  ${''.padEnd(31)} the run's own step log, lines for a feldspar zone that say amazonite (run_step's returned lines): ${each(r => r.amazoniteLogLines)}`);
+    console.log(`  ${''.padEnd(31)} … of those, on the steps Simulation mode prints (${each(r => r.stepsShown)} of ${each(r => r.steps)} steps): ${each(r => r.amazoniteLogShown)}`);
     console.log(`  ${''.padEnd(31)} feldspar crystals with solid, name and colour (crystalDisplayName, crystalColor): ${each(r => r.feldsparShown.join(', ') || 'none')}`);
     console.log(`  ${''.padEnd(31)} … their Zone History bar, share of thickness under each colour (groupZonesByChemistry): ${each(r => r.feldsparBar.join('; ') || 'none')}`);
     console.log(`  ${''.padEnd(31)} … their body colour in the cavity view (resolveBodyColour): ${each(r => r.feldsparBody.join(', ') || 'none')}`);
+    console.log(`  ${''.padEnd(31)} … the trace lead that colour's rule reads, weighted by zone thickness (_bodyFieldVal; the amazonite variant asks for more than 5): ${each(r => r.feldsparBodyLead.join(', ') || 'none')}`);
     console.log(`  ${''.padEnd(31)} the simulator's own audits: event refusals ${each(r => r.audit.eventRefusals)}; failed carbonate transactions ${each(r => r.audit.failedCarbonateTransactions)}; ledger violations ${each(r => r.audit.ledgerViolations)}${timing === 'shipped' ? '' : runs.every((r, i) => JSON.stringify(r.audit) === JSON.stringify(shipped[name][i].audit)) ? ' (as shipped at every seed)' : ' (DIFFERS FROM SHIPPED)'}`);
   }
 }

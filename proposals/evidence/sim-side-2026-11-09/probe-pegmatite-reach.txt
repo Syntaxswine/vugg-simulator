@@ -113,3 +113,36 @@ PART 3 — three other ways the game starts a run on a pegmatite's fluid, seeds 
       control: the first Zen run, made again after the other five, is the same run
 
 controls after Part 3: the time scale reads 5; gem_pegmatite's shipped run at seed 42 still reproduces the baseline
+
+PART 4 — Simulation mode's own form: the Cavity Size select and the Shape Seed box, through the game's command runtime; time scale 5
+  controls at seed 42, no override: the run built by startSimulationCommandRuntime and stepped with run_step reproduces the baseline; stepped through applySimulationCommand, one step to a command, it is the same run; scenario object on the conditions: present; 230 steps; the cavity holds 69.3 cm3 (shape seed 8)
+
+  Cavity Size, seeds 42 / 1 / 2. The scenario's own cavity is in Part 1.
+    vug: resolveSizeClassToMm gives 15 mm; the cavity holds 1.9 / 1.9 / 1.9 cm3; scenario object present at every seed
+      shipped          largest fill of the run 100.0 / 100.0 / 100.0 %; first step at fill >= 0.7 2 / 1 / 2; at >= 0.999 2 / 2 / 2; last step anything grew 2 / 2 / 2
+                       feldspar 11.6 / 11.6 / 11.6 mm; albite 5.5 / 4.9 / 7.2; quartz 0.51 / 0.34 / 0.52; tourmaline 0.04 / 0.04 / 0.04; topaz — / — / —
+      rate clamp at 7  largest fill of the run 100.0 / 100.0 / 100.0 %; first step at fill >= 0.7 62 / 64 / 64; at >= 0.999 97 / 99 / 99; last step anything grew 98 / 100 / 99
+                       feldspar 7.6 / 7.6 / 7.9 mm; albite 9.6 / 9.9 / 10.3; quartz 14.5 / 14.4 / 14.8; tourmaline 5.0 / 5.1 / 5.1; topaz — / 0.00 / —
+                       SC1's first acceptance line under the clamp holds at 0 of 3 seeds
+    pocket: resolveSizeClassToMm gives 162.5 mm; the cavity holds 2377.7 / 2377.7 / 2377.7 cm3; scenario object present at every seed
+      shipped          largest fill of the run 100.0 / 100.0 / 100.0 %; first step at fill >= 0.7 26 / 27 / 27; at >= 0.999 38 / 37 / 38; last step anything grew 38 / 37 / 38
+                       feldspar 99.2 / 99.5 / 103.6 mm; albite 86.4 / 75.3 / 89.3; quartz 6.3 / 6.3 / 6.1; tourmaline 2.0 / 2.0 / 1.9; topaz — / — / —
+      rate clamp at 7  largest fill of the run 1.2 / 1.2 / 1.2 %; first step at fill >= 0.7 — / — / —; at >= 0.999 — / — / —; last step anything grew 230 / 230 / 230
+                       feldspar 24.1 / 24.6 / 24.5 mm; albite 32.3 / 32.1 / 32.5; quartz 37.5 / 36.9 / 37.4; tourmaline 12.0 / 12.0 / 12.0; topaz 2.5 / 2.5 / 2.5
+                       SC1's first acceptance line under the clamp holds at 3 of 3 seeds
+    cave: resolveSizeClassToMm gives 1650 mm; the cavity holds 2489152 / 2489152 / 2489152 cm3; scenario object present at every seed
+      shipped          largest fill of the run 3.8 / 3.9 / 3.7 %; first step at fill >= 0.7 — / — / —; at >= 0.999 — / — / —; last step anything grew 230 / 230 / 230
+                       feldspar 466.1 / 474.9 / 460.4 mm; albite 401.5 / 403.5 / 403.5; quartz 36.5 / 36.1 / 36.6; tourmaline 12.0 / 12.0 / 12.1; topaz 2.5 / 2.5 / 2.5
+      rate clamp at 7  largest fill of the run 0.0 / 0.0 / 0.0 %; first step at fill >= 0.7 — / — / —; at >= 0.999 — / — / —; last step anything grew 230 / 230 / 230
+                       feldspar 24.1 / 24.4 / 24.5 mm; albite 32.2 / 32.3 / 32.5; quartz 36.8 / 36.7 / 37.4; tourmaline 12.1 / 11.9 / 12.0; topaz 2.5 / 2.5 / 2.5
+                       SC1's first acceptance line under the clamp holds at 3 of 3 seeds
+
+  Shape Seed, growth seed 42, shape seeds 1 / 2 / 3 / 7 / 13 / 42 / 99 / 2024 / 123456789 / 987654321 (the scenario's own is 8)
+    the cavity holds 63.2 / 73.0 / 68.6 / 62.9 / 67.8 / 78.3 / 66.7 / 73.9 / 72.2 / 69.8 cm3; the shape seed on the wall is the one asked for in every run
+      shipped          largest fill of the run 100.0 / 100.0 / 100.0 / 100.0 / 100.0 / 100.0 / 100.0 / 100.0 / 100.0 / 100.0 %; first step at fill >= 0.7 6 / 6 / 6 / 6 / 6 / 7 / 6 / 6 / 6 / 6; at >= 0.999 9 / 9 / 9 / 9 / 9 / 10 / 9 / 9 / 9 / 9; last step anything grew 9 / 9 / 9 / 9 / 9 / 10 / 9 / 9 / 9 / 9
+                       feldspar 30.4 / 32.4 / 31.6 / 30.4 / 31.4 / 33.1 / 31.2 / 32.5 / 32.3 / 31.8 mm; albite 24.1 / 25.1 / 24.4 / 24.0 / 24.3 / 25.8 / 24.3 / 25.2 / 25.0 / 24.7; quartz 1.6 / 1.7 / 1.6 / 1.6 / 1.6 / 1.7 / 1.6 / 1.7 / 1.7 / 1.7; tourmaline 0.28 / 0.30 / 0.29 / 0.28 / 0.29 / 0.32 / 0.29 / 0.31 / 0.30 / 0.30; topaz — / — / — / — / — / — / — / — / — / —
+      rate clamp at 7  largest fill of the run 45.4 / 40.2 / 42.6 / 45.9 / 43.1 / 36.8 / 43.4 / 39.5 / 39.9 / 41.1 %; first step at fill >= 0.7 — / — / — / — / — / — / — / — / — / —; at >= 0.999 — / — / — / — / — / — / — / — / — / —; last step anything grew 230 / 230 / 230 / 230 / 230 / 230 / 230 / 230 / 230 / 230
+                       feldspar 24.2 / 24.2 / 24.4 / 24.1 / 24.4 / 24.1 / 24.4 / 24.4 / 24.1 / 24.2 mm; albite 32.1 / 32.4 / 32.2 / 32.2 / 32.2 / 32.5 / 32.1 / 32.2 / 32.2 / 32.1; quartz 36.9 / 37.9 / 37.5 / 36.8 / 37.5 / 37.0 / 37.7 / 37.5 / 36.8 / 36.9; tourmaline 12.1 / 12.0 / 12.0 / 12.1 / 12.0 / 12.1 / 12.0 / 12.0 / 12.1 / 12.1; topaz 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5
+                       SC1's first acceptance line under the clamp holds at 10 of 10 shape seeds
+
+controls after Part 4: the time scale reads 5; gem_pegmatite's shipped run at seed 42 still reproduces the baseline

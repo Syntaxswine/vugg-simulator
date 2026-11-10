@@ -24,6 +24,7 @@ PART A — gem_pegmatite as Simulation mode starts it, stepped on past its 230 s
       temperature at step 230, °C: 276 / 276 / 277
       largest crystals at the end, mm — feldspar 28.5 / 29.0 / 29.0; albite 38.2 / 38.0 / 38.4; quartz 53.6 / 53.2 / 54.0; tourmaline 12.0 / 11.9 / 12.0; topaz 2.5 / 2.5 / 2.5
       share of the cavity's volume at the end, % — quartz 67.4 / 67.8 / 68.0; feldspar 18.0 / 17.7 / 17.5; albite 13.1 / 12.8 / 12.7; every other mineral together 1.4 / 1.7 / 1.8
+      SiO2 at the end, ppm — on the bulk handle 8000 / 8000 / 8000; mean over the voxels 7999 / 7999 / 7999
       control: the fill at step 230 is the largest fill of the 230-step run at every seed
       steps between the scenario's last step and fill 0.7: 28 / 28 / 29
     rate clamp at 1, up to 600 steps
@@ -32,6 +33,7 @@ PART A — gem_pegmatite as Simulation mode starts it, stepped on past its 230 s
       temperature at step 230, °C: 276 / 276 / 277
       largest crystals at the end, mm — feldspar 4.2 / 4.2 / 4.3; albite 5.7 / 5.5 / 5.8; quartz 58.9 / 59.2 / 59.7; tourmaline 12.0 / 11.9 / 12.0; topaz 2.5 / 2.5 / 2.5
       share of the cavity's volume at the end, % — quartz 98.2 / 98.2 / 98.1; feldspar 0.1 / 0.1 / 0.1; albite 0.0 / 0.0 / 0.0; every other mineral together 1.7 / 1.7 / 1.8
+      SiO2 at the end, ppm — on the bulk handle 8000 / 8000 / 8000; mean over the voxels 8000 / 8000 / 8000
 
 PART B — gem_pegmatite opened in Creative mode: fortressBeginFromScenario('gem_pegmatite', seed) itself, then run_step for as long as a player presses Wait
   scenario object on the conditions: present at every seed; a carbonate boundary on the simulator: at every seed; time scale 5
@@ -41,14 +43,16 @@ PART B — gem_pegmatite opened in Creative mode: fortressBeginFromScenario('gem
       temperature at step 230, °C: 276 / 276 / 277
       largest crystals at the end, mm — feldspar 28.4 / 28.3 / 29.1; albite 38.3 / 37.9 / 38.4; quartz 53.0 / 53.6 / 54.5; tourmaline 12.0 / 11.9 / 12.0; topaz 2.5 / 2.5 / 2.5
       share of the cavity's volume at the end, % — quartz 67.3 / 68.3 / 67.8; feldspar 17.9 / 17.3 / 17.6; albite 13.3 / 12.7 / 12.8; every other mineral together 1.4 / 1.7 / 1.8
+      SiO2 at the end, ppm — on the bulk handle 8000 / 8000 / 8000; mean over the voxels 7999 / 7999 / 7999
       steps between the scenario's last step and fill 0.7: 27 / 27 / 28
 
 PART C — Zen mode by the game's own loop: switchMode('idle'), idleTogglePlay(), idleTogglePause(), then idleDoStep() (drift, then run_step, then the page's drawing)
-    shipped, until the pocket is full
+    shipped, until the pocket is full or 1150 steps have run
       fill, % — at step 10: 8.0 / 6.2 / 7.2; at step 20: 60.0 / 48.0 / 53.8; at step 30: 99.3 / 97.3 / 98.5
       first step at fill >= 0.7: 22 / 23 / 22; at >= 0.999: 32 / 33 / 32; last step anything grew 32 / 33 / 33; stepped to 35 / 36 / 35 (fill there 100.0 / 100.0 / 100.0 %, 597 / 597 / 598 °C)
       largest crystals at the end, mm — feldspar 30.9 / 31.7 / 32.5; albite 24.3 / 24.2 / 25.2; quartz 1.0 / 1.2 / 1.0; tourmaline 0.25 / 0.27 / 0.27; topaz — / — / —
       share of the cavity's volume at the end, % — quartz 0.0 / 0.0 / 0.0; feldspar 97.1 / 97.1 / 97.6; albite 2.9 / 2.9 / 2.4; every other mineral together 0.0 / 0.0 / 0.0
+      SiO2 at the end, ppm — on the bulk handle 8423 / 7369 / 8212; mean over the voxels 8000 / 8000 / 8000
       fill under 0.7 through step 1150: no (0.7 at step 22) / no (0.7 at step 23) / no (0.7 at step 22)
       minerals on record that the scenario does not license: emerald (excluded by the scenario) / emerald (excluded by the scenario) / emerald (excluded by the scenario)
     rate clamp at 7, 2400 steps
@@ -57,6 +61,15 @@ PART C — Zen mode by the game's own loop: switchMode('idle'), idleTogglePlay()
       temperature at step 230, °C: 306 / 305 / 310
       largest crystals at the end, mm — feldspar 44.4 / 44.2 / 49.0; albite 59.3 / 59.0 / 64.7; quartz 25.3 / 24.9 / 25.4; tourmaline 2.8 / 2.8 / 2.7; topaz 0.41 / 0.44 / 0.42
       share of the cavity's volume at the end, % — quartz 8.8 / 7.0 / 8.8; feldspar 21.1 / 20.7 / 28.3; albite 50.0 / 49.4 / 32.9; every other mineral together 14.0 / 17.2 / 16.3
+      SiO2 at the end, ppm — on the bulk handle 32 / 3800 / 293; mean over the voxels 7999 / 7999 / 7999
+      fill under 0.7 through step 1150: yes / yes / yes
+    rate clamp at 11, until the fill reaches 0.7 or 1150 steps have run
+      fill, % — at step 230: 7.6 / 10.4 / 12.1; at step 400: 19.5 / 21.1 / 24.9; at step 800: 32.8 / 34.3 / 33.3; at step 1150: 62.8 / 64.1 / 52.6
+      first step at fill >= 0.7: — / — / —; at >= 0.999: — / — / —; last step anything grew 1150 / 1150 / 1150; stepped to 1150 / 1150 / 1150 (fill there 62.8 / 64.1 / 52.6 %, 25 / 25 / 25 °C)
+      temperature at step 230, °C: 306 / 305 / 310
+      largest crystals at the end, mm — feldspar 38.3 / 38.1 / 38.1; albite 50.6 / 50.6 / 50.6; quartz 25.3 / 24.9 / 25.4; tourmaline 2.8 / 2.8 / 2.7; topaz 0.41 / 0.44 / 0.42
+      share of the cavity's volume at the end, % — quartz 8.7 / 7.0 / 8.8; feldspar 13.6 / 13.2 / 13.3; albite 31.2 / 31.3 / 15.7; every other mineral together 9.3 / 12.7 / 14.8
+      SiO2 at the end, ppm — on the bulk handle 6817 / 4401 / 9063; mean over the voxels 7999 / 7999 / 7999
       fill under 0.7 through step 1150: yes / yes / yes
     rate clamp at 23, until the fill reaches 0.7 or 1150 steps have run
       fill, % — at step 230: 11.4 / 14.2 / 15.8; at step 400: 35.6 / 37.1 / 40.9
@@ -64,7 +77,8 @@ PART C — Zen mode by the game's own loop: switchMode('idle'), idleTogglePlay()
       temperature at step 230, °C: 306 / 305 / 310
       largest crystals at the end, mm — feldspar 42.5 / 41.5 / 40.3; albite 52.0 / 51.9 / 50.8; quartz 25.1 / 24.9 / 25.5; tourmaline 2.8 / 2.8 / 2.8; topaz 0.41 / 0.44 / 0.41
       share of the cavity's volume at the end, % — quartz 8.7 / 7.0 / 8.9; feldspar 19.4 / 18.0 / 16.7; albite 33.8 / 33.7 / 30.7; every other mineral together 8.8 / 12.2 / 14.5
+      SiO2 at the end, ppm — on the bulk handle 5767 / 3397 / 3563; mean over the voxels 7999 / 7999 / 7999
       fill under 0.7 through step 1150: no (0.7 at step 603) / no (0.7 at step 599) / no (0.7 at step 584)
-  controls over the 9 Zen runs: the simulator's step before the first idleDoStep is 0 in every run; time scale after switchMode('idle') 1 in every run, and at the end of the run 1 in every run; scenario object absent in every run; events none in every run; switchMode threw in none; idleDoStep calls whose drawing threw after the physics had run: 0; Zen simulator left on the page after a run was ended: none
+  controls over the 12 Zen runs: the simulator's step before the first idleDoStep is 0 in every run; time scale after switchMode('idle') 1 in every run, and at the end of the run 1 in every run; scenario object absent in every run; events none in every run; switchMode threw in none; idleDoStep calls whose drawing threw after the physics had run: 0; Zen simulator left on the page after a run was ended: none
 
 controls at the end: the time scale reads 5; gem_pegmatite's shipped run at seed 42 still reproduces the baseline

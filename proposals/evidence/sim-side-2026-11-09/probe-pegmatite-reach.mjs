@@ -46,15 +46,32 @@
  * The two Creative constructors and Zen's write to the page's in-memory state (a visible simulator,
  * a strip recorder, an autosave record) and to no file.
  *
+ * Part 4. Simulation mode's own form (index.html, #legends-controls; js/91-ui-legends.ts,
+ * runSimulation). Besides the scenario and the growth seed it has three boxes that reach the run:
+ * Time Steps (probe-clamp-horizon.mjs steps the run on), Cavity Size and Shape Seed. Both of the
+ * last two become overrides on the scenario's wall, handed to the scenario's factory by
+ * startSimulationCommandRuntime (js/85l-simulation-command-protocol.ts), and the probe builds each
+ * run through that function with the overrides the form builds:
+ *   Cavity Size   vug, pocket or cave: { wall: { size_class, vug_diameter_mm } }, the diameter from
+ *                 resolveSizeClassToMm (js/22-geometry-wall.ts), the midpoint of the class's range.
+ *                 Shipped and with the rate clamp at 7, seeds 42, 1 and 2.
+ *   Shape Seed    { wall: { shape_seed } }, which the form's Random button draws afresh for every
+ *                 run. Ten shape seeds at growth seed 42, shipped and with the clamp.
+ * The runs are stepped with run_step, as every run of this probe is. Simulation mode steps through
+ * applySimulationCommand, one step to a command; a control makes the seed-42 run that way and
+ * compares it with the baseline and with the run stepped by run_step.
+ *
  * Readings per run: fill at run end and the largest fill of the run; the first step at fill >= 0.7
  * and at >= 0.999; the last step on which any crystal stored a positive zone; the largest crystal
  * with solid left of each species named. A species is present when one of its crystals has solid.
  *
- * PASSIVE: prints to stdout, writes nothing, exits 0. Imports tools/_harness.mjs and node builtins.
+ * PASSIVE: prints to stdout and writes nothing. It exits 0 when it finishes, and throws if one of
+ * the game's constructors leaves no simulator under the harness. Imports tools/_harness.mjs and
+ * node builtins.
  * Controls: at seed 42 gem_pegmatite's shipped run is compared with the committed baseline, at the
  * start and again after Part 3 with the time scale read back; the run with the switch set to false
  * explicitly, and the run with the clamp at Infinity, have to be the shipped run; and the first
- * Zen run is made again after the others and has to be the same run.
+ * Zen run is made again after the others and has to be the same run. Part 4 has its own (above).
  *
  *   node proposals/evidence/sim-side-2026-11-09/probe-pegmatite-reach.mjs
  */
@@ -68,10 +85,14 @@ const {
   SCENARIOS, VugSimulator, setSeed, SIM_VERSION, MINERAL_ENGINES, buildRandomScenario,
   idleCreateSim, fortressBeginFromScenario, fortressBeginFromStarterFluid,
   setSimulationTimeScale, getSimulationTimeScale, switchMode,
+  startSimulationCommandRuntime, makeSimulationStartCommand, makeSimulationAdvanceCommand, applySimulationCommand,
+  resolveSizeClassToMm,
 } = await harness.loadSimBundle({
   toolName: 'probe-pegmatite-reach',
   extraExports: ['MINERAL_ENGINES', 'buildRandomScenario', 'idleCreateSim', 'fortressBeginFromScenario',
-    'fortressBeginFromStarterFluid', 'setSimulationTimeScale', 'getSimulationTimeScale', 'switchMode'],
+    'fortressBeginFromStarterFluid', 'setSimulationTimeScale', 'getSimulationTimeScale', 'switchMode',
+    'startSimulationCommandRuntime', 'makeSimulationStartCommand', 'makeSimulationAdvanceCommand', 'applySimulationCommand',
+    'resolveSizeClassToMm'],
 });
 const BASELINE = JSON.parse(fs.readFileSync(path.join(ROOT, 'tests-js', 'baselines', `seed42_v${SIM_VERSION}.json`), 'utf8'));
 const PAIR = ['feldspar', 'albite'];
@@ -147,6 +168,8 @@ function run(seed, make, { localFill = null, clamp = null } = {}) {
       if (c.total_growth_um > o.max_um) o.max_um = c.total_growth_um;
     }
     return { start, steps, fill: sim.get_vug_fill(), maxFill, first70, full, lastGrowth, species, summary: summarize(sim), fills,
+      capacity: Number(sim.conditions.wall.cavity_capacity_volume_mm3),          // what get_vug_fill divides by, mm3
+      shapeSeed: sim.conditions.wall.shape_seed ?? null,
       boundary: !!sim._carbonateBoundaryState,                                   // a carbonate boundary on the simulator
       records: [...new Set(sim.crystals.map(c => c.mineral))].sort() };          // every mineral with a crystal on record at run end
   } finally {
@@ -300,3 +323,58 @@ try {
   setSimulationTimeScale(5);
 }
 console.log(`\ncontrols after Part 3: the time scale reads ${getSimulationTimeScale()}; gem_pegmatite's shipped run at seed 42 ${JSON.stringify(run(42, gem).summary) === JSON.stringify(BASELINE.gem_pegmatite) ? 'still reproduces the baseline' : 'NO LONGER REPRODUCES THE BASELINE'}`);
+
+// ---- part 4 ----
+console.log(`\nPART 4 — Simulation mode's own form: the Cavity Size select and the Shape Seed box, through the game's command runtime; time scale ${getSimulationTimeScale()}`);
+{
+  // The run as runSimulation builds it (js/91-ui-legends.ts): the form's overrides go to the
+  // scenario's factory through startSimulationCommandRuntime (js/85l-simulation-command-protocol.ts).
+  const viaForm = (overrides) => (seed) => {
+    const runtime = startSimulationCommandRuntime(makeSimulationStartCommand('gem_pegmatite', seed, overrides));
+    return { sim: runtime.sim, defaultSteps: runtime.scenarioData.defaultSteps };
+  };
+  // SC1's first acceptance line, read against the shipped run in the same cavity at the same seed.
+  const firstLine = (r, base) => r.maxFill < 0.7 && r.lastGrowth > 215
+    && (r.species.tourmaline?.max_um || 0) >= 5000 && (r.species.topaz?.max_um || 0) >= 1000
+    && Object.keys(base.species).every(m => r.species[m]);
+  const cm3 = (r) => (r.capacity / 1000).toFixed(r.capacity < 1e7 ? 1 : 0);
+  const show = (label, runs) => {
+    const each = (f) => runs.map(f).join(' / ');
+    console.log(`      ${label.padEnd(16)} largest fill of the run ${each(r => (r.maxFill * 100).toFixed(1))} %; first step at fill >= 0.7 ${each(r => r.first70 ?? '—')}; at >= 0.999 ${each(r => r.full ?? '—')}; last step anything grew ${each(r => r.lastGrowth)}`);
+    console.log(`      ${''.padEnd(16)} feldspar ${each(r => mm(r.species.feldspar?.max_um))} mm; albite ${each(r => mm(r.species.albite?.max_um))}; quartz ${each(r => mm(r.species.quartz?.max_um))}; tourmaline ${each(r => mm(r.species.tourmaline?.max_um))}; topaz ${each(r => mm(r.species.topaz?.max_um))}`);
+  };
+
+  // controls: the form's path with no override is the baseline's run, however it is stepped
+  const plain = run(42, viaForm({}));
+  let commanded;
+  {
+    const runtime = startSimulationCommandRuntime(makeSimulationStartCommand('gem_pegmatite', 42, {}));
+    for (let i = 0; i < runtime.scenarioData.defaultSteps; i++) applySimulationCommand(runtime, makeSimulationAdvanceCommand(1));
+    commanded = summarize(runtime.sim);
+  }
+  console.log(`  controls at seed 42, no override: the run built by startSimulationCommandRuntime and stepped with run_step ${JSON.stringify(plain.summary) === JSON.stringify(BASELINE.gem_pegmatite) ? 'reproduces the baseline' : 'DOES NOT REPRODUCE THE BASELINE'}; stepped through applySimulationCommand, one step to a command, it ${JSON.stringify(commanded) === JSON.stringify(plain.summary) ? 'is the same run' : 'IS A DIFFERENT RUN'}; scenario object on the conditions: ${plain.start.scenario ? 'present' : 'ABSENT at some seed'}; ${plain.steps} steps; the cavity holds ${cm3(plain)} cm3 (shape seed ${plain.shapeSeed})`);
+
+  console.log(`\n  Cavity Size, seeds ${OTHER_SEEDS.join(' / ')}. The scenario's own cavity is in Part 1.`);
+  for (const size of ['vug', 'pocket', 'cave']) {
+    const diameter = resolveSizeClassToMm(size);
+    const overrides = { wall: { size_class: size, vug_diameter_mm: diameter } };      // what the form adds for a choice of size
+    const s = OTHER_SEEDS.map(seed => run(seed, viaForm(overrides)));
+    const c = OTHER_SEEDS.map(seed => run(seed, viaForm(overrides), { clamp: 7 }));
+    console.log(`    ${size}: resolveSizeClassToMm gives ${diameter} mm; the cavity holds ${s.map(cm3).join(' / ')} cm3; scenario object ${s.every(r => r.start.scenario) ? 'present at every seed' : 'ABSENT at some seed'}`);
+    show('shipped', s);
+    show('rate clamp at 7', c);
+    console.log(`      ${''.padEnd(16)} SC1's first acceptance line under the clamp holds at ${c.filter((r, i) => firstLine(r, s[i])).length} of ${c.length} seeds`);
+  }
+
+  const SHAPE_SEEDS = [1, 2, 3, 7, 13, 42, 99, 2024, 123456789, 987654321];
+  console.log(`\n  Shape Seed, growth seed 42, shape seeds ${SHAPE_SEEDS.join(' / ')} (the scenario's own is ${plain.shapeSeed})`);
+  {
+    const s = SHAPE_SEEDS.map(shape => run(42, viaForm({ wall: { shape_seed: shape } })));
+    const c = SHAPE_SEEDS.map(shape => run(42, viaForm({ wall: { shape_seed: shape } }), { clamp: 7 }));
+    console.log(`    the cavity holds ${s.map(cm3).join(' / ')} cm3; the shape seed on the wall is ${s.every((r, i) => r.shapeSeed === SHAPE_SEEDS[i]) ? 'the one asked for in every run' : 'NOT THE ONE ASKED FOR in some run'}`);
+    show('shipped', s);
+    show('rate clamp at 7', c);
+    console.log(`      ${''.padEnd(16)} SC1's first acceptance line under the clamp holds at ${c.filter((r, i) => firstLine(r, s[i])).length} of ${c.length} shape seeds`);
+  }
+}
+console.log(`\ncontrols after Part 4: the time scale reads ${getSimulationTimeScale()}; gem_pegmatite's shipped run at seed 42 ${JSON.stringify(run(42, gem).summary) === JSON.stringify(BASELINE.gem_pegmatite) ? 'still reproduces the baseline' : 'NO LONGER REPRODUCES THE BASELINE'}`);

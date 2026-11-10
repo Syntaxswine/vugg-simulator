@@ -36,23 +36,34 @@
  *   temperature, nine fluid species and pH, and a 2 % chance a step of a random event), then
  *   run_step, then the page's drawing. A run is ended the way the page ends one when a scenario is
  *   picked while stopped: idleStop, then idlePickScenario.
- *     shipped           until the pocket is full
+ *     shipped           until the pocket is full, or to step 1,150 if it does not fill. On today's
+ *                       tree it fills. On a tree where Zen carries a bound this is the arm that
+ *                       reads SC1's acceptance line for Zen, with no clamp applied by the probe.
  *     rate clamp at 7   2,400 steps
- *     rate clamp at 23  a looser clamp, which leaves the pocket plugged in Simulation mode (§4,
- *                       SC1), until the fill reaches 0.7 or 1,150 steps have run
+ *     rate clamp at 11  a clamp that SC1's first acceptance line refuses in Simulation mode
+ *                       (§4, SC1), until the fill reaches 0.7 or 1,150 steps have run
+ *     rate clamp at 23  a looser clamp, which leaves the pocket plugged in Simulation mode, the
+ *                       same way
  *   1,150 is the scenario's 230 steps times five: Zen stores a fifth of the thickness a step, so
  *   it is the same span of growth at the clamped rate.
  *
  * Readings per run: the fill at named steps; the first step at fill >= 0.7 and at >= 0.999; the
  * last step on which any crystal stored a positive zone; the temperature at the scenario's last
- * step and at the end of the run; the largest crystal with solid left of five species; and, at
- * the end of the run, each mineral's share of the cavity's volume, summed the way get_vug_fill
- * sums it (js/85c-simulator-state.ts).
+ * step and at the end of the run; the largest crystal with solid left of five species; at the
+ * end of the run, each mineral's share of the cavity's volume, summed the way get_vug_fill sums
+ * it (js/85c-simulator-state.ts); and the bulk handle's SiO2 beside the mean over the voxels.
  *
  * The clamp is applied in process: the rate of feldspar and albite becomes k·min(σ − 1, E),
  * written as the `rclamp` arm of tools/sim-side-ab.mjs and probe-pegmatite-reach.mjs write it.
+ * The wrapper rescales the zone the engine returns. The engine's own tests on its rate (feldspar
+ * rolls for an inclusion at a rate above 4) have already been made on the unclamped rate. At
+ * E = 7 and above the clamped rate passes those tests too, so the wrapper is what a clamp in the
+ * engine would be. At E = 1 it is not. That arm shows the pocket with the pair nearly absent;
+ * it does not preview a value.
  *
- * PASSIVE: prints to stdout, writes nothing, exits 0. Imports tools/_harness.mjs and node builtins.
+ * PASSIVE: prints to stdout and writes nothing. It exits 0 when it finishes, and throws if the
+ * game's code leaves no simulator or a step does not advance it by one. Imports tools/_harness.mjs
+ * and node builtins.
  * The game's own functions write to the page's in-memory state (a visible simulator, a strip
  * recorder) and to no file. Controls: gem_pegmatite's shipped run at seed 42 is compared with the
  * committed baseline before Part A and again at the end, with the time scale read back; the clamp
@@ -62,8 +73,9 @@
  *
  *   node proposals/evidence/sim-side-2026-11-09/probe-clamp-horizon.mjs
  *
- * It took 53 minutes at its last run, nearly all of it Part C: the game's own loop draws the page
- * on every step. Run it after probe-pegmatite-reach.mjs, whose output Part 0 reads.
+ * It took 30 minutes at its last run and 53 at the one before, nearly all of it Part C: the
+ * game's own loop draws the page on every step. Run it after probe-pegmatite-reach.mjs, whose
+ * output Part 0 reads.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -168,8 +180,14 @@ function follow(sim, cap, advance, stop = 'full') {
     volume[c.mineral] = (volume[c.mineral] || 0) + _crystalSolidVolumeMm3(c);
   }
   const share = Object.entries(volume).map(([m, v]) => [m, v / capacity]).sort((a, b) => b[1] - a[1]);
+  // silica on the bulk handle, which births read, and its mean over the voxels, which growth reads
+  const grid = sim.wall_state.voxelGridFor(sim);
+  let voxelSiO2 = 0;
+  for (const v of grid.voxels) voxelSiO2 += Number(v.fluid.SiO2) || 0;
+  voxelSiO2 /= grid.voxels.length;
   return {
     startStep, steps: sim.step, fillAt, maxFill, first70, full, lastGrowth, size, share,
+    bulkSiO2: Number(sim.conditions.fluid.SiO2), voxelSiO2,
     fill: sim.get_vug_fill(), temperature: sim.conditions.temperature, temperatureAtScenarioEnd,
     scenario: sim.conditions._scenario != null, events: (sim.events || []).length,
     boundary: !!sim._carbonateBoundaryState,
@@ -187,6 +205,7 @@ function print(label, runs, marks) {
   if (runs.some(r => r.temperatureAtScenarioEnd != null)) console.log(`      temperature at step ${SCENARIO_STEPS}, °C: ${each(runs, r => (r.temperatureAtScenarioEnd == null ? '—' : r.temperatureAtScenarioEnd.toFixed(0)))}`);
   console.log(`      largest crystals at the end, mm — feldspar ${each(runs, r => mm(r.size.feldspar))}; albite ${each(runs, r => mm(r.size.albite))}; quartz ${each(runs, r => mm(r.size.quartz))}; tourmaline ${each(runs, r => mm(r.size.tourmaline))}; topaz ${each(runs, r => mm(r.size.topaz))}`);
   console.log(`      share of the cavity's volume at the end, % — ${['quartz', 'feldspar', 'albite'].map(m => `${m} ${each(runs, r => pct((r.share.find(s => s[0] === m) || [m, 0])[1], 1))}`).join('; ')}; every other mineral together ${each(runs, r => pct(r.share.filter(s => !['quartz', 'feldspar', 'albite'].includes(s[0])).reduce((a, s) => a + s[1], 0), 1))}`);
+  console.log(`      SiO2 at the end, ppm — on the bulk handle ${each(runs, r => r.bulkSiO2.toFixed(0))}; mean over the voxels ${each(runs, r => r.voxelSiO2.toFixed(0))}`);
 }
 
 console.log(`probe-clamp-horizon — SIM ${SIM_VERSION}; seeds ${SEEDS.join(' / ')}; time scale at load ${getSimulationTimeScale()}`);
@@ -314,8 +333,9 @@ console.log('\nPART C — Zen mode by the game\'s own loop: switchMode(\'idle\')
   const excluded = new Set(Object.keys(own.excluded_species || {}));
 
   const ARMS = [
-    ['shipped, until the pocket is full', null, 200, 'full', [10, 20, 30]],
+    [`shipped, until the pocket is full or ${ZEN_BAR} steps have run`, null, ZEN_BAR, 'full', [10, 20, 30, SCENARIO_STEPS, ZEN_BAR]],
     [`rate clamp at 7, ${ZEN_STEPS} steps`, 7, ZEN_STEPS, 'full', [SCENARIO_STEPS, 400, 800, ZEN_BAR, 1600, 2000, ZEN_STEPS]],
+    [`rate clamp at 11, until the fill reaches 0.7 or ${ZEN_BAR} steps have run`, 11, ZEN_BAR, '70', [SCENARIO_STEPS, 400, 800, ZEN_BAR]],
     [`rate clamp at 23, until the fill reaches 0.7 or ${ZEN_BAR} steps have run`, 23, ZEN_BAR, '70', [SCENARIO_STEPS, 400, 800, ZEN_BAR]],
   ];
   const all = [];
