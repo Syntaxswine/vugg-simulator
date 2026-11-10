@@ -33,7 +33,7 @@ Living list of open work items, captured from session conversations so context s
 > saturation (k·σ where 171 other engines vanish at σ = 1); F3 radiogenic Pb is written to the
 > bulk handle only (`js/85-simulator.ts:1276`), and `radioactive_pegmatite` does not license the
 > galena that its description, its notes and the narration of its last event promise.
-> **This review has been corrected six times by its own review rounds (the doc's §9 lists each
+> **This review has been corrected seven times by its own review rounds (the doc's §9 lists each
 > set): the first version said supply does not bind; the second costed the recommended fixes
 > too lightly; the third said the feldspar clamp loses no species, having counted a
 > dissolved-away crystal's record as presence, and recommended a lead mechanism that cannot
@@ -41,17 +41,23 @@ Living list of open work items, captured from session conversations so context s
 > coupled choices to the owner as independent; the fifth counted the galena's places short and
 > gave as a reason for one lead timing a difference measured on one reader of three; the sixth
 > measured Zen mode on another mode's clock, counted the galena's places short again, and said
-> a save has to carry state that a save does not hold. In the last three rounds the measured
-> numbers and source references held; the errors were in what it says its own proposals cost
-> and reach.**
+> a save has to carry state that a save does not hold; the seventh read a bound on a rate at
+> one run length and called it a cure in modes that have no last step, and said the two lead
+> timings differ in one view when they differ wherever the game lists zones. In the last four
+> rounds the measured numbers and source references held; the errors were in what it says its
+> own proposals cost and reach.**
 > **Awaits the boss:** the seven decisions in the doc's §6. SC1: a clamp on the feldspar pair's
 > rate authored on `gem_pegmatite` ALONE (recommended; one baseline changes), which makes topaz
 > appear at all three locality-gate seeds, so the bump must also PROMOTE TOPAZ out of the
 > aspirational tier and rewrite its rationale by hand (the gate does not check that sentence).
-> It cures the scenario where Simulation mode, Quick Play and Creative mode start it, and
-> NOWHERE ELSE: Zen mode drops the scenario object and runs at a fifth of the time scale (its
-> `gem_pegmatite` plugs at step 31–33), and Random Vugg's pegmatite archetype, where the boss
-> first reported the plug, has no scenario at all. Against it: the same
+> It is a bound on a RATE, so it BUYS STEPS, NOT AN END. Where Simulation mode, Quick Play and
+> Creative mode start the scenario it keeps the pocket under 0.7 full for the scenario's own
+> 230 steps and 27–29 more; a run that goes on (the Steps box, or Wait in Creative mode, where
+> the Scenarios menu opens a scenario and there is no last step) SEALS at step 304–306, on
+> quartz, and a bound seven times tighter seals 4–5 steps later. It does not reach Zen mode,
+> which drops the scenario object and runs at a fifth of the time scale (its `gem_pegmatite`
+> plugs at step 32–33), or Random Vugg's pegmatite archetype, where the boss first reported
+> the plug, which has no scenario at all. Against it: the same
 > clamp in the engines for every scenario, which reaches those too (eight baselines change; it
 > empties Shigar's pocket and leaves `schneeberg` without solid native arsenic and native
 > bismuth at seeds 1 and 2, and cobaltite at seed 1, all three of them species it expects); the
@@ -71,8 +77,9 @@ Living list of open work items, captured from session conversations so context s
 > adds one field to the simulator (saves replay a run and need nothing new); the continuous
 > one moves the gate's share. UNDER EITHER TIMING `schneeberg`'s two largest crystals are
 > NAMED amazonite on their cards where they are named microcline today; the cavity view draws
-> them as before; their zone-history bars turn 28 % green under the continuous release and 4 %
-> under the held one. SC2 and SC3 meet
+> them as before; and wherever the game shows them zone by zone the timings differ: their
+> zone-history bars turn 28 % green under the continuous release and 4 % under the held one,
+> and the step log names 213 of their zones amazonite against 144. SC2 and SC3 meet
 > in `schneeberg`'s pharmacolite, so
 > the second to land is previewed on the tree the first leaves. Whether to pilot a supply with a
 > scale above the cell, SC4. Whether the census joins the SIM-bump routine, SC5. The order

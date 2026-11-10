@@ -112,11 +112,14 @@ single execution ledger for the science-first AAA completion branch.
     pocket is full at step 9–10 of 230 (7 of its 8 events fire into a full pocket). Recommended: a
     clamp on the rate authored on that scenario alone, which changes one baseline. It makes topaz
     appear at all three locality-gate seeds, so the same bump has to move topaz out of that
-    scenario's aspirational tier, which is a ruling, and rewrite its rationale by hand. It
-    cures the scenario where Simulation mode, Quick Play and Creative mode start it, and
-    nowhere else: Zen mode drops the scenario object and runs at a fifth of the time scale
-    (its `gem_pegmatite` plugs at step 31–33), and Random Vugg's pegmatite archetype, where
-    the plug was first reported, has no scenario (3 of 8 random pockets fill). The same
+    scenario's aspirational tier, which is a ruling, and rewrite its rationale by hand. It is
+    a bound on a rate and buys steps, not an end: where Simulation mode, Quick Play and
+    Creative mode start the scenario it keeps the pocket under 0.7 full for the scenario's
+    own 230 steps and 27–29 more; a run that goes on seals at step 304–306, on quartz, and
+    Creative mode, where the Scenarios menu opens a scenario, has no last step. It does not
+    reach Zen mode, which drops the scenario object and runs at a fifth of the time scale
+    (its `gem_pegmatite` plugs at step 32–33), or Random Vugg's pegmatite archetype, where
+    the plug was first reported, which has no scenario (3 of 8 random pockets fill). The same
     clamp in the engines for every scenario reaches those too; it changes eight
     baselines, empties Shigar's pocket, and leaves `schneeberg` without solid of three of the
     species it expects at seed 1 and two at seed 2. The tree's own `per_cell_local_fill` switch
@@ -138,7 +141,9 @@ single execution ledger for the science-first AAA completion branch.
     commissioned and adds one field to the simulator (saves replay a run and need nothing
     new); the continuous one moves the gate's share by 62 times the tolerance. Under either
     timing `schneeberg`'s two largest crystals are named amazonite on their cards where they
-    are named microcline today; the cavity view draws them as before. SC2 and SC3 both reach
+    are named microcline today; the cavity view draws them as before; and where the game
+    shows them zone by zone (the step log, the zone-history bar) the held release puts the
+    note on two thirds as many zones. SC2 and SC3 both reach
     the two uraninite scenarios: preview the second to land on the tree the first leaves.
   - [ ] SC4 — decide whether to pilot a supply with a scale above the cell: a physical debit, a feed
     from the authored `flow_rate` (assigned 103 times, read by no growth code), a clock. Overlaps

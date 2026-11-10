@@ -32,7 +32,12 @@
  * change no species table shows: grow_feldspar notes a microcline zone "amazonite" when its own
  * cell holds more than 10 ppm of Pb (js/59-engines-silicate.ts, `trace_Pb > 0.1` with
  * trace_Pb = 0.01 Pb). The game reads that note, or the zone's trace lead, at more than one
- * grain, and the probe runs three of its readers on each feldspar crystal that holds solid:
+ * grain, and the probe runs four of its readers: the run's own step log, and three on each
+ * feldspar crystal that holds solid:
+ *   step log       the line run_step returns for every zone of more than 0.5 µm
+ *                  (js/85-simulator.ts, through describe_latest_zone of js/27-geometry-crystal.ts),
+ *                  which prints the zone's note: per zone, as text. The probe counts the feldspar
+ *                  lines that say "amazonite".
  *   name, colour   crystalDisplayName and crystalColor (js/12-mineral-art.ts): per crystal. A
  *                  microcline is named "amazonite" and coloured green when ANY one of its zones
  *                  carries the note.
@@ -44,6 +49,10 @@
  *                  starts a crystal's body from.
  * Other lines of js/ that read the note (the fluorescence line of js/27-geometry-crystal.ts, the
  * feldspar narrator of js/92i-narrators-silicate.ts) use the per-crystal test and are not run.
+ * Others print whatever note a zone carries, zone by zone (the Zone History tooltip and zone list
+ * of js/97d-ui-zone-modal.ts, the Record Player of js/98-ui-groove.ts, the collection record of
+ * js/93-ui-collection.ts, the agent interface's specimen dump of js/99z-agent-interface.ts), and
+ * are not run either: the count of noted zones is what they have to print.
  * It also counts, for every run of this part, what tools/sim-side-ab.mjs
  * counts to see whether an arm tripped one of the simulator's own audits: CO2 or carbonate events
  * that say they were paused or refused, failed carbonate-boundary transactions, and entries of
@@ -78,6 +87,9 @@ const {
 });
 // tools/sim-side-ab.mjs REFUSAL, copied: a CO2 or carbonate event of js/70l that says it was paused or refused.
 const REFUSAL = /(CO₂|Carbonate) [a-z₂ ]*(paused|refused): /;
+// The step log's line for a feldspar zone that grew (js/85-simulator.ts: "▲ Feldspar #N: " and then
+// describe_latest_zone, which ends with the zone's note), where the note says amazonite.
+const AMAZONITE_LINE = /▲ Feldspar #\d+: .*amazonite/;
 const BASELINE = JSON.parse(fs.readFileSync(path.join(ROOT, 'tests-js', 'baselines', `seed42_v${SIM_VERSION}.json`), 'utf8'));
 const SEEDS = [42, 1, 2];
 const mm = (um) => (um / 1000).toFixed(um < 1000 ? 3 : 1);
@@ -172,9 +184,12 @@ function runOnce(name, seed, { timing = 'shipped', license = false, open = false
     return origNucleation.apply(this, a);
   };
   const steps = defaultSteps ?? 100;
-  let eventRefusals = 0;
+  let eventRefusals = 0, amazoniteLogLines = 0;
   for (let i = 0; i < steps; i++) {
-    for (const line of sim.run_step()) if (REFUSAL.test(line)) eventRefusals++;
+    for (const line of sim.run_step()) {
+      if (REFUSAL.test(line)) eventRefusals++;
+      if (AMAZONITE_LINE.test(line)) amazoniteLogLines++;
+    }
   }
   const audit = {
     eventRefusals,
@@ -221,7 +236,7 @@ function runOnce(name, seed, { timing = 'shipped', license = false, open = false
     galena: of('galena'), plumbogummite: of('plumbogummite'),
     uraniniteMm: uraninite.length ? Math.max(...uraninite.map(c => c.total_growth_um)) / 1000 : 0,
     negativeZones: negative.length, negativeFrom: negative.length ? Math.min(...negative) : null,
-    releases, released, audit, feldsparShown, feldsparBar, feldsparBody,
+    releases, released, audit, feldsparShown, feldsparBar, feldsparBody, amazoniteLogLines,
     feldsparZones: feldspar.length, amazoniteZones: amazonite.length,
     feldsparMm: feldspar.reduce((s, z) => s + z.thickness_um, 0) / 1000, amazoniteMm: amazonite.reduce((s, z) => s + z.thickness_um, 0) / 1000,
   };
@@ -271,6 +286,7 @@ for (const name of ['radioactive_pegmatite', 'schneeberg']) {
     console.log(`  ${name.padEnd(22)} ${timing.padEnd(8)} bulk Pb ${each(r => r.bulkPb.toFixed(1))}, voxel mean ${each(r => r.voxPb.toFixed(1))}${timing === 'held' ? `; released ${each(r => r.released.toFixed(1))} ppm in ${each(r => r.releases)} release(s)` : ''}`);
     if (timing !== 'shipped') console.log(`  ${''.padEnd(31)} species moved ${c.map(x => x.moved.length ? `${x.moved.length} (${x.moved.join(', ')})` : '0').join(' / ')}; gained ${c.map(x => x.gained.join('+') || 'none').join(' / ')}; lost ${c.map(x => x.lost.join('+') || 'none').join(' / ')}; the baseline differs ${c.map(x => (x.same ? 'no' : 'yes')).join(' / ')}; minerals on record under the arm and not as shipped ${c.map(x => x.appeared.join('+') || 'none').join(' / ')}, and the reverse ${c.map(x => x.vanished.join('+') || 'none').join(' / ')}`);
     console.log(`  ${''.padEnd(31)} feldspar zones noted amazonite: ${each(r => `${r.amazoniteZones} of ${r.feldsparZones} (${r.amazoniteMm.toFixed(1)} of ${r.feldsparMm.toFixed(1)} mm)`)}`);
+    console.log(`  ${''.padEnd(31)} the run's own step log, lines for a feldspar zone that say amazonite (run_step's returned lines): ${each(r => r.amazoniteLogLines)}`);
     console.log(`  ${''.padEnd(31)} feldspar crystals with solid, name and colour (crystalDisplayName, crystalColor): ${each(r => r.feldsparShown.join(', ') || 'none')}`);
     console.log(`  ${''.padEnd(31)} … their Zone History bar, share of thickness under each colour (groupZonesByChemistry): ${each(r => r.feldsparBar.join('; ') || 'none')}`);
     console.log(`  ${''.padEnd(31)} … their body colour in the cavity view (resolveBodyColour): ${each(r => r.feldsparBody.join(', ') || 'none')}`);

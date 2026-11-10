@@ -21,10 +21,17 @@ crystal's own cell to see what it proposes; that is the *dry run* (`_dryRunEngin
 `js/85b`), and it is when a cell is read as its crystal reads it. A stored zone's thickness is the
 engine's proposal times a *time scale* (`js/13-runtime-state.ts:17`, applied in a run at
 `js/85b-simulator-nucleate.ts:1382`). The scale is 5 in every run of this review but the Zen
-runs of §3.1: the game sets 5 on entering Simulation, Creative and Random Vugg, and 1 on
-entering Zen. Unless a section says otherwise, a run here is a scenario as *Simulation mode*
-starts it, which is the run the committed baselines pin. The game's other modes start their
-runs differently (§3.1; §4, SC1). The *agent interface* is the page's own
+runs of §3.1 and §4: the game sets 5 on entering Simulation, Creative and Random Vugg, and 1
+on entering Zen (`js/94-ui-menu.ts:621` to `:647`; it sets 1 on entering the Record Player
+too, where no run starts). Unless a section says otherwise, a run here is a scenario as
+*Simulation mode* starts it, which is the run the committed baselines pin. The game's other
+modes start their runs differently (§3.1; §4, SC1). The *scenario object* is
+`conditions._scenario`, the scenario's authored entry carried on a run's conditions. The
+license, the exclusions, the nucleation windows and any field an engine reads from the
+scenario ride on it. *Zen's drift* is what Zen mode applies before each step in place of
+events: a random walk on temperature, nine fluid species and pH, and a 2 % chance of a
+random event (`idleApplyDrift`, `js/98a-ui-zen.ts:116`). A *size class* is Random Vugg's
+choice of cavity size: vug, pocket or cave. The *agent interface* is the page's own
 (`js/99z-agent-interface.ts`). The *agent API* is a separate headless runtime with its own copy
 of the engines (`agent-api/vugg-agent.js`). The *reference* for a cell is the bulk handle's fluid read at
 that cell's temperature, so "the reference's excess" in the appendix and "the bulk fluid's
@@ -103,17 +110,21 @@ pilot a supply with a scale above the cell — a physical debit, a feed from the
 events already author, and a clock (SC4; S1–S3). Each of the first three has a cost that §4
 sets out and §6 puts to the owner.
 
-- *SC1* comes with a choice of where the bound lives, and a ruling. Authored on `gem_pegmatite`
-  it changes one baseline, and it makes topaz appear, which that scenario lists as aspirational,
-  so the locality gate needs topaz's tier changed in the same bump. It cures the scenario
-  where Simulation mode and Creative mode start it, and not in Zen or Random Vugg. A Zen run
-  of the same scenario leaves the scenario's entry behind and would plug as it does today, at
-  step 31 to 33 on Zen's slower clock. Random Vugg's pegmatite archetype, where the owner first reported the
-  plug, has no entry at all, and three of eight random pockets there fill completely. Written
-  into the engines for every scenario the clamp reaches those too. It then changes eight
-  baselines, empties Shigar's pocket, and leaves `schneeberg` without solid native arsenic and
-  native bismuth at seeds 1 and 2 and without solid cobaltite at seed 1, all three of them
-  species that scenario expects.
+- *SC1* comes with a choice of where the bound lives, a ruling, and a horizon. Authored on
+  `gem_pegmatite` it changes one baseline, and it makes topaz appear, which that scenario
+  lists as aspirational, so the locality gate needs topaz's tier changed in the same bump. It
+  is a bound on a rate, so it buys steps and not an end. Where Simulation mode and Creative
+  mode start the scenario, it keeps the pocket open through the scenario's own 230 steps.
+  Stepped on, the pocket passes 0.7 full 27 to 29 steps later and seals at step 304 to 306,
+  on quartz, and Creative mode, where the Scenarios menu opens a scenario, has no last step.
+  The bound does not reach Zen or Random Vugg. A Zen run of the same scenario leaves the
+  scenario's entry behind and would plug as it does today, at step 32 or 33 on Zen's slower
+  clock. Random Vugg's pegmatite archetype, where the owner first reported the plug, has no
+  entry at all, and three of eight random pockets there fill completely. Written into the
+  engines for every scenario the clamp reaches those too. It then changes eight baselines,
+  empties Shigar's pocket, and leaves `schneeberg` without solid native arsenic and native
+  bismuth at seeds 1 and 2 and without solid cobaltite at seed 1, all three of them species
+  that scenario expects.
 - *SC2* has a cost outside its own three minerals. At the same constant `schneeberg`'s
   uraninites end at 5.1 mm, not 8.3, and their radiogenic lead falls with them (111 ppm on the
   bulk handle at run end, not 179). The cation gate commissions a number in that scenario that
@@ -126,16 +137,19 @@ sets out and §6 puts to the owner.
   cavity view draws them as before, while `radioactive_pegmatite` shows nothing until its
   pocket stays open.
 
-**This document has been corrected six times, each time by its own review round.** The first
+**This document has been corrected seven times, each time by its own review round.** The first
 version said supply does not bind. The second costed the recommended fixes too lightly. The third
 counted a crystal that had dissolved away as still present, and recommended a lead mechanism that
 cannot work. The fourth left out a gate that the recommended change trips, and put two coupled
 choices to the owner as if they were independent. The fifth counted two places where the galena
 is promised, and gave as a reason for one timing a difference it had measured on one reader of
 three. The sixth measured Zen mode on another mode's clock, counted the galena's places short
-again, and said a save has to carry state that a save does not hold. In the last three rounds
-the measured numbers and the source references have held. What has gone wrong is what this
-document says about the cost and the reach of its own proposals. §9 lists every correction.
+again, and said a save has to carry state that a save does not hold. The seventh read a bound
+on a rate at one run length and called it a cure in modes that have no last step, and said
+the two lead timings differ in one view when they differ wherever the game lists zones. In
+the last four rounds the measured numbers and the source references have held. What has gone
+wrong is what this document says about the cost and the reach of its own proposals. §9 lists
+every correction.
 
 ## 1. What was run
 
@@ -191,12 +205,20 @@ Those three negatives catch a reading filed in the wrong class, which is what th
 do. They do not catch a multiple. The sixth round built a copy of the census that counts the
 starved crystal-steps, the band and the thickness under a saturated bulk fluid twice. On the
 14 scenarios the controls need, it reproduced every baseline and passed all 35 controls. So
-those three readings are guarded on one side, like the ten below.
+those three readings are guarded on one side.
 
-Ten older positive controls are floors with no negative beside them: the competition
-log, the two supply readings, the pause, four of the count readings (excluded, window, cap and
-gate), the enclosed crystals and the draw-down through pH. An over-count in one of those
-readings would pass its control.
+So are sixteen older positive controls, which makes nineteen of the twenty-four. Ten are
+floors with no negative beside them: the competition log, the two supply readings, the pause,
+four of the count readings (excluded, window, cap and gate), the enclosed crystals and the
+draw-down through pH. Six are floors beside a negative that reads zero, and a negative at zero
+passes a doubled reading as it passes a true one: `two-fluids`, `draw-down`, `count`,
+`count-envelope`, `strangled` and `vadose`. The seventh round built a copy of the census that
+over-reads those six and moves nothing between classes. On the same 14 scenarios it
+reproduced every baseline and passed all 35 controls, one of them on a reading of 300 steps
+in a run of 150. The seventh version of this document counted thirteen. An over-count in
+any of the nineteen would pass its control. Five positive controls are closed
+from above: `big-drawn-down` is exact, `wall-min` and `ring-means` are bands, `time` reads the
+class of one crystal, and `space+end` asks for a step no later than 15.
 
 These readings have no control, and stay labelled so: the throughput restatement (§2.6 checks its
 arithmetic by hand on one row); the births that never grew; the three static readings of the
@@ -207,8 +229,8 @@ prerequisite test, which reads zero in every run, and every cause the `_wallStra
 attribution can name except a missing ingredient; and, within the draw-down reading of §2.1,
 every answer of the one-further-field search except pH.
 
-Twelve small probes are committed beside their outputs in
-`proposals/evidence/sim-side-2026-11-09/`. Ten carry statements of their own: the range of σ
+Thirteen small probes are committed beside their outputs in
+`proposals/evidence/sim-side-2026-11-09/`. Eleven carry statements of their own: the range of σ
 each scenario's bulk fluid covers for feldspar, albite and quartz (§3.1); the history of a few
 headline crystals across the 258 committed baselines (§3.1, §3.4); whether a wrapped σ method
 stays in force during nucleation (§7); one fluid field on a mineral's own cells against the
@@ -216,8 +238,9 @@ bulk handle (§2.1); what the side doors on the count gates are made of (§2.3);
 lead is released against whether galena is licensed (§4, SC3); which crystals of `schneeberg`
 survive only inside another (§4, SC1); what each previewed change does to the two numbers the
 cation gate commissions (§4); where else the game builds a pegmatite's fluid, and what a bound
-does there and at eight more seeds (§3.1; §4, SC1); and the first-appearance windows the
-locality gate holds, under each previewed change (§4). Two run no simulation and read the A/B
+does there and at eight more seeds (§3.1; §4, SC1); how many steps that bound buys before the
+pocket fills, where the game lets a run go on past the scenario's length (§4, SC1); and the
+first-appearance windows the locality gate holds, under each previewed change (§4). Two run no simulation and read the A/B
 outputs and census reports in that folder: one prints the counts this document draws from
 them, the other holds each previewed change to the locality gate's tiers (§4).
 
@@ -769,7 +792,8 @@ Three readings follow.
    until step 197; topaz appears (six crystals, 2.5 mm) and grows until step 215, through the Late
    Hydrothermal event that narrates it; spodumene and lepidolite reach 2 to 5 mm. Quartz, held to
    1.7 mm by the plug, becomes the largest crystal at 37 mm. The broth and the events were always
-   able to grow tourmaline, topaz, spodumene and lepidolite.
+   able to grow tourmaline, topaz, spodumene and lepidolite. (Those are the scenario's own
+   230 steps. A run that goes on past them fills on that quartz, §4, SC1.)
 2. *It is not boron, and the plug is not what hides it.* The story-pocket proposal's WP8(b) names
    boron starvation as "the hypothesis to test first": "if boron never concentrates in the late
    fluid, the tourmaline is starved". `supersaturation_tourmaline` caps its boron factor at
@@ -817,7 +841,8 @@ Three readings follow.
 
 **The same fluid in the game's other modes.** Every number above is a scenario as Simulation
 mode starts it. The game starts a run on a pegmatite's fluid in other ways, and four were run,
-each through the game's own builder or constructor (`probe-pegmatite-reach.txt`).
+each through the game's own builder or constructor (`probe-pegmatite-reach.txt`). Zen was
+also run through the game's own step loop (`probe-clamp-horizon.txt`).
 
 - *Random Vugg*, the mode of the first report. Its `pegmatite` archetype draws a broth at random
   (SiO2 4,000 to 14,000 ppm, K 50 to 130, Na 35 to 90, Al 20 to 50; `buildRandomScenario`,
@@ -829,11 +854,13 @@ each through the game's own builder or constructor (`probe-pegmatite-reach.txt`)
   pair's largest crystals are 12.5 to 23.3 mm. One pocket, the 34 mm one, still ends 98 % full,
   on a 36 mm quartz.
 - *`gem_pegmatite` opened in Creative mode* (`fortressBeginFromScenario`,
-  `js/94-ui-menu.ts:244`). The scenario object is kept, and the constructor gives the run a
-  conserved carbonate boundary, which the scenario does not author. So this is not the run the
-  baseline pins: its seed-42 summary differs from the baseline's. The plug is the same, full at
-  step 9 / 10 / 10, and so is the cure: with the clamp the pocket ends 42 / 42 / 41 % full,
-  with tourmaline at 12.0 / 11.9 / 12.0 mm and topaz at 2.5 mm.
+  `js/94-ui-menu.ts:244`), which is where the Scenarios menu opens a scenario (`:132`,
+  `:473`). The scenario object is kept, and the constructor gives the run a conserved
+  carbonate boundary, which the scenario does not author. So this is not the run the baseline
+  pins: its seed-42 summary differs from the baseline's. The plug is the same, full at step
+  9 / 10 / 10. With the clamp the pocket is 42 / 42 / 41 % full at step 230, with tourmaline
+  at 12.0 / 11.9 / 12.0 mm and topaz at 2.5 mm. Creative mode has no last step, and what the
+  pocket does after step 230 is in §4 (SC1).
 - *Creative mode's starter fluid "Radioactive Pegmatite"* (`fortressBeginFromStarterFluid`,
   `js/94-ui-menu.ts:162`) is that scenario's fluid at 200 °C in a limestone cavity of about
   50 mm, with no events and no scenario object. At 200 °C the pair's σ starts at 62 and 44. In
@@ -843,18 +870,26 @@ each through the game's own builder or constructor (`probe-pegmatite-reach.txt`)
   leaves the scenario object and the events behind (`idleCreateSim`, `js/98a-ui-zen.ts:75`).
   It also runs on another clock. The game's mode switch sets the time scale to 1 on entering
   Zen, where it sets 5 for Simulation, Creative and Random Vugg (`js/94-ui-menu.ts:621` to
-  `:647`), so a Zen step stores a fifth of the thickness. At that scale, and without Zen's
-  own drift, which this probe does not reproduce, a Zen run of `gem_pegmatite` is full at
-  step 31 / 33 / 33. With the clamp it never fills: the largest fill in 400 steps is
-  19 / 11 / 26 %. (The sixth version of this document ran Zen at the other modes' scale, and
-  gave step 9 / 10 / 10 and a clamp that failed at two seeds of three. Both were wrong.)
+  `:647`), so a Zen step stores a fifth of the thickness. And it has no end: the page steps
+  it once a second by default and ten times a second at its fastest (`js/98a-ui-zen.ts:35`,
+  `:56`), until the player stops it. Run by the game's own loop, drift included, a Zen run
+  of `gem_pegmatite` is full at step 32 / 33 / 32 (`probe-clamp-horizon.txt`). By `run_step`
+  alone, without the drift, it is full at step 31 / 33 / 33 (`probe-pegmatite-reach.txt`),
+  so the drift is not what plugs it. With the clamp the game's loop fills the pocket later:
+  it is 18 / 20 / 24 % full after 400 steps and 30 / 31 / 31 % after 1,150, it passes 0.7
+  at step 1872 / 1849 / 2104, and it is 94 / 94 / 86 % full at step 2,400, where the runs
+  were stopped. (The sixth version of this document ran Zen at the other modes' scale,
+  and gave step 9 / 10 / 10 and a clamp that failed at two seeds of three. The seventh ran it
+  at the right scale for 400 steps and said that with the clamp it never fills. Both were
+  wrong.)
 
 Zen mode's missing scenario object is wider than this finding. A Zen run of a scenario has none
 of its license, exclusion list, nucleation windows, movements or thermal field
 (`js/85j-movements.ts:174`, `:179`; `js/85-simulator.ts:247`, `:565`). In the Zen runs of
-`gem_pegmatite` above, emerald is on record at all three seeds, and that scenario excludes
-emerald by name; so is opal, which it does not license. Whether Zen is meant to run so was not
-asked (§7). A scenario opened in Creative mode differs from its Simulation-mode run for a
+`gem_pegmatite` made by `run_step` alone, emerald is on record at all three seeds, and that
+scenario excludes emerald by name; so is opal, which it does not license. In the game's own
+loop the emerald is on record at all three seeds by the time the pocket is full. Whether Zen
+is meant to run so was not asked (§7). A scenario opened in Creative mode differs from its Simulation-mode run for a
 related reason, the added boundary, and that was looked at for `gem_pegmatite` only.
 
 ### 3.2 F2 — three engines propose growth at saturation
@@ -1001,12 +1036,17 @@ scenario's seed-42 baseline holds both: only the two uraninite scenarios hold a 
 neither holds a galena. Where it did print, in this runtime, it would be untrue, since that
 lead reaches no cell.
 
-The agent API is another matter. It is a separate runtime (`agent-api/vugg-agent.js`) that
-carries a copy of the step-100 narration (`:1732`) and of the closing sentence (`:2402`). It
-has one fluid, no voxel field and no license. Its uraninite block writes the same lead to
-that one fluid (`:2149`), and its galena nucleates on σ alone (`:1930`). So there the
-promise can be kept. That is a reading of its source. The sixth review round ran it, and
-reports galena of 12 to 15 mm grown from that lead; this review did not.
+The agent API is another matter. It is a separate runtime (`agent-api/vugg-agent.js`) with
+one fluid, no voxel field and no license. Its uraninite block writes the same lead to that
+one fluid (`:2149`), and its galena nucleates on σ alone (`:1930`), so there the lead can
+reach a galena. That is a reading of its source. It carries a copy of the closing sentence
+(`:2402`). It also carries a copy of the step-100 narration (`:1732`), inside a scenario
+function that no command of its CLI runs: `start` takes a fluid preset (`:3466`), and the
+table of scenarios is only exported (`:3602`). The sixth review round ran the CLI's
+`radioactive` fluid preset, not the scenario: 20 ppm of lead to start with, 300 and 450 °C,
+200 waits and no events. It reports galena of 12 to 15 mm there, beside the uraninites. So in
+a preset game the lead does reach a galena, which is what the closing sentence says. Nobody
+has run the scenario function that holds the narration, and this review ran neither.
 
 Uraninite's own entry in
 `data/minerals.json` says of the mineral in general that it "accumulates radiogenic lead that
@@ -1165,8 +1205,9 @@ each was read against the previews.
   again. SC2, and SC3 under the continuous release, would have to commission a new share (below).
   The count stays at five under every one of them. The gate's other checks (no zinc in any fluid
   or solid at any step, at least one pharmacolite, a share of 0.3 or more) hold in every preview.
-- *The Creative lever audit* (`npm run audit:creative`) fails on a scenario field it holds no
-  class for (`tools/creative-lever-audit.mjs:545`). SC1 as recommended authors one. The audit's
+- *The Creative lever audit* (`npm run audit:creative`) fails on a scenario field, or a field
+  of a scenario's wall, that it holds no class for (`tools/creative-lever-audit.mjs:545`,
+  `:547`). SC1 as recommended authors one. The audit's
   causal probes go through the σ methods, the ledger and the sphalerite and fluorite engines
   (`js/97-ui-fortress.ts:320`, `:372`), none of which SC1 to SC3 changes.
 
@@ -1191,7 +1232,8 @@ every scenario, or authored on the one scenario that plugs), and its value. The 
 the first two.
 
 **The shape.** Four shapes were run on all 13 scenarios that grow feldspar or albite, at seeds 42,
-1 and 2. All four cure `gem_pegmatite`'s plug with the same gem assemblage, topaz included, so
+1 and 2. All four keep `gem_pegmatite`'s pocket open through its 230 steps, with the same gem
+assemblage, topaz included, so
 all four need the ruling on topaz's tier that the recommendation needs (below). They differ in
 what else they do (`probe-ab-digest.txt`; three numbers are seeds 42 / 1 / 2):
 
@@ -1250,7 +1292,8 @@ A clamp on σ at E + 1 gives `gem_pegmatite` the same fill and the same gems as 
 rate at E, at each value of a finer sweep on that scenario alone (E = 3, 7, 11, 15, 23 and 47;
 `probe-ab-digest.txt`). Three things follow.
 
-1. *No value both cures `gem_pegmatite` and leaves the others as they are.* E = 7 is the loosest
+1. *No value both keeps `gem_pegmatite` open through its run and leaves the others as they
+   are.* E = 7 is the loosest
    value run that keeps that pocket under 0.7 full; E = 11 passes 0.7 at step 185 to 188 and ends
    it 90 % full. Written into the engines, E = 7 changes 8 of the 13 baselines. It takes
    `tormiq_alpine_cleft`'s albite from 66 mm to 27 and `schneeberg`'s feldspar from 28 mm to 10.
@@ -1271,8 +1314,8 @@ rate at E, at each value of a finer sweep on that scenario alone (E = 3, 7, 11, 
    (`probe-appearance-contract.txt`). The loss is of solid at the end of the run, which no gate
    reads. The values that leave the cleft alone, E = 23 and
    E = 47, lose nothing and leave the pocket plugged. The cleft's and `schneeberg`'s bulk σ for
-   the pair peaks at 30 and 35 (`probe-sigma-maxima.txt`), about four times the σ of 8 that cures
-   the pegmatite.
+   the pair peaks at 30 and 35 (`probe-sigma-maxima.txt`), about four times the σ of 8 that
+   opens the pegmatite.
 2. *Shigar's pocket empties.* At every value its albite is a quarter of its shipped 270 mm or
    less. At E = 7 it is 9.7 mm in a 220 mm cavity that ends 0.0 % full, with its tourmaline and
    topaz barely changed (1.8 and 0.7 mm). Shigar runs 70 steps to `gem_pegmatite`'s 230, so a
@@ -1301,6 +1344,56 @@ arm was run at eight more
 42 %, tourmaline 11.8 to 12.3 mm, topaz 2.2 to 2.5 mm, and the first acceptance line below is
 met at every one (`probe-pegmatite-reach.txt`).
 
+**A bound on a rate buys steps, not an end.** Past the clamp a crystal adds k·E·(time scale)
+micrometres on every step a run has, and nothing proposed here short of SC4 makes the fluid
+run out. So what the bound sets is the step at which the pocket fills. The 230 steps above are
+the scenario's own length, and three of the game's ways of running it do not keep to them.
+In Simulation mode the Steps box replaces the scenario's length (`js/91-ui-legends.ts:249`).
+Creative mode has no length: the player presses Wait (`js/97-ui-fortress.ts:1191`), and the
+Scenarios menu opens a scenario there (`js/94-ui-menu.ts:132`, `:473`). Zen has no end.
+`probe-clamp-horizon.txt` steps the bounded pocket on in each, at seeds 42 / 1 / 2.
+
+| `gem_pegmatite` at time scale 5 | Fill at step 230, % | First step at fill ≥ 0.7 | First step at fill ≥ 0.999 | Share of the cavity's volume three steps after it seals, % |
+|---|---|---|---|---|
+| Simulation mode, the bound as recommended (E = 7), stepped on | 42.1 / 41.4 / 41.0 | 258 / 258 / 259 | 306 / 305 / 306 | quartz 67 to 68, feldspar about 18, albite about 13 |
+| … the pair's rate clamped at 1 instead | 20.2 / 19.7 / 18.6 | 273 / 273 / 274 | 310 / 310 / 311 | quartz 98, feldspar and albite 0.1 together |
+| Creative mode, E = 7, the player still pressing Wait | 42.4 / 42.0 / 41.4 | 257 / 257 / 258 | 306 / 304 / 306 | quartz 67 to 68, feldspar 17 to 18, albite about 13 |
+
+| `gem_pegmatite` in Zen, by the game's own loop, at time scale 1 | Fill at step 400, % | Fill at step 1,150, % | First step at fill ≥ 0.7 |
+|---|---|---|---|
+| shipped | full at step 32 / 33 / 32 | | 22 / 23 / 22 |
+| E = 7 | 18.1 / 19.7 / 23.9 | 29.5 / 31.1 / 31.0 | 1872 / 1849 / 2104; 94 / 94 / 86 % full at step 2,400, where the runs were stopped |
+| E = 23 | 35.6 / 37.1 / 40.9 | run stopped at fill 0.7 | 603 / 599 / 584 |
+
+Three things follow.
+
+1. *The margin is 27 to 29 steps.* The recommended bound meets its first acceptance line, fill
+   under 0.7 for the whole run, by that much. A player who lengthens the run in the Steps
+   box, or keeps pressing Wait in Creative mode, has a sealed pocket at step 304 to 306.
+2. *What seals it is quartz, which a bound on the pair does not reach.* After its last event
+   the fluid goes on cooling, from 276 °C at step 230 to about 158 °C by the time the pocket
+   has sealed, on a bulk handle whose silica nothing draws down, and quartz grows from 37 mm
+   to 53 or 54. With the pair held to 4 to 6 mm (E = 1) the pocket passes 0.7 only 15 steps later and
+   seals 4 or 5 steps later, 98 % of it quartz. The pair is then a thousandth of the pocket,
+   so a tighter bound has nothing more to give: about 15 steps is all the margin a bound on
+   the pair can add. This is `radioactive_pegmatite`'s quartz again (§3.1). It is SC4's case,
+   not SC1's.
+3. *In Zen the horizon is the pair's, and it is minutes long.* There quartz stops at about
+   25 mm: it is that size after 400 steps without the drift and after 2,400 with it, by
+   which time the fluid is at 25 °C. The pair goes on at the clamped rate, 21 and 28 µm a
+   step, which is the 8.5 and 11.1 mm it has after 400 steps. At step 2,400 feldspar and
+   albite are 44 to 49 and 59 to 65 mm and together hold 61 to 71 % of the pocket, where
+   quartz holds 7 to 9 %. So in Zen a looser clamp fills the pocket sooner, roughly in
+   proportion: E = 23 passes 0.7 at about step 600. At Zen's default speed the 1,850 to
+   2,100 steps that E = 7 takes to fill 0.7 are 31 to 35 minutes, and at its fastest
+   three to four.
+
+So the bound is not a cure, in any mode. It gives the scenario's own run an open pocket, and
+it gives a longer run a later seal. That is S2 read forward (§2.2): a crystal that is still
+growing on a run's last step goes on growing if the run does. The recommendation stands on
+the first of the two: for 230 steps all eight events fire into an open pocket and four
+species grow to millimetres.
+
 What it costs.
 
 - *One baseline changes*, `gem_pegmatite`'s. Nineteen test files name that scenario. Which of
@@ -1325,7 +1418,8 @@ What it costs.
 - *The simulator gains a constant* that is there because this scenario's fluid takes the feldspar
   proxy to a σ in the hundreds, where every scenario but the three pegmatites keeps it at 35 or
   less (§3.1). It does not make feldspar stop for a reason. It slows feldspar enough that this
-  scenario's 230 steps end before the pocket fills. That is the argument for SC4, whose third
+  scenario's 230 steps end with the pocket 41 to 42 % full, 27 to 29 steps before it would
+  pass 0.7 (above). That is the argument for SC4, whose third
   acceptance line is that the pocket stays open with this bound lifted. The owner's directive of
   2026-05-06, "when in doubt, defer to the actual geology", was given against a cap on a
   crystal's size (under the rind, below). A bound on a rate is not that cap, but it is authored
@@ -1336,33 +1430,39 @@ What it costs.
 
   | Constructor | What starts a run there | Scenario object | `gem_pegmatite`'s plug and the bound |
   |---|---|---|---|
-  | `js/85l-simulation-command-protocol.ts:329` | Simulation mode, Quick Play | kept | the run the baseline pins; every number of §3.1 and §4 |
-  | `js/94-ui-menu.ts:281` | a scenario opened in Creative mode | kept, with a carbonate boundary added | run: the plug and the cure both hold (§3.1) |
+  | `js/85l-simulation-command-protocol.ts:329` | Simulation mode, Quick Play | kept | the run the baseline pins; every number of §3.1 and §4. The Steps box can lengthen it |
+  | `js/94-ui-menu.ts:281` | a scenario opened in Creative mode, which is what the Scenarios menu does | kept, with a carbonate boundary added | run: the same plug, and under the bound the same 42 % at step 230 (§3.1). No last step |
   | `js/99z-agent-interface.ts:301` | the agent interface's headless run | kept | read, not run |
-  | `js/98a-ui-zen.ts:102` | Zen mode | left behind, with the events | run: plugs at step 31 / 33 / 33 at Zen's time scale; the bound would not apply |
+  | `js/98a-ui-zen.ts:102` | Zen mode | left behind, with the events | run by the game's own loop: plugs at step 32 / 33 / 32 at Zen's time scale; the bound would not apply. No last step |
   | `js/96-ui-random.ts:427` | Random Vugg | there is none | run on its pegmatite archetype: 3 pockets of 8 fill |
   | `js/94-ui-menu.ts:187` | a Creative starter fluid | there is none | run on the radioactive starter: 67 to 82 % full |
   | `js/97-ui-fortress.ts:1087` | a custom Creative run | the player's own options | not run |
   | `js/97-ui-fortress.ts:493` | a probe inside Creative mode | none | not a run a player sees |
 
-  So the bound as recommended cures the scenario where the baseline, Quick Play and Creative
-  mode start it. It does not reach a Zen run of the same scenario, or Random Vugg's pegmatite
+  So the bound as recommended reaches the scenario where the baseline, Quick Play and Creative
+  mode start it, and keeps its pocket under 0.7 full there for the scenario's 230 steps and
+  27 to 29 more. It does not reach a Zen run of the same scenario, or Random Vugg's pegmatite
   archetype, the mode of the owner's first report. Two ways to widen it were not previewed.
   A field authored under the scenario's wall rides into Zen, which passes the wall through
-  (`js/98a-ui-zen.ts:99`), as `per_cell_local_fill` would. Random Vugg has no scenario to
-  author anything on, and would need the constant a second time, in its builder.
+  (`js/98a-ui-zen.ts:99`), as `per_cell_local_fill` would; a wall field needs a class in the
+  Creative lever audit as a scenario field does. Random Vugg has no scenario to author
+  anything on, and would need the constant a second time, in its builder.
 
 It leaves Shigar's 270 mm albite, `radioactive_pegmatite`'s plug, the pegmatite pockets of
 Random Vugg, of Zen and of Creative mode's starter fluid, and the uncapped product in every
 other scenario exactly as they are.
 
-The owner may prefer one of five other courses.
+The owner may prefer one of five other courses. Each is read below at the scenario's 230
+steps, as the recommendation was. How long a course holds past them was read for the clamp
+alone (above).
 
 - *The general clamp*, for the sake of one rule in the engines, and because a rule in the
-  engines reaches every one of those constructors. Applied in process it holds the
-  pair back in each mode that was run: a Zen run of `gem_pegmatite` is at most 26 % full after
-  400 steps; the radioactive starter ends 2 to 3 % full; and no Random Vugg pocket of the
-  eight fills completely, though one ends 98 % full on quartz (§3.1). Its cost is the E = 7
+  engines reaches every one of those constructors. Applied in process it slows the pair in
+  each mode that was run, for the length that was run: a Zen run of `gem_pegmatite` by the
+  game's own loop is 18 / 20 / 24 % full after 400 steps and passes 0.7 at step
+  1872 / 1849 / 2104 (above); the radioactive starter is 2 to 3 % full after 120 steps; and
+  no Random Vugg pocket of the eight fills completely in its own run, though one ends 98 %
+  full on quartz (§3.1). Its cost is the E = 7
   column above, with
   Shigar's pocket to be decided in the same change and `schneeberg`'s lost solids accepted or
   cured. It needs the same ruling on topaz. It also moves the share the cation gate
@@ -1374,8 +1474,11 @@ The owner may prefer one of five other courses.
   burial that keeps the small sulfides and native elements alive.
 - *The switch the tree already has.* The high-fill work left an opt-in on a scenario's wall,
   `per_cell_local_fill`, under which the fill dampener reads the fill of a crystal's own cell
-  and not the cavity's (§2.2). No scenario uses it. On `gem_pegmatite` it needs no constant and
-  no new field, and at seeds 42, 1 and 2 it looks like a cure: the largest fill of the run is
+  and not the cavity's (§2.2). No scenario uses it. On `gem_pegmatite` it needs no constant.
+  It does need a class in the Creative lever audit, as the recommended bound's field does:
+  the audit holds no class for that wall field and fails on one it holds none for
+  (`tools/creative-lever-audit.mjs:51`, `:547`). At seeds 42, 1 and 2 it looks as the bound
+  does: the largest fill of the run is
   37 / 41 / 55 %, tourmaline 11.9 / 12.0 / 11.3 mm, topaz 2.1 / 2.5 / 2.4 mm. At eight further
   seeds the pocket reaches fill ≥ 0.999 in six, between steps 24 and 187, behind an albite of
   57 to 87 mm; the first acceptance line below is met at 5 seeds of the 11, where the clamp
@@ -1421,7 +1524,9 @@ Pre-registered acceptance for SC1's bump, as recommended:
 - `gem_pegmatite` at seeds 42, 1 and 2: fill stays under 0.7 for the whole run, so the fill
   dampener never engages; some crystal stores a positive zone after step 215; tourmaline ≥ 5 mm;
   topaz ≥ 1 mm; and no species that has solid today is without it. (The preview meets this line
-  at those three seeds and at eight more.)
+  at those three seeds and at eight more. At the three it meets the fill by 28 or 29 steps:
+  stepped on, the pocket passes 0.7 at step 258 or 259. The bump reports that step for its
+  own run, so that the margin is on record.)
 - The census controls `space+end` (positive) and `time` (negative) fail, and the same commit
   rewrites them.
 - No other scenario's entry in the regenerated seed-42 baseline differs from today's. The bound
@@ -1432,9 +1537,15 @@ Pre-registered acceptance for SC1's bump, as recommended:
 - `npm run audit:creative` passes with the bound's field classed as a process input, and
   `npm run audit:cations` passes with its two numbers restated unchanged.
 - The bump says which of the game's other entry points carry the bound. If Zen mode is to, the
-  simulator that `idleCreateSim('gem_pegmatite')` builds reads it, and at Zen's time scale of
-  1 that pocket does not reach fill 0.999 in 230 steps. Today it does at step 31 to 33; with
-  the clamp in process its largest fill in 400 steps is 26 %.
+  simulator that `idleCreateSim('gem_pegmatite')` builds reads it, and in a Zen run made by
+  the game's own loop, as `probe-clamp-horizon.mjs` drives it, the fill stays under 0.7
+  through step 1,150 at seeds 42, 1 and 2. That is the scenario's 230 steps at a fifth of the
+  thickness a step. Today the fill passes 0.7 at step 22 or 23. With the clamp at 7 in
+  process it is 30 or 31 % at step 1,150. With the clamp at 23, a value that leaves the
+  pocket plugged in Simulation mode, it passes 0.7 at step 584 to 603, and the line fails.
+  Zen has no last step, so a line there can hold a horizon and nothing more. (The seventh
+  version's line asked only that the pocket not reach 0.999 in 230 steps. By the seventh
+  review round's run a clamp of 95 meets that with the pocket 99 % full.)
 
 If the owner chooses the general clamp, the third line becomes: the scenarios whose baseline
 changes are a subset of the 13 that grow the pair, the pair's largest crystals land within a
@@ -1516,6 +1627,13 @@ first-appearance window in `porphyry` or `roughten_gill` first appears on anothe
 `roughten_gill`'s mottramite, which that scenario expects, appears at two seeds of three and the
 gate would fail (`probe-appearance-contract.txt`). The cation gate passes with five pharmacolite
 crystals, as today, and a share commissioned anew (0.630 by the preview at the same constant).
+No census control is expected to flip. The sixth and seventh review rounds ran census copies
+of their own with SC2 installed at the same constant: at seed 42 on six scenarios, five of
+them scenarios whose baseline SC2 changes, where the 22 controls evaluated all passed, and
+at seeds 1 and 2 on those five. `pause`, which rests on galena's stop and start in `sunnyside_american_tunnel`, read
+23 / 14 / 12 in those copies, where it reads 175 / 74 / 12 as shipped; its floor is 5. The
+copies are not committed here. A control that fails on the changed tree is a finding to
+explain.
 Trap: retuning each scenario's Pb or S until galena is its old size is tuning to a seed. Where
 galena becomes small, the question is whether that pocket's fluid is really that close to
 saturation, which is a question for its sources.
@@ -1545,6 +1663,7 @@ albite and quartz capped at 8, which leaves it 11 to 18 % full). Three numbers a
 | … galena, if licensed | Pocket as shipped: one crystal of 0.16 mm / none / one of 0.04 mm. Pocket held open: four of 5.1 / 5.0 / 4.6 mm, born at steps 47 to 50. | none, in either pocket |
 | `schneeberg` | 3 / 2 / 1 species moved, none lost | 2 / 1 / 1 species moved, none lost |
 | … its two feldspars, 26 to 28 mm: zones that carry the amazonite note (none as shipped) | 213 of 319 zones, 15.4 of 54 mm (214 of 318 and 214 of 317 at seeds 1 and 2) | 144 of 319 zones, 2.1 of 54 mm (144 of 318 and 144 of 317) |
+| … the lines of the run's step log that name a feldspar zone amazonite (none as shipped) | 213 / 214 / 214 | 144 / 144 / 144 |
 | … the name and colour the game gives each crystal (microcline, `#a09080`, as shipped) | amazonite, `#44bb88`, both crystals at every seed | amazonite, `#44bb88`, both crystals at every seed |
 | … the share of each crystal's Zone History bar drawn in that green (none as shipped) | 27.6 to 29.6 % | 3.8 to 4.3 % |
 | … the body colour the cavity view starts from (`#dcb59e` as shipped) | `#dcb59e` | `#dcb59e` |
@@ -1569,9 +1688,10 @@ Five things follow.
    leaves them drawn as before in the cavity.* `grow_feldspar` notes a microcline zone as
    amazonite when its own cell holds more than 10 ppm of Pb (`js/59-engines-silicate.ts:304`;
    W12 of `PROPOSAL-HOSTILE-REVIEW-WISE-2026-08-05.md` is that this gate reads lead alone).
-   `schneeberg`'s cells hold 5 ppm as shipped. The note is read at more than one grain. A
-   search of `js/` for its text and for the zone's trace lead finds the readers below, and
-   three of them were run on each feldspar through the game's own functions
+   `schneeberg`'s cells hold 5 ppm as shipped. The note is read at more than one grain. Two
+   searches of `js/` found the readers below: one for the note's text and for the zone's
+   trace lead, and one for every read of a zone's `note`, which is how the lines that print
+   whatever a zone's note says are found. Four readers were run through the game's own code
    (`probe-lead-choices.txt`).
    - *Per crystal.* One noted zone is enough for `crystalDisplayName` and `crystalColor` to
      call the crystal amazonite and give it `#44bb88` (`js/12-mineral-art.ts:304`, `:225`).
@@ -1580,24 +1700,41 @@ Five things follow.
      (`js/85a-simulator-narrators.ts:218`), the feldspar narrative's amazonite paragraph
      (`js/92i-narrators-silicate.ts:115`), and the fluorescence line
      (`js/27-geometry-crystal.ts:673`).
-   - *Per zone, by thickness.* The Zone History bar colours each zone as a crystal of that one
-     zone (`groupZonesByChemistry`, `js/98c-ui-zone-bars.ts:81`). It draws 27.6 to 29.6 % of
-     each feldspar's bar in that green under the continuous release and 3.8 to 4.3 % under the
-     held one. Of the three readers run, it is the one that tells the two timings apart.
+   - *Per zone.* Wherever the game shows a crystal zone by zone, the two timings differ. Two
+     such readers were run. The Zone History bar colours each zone as a crystal of that one
+     zone (`groupZonesByChemistry`, `js/98c-ui-zone-bars.ts:81`) and weighs it by thickness:
+     27.6 to 29.6 % of each feldspar's bar is in that green under the continuous release and
+     3.8 to 4.3 % under the held one. The run's own step log has a line for every zone of more
+     than 0.5 µm, and the line ends with the zone's note (`js/85-simulator.ts:1031`, through
+     `describe_latest_zone`): 213 / 214 / 214 of its lines name a feldspar zone amazonite
+     under the continuous release, 144 at every seed under the held one, and none as shipped.
+     Five more places print the note of every
+     zone that carries one, and were read, not run: the tooltip of the Zone History bar and
+     the zone-by-zone list under it (`js/97d-ui-zone-modal.ts:273`, `:319`), the Record Player
+     (`js/98-ui-groove.ts:42`, `:685`, `:701`), the record of a collected crystal
+     (`js/93-ui-collection.ts:306`) and the agent interface's specimen dump
+     (`js/99z-agent-interface.ts:229`). What they have to print is the count in the table: the
+     note on 213 of the two feldspars' 319 zones, or on 144.
    - *Not at all.* The body the cavity view draws starts from `resolveBodyColour`
-     (`js/12a-colour-lexicon.ts:207`), which gives `#dcb59e` as shipped and under both timings.
-     The feldspar's colour rule for amazonite names a variant that the colour lexicon has no
-     entry for.
+     (`js/12a-colour-lexicon.ts:207`), which gives `#dcb59e` as shipped and under both timings,
+     for two reasons. The feldspar's colour rule for amazonite names a variant that the colour
+     lexicon has no entry for. And the rule's trigger is "Pb > 5 and radiation", read on the
+     crystal's growth-weighted trace lead, which is a hundredth of the lead in its cell. The
+     sixth review round read 0.11 to 0.36 there for these feldspars under the two timings. An
+     entry in the lexicon would not by itself draw them green.
    - *Found and not followed.* The record of a collected crystal stores each zone's trace lead
      (`js/93-ui-collection.ts:300`).
 
    The fifth version of this document counted the noted millimetres and called that the
    difference between the timings. The sixth ran the per-crystal reader and called the
-   millimetres something no player sees. Each took one reader for all of them. A reader that
-   the search misses is not covered here. The baseline's summary records none of this, so no
-   gate sees it. `radioactive_pegmatite`'s broth holds 30 ppm already: its feldspars are named
-   amazonite as shipped, with 1.4 to 4.5 % of their bars in green, and neither timing changes
-   either reading.
+   millimetres something no player sees. The seventh ran the bar and called it the one view
+   that tells the timings apart, having searched for the note's text and not for readers of
+   the field that holds it. Each took the readers it had found for all of them. A reader
+   that both searches miss is not covered here. The baseline's summary records none of this,
+   so no gate sees it. `radioactive_pegmatite`'s broth holds 30 ppm already: its feldspars are
+   named amazonite as shipped, with 1.4 to 4.5 % of their bars in green and 25 / 12 / 19
+   such lines in its step log, and neither timing changes the name or the bar (the
+   continuous release has 18 lines at seed 2).
 5. *Lead in the cells costs `schneeberg`'s pharmacolite a factor.* Lead is one of the six
    cations that pharmacolite's σ counts as competing for arsenate, and that σ carries a factor
    of 1.3 while calcium's molar share of the six is 0.6 or more
@@ -1619,9 +1756,11 @@ July had already judged galena the wrong lead mineral for that pocket's oxidizin
 gives the licensed species exactly what the continuous release gives it. And in the preview it
 leaves the cation gate's two numbers as commissioned. (That holds because every uraninite's lead
 has been released by the end of that run. A fix that books the lead crystal by crystal could end
-with some still held.) For `schneeberg` the two timings differ in one view: both rename that
-scenario's two feldspars and cost its pharmacolite the same factor, and the held release puts
-a seventh as much green on the feldspars' Zone History bars.
+with some still held.) For `schneeberg` both timings rename that scenario's two feldspars and
+cost its pharmacolite the same factor. They differ wherever the game shows a feldspar zone by
+zone: under the held release two thirds as many zones carry the note, which the step log
+prints and the zone lists named above have to print, and the Zone History bars carry a
+seventh as much green.
 
 It costs more than the continuous release in two ways.
 
@@ -1698,16 +1837,19 @@ Acceptance, under either timing unless said:
   share is restated as commissioned, if the fix ends the run with the lead released as the
   preview does. Under the continuous release a new share is commissioned (0.582009 by the
   preview).
-- Expected collateral in `schneeberg`, so that a reviewer of the bump does not read it as a
-  regression: both feldspars are named amazonite, and pharmacolite's largest crystal is about
-  a quarter smaller at seeds 42 and 1 unless SC2 has landed. The simulator's own audits read as
-  they do on the shipped run (event refusals, failed carbonate transactions and ledger
-  violations, counted for both timings in `probe-lead-choices.txt`).
+- Expected collateral in `schneeberg`'s Simulation-mode run, so that a reviewer of the bump
+  does not read it as a regression: both feldspars are named amazonite, their zones carry
+  the note in the step log, and pharmacolite's largest crystal is about a quarter smaller at
+  seeds 42 and 1 unless SC2 has landed. The simulator's own audits read as they do on the
+  shipped run (event refusals, failed carbonate transactions and ledger violations, counted
+  for both timings in `probe-lead-choices.txt`).
 - Under the held release, the galena is gone from the scenario by search, not by a list. A
   search for galena in the scenario's entry in `data/scenarios.json5` and in its event file,
-  and for the scenario's name under galena in `data/minerals.json`, finds nothing, or the bump
-  names each hit it leaves and says why. Every version of this document has counted those
-  places short.
+  and for the scenario's name under galena in `data/minerals.json`, in its `scenarios` list
+  and in the file's audit summary, finds nothing, or the bump names each hit it leaves and
+  says why. The agent API's copy of the narration is searched the same way, and the bump
+  says whether that runtime is in its scope (§3.3). Every version of this document has
+  counted those places short.
 
 ### SC4 — give supply a scale above the cell (S1, S2, S3; the larger direction)
 
@@ -1783,8 +1925,9 @@ without a control (§1 lists them) stays labelled as one.
 4. **Boron is not the lever in `gem_pegmatite`.** Tourmaline's boron factor is at its cap before and
    after SC1 (§3.1). A residual-concentration test (WP8(b)) run on that tourmaline reads "no effect"
    whatever the mechanism does.
-5. **Five controls sit on today's defects, and flip.** The commit that cures F1 rewrites
-   `space+end` (positive) and `time` (negative), which sit on `gem_pegmatite`. The one that cures
+5. **Five controls sit on today's defects, and flip.** The commit that opens `gem_pegmatite`'s
+   pocket for its run rewrites
+   `space+end` (positive) and `time` (negative), which sit on that scenario. The one that cures
    F3 by carrying the lead to the voxels rewrites `two-fluids` (positive) and `strangled`
    (positive). `count` (positive) rests on galena being past σ_crit on the bulk handle and
    unlicensed. It flips if galena is licensed, and it flips if the lead is held until the
@@ -1794,7 +1937,8 @@ without a control (§1 lists them) stays labelled as one.
    and SC2 and SC3 both change that run. This review has no instrument that runs the census
    under a change. The sixth review round built one for itself: SC2 flipped none of them, and
    SC3 flipped the negative `starved` at seed 2, where it stands 2 above its floor as shipped
-   (§4, SC3). A control that sits that close to its floor on a scenario a proposed change
+   (§4, SC3). The seventh round ran SC2 on three more scenarios at seeds 1 and 2, and none
+   flipped (§4, SC2). A control that sits that close to its floor on a scenario a proposed change
    reaches should be moved before that change lands.
 6. **Beryl stays absent after SC1.** `gem_pegmatite` does not license it (§3.1). Do not count it
    against SC1.
@@ -1845,12 +1989,16 @@ without a control (§1 lists them) stays labelled as one.
     At seed 1 the share with both is 0.61, a hundredth above the step, so a small change to
     either could put it back under. Whichever of the two lands second has to be previewed on
     the tree the first leaves, and neither's acceptance should pin that crystal's size.
-17. **A value has more than one reader, and they read at different grains.** The feldspar
-    engine notes a zone as amazonite. The card names the whole crystal by any one noted zone;
-    the Zone History bar colours each zone by its own note; the cavity view's body colour does
-    not read it at all (§4, SC3). The fifth version of this document counted millimetres and
-    the sixth looked at the card, and each called its one reader what the player sees. List
-    the readers by search, run each, and say which were only read.
+17. **A value has more than one reader, and they read at different grains. Search for reads
+    of the field, not for the value's text.** The feldspar engine notes a zone as amazonite.
+    The card names the whole crystal by any one noted zone; the Zone History bar colours each
+    zone by its own note; the step log and five lists of zones print whatever note a zone
+    carries; the cavity view's body colour does not read it at all (§4, SC3). The fifth
+    version of this document counted millimetres, the sixth looked at the card and the seventh
+    at the bar, and each called what it had looked at what the player sees. The seventh had
+    searched for the word "amazonite", which cannot find a line that prints any note. List
+    the readers by a search for reads of the field, run each through the game's own code, and
+    say which were only read.
 18. **A count of the places that say a thing is the first claim to go wrong.** This document
     has said that `radioactive_pegmatite` promises galena in two places, then in four, and both
     counts were short (§3.3). Give the list a search finds, say it is a list, and make the
@@ -1861,7 +2009,7 @@ without a control (§1 lists them) stays labelled as one.
     scenario opened in Creative mode keeps the object and gains a carbonate boundary (§3.1;
     §4, SC1). The sixth version measured Zen at Simulation mode's clock and drew a conclusion
     from it that the right clock reverses. Before measuring a mode, read what its entry
-    sets.
+    sets and what ends its runs.
 20. **Shrinking a large crystal un-buries its neighbours.** `schneeberg`'s 27 mm feldspars
     enclose small sulfides and native elements, which keep their solid inside them, and two of
     the three uraninites, which stop writing lead once enclosed. A clamp that makes the
@@ -1873,7 +2021,19 @@ without a control (§1 lists them) stays labelled as one.
     of the census that over-counted three of their readings passed every control it was put
     to. The negatives added in answer catch a reading filed in the wrong class. They do not
     catch one that is doubled: the sixth round's copy counted three classes twice and passed
-    all 35 controls (§1). Only an exact control, or a band, closes a count from above.
+    all 35 controls. The same holds for the older pairs. The seventh round's copy over-read
+    six older positives that sit beside a negative at zero, and passed all 35 again. Nineteen
+    of the twenty-four positive controls are open from above (§1). Only an exact control, or
+    a band, closes a count from above.
+22. **A bound on a rate buys steps, not an end. Read it at every run length the game
+    allows.** Past the clamp a crystal grows by a constant each step for as long as the run
+    goes on. Under the recommended bound `gem_pegmatite` is 41 to 42 % full at its last step,
+    passes 0.7 full 28 or 29 steps later and seals at step 305 or 306. Simulation mode's Steps box can lengthen a
+    run, Creative mode has no last step, and Zen has no end. The seventh version of this
+    document read the clamp at 230 steps and at 400, and wrote "cure" and "never fills". An
+    acceptance line for such a bound has to be one that a loose value fails: the seventh
+    version's line for Zen was met by a clamp of 95. Give the horizon, and say what sets it.
+    Here that is quartz in the scenario's own modes and the pair in Zen (§4, SC1).
 
 ## 6. Decisions for the boss
 
@@ -1883,16 +2043,25 @@ without a control (§1 lists them) stays labelled as one.
    `radioactive_pegmatite`'s plug included. It is a calibration constant on one scenario, and SC4
    is what would remove the need for it. It comes with a ruling: topaz, aspirational in that
    scenario today, appears at all three of the locality gate's seeds, so the bump has to promote
-   it and rewrite its rationale, and a promoted topaz binds later changes. It also has a reach
-   to decide. Authored on the scenario, the bound cures the scenario where Simulation mode,
-   Quick Play and Creative mode start it. It does not reach a Zen run of the same scenario,
-   which plugs at step 31 to 33 on Zen's slower clock, unless the bump carries it there; and
-   it does not reach Random Vugg's pegmatite pockets, where the owner first reported the plug
+   it and rewrite its rationale, and a promoted topaz binds later changes. It also has a
+   horizon and a reach to decide. A bound on a rate buys steps, not an end. Authored on the
+   scenario, it keeps the pocket under 0.7 full through the scenario's own 230 steps where
+   Simulation mode, Quick Play and Creative mode start it, with 27 to 29 steps to spare. A
+   run that goes on, by the Steps box or by a player pressing Wait in Creative mode, which is
+   where the Scenarios menu opens a scenario, seals at step 304 to 306. Quartz does that. A
+   bound on the pair seven times tighter passes 0.7 only 15 steps later and seals 4 or 5
+   steps later, so the margin is not E's to widen. Whether an open pocket for the authored
+   run is enough is the question. The bound
+   does not reach a Zen run of the same scenario, which plugs at step 32 or 33 on Zen's
+   slower clock, unless the bump carries it there. Carried there it would hold the fill
+   under 0.7 for 1,850 to 2,100 steps, which is about half an hour at Zen's default speed.
+   And it
+   does not reach Random Vugg's pegmatite pockets, where the owner first reported the plug
    and three of eight still fill. (Zen mode drops the scenario object whole, its exclusions
    included: an emerald appears in its `gem_pegmatite`. Whether Zen is meant to run so is a
    question of its own, §3.1.) The alternatives are the same clamp written into the two engines
-   for every scenario, which reaches all of those and holds the pair back in each that was
-   run, changes eight baselines, empties Shigar's pocket and
+   for every scenario, which reaches all of those and slows the pair in each that was run,
+   changes eight baselines, empties Shigar's pocket and
    leaves `schneeberg` without solid of three of the species it expects at seed 1 and two at
    seed 2; the fill switch the tree already has, which keeps the pocket open at five seeds of
    eleven; a change to the scenario's broth, which costs the pocket its quartz; the rind; or no
@@ -1917,10 +2086,13 @@ without a control (§1 lists them) stays labelled as one.
    The other coherent pair keeps today's timing and licenses galena, with a source: galena then
    grows to 5 mm in an open pocket, born before any uraninite is altered. Licensing galena on
    today's tree, or with the held release, produces none. Under either pair `schneeberg`'s two
-   largest crystals are named amazonite where they are named microcline today, the cavity view
-   draws them as before, and its pharmacolite loses a quarter of its size unless SC2 has
-   landed; `radioactive_pegmatite` shows nothing until its pocket stays open. So SC3 changes
-   what one scenario's cards say at once and pays back in another only later, and whether to
+   largest crystals are named amazonite where they are named microcline today, and the cavity
+   view draws them as before. In the scenario's Simulation-mode run its pharmacolite also
+   loses a quarter of its size unless SC2 has landed. (Opened from the Scenarios menu, which
+   starts it in Creative mode, that scenario has no pharmacolite on record as shipped, by the
+   seventh review round's run; the renaming carries over there. This review did not run it.)
+   `radioactive_pegmatite` shows nothing until its pocket stays open. So SC3 changes what one
+   scenario's cards and logs say at once and pays back in another only later, and whether to
    wait for that is part of the decision (§4, SC3).
 4. **SC4:** whether to pilot it, and who owns it. It overlaps the reservoir arc of PRs #35–#39 and
    #42, and one finding should have one owner.
@@ -2060,7 +2232,8 @@ without a control (§1 lists them) stays labelled as one.
   `radioactive_pegmatite` or `schneeberg`; which of them pin a number that would move was not
   checked.
 - **One mode, one clock.** Every run in this review is a scenario as Simulation mode starts
-  it, at that mode's time scale of 5, except the runs of §3.1's last part. The game's other modes
+  it, at that mode's time scale of 5, except the runs of §3.1's last part and of the horizon
+  tables of §4. The game's other modes
   differ in what this review found by reading their entry points: Zen sets the time scale to
   1 and leaves the scenario object and the events behind; a scenario opened in Creative mode
   gains a carbonate boundary; Random Vugg and the Creative starter fluids have no scenario
@@ -2072,26 +2245,34 @@ without a control (§1 lists them) stays labelled as one.
   constructs a simulator (§4, SC1). A pegmatite's fluid was run through four of them
   besides the baseline's own: Creative mode's scenario constructor, its starter-fluid
   constructor, Zen's constructor and Random Vugg's builder. Zen was stepped at its own time
-  scale and without its drift, which this review did not reproduce. A custom Creative run
-  and the agent interface's headless run were read, not run. For SC2 and SC3 the question was
+  scale: by `run_step` alone, without its drift, and by the game's own loop with it. How long
+  the bound holds was read on `gem_pegmatite` alone, at three seeds: to the seal in
+  Simulation and Creative mode, and to 2,400 steps in Zen, where every seed had passed 0.7
+  and none had sealed. It was not read for Random Vugg, for the starter fluid, for any other course
+  under SC1, or for the general clamp in the other twelve scenarios that grow the pair. A
+  custom Creative run and the agent interface's headless run were read, not run. For SC2 and SC3 the question was
   not asked: both are written into engines or the simulator's step, which every mode shares,
   and what they do in Zen, Random Vugg or Creative mode was not run. The agent API is a
   second copy of the engines; it was read where §3.3 and §4 say so and not run.
 - **Which readers were followed.** For the lead that SC2 and SC3 move, the readers followed
   are the σ functions, through the species tables; the cation gate's share; the radiation
-  dose; and three readers of the amazonite note (§4, SC3). The name and colour of every
-  mineral's crystals were compared with the shipped run in `schneeberg` at seed 42; the three
-  readers of the note were run on the feldspars of both uraninite scenarios at all three
-  seeds. Those readers were found by search. The text a run narrates was not compared, no
-  other zone note was followed, and a reader the search missed is not covered.
+  dose; and four readers of the amazonite note (§4, SC3). The name and colour of every
+  mineral's crystals were compared with the shipped run in `schneeberg` at seed 42. The four
+  readers of the note were run in both uraninite scenarios at all three seeds: three on each
+  feldspar, and the step log's lines for feldspar zones. They were found by two searches,
+  the second for reads of a zone's `note`. Five places that print a zone's note were read and
+  not run. The rest of what a run narrates was not compared, no other zone note was followed,
+  and a reader both searches missed is not covered. All of it is the scenario's
+  Simulation-mode run.
 - **The mutation tool judges one control per mutant.** It runs a mutant on the scenarios its
   control needs and reads that control. It does not report what else the mutant breaks, and a
-  control that fails for another reason than its label would still count as caught. Thirteen
-  positive controls are guarded on one side only: the ten floors of §1, and the three whose
-  negative catches a misfiling and not a multiple.
+  control that fails for another reason than its label would still count as caught. Nineteen
+  of the twenty-four positive controls are guarded on one side only (§1): ten floors with no
+  negative beside them, and nine beside a negative that catches a misfiling and not a
+  multiple.
 - **The census cannot be run under a proposed change.** Which controls a change flips is a
-  prediction here (trap 5), except where the sixth review round's own copies of the census
-  are cited.
+  prediction here (trap 5), except where the sixth and seventh review rounds' own copies of
+  the census are cited. Those copies are not committed.
 - **Not examined:** whether the bulk-only `concentration` of `sabkha_dolomitization` matters beyond
   the license check of §3.3; the carbonate and sulfate solubility kernels, the thermal field,
   physical dissolution, the cavity geometry, the renderer, the agent API; and what else a Zen
@@ -2143,6 +2324,7 @@ node proposals/evidence/sim-side-2026-11-09/probe-lead-choices.mjs   # about 6 m
 node proposals/evidence/sim-side-2026-11-09/probe-cation-gate.mjs    # schneeberg: eight runs at seed 42, four each at seeds 1 and 2
 node proposals/evidence/sim-side-2026-11-09/probe-enclosed-survivors.mjs
 node proposals/evidence/sim-side-2026-11-09/probe-pegmatite-reach.mjs       # gem_pegmatite at eleven seeds; Random Vugg; Creative (scenario and starter); Zen at its own time scale; about 10 min
+node proposals/evidence/sim-side-2026-11-09/probe-clamp-horizon.mjs         # gem_pegmatite under the bound, stepped past its 230 steps: Simulation, Creative, and Zen by the game's own loop; 53 min at its last run; run it after probe-pegmatite-reach.mjs
 node proposals/evidence/sim-side-2026-11-09/probe-appearance-windows.mjs    # bisbee, porphyry, roughten_gill under each change that reaches them; about 7 min
 node proposals/evidence/sim-side-2026-11-09/probe-appearance-contract.mjs   # reads the committed A/B outputs and the scenarios' tiers
 node proposals/evidence/sim-side-2026-11-09/probe-ab-digest.mjs      # reads the committed A/B outputs and census reports; runs nothing
@@ -2164,13 +2346,18 @@ npm run audit:evidence         # not a step of `npm run ci`
 
 The five tools write only under `.local-evidence/`, the directory the test identity guard excludes.
 They exit 0 whatever their readings and controls say; they throw on a bad argument, and the
-mutation tool throws if a mutant no longer matches the census. The twelve probes print and write
-nothing. One of them, `probe-pegmatite-reach.mjs`, calls four functions of the game's own page
-code: Zen mode's constructor, with the clock held still for the length of the call; the two
-Creative constructors; and the mode switch, once for each of four modes, to read the time
-scale it leaves. They change the page's state in memory (a visible simulator, a strip
-recorder, an autosave record) and write no file; the probe sets the time scale itself for its
-Zen runs and puts it back. The outputs quoted in this document are committed in
+mutation tool throws if a mutant no longer matches the census. The thirteen probes print and
+write nothing. Two of them call functions of the game's own page code.
+`probe-pegmatite-reach.mjs` calls four: Zen mode's constructor, with the clock held still for
+the length of the call; the two Creative constructors; and the mode switch, once for each of
+four modes, to read the time scale it leaves. `probe-clamp-horizon.mjs` calls Zen's
+constructor and the Creative scenario constructor the same way, and drives Zen's own loop:
+the mode switch into Zen, then the page's play, pause and step functions, and its stop and
+scenario-pick functions to end a run. It puts a scenario picker on the harness's page for the
+play function to read, since that page has none. These calls change the page's state in
+memory (a visible simulator, a strip recorder, an autosave record) and write no file. Each
+of the two probes ends with the time scale read back at 5 and the baseline reproduced. The
+outputs quoted in this document are committed in
 `proposals/evidence/sim-side-2026-11-09/`, and the README there gives the exact command behind each
 file, the 41 scenario names of the `refund` runs included. The three census reports and the
 mutation report each name the sha256 of `tools/sim-side-census.mjs` as it ran, and it is the
@@ -2364,7 +2551,8 @@ asked to decide for SC3, one earlier mechanism misreported, and earlier work sti
   amazonite where the continuous release notes 15. The game names a crystal by any one noted
   zone, so either timing renames both feldspars at every seed. The reason was withdrawn, and
   the renaming became a cost of SC3 under either timing. (The sixth version went further and
-  said the two timings look the same. One view shows them apart; see the next list.)
+  said the two timings look the same. They do not, wherever the game shows a crystal zone by
+  zone; see the next two lists.)
 - §2.2 said the per-cell fill proposal of the high-fill research "was deferred". It shipped at
   v77, as a switch on a scenario's wall that no scenario sets. It is now a course under SC1,
   tried at eleven seeds and not recommended: it keeps `gem_pegmatite`'s pocket open at five of
@@ -2384,7 +2572,7 @@ asked to decide for SC3, one earlier mechanism misreported, and earlier work sti
   over-counted three of their readings passed every control it was put to. One count is now
   exact, three readings have a negative control, one is held to a band, and five mutants that
   over-count were added. Ten older positive controls remain floors and are listed as such
-  (§1; trap 21).
+  (§1; trap 21). (Sixteen older ones are open from above, not ten; see the list after next.)
 - The locality gate was described by its tiers alone. It also holds first-appearance windows,
   tests the wording of a deterministic rationale, and fails on a product no tier names. The
   windows are now previewed by a probe of their own, and none is violated. The wording test
@@ -2411,14 +2599,16 @@ to that round's own findings.
 - Zen mode was measured on another mode's clock. The game sets the time scale to 1 on
   entering Zen and to 5 elsewhere, and the probe ran Zen's simulator at 5. At Zen's own scale
   a Zen run of `gem_pegmatite` is full at step 31 / 33 / 33, not 9 / 10 / 10, and the general
-  clamp keeps it open, where the sixth version had it failing at two seeds of three. The Zen
+  clamp keeps it open, where the sixth version had it failing at two seeds of three. ("Keeps
+  it open" was a 400-step look at a mode with no end; see the next list.) The Zen
   runs of the other two pegmatites are withdrawn. The probe now sets Zen's scale, prints what
   the game's own mode switch leaves it at, and runs the two Creative constructors themselves
   (§3.1; §4, SC1; trap 19).
 - The galena was counted in four places and the count was still short: the mineral data lists
   the scenario under galena, which the Library shows, and its audit summary names it. And one
   of the four, the agent API's copy, is in a runtime where the promise can be kept, since
-  that runtime has one fluid and no license. §3.3 now gives what a search of the scenario's
+  that runtime has one fluid and no license. (That was shown in a preset game, not in the
+  scenario; see the next list.) §3.3 now gives what a search of the scenario's
   own entry and event file finds, lists the rest as found by search, and gives no total;
   SC3's acceptance is a search (trap 18).
 - "Either timing turns `schneeberg`'s feldspars green" generalised from one reader of the
@@ -2426,14 +2616,15 @@ to that round's own findings.
   the cavity does not change under either. The Zone History bar shows 28 % of each feldspar
   in green under the continuous release and 4 % under the held one, so the difference the
   fifth version counted is drawn by the game, in one view. Three readers are now run
-  (§4, SC3; trap 17).
+  (§4, SC3; trap 17). (Not in one view; see the next list.)
 - "A save has to carry the held lead" was wrong. A save is a recipe that is replayed, and the
   replay fingerprint is a check, which does not list that block's radiation dose today. The
   acceptance line built on it could not have failed, and is removed (§4, SC3; §6).
 - A scenario opened in Creative mode was called the scenario's own run. That constructor adds
   a carbonate boundary the scenario does not author, and the run differs from the baseline's.
   For `gem_pegmatite` the plug and the cure both hold there, which is now measured (§3.1;
-  §4, SC1; §7).
+  §4, SC1; §7). (The bound holds there for the scenario's 230 steps, and Creative mode has
+  no last step; see the next list.)
 - "Five of the six controls are closed from above" overstated three. A negative control at
   zero catches a misfiling and not a multiple, and the round's census copy that counts three
   classes twice passed all 35 controls. The text now says so, and no control was added
@@ -2448,6 +2639,58 @@ to that round's own findings.
   albite ends larger than as shipped, which §4 had not said; a field under the scenario's
   wall would reach Zen, a third place the bound could live; the dose has more readers than
   the two named; and "agent interface", "agent API" and "claim card" are defined.
+
+**Corrections to the seventh version** (commits `9e8540b1` and `b36dff13`). Its seventh review
+round found the sixth round's eight findings fixed, and the numbers, the source references
+and the instruments right again. It found two statements wrong in what the owner is asked to
+decide. Both were written to answer the sixth round.
+
+- A bound on a rate was read at one run length and called a cure. With the clamp, Zen's
+  pocket was said never to fill, on a look of 400 steps at a mode that has no end. By the
+  game's own loop it passes 0.7 full at step 1872 / 1849 / 2104, which is about half an hour
+  at Zen's default speed. The scenario was said to be cured where Simulation mode and Creative mode
+  start it. Stepped on past its 230 steps the bounded pocket passes 0.7 full 27 to 29 steps
+  later and seals at step 304 to 306, and Creative mode, where the Scenarios menu opens a
+  scenario, has no last step. What seals it is quartz, so a tighter bound does not widen the
+  margin. §4 now gives the horizon in each mode from a probe of its own, decision 1 puts it
+  to the owner, and the bound is no longer called a cure (§0; §3.1; §4, SC1; §6; trap 22).
+- The acceptance line for Zen could not fail on a pocket that was nearly full. It asked that
+  the pocket not reach 0.999 in 230 steps, which a clamp of 95 meets. It is now a bar of the
+  kind the first line uses, fill under 0.7 through step 1,150 in the game's own Zen loop, and
+  it is seen to fail at a clamp of 23 (§4, SC1).
+- "The two timings differ in one view" was false. The list of readers came from a search for
+  the note's text, which cannot find a line that prints whatever note a zone carries. The
+  step log prints the note on the line of every zone of more than 0.5 µm, 213 lines against
+  144, and five lists of zones print it as well. The fifth, sixth and seventh versions each
+  took the readers they had found for all of them. The list is now taken by a search for
+  reads of the field, the step log is run, and the text says where the timings differ:
+  wherever the game shows a crystal zone by zone (§4, SC3; trap 17).
+- Nineteen positive controls are guarded on one side, not thirteen. Six older positives sit
+  beside a negative that reads zero, which passes a doubled reading. The round's copy of the
+  census over-read all six and passed all 35 controls. No control was added (§1; §7; trap 21).
+- The agent API was misattributed. The sixth round ran its CLI's `radioactive` fluid preset,
+  not the scenario, and the copy of the step-100 narration sits in a scenario function that
+  no CLI command runs. What was shown there is that the lead reaches a galena in a preset
+  game (§3.3).
+- SC2's acceptance named no census control. None is expected to flip, by the sixth and
+  seventh rounds' own copies of the census, and the `pause` reading under SC2 is now given
+  (§4, SC2).
+- Two numbers were given without their scope. The Zen plug at "step 31 to 33" was three seeds
+  without Zen's drift; the game's own loop is now run, and gives 32 / 33 / 32. "Its
+  pharmacolite loses a quarter" is `schneeberg`'s Simulation-mode run; opened from the
+  Scenarios menu that scenario has no pharmacolite on record as shipped, by the round's run
+  (§3.1; §6).
+- The fill switch was said to need no new field. It is a wall field with no class in the
+  Creative lever audit, which fails on one, and so is a bound carried under the wall
+  (§4, SC1).
+- Smaller: the banner and the ledger said the bound reaches the scenario in three modes "and
+  nowhere else", against the agent interface's headless run, which keeps the scenario object;
+  `probe-lead-choices` takes about 6 minutes, not 8; the repeat control on the Zen runs showed
+  that a run repeats, and the new probe makes the same runs before any other constructor is
+  called and finds their lines, character for character, in the committed output; SC3's
+  acceptance search now names the audit summary and the agent API; the cavity view's body
+  colour has a second reason not to change; the Record Player also sets the time scale to 1;
+  and "scenario object", "Zen's drift" and "size class" are defined.
 
 ## References
 
@@ -2741,6 +2984,7 @@ The instruments' outputs are committed unedited in `proposals/evidence/sim-side-
 | `probe-cation-gate.txt` | §4 SC1, SC2, SC3: the cation gate |
 | `probe-enclosed-survivors.txt` | §4 SC1 |
 | `probe-pegmatite-reach.txt` | §3.1 and §4 SC1: `gem_pegmatite` at eleven seeds under the bound and under the tree's fill switch; Random Vugg, Creative mode and Zen mode |
+| `probe-clamp-horizon.txt` | §3.1 and §4 SC1: how many steps the bound buys, in Simulation mode, Creative mode and Zen mode's own loop |
 | `probe-appearance-contract.txt` | §4 SC1, SC2, SC3: the locality gate's tiers |
 | `probe-appearance-windows.txt` | §4: the locality gate's first-appearance windows |
 | `probe-ab-digest.txt` | the counts §2.1, §3.1, §3.3 and §4 draw from the A/B outputs and the census reports |
