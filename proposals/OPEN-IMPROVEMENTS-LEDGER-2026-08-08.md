@@ -113,9 +113,11 @@ single execution ledger for the science-first AAA completion branch.
     clamp on the rate authored on that scenario alone, which changes one baseline. It makes topaz
     appear at all three locality-gate seeds, so the same bump has to move topaz out of that
     scenario's aspirational tier, which is a ruling, and rewrite its rationale by hand. It
-    cures the scenario's own runs only: Zen mode drops the scenario object, and Random Vugg's
-    pegmatite archetype, where the plug was first reported, has none (3 of 8 random pockets
-    fill). The same clamp in the engines for every scenario reaches those too; it changes eight
+    cures the scenario where Simulation mode, Quick Play and Creative mode start it, and
+    nowhere else: Zen mode drops the scenario object and runs at a fifth of the time scale
+    (its `gem_pegmatite` plugs at step 31–33), and Random Vugg's pegmatite archetype, where
+    the plug was first reported, has no scenario (3 of 8 random pockets fill). The same
+    clamp in the engines for every scenario reaches those too; it changes eight
     baselines, empties Shigar's pocket, and leaves `schneeberg` without solid of three of the
     species it expects at seed 1 and two at seed 2. The tree's own `per_cell_local_fill` switch
     keeps the pocket open at 5 seeds of 11. Factor caps at one uniform ceiling delete both
@@ -127,15 +129,17 @@ single execution ledger for the science-first AAA completion branch.
     `schneeberg` to at seed 42 moves from 0.582 to 0.630.
   - [ ] SC3 — carry radiogenic Pb to the voxels as well as the bulk handle
     (`js/85-simulator.ts:1276` writes the bulk handle only). Recommended timing: hold it until a
-    uraninite is altered, and take the galena out of the four places where
-    `radioactive_pegmatite` promises it (the description, the notes, the step-100 narration in
-    `js/70d-pegmatite-radioactive.ts`, the agent API's copy), since under that timing no license
-    can produce it. The other coherent pair keeps today's timing and licenses galena, with a
-    source. The held release leaves the cation gate's two numbers as commissioned and adds
-    state that a save and the replay fingerprint carry; the continuous one moves the gate's
-    share by 62 times the tolerance. Under either timing `schneeberg`'s two largest crystals
-    turn from microcline to green amazonite. SC2 and SC3 both reach the two uraninite
-    scenarios: preview the second to land on the tree the first leaves.
+    uraninite is altered, and take the galena out of `radioactive_pegmatite`'s own texts (the
+    description, the notes, and the step-100 narration in `js/70d-pegmatite-radioactive.ts`,
+    which is code), since under that timing no license can produce it. Other places name
+    galena for the scenario too (the Library's scenario list, the agent API); find them by
+    search, do not count them. The other coherent pair keeps today's timing and licenses
+    galena, with a source. The held release leaves the cation gate's two numbers as
+    commissioned and adds one field to the simulator (saves replay a run and need nothing
+    new); the continuous one moves the gate's share by 62 times the tolerance. Under either
+    timing `schneeberg`'s two largest crystals are named amazonite on their cards where they
+    are named microcline today; the cavity view draws them as before. SC2 and SC3 both reach
+    the two uraninite scenarios: preview the second to land on the tree the first leaves.
   - [ ] SC4 — decide whether to pilot a supply with a scale above the cell: a physical debit, a feed
     from the authored `flow_rate` (assigned 103 times, read by no growth code), a clock. Overlaps
     the reservoir arc of PRs #35–#39 and #42.

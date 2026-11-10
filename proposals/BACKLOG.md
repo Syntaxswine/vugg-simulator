@@ -33,20 +33,25 @@ Living list of open work items, captured from session conversations so context s
 > saturation (k·σ where 171 other engines vanish at σ = 1); F3 radiogenic Pb is written to the
 > bulk handle only (`js/85-simulator.ts:1276`), and `radioactive_pegmatite` does not license the
 > galena that its description, its notes and the narration of its last event promise.
-> **This review has been corrected five times by its own review rounds (the doc's §9 lists each
+> **This review has been corrected six times by its own review rounds (the doc's §9 lists each
 > set): the first version said supply does not bind; the second costed the recommended fixes
 > too lightly; the third said the feldspar clamp loses no species, having counted a
 > dissolved-away crystal's record as presence, and recommended a lead mechanism that cannot
 > work; the fourth left out the locality gate, which the recommended clamp trips, and put two
-> coupled choices to the owner as independent; the fifth counted two places where the galena is
-> promised when there are four, and gave as a reason for one lead timing a difference the game
-> does not show.**
+> coupled choices to the owner as independent; the fifth counted the galena's places short and
+> gave as a reason for one lead timing a difference measured on one reader of three; the sixth
+> measured Zen mode on another mode's clock, counted the galena's places short again, and said
+> a save has to carry state that a save does not hold. In the last three rounds the measured
+> numbers and source references held; the errors were in what it says its own proposals cost
+> and reach.**
 > **Awaits the boss:** the seven decisions in the doc's §6. SC1: a clamp on the feldspar pair's
 > rate authored on `gem_pegmatite` ALONE (recommended; one baseline changes), which makes topaz
 > appear at all three locality-gate seeds, so the bump must also PROMOTE TOPAZ out of the
 > aspirational tier and rewrite its rationale by hand (the gate does not check that sentence).
-> It cures the scenario's own runs ONLY: Zen mode drops the scenario object, and Random Vugg's
-> pegmatite archetype, where the boss first reported the plug, has none. Against it: the same
+> It cures the scenario where Simulation mode, Quick Play and Creative mode start it, and
+> NOWHERE ELSE: Zen mode drops the scenario object and runs at a fifth of the time scale (its
+> `gem_pegmatite` plugs at step 31–33), and Random Vugg's pegmatite archetype, where the boss
+> first reported the plug, has no scenario at all. Against it: the same
 > clamp in the engines for every scenario, which reaches those too (eight baselines change; it
 > empties Shigar's pocket and leaves `schneeberg` without solid native arsenic and native
 > bismuth at seeds 1 and 2, and cobaltite at seed 1, all three of them species it expects); the
@@ -58,12 +63,16 @@ Living list of open work items, captured from session conversations so context s
 > 111 ppm, not 179), and the CATION GATE (`npm run audit:cations`) must be recommissioned with
 > a new Ca share (0.630, not 0.582). SC3: hold the radiogenic lead until a uraninite is altered
 > and release it to the bulk handle and the voxels alike (recommended), and take the galena out
-> of the FOUR places that promise it (the description, the notes, the step-100 narration in
-> `js/70d-pegmatite-radioactive.ts`, the agent API's copy), because under that timing no
-> license can produce galena; or keep today's timing and license galena, with a source. The
-> held release leaves the cation gate's numbers as commissioned and adds state that a save and
-> the replay fingerprint carry; the continuous one moves the gate's share. UNDER EITHER TIMING
-> `schneeberg`'s two largest crystals turn from microcline to green amazonite. SC2 and SC3 meet
+> of the scenario's OWN TEXTS (the description, the notes, and the step-100 narration in
+> `js/70d-pegmatite-radioactive.ts`, which is code), because under that timing no license can
+> produce galena; other places name galena for the scenario too and are found by search, not
+> counted (the Library's scenario list, the agent API); or keep today's timing and license
+> galena, with a source. The held release leaves the cation gate's numbers as commissioned and
+> adds one field to the simulator (saves replay a run and need nothing new); the continuous
+> one moves the gate's share. UNDER EITHER TIMING `schneeberg`'s two largest crystals are
+> NAMED amazonite on their cards where they are named microcline today; the cavity view draws
+> them as before; their zone-history bars turn 28 % green under the continuous release and 4 %
+> under the held one. SC2 and SC3 meet
 > in `schneeberg`'s pharmacolite, so
 > the second to land is previewed on the tree the first leaves. Whether to pilot a supply with a
 > scale above the cell, SC4. Whether the census joins the SIM-bump routine, SC5. The order

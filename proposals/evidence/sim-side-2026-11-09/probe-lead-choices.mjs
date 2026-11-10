@@ -31,10 +31,20 @@
  * at run end). With them, a
  * change no species table shows: grow_feldspar notes a microcline zone "amazonite" when its own
  * cell holds more than 10 ppm of Pb (js/59-engines-silicate.ts, `trace_Pb > 0.1` with
- * trace_Pb = 0.01 Pb). The game reads that note per crystal: crystalDisplayName and crystalColor
- * (js/12-mineral-art.ts) call a microcline "amazonite" and colour it green when any one of its
- * zones carries it. So the probe prints both the noted zones and what each feldspar crystal that
- * holds solid is shown as. It also counts, for every run of this part, what tools/sim-side-ab.mjs
+ * trace_Pb = 0.01 Pb). The game reads that note, or the zone's trace lead, at more than one
+ * grain, and the probe runs three of its readers on each feldspar crystal that holds solid:
+ *   name, colour   crystalDisplayName and crystalColor (js/12-mineral-art.ts): per crystal. A
+ *                  microcline is named "amazonite" and coloured green when ANY one of its zones
+ *                  carries the note.
+ *   zone bar       groupZonesByChemistry (js/98c-ui-zone-bars.ts), which the Zone History bar
+ *                  draws: per zone, by thickness. Each zone is coloured as a one-zone crystal and
+ *                  consecutive zones of one colour are merged; the probe prints the share of the
+ *                  bar's thickness under each colour.
+ *   body colour    resolveBodyColour (js/12a-colour-lexicon.ts), the base colour the cavity view
+ *                  starts a crystal's body from.
+ * Other lines of js/ that read the note (the fluorescence line of js/27-geometry-crystal.ts, the
+ * feldspar narrator of js/92i-narrators-silicate.ts) use the per-crystal test and are not run.
+ * It also counts, for every run of this part, what tools/sim-side-ab.mjs
  * counts to see whether an arm tripped one of the simulator's own audits: CO2 or carbonate events
  * that say they were paused or refused, failed carbonate-boundary transactions, and entries of
  * the three violation ledgers.
@@ -59,8 +69,12 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const harness = await import(pathToFileURL(path.join(ROOT, 'tools', '_harness.mjs')).href);
-const { SCENARIOS, VugSimulator, setSeed, SIM_VERSION, MINERAL_GATES_REGISTRY, MINERAL_ENGINES, crystalDisplayName, crystalColor } = await harness.loadSimBundle({
-  toolName: 'probe-lead-choices', extraExports: ['MINERAL_GATES_REGISTRY', 'MINERAL_ENGINES', 'crystalDisplayName', 'crystalColor'],
+const {
+  SCENARIOS, VugSimulator, setSeed, SIM_VERSION, MINERAL_GATES_REGISTRY, MINERAL_ENGINES, crystalDisplayName, crystalColor,
+  groupZonesByChemistry, resolveBodyColour, MINERAL_SPEC,
+} = await harness.loadSimBundle({
+  toolName: 'probe-lead-choices',
+  extraExports: ['MINERAL_GATES_REGISTRY', 'MINERAL_ENGINES', 'crystalDisplayName', 'crystalColor', 'groupZonesByChemistry', 'resolveBodyColour', 'MINERAL_SPEC'],
 });
 // tools/sim-side-ab.mjs REFUSAL, copied: a CO2 or carbonate event of js/70l that says it was paused or refused.
 const REFUSAL = /(CO₂|Carbonate) [a-z₂ ]*(paused|refused): /;
@@ -168,9 +182,18 @@ function runOnce(name, seed, { timing = 'shipped', license = false, open = false
     ledgerViolations: (sim._sulfurPropagationViolations || []).length + (sim._carbonPropagationViolations || []).length
       + (sim._fluidBoundaryViolations || []).length,
   };
-  // what the game shows for each feldspar crystal that holds solid
-  const feldsparShown = sim.crystals.filter(c => c.mineral === 'feldspar' && c.total_growth_um > 0)
-    .map(c => `${mm(c.total_growth_um)} mm ${crystalDisplayName(c)} ${crystalColor(c)}`);
+  // what three of the game's readers give for each feldspar crystal that holds solid
+  const withSolid = sim.crystals.filter(c => c.mineral === 'feldspar' && c.total_growth_um > 0);
+  const feldsparShown = withSolid.map(c => `${mm(c.total_growth_um)} mm ${crystalDisplayName(c)} ${crystalColor(c)}`);
+  const feldsparBar = withSolid.map(c => {
+    // the Zone History bar's segments: share of the bar's thickness under each colour
+    const segs = groupZonesByChemistry(c.zones, c.mineral, c);
+    const total = segs.reduce((s, g) => s + g.totalThickness, 0) || 1;
+    const by = {};
+    for (const g of segs) { const k = g.isDissolution ? 'dissolution' : g.color; by[k] = (by[k] || 0) + g.totalThickness; }
+    return `${mm(c.total_growth_um)} mm: ` + Object.entries(by).sort((a, b) => b[1] - a[1]).map(([k, t]) => `${k} ${(t / total * 100).toFixed(1)} %`).join(', ');
+  });
+  const feldsparBody = withSolid.map(c => `${mm(c.total_growth_um)} mm ${resolveBodyColour(c, MINERAL_SPEC.feldspar)}`);
   const of = (m) => {
     const all = sim.crystals.filter(c => c.mineral === m), solid = all.filter(c => c.total_growth_um > 0);
     if (!all.length) return 'none';
@@ -198,7 +221,7 @@ function runOnce(name, seed, { timing = 'shipped', license = false, open = false
     galena: of('galena'), plumbogummite: of('plumbogummite'),
     uraniniteMm: uraninite.length ? Math.max(...uraninite.map(c => c.total_growth_um)) / 1000 : 0,
     negativeZones: negative.length, negativeFrom: negative.length ? Math.min(...negative) : null,
-    releases, released, audit, feldsparShown,
+    releases, released, audit, feldsparShown, feldsparBar, feldsparBody,
     feldsparZones: feldspar.length, amazoniteZones: amazonite.length,
     feldsparMm: feldspar.reduce((s, z) => s + z.thickness_um, 0) / 1000, amazoniteMm: amazonite.reduce((s, z) => s + z.thickness_um, 0) / 1000,
   };
@@ -248,7 +271,9 @@ for (const name of ['radioactive_pegmatite', 'schneeberg']) {
     console.log(`  ${name.padEnd(22)} ${timing.padEnd(8)} bulk Pb ${each(r => r.bulkPb.toFixed(1))}, voxel mean ${each(r => r.voxPb.toFixed(1))}${timing === 'held' ? `; released ${each(r => r.released.toFixed(1))} ppm in ${each(r => r.releases)} release(s)` : ''}`);
     if (timing !== 'shipped') console.log(`  ${''.padEnd(31)} species moved ${c.map(x => x.moved.length ? `${x.moved.length} (${x.moved.join(', ')})` : '0').join(' / ')}; gained ${c.map(x => x.gained.join('+') || 'none').join(' / ')}; lost ${c.map(x => x.lost.join('+') || 'none').join(' / ')}; the baseline differs ${c.map(x => (x.same ? 'no' : 'yes')).join(' / ')}; minerals on record under the arm and not as shipped ${c.map(x => x.appeared.join('+') || 'none').join(' / ')}, and the reverse ${c.map(x => x.vanished.join('+') || 'none').join(' / ')}`);
     console.log(`  ${''.padEnd(31)} feldspar zones noted amazonite: ${each(r => `${r.amazoniteZones} of ${r.feldsparZones} (${r.amazoniteMm.toFixed(1)} of ${r.feldsparMm.toFixed(1)} mm)`)}`);
-    console.log(`  ${''.padEnd(31)} feldspar crystals with solid, as the game shows them: ${each(r => r.feldsparShown.join(', ') || 'none')}`);
+    console.log(`  ${''.padEnd(31)} feldspar crystals with solid, name and colour (crystalDisplayName, crystalColor): ${each(r => r.feldsparShown.join(', ') || 'none')}`);
+    console.log(`  ${''.padEnd(31)} … their Zone History bar, share of thickness under each colour (groupZonesByChemistry): ${each(r => r.feldsparBar.join('; ') || 'none')}`);
+    console.log(`  ${''.padEnd(31)} … their body colour in the cavity view (resolveBodyColour): ${each(r => r.feldsparBody.join(', ') || 'none')}`);
     console.log(`  ${''.padEnd(31)} the simulator's own audits: event refusals ${each(r => r.audit.eventRefusals)}; failed carbonate transactions ${each(r => r.audit.failedCarbonateTransactions)}; ledger violations ${each(r => r.audit.ledgerViolations)}${timing === 'shipped' ? '' : runs.every((r, i) => JSON.stringify(r.audit) === JSON.stringify(shipped[name][i].audit)) ? ' (as shipped at every seed)' : ' (DIFFERS FROM SHIPPED)'}`);
   }
 }

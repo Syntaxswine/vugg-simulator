@@ -21,31 +21,40 @@
  * object, so a bound carried on one cannot reach it. The clamp is applied here in process, to show
  * what a bound would do in that mode if it were authored there too.
  *
- * Part 3. The other places the game builds a pegmatite's fluid, at seeds 42, 1 and 2.
- *   Zen mode     idleCreateSim (js/98a-ui-zen.ts) is called itself, on each of the three pegmatite
- *                scenarios. It copies the scenario's temperature, pressure, fluid and wall onto new
- *                conditions and passes no events. It takes its seed from the clock, so the clock is
- *                held at the seed for the length of that one call. The simulator it returns is then
- *                stepped with run_step alone for as many steps as the scenario runs. Zen's own
- *                drift (a random walk on temperature, on nine fluid species and on pH, and a 2 %
- *                chance a step of a random event) writes to the page and is not applied. A run
- *                without the scenario object has none of the scenario's license or exclusions,
- *                so the minerals on record that the scenario does not license are listed.
- *   Creative     the starter fluid "Radioactive Pegmatite". fortressBeginFromStarterFluid
- *                (js/94-ui-menu.ts) writes to the page and cannot run here, so its conditions are
- *                built as it builds them: that scenario's fluid at 200 °C and 1 kbar in a 50 mm
- *                limestone cavity, no events. Stepped for 120 steps, the scenario's length.
- * Both are run shipped and with the same clamp in process.
+ * Part 3. Three other ways the game starts a run on a pegmatite's fluid, at seeds 42, 1 and 2,
+ * each through the game's own constructor, shipped and with the same clamp in process.
+ *   Creative, a scenario   fortressBeginFromScenario('gem_pegmatite', seed) (js/94-ui-menu.ts). It
+ *                keeps the scenario object and gives the run a conserved carbonate boundary where
+ *                the scenario authors none, so it is not the run the baseline pins. 230 steps.
+ *   Creative, a starter    fortressBeginFromStarterFluid('radioactive', seed): that scenario's fluid
+ *                at 200 °C in a 50 mm limestone cavity, no events, no scenario object. 120 steps.
+ *   Zen mode     idleCreateSim('gem_pegmatite') (js/98a-ui-zen.ts). It copies the scenario's
+ *                temperature, pressure, fluid and wall onto new conditions, and passes no events
+ *                and no scenario object. It takes its seed from the clock, so the clock is held at
+ *                the seed for the length of that one call. The game enters Zen through
+ *                switchMode('idle'), which sets the time scale to 1 where the other modes set 5
+ *                (js/94-ui-menu.ts); a stored zone is the engine's proposal times that scale. So
+ *                the Zen runs are made at a time scale of 1, set through setSimulationTimeScale
+ *                (js/13-runtime-state.ts), and the scale is put back to 5 afterwards. (switchMode
+ *                itself is called once for each of four modes, only to print the scale it leaves.)
+ *                Zen has no
+ *                end, so the simulator is stepped 400 times with run_step alone. Zen's own drift
+ *                (idleApplyDrift: a random walk on temperature, nine fluid species and pH, and a
+ *                2 % chance a step of a random event) is not reproduced here. A run without the
+ *                scenario object has none of the scenario's license or exclusions, so the minerals
+ *                on record that the scenario does not license are listed.
+ * The two Creative constructors and Zen's write to the page's in-memory state (a visible simulator,
+ * a strip recorder, an autosave record) and to no file.
  *
  * Readings per run: fill at run end and the largest fill of the run; the first step at fill >= 0.7
  * and at >= 0.999; the last step on which any crystal stored a positive zone; the largest crystal
  * with solid left of each species named. A species is present when one of its crystals has solid.
  *
  * PASSIVE: prints to stdout, writes nothing, exits 0. Imports tools/_harness.mjs and node builtins.
- * Controls: at seed 42 gem_pegmatite's shipped run is compared with the committed baseline; the
- * run with the switch set to false explicitly, and the run with the clamp at Infinity, have to be
- * the shipped run; and the first Zen run is made again after all the others and has to be the
- * same run, since idleCreateSim registers the simulator it builds with the page's own state.
+ * Controls: at seed 42 gem_pegmatite's shipped run is compared with the committed baseline, at the
+ * start and again after Part 3 with the time scale read back; the run with the switch set to false
+ * explicitly, and the run with the clamp at Infinity, have to be the shipped run; and the first
+ * Zen run is made again after the others and has to be the same run.
  *
  *   node proposals/evidence/sim-side-2026-11-09/probe-pegmatite-reach.mjs
  */
@@ -57,10 +66,12 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '.
 const harness = await import(pathToFileURL(path.join(ROOT, 'tools', '_harness.mjs')).href);
 const {
   SCENARIOS, VugSimulator, setSeed, SIM_VERSION, MINERAL_ENGINES, buildRandomScenario,
-  idleCreateSim, FLUID_PRESETS, VugConditions, FluidChemistry, VugWall,
+  idleCreateSim, fortressBeginFromScenario, fortressBeginFromStarterFluid,
+  setSimulationTimeScale, getSimulationTimeScale, switchMode,
 } = await harness.loadSimBundle({
   toolName: 'probe-pegmatite-reach',
-  extraExports: ['MINERAL_ENGINES', 'buildRandomScenario', 'idleCreateSim', 'FLUID_PRESETS', 'VugConditions', 'FluidChemistry', 'VugWall'],
+  extraExports: ['MINERAL_ENGINES', 'buildRandomScenario', 'idleCreateSim', 'fortressBeginFromScenario',
+    'fortressBeginFromStarterFluid', 'setSimulationTimeScale', 'getSimulationTimeScale', 'switchMode'],
 });
 const BASELINE = JSON.parse(fs.readFileSync(path.join(ROOT, 'tests-js', 'baselines', `seed42_v${SIM_VERSION}.json`), 'utf8'));
 const PAIR = ['feldspar', 'albite'];
@@ -117,9 +128,11 @@ function run(seed, make, { localFill = null, clamp = null } = {}) {
     const sim = made.sim || new VugSimulator(conditions, made.events);
     const steps = made.defaultSteps ?? 100;
     let maxFill = 0, first70 = null, full = null;
+    const fills = [];                                               // fill after each step
     for (let i = 0; i < steps; i++) {
       sim.run_step();
       const fill = sim.get_vug_fill();
+      fills.push(fill);
       if (fill > maxFill) maxFill = fill;
       if (first70 == null && fill >= 0.7) first70 = sim.step;
       if (full == null && fill >= 0.999) full = sim.step;
@@ -133,7 +146,8 @@ function run(seed, make, { localFill = null, clamp = null } = {}) {
       o.n++;
       if (c.total_growth_um > o.max_um) o.max_um = c.total_growth_um;
     }
-    return { start, steps, fill: sim.get_vug_fill(), maxFill, first70, full, lastGrowth, species, summary: summarize(sim),
+    return { start, steps, fill: sim.get_vug_fill(), maxFill, first70, full, lastGrowth, species, summary: summarize(sim), fills,
+      boundary: !!sim._carbonateBoundaryState,                                   // a carbonate boundary on the simulator
       records: [...new Set(sim.crystals.map(c => c.mineral))].sort() };          // every mineral with a crystal on record at run end
   } finally {
     for (const m of Object.keys(saved)) MINERAL_ENGINES[m] = saved[m];
@@ -199,55 +213,80 @@ for (const [label, runs] of [['shipped', rShipped], ['rate clamp at 7', rClamp]]
 
 // ---- part 3 ----
 const OTHER_SEEDS = [42, 1, 2];
-console.log(`\nPART 3 — the other places the game builds a pegmatite's fluid, seeds ${OTHER_SEEDS.join(' / ')}`);
-function report(label, runs) {
+const ZEN_STEPS = 400;
+console.log(`\nPART 3 — three other ways the game starts a run on a pegmatite's fluid, seeds ${OTHER_SEEDS.join(' / ')}`);
+{
+  // What the game's own mode switch leaves the time scale at (js/94-ui-menu.ts, switchMode). The
+  // scale is put back to its value at load before anything is run.
+  const atLoad = getSimulationTimeScale();
+  const after = [];
+  for (const [mode, name] of [['legends', 'Simulation'], ['fortress', 'Creative'], ['random', 'Random Vugg'], ['idle', 'Zen']]) {
+    let threw = '';
+    try { switchMode(mode); } catch (e) { threw = ` (the call threw: ${String(e && e.message).slice(0, 60)})`; }
+    after.push(`${name} ${getSimulationTimeScale()}${threw}`);
+  }
+  setSimulationTimeScale(atLoad);
+  console.log(`  time scale at load, which every run above uses: ${atLoad}; after the game's own switchMode into each mode: ${after.join(', ')}`);
+}
+function report(label, runs, at = null) {
   const each = (f) => runs.map(f).join(' / ');
-  console.log(`      ${label.padEnd(16)} largest fill of the run ${each(r => (r.maxFill * 100).toFixed(0))} %; first step at fill >= 0.7 ${each(r => r.first70 ?? '—')}; at >= 0.999 ${each(r => r.full ?? '—')}; last step anything grew ${each(r => r.lastGrowth)}`);
+  console.log(`      ${label.padEnd(16)} largest fill of the run ${each(r => (r.maxFill * 100).toFixed(0))} %${at ? `, fill at step ${at} ${each(r => (r.fills[at - 1] * 100).toFixed(0))} %` : ''}; first step at fill >= 0.7 ${each(r => r.first70 ?? '—')}; at >= 0.999 ${each(r => r.full ?? '—')}; last step anything grew ${each(r => r.lastGrowth)}`);
   console.log(`      ${''.padEnd(16)} feldspar ${each(r => mm(r.species.feldspar?.max_um))} mm; albite ${each(r => mm(r.species.albite?.max_um))}; quartz ${each(r => mm(r.species.quartz?.max_um))}; tourmaline ${each(r => mm(r.species.tourmaline?.max_um))}; topaz ${each(r => mm(r.species.topaz?.max_um))}`);
 }
-console.log('\n  Creative mode, starter fluid "Radioactive Pegmatite": conditions built as fortressBeginFromStarterFluid builds them (js/94-ui-menu.ts); 120 steps of run_step alone');
+
+console.log('\n  A scenario opened in Creative mode: fortressBeginFromScenario(\'gem_pegmatite\', seed) itself (js/94-ui-menu.ts); 230 steps of run_step alone');
+{
+  const creative = (seed) => {
+    const launch = fortressBeginFromScenario('gem_pegmatite', seed);
+    if (!launch || !launch.sim) throw new Error('fortressBeginFromScenario returned no simulator under the harness');
+    return { sim: launch.sim, defaultSteps: 230 };
+  };
+  const cShipped = OTHER_SEEDS.map(seed => run(seed, creative));
+  const cClamp = OTHER_SEEDS.map(seed => run(seed, creative, { clamp: 7 }));
+  console.log(`      scenario object on the conditions: ${cShipped.every(r => r.start.scenario) ? 'present at every seed' : 'ABSENT at some seed'}; a carbonate boundary on the simulator: ${cShipped.every(r => r.boundary) ? 'at every seed' : cShipped.some(r => r.boundary) ? 'at some seeds' : 'at none'} (the scenario's own run, Part 1: ${shipped.slice(0, 3).some(r => r.boundary) ? 'has one' : 'has none'})`);
+  console.log(`      the seed-42 run ${JSON.stringify(cShipped[0].summary) === JSON.stringify(BASELINE.gem_pegmatite) ? 'is the baseline\'s run' : 'is not the baseline\'s run'}`);
+  report('shipped', cShipped);
+  report('rate clamp at 7', cClamp);
+}
+
+console.log('\n  Creative mode, starter fluid "Radioactive Pegmatite": fortressBeginFromStarterFluid(\'radioactive\', seed) itself (js/94-ui-menu.ts); 120 steps of run_step alone');
 {
   const starter = (seed) => {
-    const fluid = new FluidChemistry(Object.assign({}, FLUID_PRESETS.radioactive.fluid));
-    const wall = new VugWall({
-      composition: 'limestone', thickness_mm: 500, vug_diameter_mm: 50,
-      wall_Fe_ppm: 2000, wall_Mn_ppm: 500, wall_Mg_ppm: 1000,
-      primary_bubbles: 3, secondary_bubbles: 5, shape_seed: seed & 0xff,
-    });
-    return { conditions: new VugConditions({ temperature: 200.0, pressure: 1.0, fluid, wall }), events: [], defaultSteps: 120 };
+    fortressBeginFromStarterFluid('radioactive', seed);
+    const sim = globalThis.window?.vugg?.fortressSim;
+    if (!sim) throw new Error('fortressBeginFromStarterFluid left no simulator under the harness');
+    return { sim, defaultSteps: 120 };
   };
   const sShipped = OTHER_SEEDS.map(seed => run(seed, starter));
   const sClamp = OTHER_SEEDS.map(seed => run(seed, starter, { clamp: 7 }));
   const each = (f) => sShipped.map(f).join(' / ');
   setSeed(42);
   const own = SCENARIOS.radioactive_pegmatite().conditions;
-  console.log(`      scenario object on the conditions: ${sShipped.some(r => r.start.scenario) ? 'PRESENT at some seed' : 'absent at every seed'}; temperature ${each(r => r.start.temperature.toFixed(0))} °C (the scenario's own: ${own.temperature.toFixed(0)}); SiO2 ${each(r => r.start.SiO2.toFixed(0))} (the scenario's own: ${own.fluid.SiO2.toFixed(0)})`);
-  console.log(`      sigma on the bulk fluid at the start: feldspar ${each(r => r.start.feldspar.toFixed(1))}, albite ${each(r => r.start.albite.toFixed(1))} (the scenario's own: ${own.supersaturation_feldspar().toFixed(1)}, ${own.supersaturation_albite().toFixed(1)})`);
+  console.log(`      scenario object on the conditions: ${sShipped.some(r => r.start.scenario) ? 'PRESENT at some seed' : 'absent at every seed'}; cavity ${each(r => r.start.diameter.toFixed(0))} mm; SiO2 ${each(r => r.start.SiO2.toFixed(0))} (the scenario's own: ${own.fluid.SiO2.toFixed(0)})`);
+  console.log(`      sigma on the bulk fluid when the constructor returns: feldspar ${each(r => r.start.feldspar.toFixed(1))}, albite ${each(r => r.start.albite.toFixed(1))} (the scenario's own at its start: ${own.supersaturation_feldspar().toFixed(1)}, ${own.supersaturation_albite().toFixed(1)})`);
   report('shipped', sShipped);
   report('rate clamp at 7', sClamp);
 }
 
-// Zen mode goes last: idleCreateSim registers each simulator it builds as the visible one, and
-// nothing in this probe runs after it but the repeat that checks it leaves no state behind.
-console.log('\n  Zen mode: idleCreateSim (js/98a-ui-zen.ts), called itself with the clock held at the seed; then run_step alone for as many steps as the scenario runs. Zen\'s own drift is not applied.');
-let firstZen = null, firstZenMake = null;
-for (const name of ['gem_pegmatite', 'radioactive_pegmatite', 'shigar_pegmatite']) {
+// Zen mode goes last, at Zen's own time scale.
+console.log(`\n  Zen mode: idleCreateSim('gem_pegmatite') itself (js/98a-ui-zen.ts), the clock held at the seed, at Zen's time scale of 1; ${ZEN_STEPS} steps of run_step alone. Zen's own drift is not reproduced.`);
+setSimulationTimeScale(1);
+try {
   setSeed(42);
-  const own = SCENARIOS[name]();
+  const own = SCENARIOS.gem_pegmatite();
   const zen = (seed) => {
     const clock = Date.now;
     Date.now = () => seed;                       // idleCreateSim seeds from the clock
-    try { return { sim: idleCreateSim(name), defaultSteps: own.defaultSteps }; } finally { Date.now = clock; }
+    try { return { sim: idleCreateSim('gem_pegmatite'), defaultSteps: ZEN_STEPS }; } finally { Date.now = clock; }
   };
   const zShipped = OTHER_SEEDS.map(seed => run(seed, zen));
   const zClamp = OTHER_SEEDS.map(seed => run(seed, zen, { clamp: 7 }));
-  if (!firstZen) { firstZen = zShipped[0]; firstZenMake = zen; }
   const each = (f) => zShipped.map(f).join(' / ');
-  console.log(`    ${name}, ${own.defaultSteps} steps`);
+  console.log(`      time scale during these runs: ${getSimulationTimeScale()}`);
   console.log(`      scenario object on the conditions: ${zShipped.some(r => r.start.scenario) ? 'PRESENT at some seed' : 'absent at every seed'} (on the scenario's own conditions: ${own.conditions._scenario != null ? 'present' : 'absent'}); events ${each(r => r.start.events)} (the scenario's own: ${own.events.length})`);
   console.log(`      sigma on the bulk fluid at the start: feldspar ${each(r => r.start.feldspar.toFixed(0))}, albite ${each(r => r.start.albite.toFixed(0))} (the scenario's own: ${own.conditions.supersaturation_feldspar().toFixed(0)}, ${own.conditions.supersaturation_albite().toFixed(0)})`);
-  report('shipped', zShipped);
-  report('rate clamp at 7', zClamp);
+  report('shipped', zShipped, 230);
+  report('rate clamp at 7', zClamp, 230);
   // Without the scenario object the run has none of the scenario's license or exclusions
   // (js/85j-movements.ts, _scenarioPositiveLicenseBlock and _scenarioSpeciesExclusion).
   const s = own.conditions._scenario || {};
@@ -256,5 +295,8 @@ for (const name of ['gem_pegmatite', 'radioactive_pegmatite', 'shigar_pegmatite'
   const excluded = new Set(Object.keys(s.excluded_species || {}));
   console.log(`      minerals on record, shipped, that the scenario does not license: ${zShipped.map(r => r.records.filter(m => !licensed.has(m))
     .map(m => `${m}${excluded.has(m) ? ' (excluded by the scenario)' : ''}`).join(', ') || 'none').join(' / ')}`);
+  console.log(`      control: the first Zen run, made again after the other five, ${JSON.stringify(run(OTHER_SEEDS[0], zen).summary) === JSON.stringify(zShipped[0].summary) ? 'is the same run' : 'IS A DIFFERENT RUN'}`);
+} finally {
+  setSimulationTimeScale(5);
 }
-console.log(`    control: the first Zen run, made again after the other seventeen, ${JSON.stringify(run(OTHER_SEEDS[0], firstZenMake).summary) === JSON.stringify(firstZen.summary) ? 'is the same run' : 'IS A DIFFERENT RUN'}`);
+console.log(`\ncontrols after Part 3: the time scale reads ${getSimulationTimeScale()}; gem_pegmatite's shipped run at seed 42 ${JSON.stringify(run(42, gem).summary) === JSON.stringify(BASELINE.gem_pegmatite) ? 'still reproduces the baseline' : 'NO LONGER REPRODUCES THE BASELINE'}`);

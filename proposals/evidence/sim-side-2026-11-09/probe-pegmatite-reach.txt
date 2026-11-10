@@ -82,39 +82,34 @@ PART 2 — Random Vugg, archetype pegmatite, size class pocket, seeds 42 / 1 / 2
     topaz, mm                      — / 0.17 / — / — / — / — / — / 2.7
     reaches fill >= 0.999 at 0 of 8 seeds; passes 0.7 at 1
 
-PART 3 — the other places the game builds a pegmatite's fluid, seeds 42 / 1 / 2
+PART 3 — three other ways the game starts a run on a pegmatite's fluid, seeds 42 / 1 / 2
+  time scale at load, which every run above uses: 5; after the game's own switchMode into each mode: Simulation 5, Creative 5, Random Vugg 5, Zen 1
 
-  Creative mode, starter fluid "Radioactive Pegmatite": conditions built as fortressBeginFromStarterFluid builds them (js/94-ui-menu.ts); 120 steps of run_step alone
-      scenario object on the conditions: absent at every seed; temperature 200 / 200 / 200 °C (the scenario's own: 600); SiO2 12000 / 12000 / 12000 (the scenario's own: 12000)
-      sigma on the bulk fluid at the start: feldspar 61.6 / 61.6 / 61.6, albite 44.0 / 44.0 / 44.0 (the scenario's own: 167.5, 119.6)
+  A scenario opened in Creative mode: fortressBeginFromScenario('gem_pegmatite', seed) itself (js/94-ui-menu.ts); 230 steps of run_step alone
+      scenario object on the conditions: present at every seed; a carbonate boundary on the simulator: at every seed (the scenario's own run, Part 1: has none)
+      the seed-42 run is not the baseline's run
+      shipped          largest fill of the run 100 / 100 / 100 %; first step at fill >= 0.7 6 / 7 / 7; at >= 0.999 9 / 10 / 10; last step anything grew 9 / 10 / 10
+                       feldspar 31.7 / 33.4 / 36.8 mm; albite 24.6 / 24.2 / 29.6; quartz 1.7 / 1.5 / 1.6; tourmaline 0.29 / 0.37 / 0.39; topaz — / — / —
+      rate clamp at 7  largest fill of the run 42 / 42 / 41 %; first step at fill >= 0.7 — / — / —; at >= 0.999 — / — / —; last step anything grew 230 / 230 / 230
+                       feldspar 24.2 / 24.1 / 24.8 mm; albite 32.5 / 32.3 / 32.6; quartz 37.1 / 37.4 / 37.7; tourmaline 12.0 / 11.9 / 12.0; topaz 2.5 / 2.5 / 2.5
+
+  Creative mode, starter fluid "Radioactive Pegmatite": fortressBeginFromStarterFluid('radioactive', seed) itself (js/94-ui-menu.ts); 120 steps of run_step alone
+      scenario object on the conditions: absent at every seed; cavity 52 / 50 / 52 mm; SiO2 12000 / 12000 / 12000 (the scenario's own: 12000)
+      sigma on the bulk fluid when the constructor returns: feldspar 61.6 / 61.6 / 61.6, albite 44.0 / 44.0 / 44.0 (the scenario's own at its start: 167.5, 119.6)
       shipped          largest fill of the run 67 / 82 / 69 %; first step at fill >= 0.7 — / 113 / —; at >= 0.999 — / — / —; last step anything grew 120 / 120 / 120
                        feldspar 59.0 / 58.9 / 55.6 mm; albite 56.8 / 54.6 / 56.4; quartz — / — / —; tourmaline — / — / —; topaz — / — / —
       rate clamp at 7  largest fill of the run 2 / 3 / 3 %; first step at fill >= 0.7 — / — / —; at >= 0.999 — / — / —; last step anything grew 120 / 120 / 120
                        feldspar 12.4 / 12.9 / 12.1 mm; albite 16.8 / 17.0 / 16.9; quartz — / — / —; tourmaline — / — / —; topaz — / — / —
 
-  Zen mode: idleCreateSim (js/98a-ui-zen.ts), called itself with the clock held at the seed; then run_step alone for as many steps as the scenario runs. Zen's own drift is not applied.
-    gem_pegmatite, 230 steps
+  Zen mode: idleCreateSim('gem_pegmatite') itself (js/98a-ui-zen.ts), the clock held at the seed, at Zen's time scale of 1; 400 steps of run_step alone. Zen's own drift is not reproduced.
+      time scale during these runs: 1
       scenario object on the conditions: absent at every seed (on the scenario's own conditions: present); events 0 / 0 / 0 (the scenario's own: 8)
       sigma on the bulk fluid at the start: feldspar 552 / 552 / 552, albite 315 / 315 / 315 (the scenario's own: 552, 315)
-      shipped          largest fill of the run 100 / 100 / 100 %; first step at fill >= 0.7 6 / 7 / 7; at >= 0.999 9 / 10 / 10; last step anything grew 9 / 10 / 10
-                       feldspar 31.9 / 32.9 / 35.3 mm; albite 24.7 / 25.2 / 27.9; quartz 1.5 / 1.5 / 1.9; tourmaline 0.30 / 0.33 / 0.34; topaz — / — / —
-      rate clamp at 7  largest fill of the run 100 / 37 / 100 %; first step at fill >= 0.7 146 / — / 115; at >= 0.999 202 / — / 153; last step anything grew 203 / 230 / 154
-                       feldspar 16.8 / 24.3 / 13.2 mm; albite 22.9 / 31.9 / 17.4; quartz 29.0 / 36.1 / 25.0; tourmaline 11.5 / 14.0 / 8.7; topaz 0.26 / 2.2 / 0.01
-      minerals on record, shipped, that the scenario does not license: emerald (excluded by the scenario) / emerald (excluded by the scenario) / emerald (excluded by the scenario)
-    radioactive_pegmatite, 120 steps
-      scenario object on the conditions: absent at every seed (on the scenario's own conditions: present); events 0 / 0 / 0 (the scenario's own: 4)
-      sigma on the bulk fluid at the start: feldspar 167 / 167 / 167, albite 120 / 120 / 120 (the scenario's own: 167, 120)
-      shipped          largest fill of the run 100 / 100 / 100 %; first step at fill >= 0.7 24 / 22 / 24; at >= 0.999 35 / 31 / 35; last step anything grew 35 / 31 / 35
-                       feldspar 31.1 / 31.0 / 29.9 mm; albite 36.6 / 27.7 / 36.2; quartz 9.3 / 8.1 / 8.9; tourmaline 1.6 / 1.4 / 1.1; topaz — / — / —
-      rate clamp at 7  largest fill of the run 84 / 57 / 94 %; first step at fill >= 0.7 111 / — / 99; at >= 0.999 — / — / —; last step anything grew 120 / 120 / 120
-                       feldspar 12.5 / 12.9 / 11.4 mm; albite 16.4 / 16.8 / 15.0; quartz 34.7 / 35.0 / 33.6; tourmaline 6.9 / 6.9 / 5.9; topaz 0.29 / 0.34 / 0.13
-      minerals on record, shipped, that the scenario does not license: none / none / none
-    shigar_pegmatite, 70 steps
-      scenario object on the conditions: absent at every seed (on the scenario's own conditions: present); events 0 / 0 / 0 (the scenario's own: 7)
-      sigma on the bulk fluid at the start: feldspar 557 / 557 / 557, albite 318 / 318 / 318 (the scenario's own: 557, 318)
-      shipped          largest fill of the run 100 / 100 / 100 %; first step at fill >= 0.7 38 / 38 / 38; at >= 0.999 52 / 53 / 52; last step anything grew 52 / 53 / 52
-                       feldspar 137.8 / 136.5 / 137.7 mm; albite 114.8 / 107.4 / 116.7; quartz 8.5 / 8.6 / 8.3; tourmaline — / — / —; topaz — / — / —
-      rate clamp at 7  largest fill of the run 0 / 0 / 0 %; first step at fill >= 0.7 — / — / —; at >= 0.999 — / — / —; last step anything grew 70 / 70 / 70
-                       feldspar 7.3 / 7.3 / 7.3 mm; albite 9.8 / 9.8 / 9.9; quartz 14.7 / 14.3 / 14.2; tourmaline — / — / —; topaz — / — / —
-      minerals on record, shipped, that the scenario does not license: none / none / none
-    control: the first Zen run, made again after the other seventeen, is the same run
+      shipped          largest fill of the run 100 / 100 / 100 %, fill at step 230 100 / 100 / 100 %; first step at fill >= 0.7 22 / 23 / 23; at >= 0.999 31 / 33 / 33; last step anything grew 31 / 34 / 33
+                       feldspar 31.0 / 32.0 / 32.1 mm; albite 24.7 / 24.4 / 25.9; quartz 1.0 / 1.1 / 1.2; tourmaline 0.25 / 0.29 / 0.27; topaz — / — / —
+      rate clamp at 7  largest fill of the run 19 / 11 / 26 %, fill at step 230 8 / 4 / 13 %; first step at fill >= 0.7 — / — / —; at >= 0.999 — / — / —; last step anything grew 400 / 400 / 400
+                       feldspar 8.5 / 8.3 / 8.5 mm; albite 11.1 / 11.2 / 11.1; quartz 25.3 / 25.4 / 25.8; tourmaline 2.8 / 2.8 / 2.8; topaz 0.44 / 0.45 / 0.41
+      minerals on record, shipped, that the scenario does not license: emerald (excluded by the scenario), opal / emerald (excluded by the scenario), opal / emerald (excluded by the scenario), opal
+      control: the first Zen run, made again after the other five, is the same run
+
+controls after Part 3: the time scale reads 5; gem_pegmatite's shipped run at seed 42 still reproduces the baseline
