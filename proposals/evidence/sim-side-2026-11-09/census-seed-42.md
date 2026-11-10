@@ -56,7 +56,8 @@
 | at or above saturation on its cell, nothing proposed | 27 (2.4 %) | 4 (0.7 %) |
 | a zone proposed and not stored | 2 (0.2 %) | 1 (0.2 %) |
 | enclosed | 213 (18.7 %) | 8 (1.4 %) |
-| dissolving | 61 (5.3 %) | 41 (7.2 %) |
+| dissolving | 57 (5.0 %) | 37 (6.5 %) |
+| dissolving while the bulk handle reads at or above saturation | 4 (0.4 %) | 4 (0.7 %) |
 | size cap | 17 (1.5 %) | 17 (3.0 %) |
 | never grew | 42 (3.7 %) | 0 (0.0 %) |
 | no sigma method | 6 (0.5 %) | 6 (1.1 %) |

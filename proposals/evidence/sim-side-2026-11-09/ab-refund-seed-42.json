@@ -15,12 +15,27 @@
   "neutral": {
    "rind=Infinity": true,
    "cap=Infinity": true,
+   "rclamp=Infinity": true,
    "root=1": true,
    "mul=Ca:1": true,
    "refund=0": true,
    "fcap=Infinity": true
   },
-  "shippedReproducesBaseline": true
+  "shippedReproducesBaseline": true,
+  "refundAudit": {
+   "scenario": "tutorial_travertine",
+   "shipped": {
+    "eventRefusals": 0,
+    "failedCarbonateTransactions": 0,
+    "ledgerViolations": 0
+   },
+   "refund1": {
+    "eventRefusals": 0,
+    "failedCarbonateTransactions": 0,
+    "ledgerViolations": 0
+   },
+   "ok": true
+  }
  },
  "runs": [
   {
@@ -45,6 +60,13 @@
     },
     "bulkPb": 0,
     "voxPb": 0,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -66,6 +88,14 @@
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 2,
      "gained": [],
@@ -131,6 +161,13 @@
     },
     "bulkPb": 0,
     "voxPb": 0,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -187,6 +224,14 @@
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 9,
      "gained": [],
@@ -259,6 +304,13 @@
     },
     "bulkPb": 0,
     "voxPb": 0,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -320,6 +372,14 @@
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 10,
      "gained": [],
@@ -497,6 +557,13 @@
     },
     "bulkPb": 15,
     "voxPb": 14.99931785982665,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 41,
     "trace": null
    },
    "B": {
@@ -658,6 +725,14 @@
      },
      "bulkPb": 15,
      "voxPb": 15,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 27,
      "trace": null,
      "speciesCount": 31,
      "gained": [],
@@ -719,6 +794,13 @@
     },
     "bulkPb": 0,
     "voxPb": 0,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -745,6 +827,14 @@
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 3,
      "gained": [],
@@ -787,6 +877,13 @@
     },
     "bulkPb": 0,
     "voxPb": 0,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -818,6 +915,14 @@
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 4,
      "gained": [],
@@ -845,6 +950,13 @@
     },
     "bulkPb": 0,
     "voxPb": 0,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -861,6 +973,14 @@
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 1,
      "gained": [],
@@ -951,6 +1071,13 @@
     },
     "bulkPb": 0,
     "voxPb": 0,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -1032,6 +1159,14 @@
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 14,
      "gained": [],
@@ -1085,6 +1220,13 @@
     },
     "bulkPb": 15,
     "voxPb": 15,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -1126,6 +1268,14 @@
      },
      "bulkPb": 15,
      "voxPb": 15,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 6,
      "gained": [],
@@ -1191,6 +1341,13 @@
     },
     "bulkPb": 5,
     "voxPb": 5,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -1247,6 +1404,14 @@
      },
      "bulkPb": 5,
      "voxPb": 5,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 9,
      "gained": [],
@@ -1304,6 +1469,13 @@
     },
     "bulkPb": 0,
     "voxPb": 0,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -1350,6 +1522,14 @@
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 7,
      "gained": [],
@@ -1386,6 +1566,13 @@
     },
     "bulkPb": 0,
     "voxPb": 0,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -1407,6 +1594,14 @@
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 2,
      "gained": [],
@@ -1477,6 +1672,13 @@
     },
     "bulkPb": 0,
     "voxPb": 0,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -1538,6 +1740,14 @@
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 10,
      "gained": [],
@@ -1627,6 +1837,13 @@
     },
     "bulkPb": 0,
     "voxPb": 0,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -1703,6 +1920,14 @@
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 13,
      "gained": [],
@@ -1722,6 +1947,13 @@
     "species": {},
     "bulkPb": 0,
     "voxPb": 0,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -1732,6 +1964,14 @@
      "species": {},
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 0,
      "gained": [],
@@ -1797,6 +2037,13 @@
     },
     "bulkPb": 65,
     "voxPb": 64.97511263631812,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -1853,6 +2100,14 @@
      },
      "bulkPb": 65,
      "voxPb": 65,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 9,
      "gained": [],
@@ -1886,6 +2141,13 @@
     },
     "bulkPb": 5,
     "voxPb": 5,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -1907,6 +2169,14 @@
      },
      "bulkPb": 5,
      "voxPb": 5,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 2,
      "gained": [],
@@ -1947,6 +2217,13 @@
     },
     "bulkPb": 0,
     "voxPb": 0,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -1978,6 +2255,14 @@
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 4,
      "gained": [],
@@ -2095,6 +2380,13 @@
     },
     "bulkPb": 55,
     "voxPb": 54.93019061700577,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -2201,6 +2493,14 @@
      },
      "bulkPb": 55,
      "voxPb": 55,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 19,
      "gained": [],
@@ -2242,6 +2542,13 @@
     },
     "bulkPb": 0,
     "voxPb": 0,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -2268,6 +2575,14 @@
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 3,
      "gained": [],
@@ -2350,6 +2665,13 @@
     },
     "bulkPb": 146.75794143026854,
     "voxPb": 30,
+    "uraniniteNegativeZones": 3,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -2416,6 +2738,14 @@
      },
      "bulkPb": 82.189790543435,
      "voxPb": 30,
+     "uraniniteNegativeZones": 43,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 12,
      "gained": [],
@@ -2503,6 +2833,13 @@
     },
     "bulkPb": 0,
     "voxPb": 0,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -2569,6 +2906,14 @@
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 11,
      "gained": [],
@@ -2617,6 +2962,13 @@
     },
     "bulkPb": 30,
     "voxPb": 29.991601109510004,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 46,
     "trace": null
    },
    "B": {
@@ -2653,6 +3005,14 @@
      },
      "bulkPb": 30,
      "voxPb": 30,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 46,
      "trace": null,
      "speciesCount": 5,
      "gained": [],
@@ -2790,6 +3150,13 @@
     },
     "bulkPb": 95,
     "voxPb": 94.58610248561239,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -2911,6 +3278,14 @@
      },
      "bulkPb": 95,
      "voxPb": 95,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 23,
      "gained": [],
@@ -2986,6 +3361,13 @@
     },
     "bulkPb": 0,
     "voxPb": 0,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -3027,6 +3409,14 @@
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 6,
      "gained": [],
@@ -3201,6 +3591,13 @@
     },
     "bulkPb": 178.96037458802138,
     "voxPb": 5,
+    "uraniniteNegativeZones": 79,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -3362,6 +3759,14 @@
      },
      "bulkPb": 134.04352314658522,
      "voxPb": 5,
+     "uraniniteNegativeZones": 9,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 30,
      "gained": [],
@@ -3426,6 +3831,13 @@
     },
     "bulkPb": 0,
     "voxPb": 0,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -3472,6 +3884,14 @@
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 7,
      "gained": [],
@@ -3517,6 +3937,13 @@
     },
     "bulkPb": 0,
     "voxPb": 0,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 1,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -3548,6 +3975,14 @@
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 1,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 5,
      "gained": [],
@@ -3600,6 +4035,13 @@
     },
     "bulkPb": 0,
     "voxPb": 0,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -3636,6 +4078,14 @@
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 5,
      "gained": [],
@@ -3661,6 +4111,13 @@
     },
     "bulkPb": 0,
     "voxPb": 0,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -3677,6 +4134,14 @@
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 1,
      "gained": [],
@@ -3732,6 +4197,13 @@
     },
     "bulkPb": 2,
     "voxPb": 2,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -3778,6 +4250,14 @@
      },
      "bulkPb": 2,
      "voxPb": 2,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 7,
      "gained": [],
@@ -3882,6 +4362,13 @@
     },
     "bulkPb": 80,
     "voxPb": 79.92684970599332,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -3973,6 +4460,14 @@
      },
      "bulkPb": 80,
      "voxPb": 80,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 16,
      "gained": [],
@@ -4152,6 +4647,13 @@
     },
     "bulkPb": 100,
     "voxPb": 99.55570202355862,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 30,
     "trace": null
    },
    "B": {
@@ -4313,6 +4815,14 @@
      },
      "bulkPb": 100,
      "voxPb": 100,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 30,
      "gained": [],
@@ -4358,6 +4868,13 @@
     },
     "bulkPb": 5,
     "voxPb": 5,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 1,
     "trace": null
    },
    "B": {
@@ -4379,6 +4896,14 @@
      },
      "bulkPb": 5,
      "voxPb": 5,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 1,
      "trace": null,
      "speciesCount": 2,
      "gained": [],
@@ -4429,6 +4954,13 @@
     },
     "bulkPb": 0,
     "voxPb": 0,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -4470,6 +5002,14 @@
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 6,
      "gained": [],
@@ -4499,6 +5039,13 @@
     },
     "bulkPb": 0,
     "voxPb": 0,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -4515,6 +5062,14 @@
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 1,
      "gained": [],
@@ -4555,6 +5110,13 @@
     },
     "bulkPb": 0,
     "voxPb": 0,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -4586,6 +5148,14 @@
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 4,
      "gained": [],
@@ -4616,34 +5186,47 @@
     },
     "bulkPb": 0,
     "voxPb": 0,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
     "refund=1": {
-     "fill": 0.000015284414049144622,
+     "fill": 0.000038247603783225716,
      "full": null,
      "lastGrowth": 60,
      "species": {
       "calcite": {
        "n": 1,
-       "max_um": 1292.8932733758818,
+       "max_um": 1427.2727206827833,
        "last": 60
       },
       "aragonite": {
        "n": 1,
-       "max_um": 1756.0581764130573,
+       "max_um": 2527.584561126318,
        "last": 60
       }
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 2,
      "gained": [],
      "lost": [],
-     "moved": [
-      "aragonite"
-     ]
+     "moved": []
     }
    }
   },
@@ -4679,6 +5262,13 @@
     },
     "bulkPb": 0,
     "voxPb": 0,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -4710,6 +5300,14 @@
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 4,
      "gained": [],
@@ -4797,6 +5395,13 @@
     },
     "bulkPb": 0,
     "voxPb": 0,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -4873,6 +5478,14 @@
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 13,
      "gained": [],
@@ -4912,6 +5525,13 @@
     },
     "bulkPb": 0,
     "voxPb": 0,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
@@ -4938,6 +5558,14 @@
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 3,
      "gained": [],
@@ -4946,5 +5574,6 @@
     }
    }
   }
- ]
+ ],
+ "auditMoved": []
 }

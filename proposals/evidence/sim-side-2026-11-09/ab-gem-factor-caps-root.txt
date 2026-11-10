@@ -1,5 +1,5 @@
 sim-side A/B — SIM 286; arms fcap=2 | root=3; minerals feldspar, albite; seeds 42, 1, 2
-self-check on schneeberg, seed 42: shipped arm reproduces the baseline; neutral knobs — rind=Infinity ok; cap=Infinity ok; root=1 ok; mul=Ca:1 ok; refund=0 ok; fcap=Infinity ok
+self-check on schneeberg, seed 42: shipped arm reproduces the baseline; neutral knobs — rind=Infinity ok; cap=Infinity ok; rclamp=Infinity ok; root=1 ok; mul=Ca:1 ok; refund=0 ok; fcap=Infinity ok
 
 ### gem_pegmatite — 230 steps — events: 5 Outer Shell | 30 Schorl Arrives | 60 Albitization | 90 Be Saturation | 130 Li Phase | 160 Late Hydrothermal | 190 Clay Softening | 215 Final Cooling
 seed 42 (shipped arm reproduces the baseline)
@@ -29,3 +29,5 @@ seed 2
   B root=3         fill  37.2 %  full at step   —  last growth at step 230
       quartz ×3 @ 37.3 (→230), albite ×2 @ 33.2 (→230), feldspar ×2 @ 21.7 (→230), tourmaline ×8 @ 12.0 (→197), spodumene ×4 @ 5.1 (→159), lepidolite ×4 @ 3.4 (→159), topaz ×6 @ 2.5 (→215), cassiterite ×5 @ 1.4 (→230)
       against A: 8 species; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none
+
+audits: every arm run reads the simulator's audits as the shipped arm does

@@ -11,14 +11,17 @@
  * The mutants are text replacements. A replacement whose text is not found exactly once stops the
  * tool: when the census source changes, the mutant has to be re-pointed by hand, and the tool says
  * which one. The report names the sha256 of the census source it broke, which is the sha256 the
- * census prints in its own reports.
+ * census prints in its own reports. The controls the census declares are read from its source, and
+ * the report lists any that no mutant aims at.
  *
- * PASSIVE: exits 0 whatever it finds; imports only node builtins; writes only under
- * .local-evidence/sim-side-census-mutations/ (the broken copies live there too, with ROOT spelled
- * out, and are removed in a finally block). Nothing under tools/, js/, data/ or dist/ is written.
+ * PASSIVE: it reports and exits 0 whatever the controls do; it throws only on a bad argument, on a
+ * mutant that no longer matches the census, or if the census changes while it runs. It imports only
+ * node builtins and writes only under .local-evidence/sim-side-census-mutations/ (the broken copies
+ * live there too, with ROOT spelled out, and are removed in a finally block). Nothing under tools/,
+ * js/, data/ or dist/ is written.
  *
  * Usage:
- *   node tools/sim-side-census-mutations.mjs        # seed 42; about 20 min
+ *   node tools/sim-side-census-mutations.mjs        # seed 42; about 25 min
  */
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -89,6 +92,54 @@ const MUTANTS = [
   { id: 'license-always-refuses', control: ['count', 'negative'], scenarios: ['mvt'],
     what: 'every species is read as not licensed',
     from: 'else if (_scenarioPositiveLicenseBlock(sim, m)) r.unlicensed++;', to: 'else if (true) r.unlicensed++;' },
+  { id: 'exclusion-not-asked', control: ['count-excluded', 'positive'], scenarios: ['great_salt_plains'],
+    what: "the scenario's exclusion list is not asked",
+    from: 'if (_scenarioSpeciesExclusion(sim, m)) r.excluded++;', to: 'if (false) r.excluded++;' },
+  { id: 'window-not-asked', control: ['count-window', 'positive'], scenarios: ['porphyry'],
+    what: "the scenario's nucleation windows are not asked",
+    from: 'else if (_scenarioNucleationWindowBlock(sim, m)) r.window++;', to: '' },
+  { id: 'cap-never-binding', control: ['count-cap', 'positive'], scenarios: ['tormiq_alpine_cleft'],
+    what: 'the count cap is never tested',
+    from: 'else if (cap != null && (exposed[m] || 0) >= cap) r.cap++;', to: '' },
+  { id: 'gate-never-binding', control: ['count-gate', 'positive'], scenarios: ['cooling'],
+    what: "the function's own count gate is never tested",
+    from: 'else if (activeBinding || everBinding) {', to: 'else if (false) {' },
+  { id: 'side-door-never-read', control: ['count-gate', 'positive'], scenarios: ['cooling'],
+    what: 'a gate is never read as keeping a side door',
+    from: 'const door = !everBinding && g.actN === 1 && g.sideDoor;', to: 'const door = false;' },
+  { id: 'envelope-not-put-up', control: ['count-envelope', 'positive'], scenarios: ['zoned_dripstone_cave'],
+    what: 'the localized-nucleation envelope is not put up for the reading',
+    from: 'const takeDown = this._installLocalizedNucleationEnvelope();', to: 'const takeDown = null;' },
+  { id: 'envelope-read-as-bulk', control: ['count-envelope', 'positive'], scenarios: ['zoned_dripstone_cave'],
+    what: 'the envelope is put up and the bulk handle is read all the same',
+    from: 'const s = enveloped ? sigmaOf(m) : onBulk;', to: 'const s = onBulk;' },
+  { id: 'envelope-always-claimed', control: ['count-envelope', 'negative'], scenarios: ['mvt'],
+    what: 'every pass is counted as running under an envelope',
+    from: 'if (takeDown) envelopePasses++;', to: 'envelopePasses++;' },
+  { id: 'strangle-verdict-ignored', control: ['strangled', 'positive'], scenarios: ['radioactive_pegmatite'],
+    what: 'a refusal by _wallStrangledFor is never counted',
+    from: 'o.blocked++;', to: '' },
+  { id: 'strangle-ingredients-not-tried', control: ['strangled', 'positive'], scenarios: ['radioactive_pegmatite'],
+    what: "the attribution of a refusal never tries the mineral's ingredients",
+    from: 'if (keys.length && sigmaWith(mineral, restored(best.fluid, bulk, keys), best.temperature) > crit) {', to: 'if (false) {' },
+  { id: 'every-call-a-refusal', control: ['strangled', 'negative'], scenarios: ['mvt'],
+    what: 'every call of _wallStrangledFor is counted as a refusal',
+    from: 'if (verdict) {', to: 'if (true) {' },
+  { id: 'enclosure-never-read', control: ['enclosed', 'positive'], scenarios: ['mvt'],
+    what: 'the END reading never tests enclosure',
+    from: "if (c.enclosed_by != null || currentEnclosureAuthority(sim, c)) return { why: 'enclosed' };", to: '' },
+  { id: 'encloser-not-named', control: ['enclosed', 'positive'], scenarios: ['mvt'],
+    what: 'the mineral that enclosed a crystal is never looked up',
+    from: "enclosedBy: c.enclosed_by != null ? (byId.get(c.enclosed_by)?.mineral ?? '?') : null,", to: 'enclosedBy: null,' },
+  { id: 'vadose-read-late', control: ['vadose', 'positive'], scenarios: ['schneeberg'],
+    what: "the bulk handle's O2 \"before\" the vadose override is read after it",
+    from: 'bulkO2: [o2, Number(b.O2)],', to: 'bulkO2: [Number(b.O2), Number(b.O2)],' },
+  { id: 'vadose-every-call', control: ['vadose', 'negative'], scenarios: ['mvt'],
+    what: 'every call of the vadose override is recorded as a drying',
+    from: 'if (Array.isArray(rings) && rings.length) {', to: 'if (true) {' },
+  { id: 'other-field-not-set', control: ['draw-down-other', 'positive'], scenarios: ['schneeberg'],
+    what: "the search for one further field never sets that field to the bulk handle's value",
+    from: "for (const g of group) if (typeof bulk[g] === 'number' && typeof h[g] === 'number') h[g] = bulk[g];", to: '' },
 ];
 
 if (process.argv.slice(2).some(a => a === '--help' || a === '-h')) {
@@ -104,6 +155,14 @@ if (occurrences(ROOT_LINE) !== 1) throw new Error('the census no longer derives 
 for (const m of MUTANTS) {
   const n = occurrences(m.from);
   if (n !== 1) throw new Error(`mutant ${m.id}: the line to break occurs ${n} times in tools/sim-side-census.mjs — re-point it`);
+}
+// Every control the census declares, read from its source: a control no mutant aims at has never
+// been seen to fail, and is reported as such.
+const DECLARED = [...SRC.matchAll(/\{ id: '([a-z+-]+)', kind: '(positive|negative)', needs:/g)].map(x => `${x[2]} ${x[1]}`);
+const AIMED = new Set(MUTANTS.map(m => `${m.control[1]} ${m.control[0]}`));
+const UNGUARDED = DECLARED.filter(c => !AIMED.has(c));
+for (const m of MUTANTS) {
+  if (!DECLARED.includes(`${m.control[1]} ${m.control[0]}`)) throw new Error(`mutant ${m.id} aims at a control the census does not declare: ${m.control.join(' ')}`);
 }
 
 const T = [];
@@ -143,9 +202,11 @@ try {
 } finally {
   for (const f of made) fs.rmSync(f, { force: true });
 }
-const ok = results.length === MUTANTS.length && results.every(r => r.committed === 'PASS' && r.mutant_verdict === 'FAIL');
-say(ok ? `\nall ${MUTANTS.length} mutants: the control passes on the census as committed and fails on the mutant`
+const behaved = results.length === MUTANTS.length && results.every(r => r.committed === 'PASS' && r.mutant_verdict === 'FAIL');
+const ok = behaved && UNGUARDED.length === 0;
+say(behaved ? `\nall ${MUTANTS.length} mutants: the control passes on the census as committed and fails on the mutant`
   : '\nNOT every control behaved as expected: see the table');
+say(`controls the census declares: ${DECLARED.length}; with no mutant aimed at them: ${UNGUARDED.length ? UNGUARDED.join(', ') : 'none'}`);
 fs.writeFileSync(path.join(OUT, 'report.txt'), T.join('\n') + '\n');
-fs.writeFileSync(path.join(OUT, 'report.json'), JSON.stringify({ seed: 42, census_sha256: SRC_SHA256, ok, results }, null, 1) + '\n');
+fs.writeFileSync(path.join(OUT, 'report.json'), JSON.stringify({ seed: 42, census_sha256: SRC_SHA256, ok, controlsDeclared: DECLARED.length, controlsWithNoMutant: UNGUARDED, results }, null, 1) + '\n');
 console.log(`\nwrote ${path.relative(ROOT, OUT).replaceAll('\\', '/')}/report.{txt,json}`);

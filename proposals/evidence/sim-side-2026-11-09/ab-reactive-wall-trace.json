@@ -16,6 +16,7 @@
   "neutral": {
    "rind=Infinity": true,
    "cap=Infinity": true,
+   "rclamp=Infinity": true,
    "root=1": true,
    "mul=Ca:1": true,
    "refund=0": true
@@ -60,11 +61,18 @@
     },
     "bulkPb": 30,
     "voxPb": 29.991601109510004,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 46,
     "trace": {
      "mineral": "galena",
      "steps": 81,
-     "sigmaBulkMedian": 1.1189169378545387,
-     "sigmaCellMedian": 1.003797354897823
+     "sigmaBulkMedian": 1.1213067989273402,
+     "sigmaCellMedian": 1.0050779869158701
     }
    },
    "B": {
@@ -101,11 +109,19 @@
      },
      "bulkPb": 30,
      "voxPb": 29.998397686862724,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 46,
      "trace": {
       "mineral": "galena",
       "steps": 81,
-      "sigmaBulkMedian": 1.1189169093404558,
-      "sigmaCellMedian": 1.0939725169688486
+      "sigmaBulkMedian": 1.1213067703523547,
+      "sigmaCellMedian": 1.0982937337401335
      },
      "speciesCount": 5,
      "gained": [],
@@ -153,11 +169,18 @@
     },
     "bulkPb": 30,
     "voxPb": 29.99767759495329,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 45,
     "trace": {
      "mineral": "galena",
      "steps": 81,
-     "sigmaBulkMedian": 1.1189053035206953,
-     "sigmaCellMedian": 1.0797311373827692
+     "sigmaBulkMedian": 1.1205258535071463,
+     "sigmaCellMedian": 1.0852298898830444
     }
    },
    "B": {
@@ -194,11 +217,19 @@
      },
      "bulkPb": 30,
      "voxPb": 29.998355153032378,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 45,
      "trace": {
       "mineral": "galena",
       "steps": 81,
-      "sigmaBulkMedian": 1.1189054819166337,
-      "sigmaCellMedian": 1.1114501132190473
+      "sigmaBulkMedian": 1.1205260321614607,
+      "sigmaCellMedian": 1.1149336237849892
      },
      "speciesCount": 5,
      "gained": [],
@@ -247,11 +278,18 @@
     },
     "bulkPb": 30,
     "voxPb": 29.997548298716275,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 45,
     "trace": {
      "mineral": "galena",
      "steps": 81,
-     "sigmaBulkMedian": 1.118905668465704,
-     "sigmaCellMedian": 1.0779436618730946
+     "sigmaBulkMedian": 1.122214226220393,
+     "sigmaCellMedian": 1.0846409092215135
     }
    },
    "B": {
@@ -288,11 +326,19 @@
      },
      "bulkPb": 30,
      "voxPb": 29.99841445468451,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 45,
      "trace": {
       "mineral": "galena",
       "steps": 81,
-      "sigmaBulkMedian": 1.1189057176646633,
-      "sigmaCellMedian": 1.1115203515321577
+      "sigmaBulkMedian": 1.1222142755648314,
+      "sigmaCellMedian": 1.1150780211237237
      },
      "speciesCount": 5,
      "gained": [],
@@ -303,5 +349,6 @@
     }
    }
   }
- ]
+ ],
+ "auditMoved": []
 }

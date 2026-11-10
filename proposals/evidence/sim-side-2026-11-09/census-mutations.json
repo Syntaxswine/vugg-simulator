@@ -1,7 +1,9 @@
 {
  "seed": 42,
- "census_sha256": "6b63cc216f64b6066a2f47aea30cc4144d79b0f29652e48ca626f1d4a8574897",
+ "census_sha256": "a1eca64df002f9fe14b401d4f67a8e6a72cb9e8379e1e418e83cba09675e7c0d",
  "ok": true,
+ "controlsDeclared": 26,
+ "controlsWithNoMutant": [],
  "results": [
   {
    "mutant": "log-read-once",
@@ -173,6 +175,150 @@
    "committedDetail": "101 steps past sigma_crit, 0 not licensed",
    "mutant_verdict": "FAIL",
    "mutantDetail": "101 steps past sigma_crit, 101 not licensed"
+  },
+  {
+   "mutant": "exclusion-not-asked",
+   "what": "the scenario's exclusion list is not asked",
+   "control": "count-excluded positive",
+   "committed": "PASS",
+   "committedDetail": "150 steps past sigma_crit, 150 excluded",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "150 steps past sigma_crit, 0 excluded"
+  },
+  {
+   "mutant": "window-not-asked",
+   "what": "the scenario's nucleation windows are not asked",
+   "control": "count-window positive",
+   "committed": "PASS",
+   "committedDetail": "60 steps past sigma_crit, 60 outside its window",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "60 steps past sigma_crit, 0 outside its window"
+  },
+  {
+   "mutant": "cap-never-binding",
+   "what": "the count cap is never tested",
+   "control": "count-cap positive",
+   "committed": "PASS",
+   "committedDetail": "200 steps past sigma_crit, 183 at the count cap",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "200 steps past sigma_crit, 0 at the count cap"
+  },
+  {
+   "mutant": "gate-never-binding",
+   "what": "the function's own count gate is never tested",
+   "control": "count-gate positive",
+   "committed": "PASS",
+   "committedDetail": "88 steps past sigma_crit, 87 at its own gate, 87 of them with a side door",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "88 steps past sigma_crit, 0 at its own gate, 0 of them with a side door"
+  },
+  {
+   "mutant": "side-door-never-read",
+   "what": "a gate is never read as keeping a side door",
+   "control": "count-gate positive",
+   "committed": "PASS",
+   "committedDetail": "88 steps past sigma_crit, 87 at its own gate, 87 of them with a side door",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "88 steps past sigma_crit, 87 at its own gate, 0 of them with a side door"
+  },
+  {
+   "mutant": "envelope-not-put-up",
+   "what": "the localized-nucleation envelope is not put up for the reading",
+   "control": "count-envelope positive",
+   "committed": "PASS",
+   "committedDetail": "150 of 150 passes under the envelope; aragonite past sigma_crit on the envelope only on 150 steps",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "0 of 150 passes under the envelope; aragonite past sigma_crit on the envelope only on 0 steps"
+  },
+  {
+   "mutant": "envelope-read-as-bulk",
+   "what": "the envelope is put up and the bulk handle is read all the same",
+   "control": "count-envelope positive",
+   "committed": "PASS",
+   "committedDetail": "150 of 150 passes under the envelope; aragonite past sigma_crit on the envelope only on 150 steps",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "150 of 150 passes under the envelope; aragonite past sigma_crit on the envelope only on 0 steps"
+  },
+  {
+   "mutant": "envelope-always-claimed",
+   "what": "every pass is counted as running under an envelope",
+   "control": "count-envelope negative",
+   "committed": "PASS",
+   "committedDetail": "0 passes under an envelope; 0 species-steps on which the two readings disagree",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "120 passes under an envelope; 0 species-steps on which the two readings disagree"
+  },
+  {
+   "mutant": "strangle-verdict-ignored",
+   "what": "a refusal by _wallStrangledFor is never counted",
+   "control": "strangled positive",
+   "committed": "PASS",
+   "committedDetail": "6 of 18 calls refused; ingredient Pb ×6",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "0 of 18 calls refused; ingredient Pb ×6"
+  },
+  {
+   "mutant": "strangle-ingredients-not-tried",
+   "what": "the attribution of a refusal never tries the mineral's ingredients",
+   "control": "strangled positive",
+   "committed": "PASS",
+   "committedDetail": "6 of 18 calls refused; ingredient Pb ×6",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "6 of 18 calls refused; SiO2 ×6"
+  },
+  {
+   "mutant": "every-call-a-refusal",
+   "what": "every call of _wallStrangledFor is counted as a refusal",
+   "control": "strangled negative",
+   "committed": "PASS",
+   "committedDetail": "0 of 300 calls refused",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "300 of 300 calls refused"
+  },
+  {
+   "mutant": "enclosure-never-read",
+   "what": "the END reading never tests enclosure",
+   "control": "enclosed positive",
+   "committed": "PASS",
+   "committedDetail": "33 enclosed, 33 with the encloser named",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "0 enclosed, 0 with the encloser named"
+  },
+  {
+   "mutant": "encloser-not-named",
+   "what": "the mineral that enclosed a crystal is never looked up",
+   "control": "enclosed positive",
+   "committed": "PASS",
+   "committedDetail": "33 enclosed, 33 with the encloser named",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "33 enclosed, 0 with the encloser named"
+  },
+  {
+   "mutant": "vadose-read-late",
+   "what": "the bulk handle's O2 \"before\" the vadose override is read after it",
+   "control": "vadose positive",
+   "committed": "PASS",
+   "committedDetail": "step 110: 10 rings from ring 6 up; bulk O2 1.50 → 1.80",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "step 110: 10 rings from ring 6 up; bulk O2 1.80 → 1.80"
+  },
+  {
+   "mutant": "vadose-every-call",
+   "what": "every call of the vadose override is recorded as a drying",
+   "control": "vadose negative",
+   "committed": "PASS",
+   "committedDetail": "0 step(s) on which a ring dried",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "120 step(s) on which a ring dried"
+  },
+  {
+   "mutant": "other-field-not-set",
+   "what": "the search for one further field never sets that field to the bulk handle's value",
+   "control": "draw-down-other positive",
+   "committed": "PASS",
+   "committedDetail": "3.93 mm not through the ingredients; uranophane:pH 3.93 mm",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "3.93 mm not through the ingredients; uranophane:no one field 3.93 mm"
   }
  ]
 }

@@ -7,7 +7,8 @@ to that of `c2651d4f`, an ancestor of this base, so it holds no change this base
 **Asked by the boss, 2026-11-09:** "take a look at vugg simulator and see if you see any improvements
 of the simulation side of things."
 **Awaits the boss:** the six decisions in §6. No fix is applied here. C1, C2 and C3 are each a SIM
-bump with a shape to choose. §4 previews C1 and C2 by A/B and says where a preview is missing.
+bump with a shape to choose. §4 previews C1, C2 and the bookkeeping half of C3 by A/B, and says
+where a preview is missing.
 
 Terms used throughout. *σ* is the simulator's supersaturation ratio for a mineral; 1 is saturation,
 and σ − 1 is the *excess*. *σ_crit* is the registry's nucleation threshold for a mineral
@@ -17,9 +18,10 @@ depths) that crystals grow from, and a crystal's *own cell* is the wall voxel it
 *ingredients* are the formula species the ledger debits for it. A *zone* is one step's growth layer
 on one crystal. A crystal is *surviving* when the baseline's own split does not count it as
 dissolved, which since `js/27` recomputes the flag on every negative zone means it has solid left.
-In an A/B a species is *moved* when its crystal count changes or its largest crystal changes by more
-than 25 %, and a scenario is moved when any of its species is. The changes proposed in §4 are
-numbered C1 to C5; "R" numbers in this document are always the rungs of the mineral-recipe review.
+In an A/B a species is *moved* when its crystal count changes or its largest crystal changes by a
+factor of more than 1.25 either way (so a shrink of a fifth counts), and a scenario is moved when
+any of its species is, or when it gains or loses one. The changes proposed in §4 are numbered C1 to
+C5; "R" numbers in this document are always the rungs of the mineral-recipe review.
 
 ## 0. Summary
 
@@ -29,7 +31,7 @@ crystal is admitted, what makes it grow, and what makes it stop.
 A crystal draws on one cell of the fluid, the voxel it sits on, and diffusion refills that cell from
 its neighbours. That is the only supply limit the simulator has, and it works: about a tenth of the
 crystals of 1 mm or more put on most of their growth on a cell drawn down to under half the bulk
-fluid's excess, and returning every debit to its cell moves 27 of the 41 scenarios (§2.1). Nothing
+fluid's excess, and returning every debit to its cell moves 26 of the 41 scenarios (§2.1). Nothing
 above the cell binds. The cavity's inventory is never dented, the bulk handle that nucleation reads
 is never debited, and the flow rate the events author feeds nothing. So a crystal that is slowed is
 seldom stopped. It grows until the run ends, the pocket fills, an event moves the chemistry or a
@@ -44,13 +46,15 @@ has an A/B.
 | S3 | `flow_rate` is authored and feeds nothing | 103 assignments in 22 event files, 11 event lines of scenario data and a Creative slider. No engine, supply or nucleation code reads it. In the 41 scenarios its one reader is the wall's scallop record. | 2.5 |
 | F1 | The pegmatite pocket plugs | `gem_pegmatite` is full at step 9–10 of 230 at seeds 42, 1 and 2; 7 of its 8 events fire into a full pocket. With feldspar and albite bounded, tourmaline reaches 12 mm and topaz appears. Boron is not the lever: tourmaline's boron factor is already at its cap. | 3.1 |
 | F2 | Three engines propose growth at saturation | Of 183 engines, 171 propose a rate that vanishes at σ = 1; galena, molybdenite and uraninite propose half their σ = 2 rate. `reactive_wall`'s galena put on 88 % of its 3.9 mm below σ 1.05. | 3.2 |
-| F3 | Radiogenic lead reaches only the bulk handle | Bulk Pb climbs 30 → 147 ppm (`radioactive_pegmatite`) and 5 → 179 ppm (`schneeberg`); every voxel stays at 30.00 and 5.00. Latent until F1 is cured. The galena that `radioactive_pegmatite`'s description promises is not among the species the scenario licenses. | 3.3 |
+| F3 | Radiogenic lead reaches only the bulk handle | Bulk Pb climbs 30 → 147 ppm (`radioactive_pegmatite`) and 5 → 179 ppm (`schneeberg`); every voxel stays at 30.00 and 5.00. Latent while that pocket plugs. The galena that `radioactive_pegmatite`'s description promises is not among the species the scenario licenses. | 3.3 |
 | — | Counts are authored; a seed changes sizes more than species | Known (story-pocket WP7 and WP9; PR #45). Re-measured in §2.3 and §2.4 because they belong to the same structure. | 2.3, 2.4 |
 
 §4 proposes an order: bound the feldspar pair (C1, cures F1); put the three engines on σ − 1 (C2,
 F2); keep radiogenic lead in the uraninite and release it on alteration (C3, F3); and pilot a supply
 with a scale above the cell — a physical debit, a feed from the `flow_rate` the events already
-author, and a clock (C4; S1–S3).
+author, and a clock (C4; S1–S3). C1 and C3 each come with a cost that §4 tabulates and §6 puts to
+the owner: the clamp that cures `gem_pegmatite` shrinks the feldspar pair in six other scenarios,
+and C3 costs `radioactive_pegmatite` its plumbogummite for as long as that pocket plugs.
 
 **Corrections to the first reading.** A first reading was given in conversation on 2026-11-09, before
 the instruments existed. Three of its statements are superseded here.
@@ -83,6 +87,33 @@ would have caught it.
   crystals' cells. They are the vadose override, which writes the dried rings and the bulk handle.
   It also missed `concentration`, a field the census did not sample (§3.3).
 
+**Corrections to the second version** (commit `80310163`). Its second review round found one count
+wrong and several statements incomplete, three of them in what the owner is asked to decide.
+
+- The `refund` arm counted `tutorial_travertine` as moved by supply. The arm had tripped the
+  carbonate boundary's audit, which paused that scenario's CO2 vent (§5, trap 10). With the arm
+  repaired the scenario does not move, and the counts are 26 / 27 / 25 of 41, not 27 / 28 / 26.
+- C1's clamp was said to move seven scenarios and lose nothing. It loses no species. It shrinks
+  the feldspar pair wherever their σ passes the clamp: `tormiq_alpine_cleft`'s albite from 66 to
+  27 mm, `schneeberg`'s feldspar from 28 to 10 mm, Shigar's albite from 270 to 10 mm. §4 now
+  tabulates that at six clamp values, and previews the clamp on the rate, which is the shape
+  recommended; the first two versions previewed a clamp on σ.
+- C3 had no preview. With the radiogenic lead taken off the bulk handle, `radioactive_pegmatite`
+  loses its plumbogummite at two seeds of three, and the release that should replace it has almost
+  nothing to act on while that pocket plugs, which C1 alone does not cure (§4, C3).
+- C4's third acceptance line was posed on pauses, which an engine linear in σ − 1 does not take.
+  It is restated (§4, C4).
+- "The cell differs from the bulk handle in something else, and §3.3 takes that up" was not
+  checked. The census now names the field: oxygen for `supergene_oxidation`'s ferrimolybdite, and
+  pH, across a hard edge in a σ function, for `schneeberg`'s uranophane (§2.1).
+- The count reading was taken on the bulk handle in the four scenarios where the nucleation pass
+  reads a maximum over the wall cells instead, and "eight of every nine" counted gates that keep a
+  side door (§2.3).
+- "Dissolving is the same thing carried further" was untested. Four crystals of 1 mm or more
+  dissolve while the bulk handle reads past saturation (§2.2).
+- The bulk handle was called "the equator ring". It is one fluid object that nothing diffuses
+  (§3.3).
+
 ## 1. What was run
 
 Runtime: Windows x64, Node 24.15.0, the commissioned formation. The change adds files under `tools/`
@@ -91,9 +122,9 @@ lists the gates that were run and says what was not.
 
 | Instrument | What it reads | Integrity and controls |
 |---|---|---|
-| `tools/sim-side-census.mjs` | One pass per scenario: fill per step; what each crystal's engine read on its own cell when it ran; what ended each crystal's growth, and every pause on the way; what the ledger refused outright; the bulk handle against the voxel field; the vadose override; the count rules; and a physical-unit restatement of what was grown. Three static readings of the source. | At seed 42 all 41 runs reproduce `tests-js/baselines/seed42_v286.json` with the instrument attached. Fourteen controls, nine positive and five negative, all passing at seeds 42, 1 and 2. |
-| `tools/sim-side-census-mutations.mjs` | Nineteen broken copies of the census, one line changed in each, run on the scenarios the guarded control needs. | Every control passes on the census as committed and fails on each of its mutants. |
-| `tools/sim-side-ab.mjs` | Shipped arm against an arm with a named intervention applied in-process: a feldspar rind, a σ clamp, factor caps, a per-factor root, a k·(σ−1) rescale, radiogenic Pb to the voxels, a multiplied broth field, or every debit returned to its cell. | The shipped arm reproduces the baseline at seed 42. The neutral knobs (`rind=Infinity`, `cap=Infinity`, `root=1`, `mul=Ca:1`, `refund=0`, and `fcap=Infinity` where the minerals are feldspar and albite) reproduce the shipped arm exactly, on `schneeberg` at seed 42, before every batch. |
+| `tools/sim-side-census.mjs` | One pass per scenario: fill per step; what each crystal's engine read on its own cell when it ran, and which field holds a drawn-down cell down; what ended each crystal's growth, and every pause on the way; what the ledger refused outright; the bulk handle against the voxel field; the vadose override; the count rules, on the σ the nucleation pass reads; and a physical-unit restatement of what was grown. Three static readings of the source. | At seed 42 all 41 runs reproduce `tests-js/baselines/seed42_v286.json` with the instrument attached. Twenty-six controls, eighteen positive and eight negative, all passing at seeds 42, 1 and 2. |
+| `tools/sim-side-census-mutations.mjs` | Thirty-five broken copies of the census, one line changed in each, run on the scenarios the guarded control needs. | Every control passes on the census as committed and fails on each of its mutants, and no control is without a mutant. |
+| `tools/sim-side-ab.mjs` | Shipped arm against an arm with a named intervention applied in-process: a feldspar rind, a clamp on σ, a clamp on the rate, factor caps, a per-factor root, a k·(σ−1) rescale, radiogenic Pb carried to the voxels or taken off the bulk handle, a multiplied broth field, or every debit returned to its cell. | The shipped arm reproduces the baseline at seed 42. The neutral knobs (`rind=Infinity`, `cap=Infinity`, `rclamp=Infinity`, `root=1`, `mul=Ca:1`, `refund=0`, and `fcap=Infinity` where the minerals are feldspar and albite) reproduce the shipped arm exactly, on `schneeberg` at seed 42, before every batch. Every arm's audit counts are compared with the shipped arm's (§7). |
 | `tools/rate-at-saturation-census.mjs` | Each growth engine called directly with σ forced to 1.0005 … 3 and the rng re-seeded before every call; then, for the engines that propose a rate at saturation, the σ at which they actually grew. | Quartz and fluorite, k·excess laws by inspection, read "vanishes". All 8 scenario runs reproduce the baseline. |
 | `tools/seed-variety-census.mjs` | One stratum of the nightly canary (55 seeds). No simulation. | None of its own: it restates the canary's committed per-species spine and, where the machine holds it, the per-seed tier. |
 
@@ -101,21 +132,26 @@ Seeds: the census and every A/B ran at 42, 1 and 2; the canary stratum is `2026-
 (55 seeds, vugg `e86ba58a`).
 
 A control that passes proves little until it has been seen to fail. The mutation tool breaks the
-census nineteen ways. Among them: the step log read once instead of every step; the competition
+census thirty-five ways. Among them: the step log read once instead of every step; the competition
 receipt, and the budget receipt, ignored; the voxel mean read from the bulk handle; the fill
 recorded as 0, and as 1; the stop never recorded; the crystal's own cell read from the bulk handle;
-the ingredients never restored; the license never asked; and the engine's view read after the
-step's diffusion instead of at the dry run, which is the error the first version of this census
-made. Each control fails on its mutant. Three readings have no control: the throughput restatement
-(§2.6 checks its arithmetic by hand on one row), the births that never grew, and the static
-readings of the source.
+the ingredients never restored; the license, the exclusion list and the nucleation window never
+asked; the localized-nucleation envelope not put up; and the engine's view read after the step's
+diffusion instead of at the dry run, which is the error the first version of this census made.
+Each control fails on its mutant, and the tool lists any control no mutant aims at (none).
 
-Four small probes are committed beside their outputs in `proposals/evidence/sim-side-2026-11-09/`.
-Three carry statements of their own: the range of σ each scenario's bulk fluid covers for feldspar,
+These readings have no control, and stay labelled so: the throughput restatement (§2.6 checks its
+arithmetic by hand on one row); the births that never grew; the three static readings of the
+source; and, within the END table of §2.2, the classes "undersaturated on its cell and on the bulk
+handle", the two "dissolving" classes, "size cap", "at or above saturation on its cell, nothing
+proposed" and "a zone proposed and not stored".
+
+Five small probes are committed beside their outputs in `proposals/evidence/sim-side-2026-11-09/`.
+Four carry statements of their own: the range of σ each scenario's bulk fluid covers for feldspar,
 albite and quartz (§3.1); the history of a few headline crystals across the 258 committed baselines
-(§3.1, §3.4); and whether a wrapped σ method stays in force during nucleation (§7). The fourth runs
-nothing: it reads the A/B outputs in that folder and prints the counts this document draws from
-them.
+(§3.1, §3.4); whether a wrapped σ method stays in force during nucleation (§7); and one fluid field
+on a mineral's own cells against the bulk handle (§2.1). The fifth runs nothing: it reads the A/B
+outputs and census reports in that folder and prints the counts this document draws from them.
 
 ## 2. The structural reading
 
@@ -154,6 +190,8 @@ thickness.
 | … that stored most of their growth that way | 56 (9.9 %) | 52 (9.0 %) | 55 (9.6 %) |
 | Times a growing crystal paused (a step with no positive zone after a step with one) | 1,427 | 1,225 | 1,276 |
 | … because its cell ran short of an ingredient | 222 (15.6 %) | 100 (8.2 %) | 38 (3.0 %) |
+| …… galena, molybdenite or uraninite, the three engines of §3.2 | 180 | 65 | 4 |
+| …… every other mineral | 42 (2.9 %) | 35 (2.9 %) | 34 (2.7 %) |
 
 Some rows at seed 42 (Appendix A has all 40):
 
@@ -173,17 +211,35 @@ Some rows at seed 42 (Appendix A has all 40):
 
 "Through its ingredients" means that setting the mineral's ingredient fields in the cell to the bulk
 handle's values restores at least 0.9 of the bulk fluid's excess. Where that fails the cell differs
-from the bulk handle in something else, and §3.3 takes that up: it is 14.9 / 8.1 / 9.7 % of
-`supergene_oxidation`'s stored thickness, about 2 % of `schneeberg`'s, and under 1 % everywhere
-else. The pauses in the last row of the first table depend on the seed because most of them belong
-to one mineral in one scenario, the galenas of `sunnyside_american_tunnel` (156 / 64 / 4), which
-§3.2 explains.
+from the bulk handle in something else, and the census looks for it: every other field in which
+the two fluids differ is set to the bulk handle's value, one at a time on top of the ingredients,
+and the one that restores the excess is named. Two cases carry nearly all of it, and neither is
+supply alone.
+
+- *`supergene_oxidation`'s ferrimolybdite*: 67.6 / 36.9 / 44.9 mm of stored thickness, which is
+  14.9 / 8.1 / 9.7 % of the scenario's. Its cells are short of molybdenum, by a median 17 ppm of
+  the bulk handle's 15 to 40, and of oxygen as well, by up to 0.30: they sit on rings where the
+  drop in water level left less O2 than the bulk handle carries (§3.3). The ingredients alone do
+  not restore 0.9 of the excess; with the oxygen they do. That is draw-down and a redox gap
+  together (`probe-cell-field-gap-ferrimolybdite-Mo.txt`, `-O2.txt`).
+- *`schneeberg`'s three uranophanes*: 3.9 / 3.2 / 4.7 mm, about 2 % of the scenario's thickness.
+  Setting their ingredients to the bulk handle's values restores nothing; setting the pH does.
+  `supersaturation_uranophane` multiplies by 1.3 from pH 6.0 to 7.5 and by 0.625 just below 6.0
+  (`js/39-supersat-silicate.ts:1002`). The bulk handle sits at
+  exactly 6.0000 and the cells a hair under it (5.998 at the lowest at seed 42), so the cell and
+  the bulk handle are on opposite sides of that edge on 112 / 165 / 163 of 165 crystal-steps
+  (`probe-cell-field-gap-uranophane-pH.txt`). That is a hard edge in a σ function, not supply.
+
+Everywhere else the "otherwise" share is under 1 %. The pauses of the first table depend on the
+seed because most of them belong to one mineral in one scenario, the galenas of
+`sunnyside_american_tunnel` (156 / 64 / 4), which §3.2 explains. Outside the three engines of §3.2
+a cell run short accounts for about 3 % of the pauses at every seed.
 
 **The test.** If supply did not bind, returning every debit would change nothing. The `refund=1` arm
 of the A/B tool returns each positive zone's debit to its cell as soon as it is booked. It moves
-27 / 28 / 26 of the 41 scenarios. In 22 / 22 / 19 of them a crystal of 1 mm or more changes size by
-more than a quarter, and in 7 the fill rises by more than ten points (`probe-ab-digest.txt`). At
-seed 42:
+26 / 27 / 25 of the 41 scenarios. In 21 / 21 / 18 of them the largest crystal of some species, 1 mm
+or more in one arm or the other, changes size by a factor of more than 1.25, and in 7 the fill
+rises by more than ten points (`probe-ab-digest.txt`). At seed 42:
 
 - Crystals on a scarce ingredient grow: `mvt`'s greenockite from 2.4 to 7.3 mm, `colorado_plateau`'s
   uranophane from 12.6 to 25.7 mm, `reactive_wall`'s galena from 3.9 to 7.0 mm.
@@ -194,16 +250,25 @@ seed 42:
   23 (26 at the other two seeds) and loses its topaz. `gem_pegmatite` is full at step 5 and not 9,
   `radioactive_pegmatite` at step 17 and not 61.
 
-The 14 scenarios it leaves alone at seed 42 store under 1 % of their growth on a cell under half
-the bulk fluid's excess (one grows nothing). It also moves 12 scenarios that the passive reading
-files under 1 %, so the 0.5 threshold is a coarse cut: 36 % of `bisbee`'s stored thickness sits
-between 0.5 and 0.9 of the bulk fluid's excess, and the arm moves 23 of its 31 species.
+The 15 scenarios it leaves alone at seed 42 store under 1 % of their growth on a cell under half
+the bulk fluid's excess (one of them grows nothing). It also moves 11 scenarios that the passive
+reading files under 1 %, and they show what a 0.5 threshold on stored thickness cannot see. Seven
+have a tenth or more of their thickness between 0.5 and 0.9 of the bulk fluid's excess: `bisbee`
+has 36 % there, and the arm moves 23 of its 31 species. Three have nothing there and carry starved
+crystal-steps (`ultramafic_supergene` 192, `chiastolite_hornfels` 119, `pulse` 8): a crystal that
+proposes nothing stores nothing, so a share weighted by thickness cannot count it. In the
+eleventh, `sabkha_dolomitization`, only the counts of carbonates under 0.1 mm change.
+
+The arm is not a closed system, and it has to be shown to change nothing but what it names. The
+first version of it tripped the carbonate boundary's audit and so cancelled an authored event
+(§5, trap 10). The repaired arm leaves every audit the tool reads as the shipped arm has it, in
+all 123 runs.
 
 **Nothing above the cell binds.** The same ledger, read at the scale of the cavity:
 
 | Reading | seed 42 | seed 1 | seed 2 |
 |---|---:|---:|---:|
-| (scenario, species) pairs with booked solids | 321 | 320 | 320 |
+| (scenario, solute) pairs with booked solids | 321 | 320 | 320 |
 | What the surviving solids hold ÷ the most the voxel field ever held, median | 0.0081 % | 0.0073 % | 0.0082 % |
 | … 90th percentile | 0.14 % | 0.16 % | 0.16 % |
 | … largest | 1.7 % | 1.7 % | 1.7 % |
@@ -216,7 +281,7 @@ between 0.5 and 0.9 of the bulk fluid's excess, and the arm moves 23 of its 31 s
 | … either (a zone is counted once) | 275 (0.35 %) | 208 (0.26 %) | 422 (0.53 %) |
 | Zones rationed to zero (never stored) | 313 | 313 | 313 |
 
-- *The cavity's inventory.* For the median (scenario, species) pair the surviving solids hold about
+- *The cavity's inventory.* For the median (scenario, solute) pair the surviving solids hold about
   0.6 of one voxel's worth, out of 7,680 voxels. The largest share at every seed is uranium in
   `colorado_plateau`, 1.7 % of the field; mercury in `sulphur_bank` and molybdenum in
   `supergene_oxidation` are the only other pairs above 1 %. The depletion is a halo round a crystal.
@@ -254,7 +319,8 @@ of the tests is in the tool's header.
 | at or above saturation on its cell, nothing proposed | 27 (2.4 %) | 4 (0.7 %) | 26 (2.4 %) | 9 (1.6 %) | 25 (2.1 %) | 10 (1.7 %) |
 | a zone proposed and not stored | 2 (0.2 %) | 1 (0.2 %) | 2 (0.2 %) | 1 (0.2 %) | 2 (0.2 %) | 0 |
 | enclosed | 213 (18.7 %) | 8 (1.4 %) | 154 (14.0 %) | 8 (1.4 %) | 232 (19.4 %) | 7 (1.2 %) |
-| dissolving | 61 (5.3 %) | 41 (7.2 %) | 62 (5.6 %) | 42 (7.3 %) | 60 (5.0 %) | 40 (7.0 %) |
+| dissolving | 57 (5.0 %) | 37 (6.5 %) | 58 (5.3 %) | 38 (6.6 %) | 56 (4.7 %) | 36 (6.3 %) |
+| dissolving while the bulk handle reads at or above saturation | 4 (0.4 %) | 4 (0.7 %) | 4 (0.4 %) | 4 (0.7 %) | 4 (0.3 %) | 4 (0.7 %) |
 | size cap | 17 (1.5 %) | 17 (3.0 %) | 19 (1.7 %) | 19 (3.3 %) | 19 (1.6 %) | 19 (3.3 %) |
 | never grew | 42 (3.7 %) | 0 | 47 (4.3 %) | 0 | 46 (3.9 %) | 0 |
 | no σ method | 6 (0.5 %) | 6 (1.1 %) | 6 (0.5 %) | 6 (1.0 %) | 6 (0.5 %) | 4 (0.7 %) |
@@ -275,8 +341,13 @@ that re-dissolves and refills; it ends 88–91 % full). The other three above 70
 dampener of `js/85d` (it starts at fill 0.7) is slowing growth and has not yet stopped it.
 
 **An event.** "Undersaturated on its cell and on the bulk handle" is a crystal whose σ fell below 1
-on both fluids: an event, a movement or cooling moved the chemistry. "Dissolving" is the same thing
-carried further. That is the authored paragenesis working as designed.
+on both fluids: an event, a movement or cooling moved the chemistry. "Dissolving" is mostly the
+same thing carried further, and that is the authored paragenesis working as designed. Four
+crystals at every seed are not that: the four azurites of `supergene_oxidation`, 2.5 to 3.3 mm,
+dissolve at step 160 while the bulk handle still reads at or above saturation for azurite.
+Azurite's σ is zero below a redox minimum (`js/32-supersat-carbonate.ts:682`), the bulk handle
+ends that run at O2 1.000, and every ring's voxels end below it (§3.3). The same gap produces
+every `_wallStrangledFor` refusal of azurite (§2.3) and stops the arsenates below.
 
 **Burial.** "Enclosed" is a crystal overgrown by a neighbour (`enclosed_by`). It is the third-largest
 class, 213 / 154 / 232 crystals, and nearly all of them are small: 8 / 8 / 7 are 1 mm or more.
@@ -285,13 +356,16 @@ At seed 42 the commonest buriers are anhydrite, celestine and sphalerite (39, 34
 **Supply, seldom.** "Its cell ran short of an ingredient" is the last state of 17 / 15 / 10
 crystals. Of those ≥ 1 mm it is only the four galenas of `sunnyside_american_tunnel` at seed 42,
 which starve on lead at step 149, one step before the event that would have stopped them. As a
-pause it is common (§2.1): the draw-down slows a crystal many times for every time it ends one.
+pause it is more frequent (§2.1), though most of those pauses are the stop and start of the three
+engines of §3.2, not a slow engine starving. What the draw-down does to an engine that follows
+σ − 1 is slow it, and a slowed crystal is not in this table at all: it reads "still growing".
 
 "Undersaturated on its cell only, not through its ingredients" is six crystals ≥ 1 mm at every
 seed, all of them arsenates of `supergene_oxidation` (one mimetite, five scorodite) that stop
-together at step 160. That is the step of the scenario's last event, in a pocket whose floor and
-bulk handle have differed in O2 since the water level dropped at step 70 (§3.3). It is a redox gap
-between the two fluids, not exhaustion.
+together at step 160. That is the step of the scenario's last event, in a pocket whose voxels and
+bulk handle have differed in O2 since the water level dropped at step 70 (§3.3). Setting the
+cell's oxygen to the bulk handle's restores every one of the six, so it is a redox gap between
+the two fluids, not exhaustion.
 
 The smaller classes are authored. "Size cap" is the audited dimensional cap of `js/85`: the three
 tellurides of `epithermal_telluride`, powellite and conichalcite in `supergene_oxidation`,
@@ -308,45 +382,61 @@ re-measured here because it belongs to the same structure.
 A species' nucleation function runs only if the scenario lets it. `_runNuc` (`js/85j`) returns
 first when the scenario excludes the species, does not list it in one of its four license tiers,
 has it outside an authored nucleation window, or lacks a prerequisite event. Inside the function a
-crystal is admitted when the bulk σ passes a threshold, subject to a fixed per-step probability, the
-species' `max_nucleation_count`, and the function's own count gate. Of the 169 functions, 86 refuse
-a new crystal while one of their species is active (62 of those keep a side door, a roll on the
-same line), 22 tolerate two or more, 15 also limit the crystals ever born, and 61 show no such gate
-in the forms the census recognizes. No function computes its probability from σ: of the 489
-`rng.random()` comparisons in the nucleation files, 487 are against a numeric literal and two
-against one named constant. Where σ enters past the threshold it switches between literals, as
-quartz's second-crystal door does at σ > 2.
+crystal is admitted when σ passes a threshold, subject to a fixed per-step probability, the
+species' `max_nucleation_count`, and the function's own count gate. That σ is the bulk handle's,
+except in four scenarios (below). Of the 169 functions, 86 refuse a new crystal while one of
+their species is active (62 of those keep a side door, a roll on the same line), 22 tolerate two
+or more, 15 also limit the crystals ever born, and 61 show no such gate in the forms the census
+recognizes. No function computes its probability from σ: of the 489 `rng.random()` comparisons in
+the nucleation files, 487 are against a numeric literal and two against one named constant. Where
+σ enters past the threshold it switches between literals, as quartz's second-crystal door does at
+σ > 2.
 
 | Reading | seed 42 | seed 1 | seed 2 |
 |---|---:|---:|---:|
-| (scenario, species) pairs | 351 | 350 | 348 |
+| (scenario, mineral) pairs | 351 | 350 | 348 |
 | … with exactly one crystal | 119 (33.9 %) | 118 (33.7 %) | 114 (32.8 %) |
 | … with at least `max_nucleation_count` crystals born | 172 (49.0 %) | 177 (50.6 %) | 182 (52.3 %) |
-| Species-steps with the bulk fluid past σ_crit when the nucleation pass starts | 38,017 | 38,060 | 38,020 |
-| … the scenario excludes the species | 2,499 (6.6 %) | 2,500 (6.6 %) | 2,516 (6.6 %) |
+| Species-steps past σ_crit, on the σ the nucleation pass is about to read | 38,167 | 38,210 | 38,170 |
+| … the scenario excludes the species | 2,499 (6.5 %) | 2,500 (6.5 %) | 2,516 (6.6 %) |
 | … the scenario does not license it | 1,398 (3.7 %) | 1,410 (3.7 %) | 1,450 (3.8 %) |
 | … it is outside its authored nucleation window | 504 (1.3 %) | 504 (1.3 %) | 504 (1.3 %) |
 | … its prerequisite event has not fired | 0 | 0 | 0 |
-| … the species' function is reached | 33,616 (88.4 %) | 33,646 (88.4 %) | 33,550 (88.2 %) |
-| …… and the count cap was binding | 14,761 (43.9 %) | 14,849 (44.1 %) | 14,585 (43.5 %) |
-| …… and the function's own count gate was binding | 15,073 (44.8 %) | 15,176 (45.1 %) | 15,192 (45.3 %) |
-| …… and neither was | 3,782 (11.3 %) | 3,621 (10.8 %) | 3,773 (11.2 %) |
+| … the species' function is reached | 33,766 (88.5 %) | 33,796 (88.4 %) | 33,700 (88.3 %) |
+| …… and the count cap was binding | 14,865 (44.0 %) | 14,960 (44.3 %) | 14,674 (43.5 %) |
+| …… and the function's own count gate was binding | 15,104 (44.7 %) | 15,197 (45.0 %) | 15,239 (45.2 %) |
+| ……… of those, at a gate that keeps a side door | 5,757 | 5,915 | 6,023 |
+| …… and neither was | 3,797 (11.2 %) | 3,639 (10.8 %) | 3,787 (11.2 %) |
+| …… the count cap, or a gate with no side door | 24,212 (71.7 %) | 24,242 (71.7 %) | 23,890 (70.9 %) |
 | Births `_wallStrangledFor` refused | 48 | 27 | 47 |
 
 On about one in nine of those species-steps the function was never reached. The windows are
 `deccan_zeolite`'s zeolites, `porphyry`'s native gold, `roughten_gill`'s plumbogummite and one step
-of `wittichen`'s erythrite. Where the function was reached, the count cap or the function's own
-gate stood in the way on eight of every nine.
+of `wittichen`'s erythrite. Where the function was reached, the count cap or a gate with no side
+door stood in the way on about seven in ten. On another 17 to 18 % the function's own gate was
+binding and keeps a side door, a roll on the same line, so a crystal could still have been born.
+On the remaining one in nine neither stood in the way.
 
-One gate in this chain is not authored. `_wallStrangledFor` (`js/85b`) refuses a birth that the bulk
-σ admits when no wall cell clears σ_crit: it is where the two fluids of §2.1 meet. It refused
-48 / 27 / 47 births, azurite in `supergene_oxidation` 39 / 18 / 39 times and plumbogummite in
-`radioactive_pegmatite` 6 / 7 / 7 times (the bulk-only lead of §3.3). The gate fires only when no
-wall cell clears the threshold, so it is rare: 48 of 10,382 calls at seed 42. The census counts its
-verdicts and does not say which difference between the two fluids produced each one. In practice
-the authored rules end a nucleation burst. My reading, not a measurement: a
-σ-dependent nucleation rate (story-pocket WP7's "count lever") would run into those same caps
-unless the cavity as a whole could be drawn down, which is C4.
+**Four scenarios do not read the bulk handle.** Where a scenario nucleates per vertex or has an
+active thermal field, `check_nucleation` wraps every σ method for the length of the pass so that
+it returns the maximum over the wall cells (`_installLocalizedNucleationEnvelope`, `js/85b`). That
+holds on every step of `zoned_dripstone_cave` and `stalactite_demo`, on 61 of `naica_geothermal`'s
+320 and on 51 of `wittichen`'s 220. The census puts the same envelope up for its reading and
+takes it down again. It changes the count in one place: `zoned_dripstone_cave`'s aragonite is
+past σ_crit on the envelope and not on the bulk handle on all 150 steps, because its ceiling zone
+is authored richer than the bulk. No species-step goes the other way.
+
+One gate in this chain is not authored. `_wallStrangledFor` (`js/85b`) refuses a birth that the σ
+it is handed admits when no wall cell clears σ_crit: it is where the two fluids of §2.1 meet. It
+refused 48 / 27 / 47 births, and the census attributes each on the wall cell that came nearest to
+clearing. Azurite in `supergene_oxidation` is refused 39 / 18 / 39 times, every time for want of
+oxygen in the wall cells (§2.2). Plumbogummite in `radioactive_pegmatite` is refused 6 / 7 / 7
+times, every time for want of lead, which reaches only the bulk handle (§3.3). The remaining
+3 / 2 / 1 are a wall cell at another temperature than the bulk handle, where the bulk handle's own
+fluid would fail too. The gate fires only when no wall cell clears the threshold, so it is rare:
+48 of 10,382 calls at seed 42. In practice the authored rules end a nucleation burst. My reading,
+not a measurement: a σ-dependent nucleation rate (story-pocket WP7's "count lever") would run
+into those same caps unless the cavity as a whole could be drawn down, which is C4.
 
 ### 2.4 What a seed changes
 
@@ -356,7 +446,7 @@ experiment on it). The canary's 55 seeds agree:
 | Reading (canary stratum `2026-11-04/v286`, 55 seeds) | Value |
 |---|---:|
 | Scenarios that grow one and the same species set in every seed | 30 of 41 (one of them grows nothing) |
-| (scenario, species) pairs present in every seed | 334 of 356 (94 %) |
+| (scenario, mineral) pairs present in every seed | 334 of 356 (94 %) |
 | … of those, with the same crystal count in every seed | 174 (52 %) |
 | Scenarios whose largest crystal is the same species in every seed | 31 of 40 |
 | Size spread, median over the 35 scenarios that have one | 38 % |
@@ -490,8 +580,9 @@ is full first.
 | Arm (values at seeds 42 / 1 / 2) | Fill at end, % | First step at fill ≥ 0.999 | Last step anything grew | Feldspar, mm | Tourmaline, mm | Topaz, mm | Spodumene, mm | Lepidolite, mm |
 |---|---|---|---|---|---|---|---|---|
 | shipped | 100 / 100 / 100 | 9 / 10 / 10 | 9 / 10 / 10 | 31.7 / 33.4 / 36.8 | 0.29 / 0.37 / 0.39 | none | 0.13 / 0.20 / 0.13 | 0.007 / 0.016 / 0.012 |
-| `rind=5000`: feldspar and albite stop adding thickness at 5 mm | 21.6 / 22.6 / 19.7 | never | 230 | 10.0 / 10.6 / 7.2 | 12.1 / 11.9 / 11.9 | 2.5 | 3.7 / 1.9 / 5.1 | 4.7 / 4.0 / 3.4 |
+| `rind=5000`: feldspar and albite stop adding thickness at 5 mm | 22.9 / 22.7 / 19.6 | never | 230 | 10.0 / 10.6 / 7.2 | 12.0 / 11.9 / 12.0 | 2.4 / 2.5 / 2.5 | 4.2 / 2.2 / 5.1 | 4.9 / 4.0 / 3.5 |
 | `cap=8`: their σ clamped at 8 | 42.1 / 41.4 / 41.0 | never | 230 | 24.1 / 24.7 / 24.7 | 12.0 / 11.9 / 12.0 | 2.5 | 4.2 / 2.2 / 5.1 | 4.7 / 4.0 / 3.4 |
+| `rclamp=7`: their rate clamped at k·7, σ untouched | 42.1 / 41.4 / 41.0 | never | 230 | 24.1 / 24.7 / 24.7 | 12.0 / 11.9 / 12.0 | 2.5 | 4.2 / 2.2 / 5.1 | 4.7 / 4.0 / 3.4 |
 | `fcap=2`: each factor of their σ capped at 2 | 27.2 / 27.0 / 25.9 | never | 230 | 14.3 / 14.4 / 14.6 | 12.0 / 11.9 / 12.0 | 2.5 | 4.2 / 2.2 / 5.1 | 4.7 / 4.0 / 3.4 |
 | `root=3`: their σ replaced by its cube root | 38.8 / 38.5 / 37.2 | never | 230 | 21.6 / 21.8 / 21.7 | 12.0 / 12.0 / 12.0 | 2.5 | 4.2 / 2.2 / 5.1 | 4.7 / 4.0 / 3.4 |
 | `mul=B:10`: ten times the boron, shipped feldspar | 100 / 100 / 100 | 9 / 10 / 10 | 9 / 10 / 10 | 31.7 / 33.4 / 36.8 | 0.29 / 0.37 / 0.39 | none | 0.13 / 0.20 / 0.13 | 0.007 / 0.016 / 0.012 |
@@ -499,12 +590,12 @@ is full first.
 | `cap=8,mul=B:10`: the clamp, and ten times the boron | 42.1 / 41.4 / 41.0 | never | 230 | 24.1 / 24.7 / 24.7 | 12.0 / 11.9 / 12.0 | 2.5 | 4.2 / 2.2 / 5.1 | 4.7 / 4.0 / 3.4 |
 | `cap=8,mul=B:0.5`: the clamp, and half the boron | 40.5 / 39.9 / 39.5 | never | 230 | 23.9 / 24.4 / 24.5 | 5.6 / 5.6 / 5.4 | 2.5 / 2.5 / 2.4 | 4.2 / 4.9 / 5.1 | 3.7 / 4.5 / 4.0 |
 
-Under `rind=5000` the pair ends at 5.3 to 10.6 mm and not at 5: the engine is refused once a
+Under `rind=5000` the pair ends at 7.2 to 10.6 mm and not at 5: a positive zone is refused once a
 crystal has reached 5 mm, and the zone that took it there is a whole step's growth.
 
 Three readings follow.
 
-1. *The gems are short of room, not of chemistry.* With the feldspar pair bounded in any of four
+1. *The gems are short of room, not of chemistry.* With the feldspar pair bounded in any of five
    ways, the pocket ends 20 to 42 % full and grows to step 230. Tourmaline reaches 12 mm and grows
    until step 197; topaz appears (six crystals, 2.5 mm) and grows until step 215, through the Late
    Hydrothermal event that narrates it; spodumene and lepidolite reach 2 to 5 mm. Quartz, held to
@@ -514,17 +605,19 @@ Three readings follow.
    boron starvation as "the hypothesis to test first": "if boron never concentrates in the late
    fluid, the tourmaline is starved". `supersaturation_tourmaline` caps its boron factor at
    `min(B/15, 2.0)` (`js/39-supersat-silicate.ts:869`), so it stops responding at 30 ppm. This broth
-   starts at 35 and no event changes it. Ten times the boron therefore moves nothing, in the
-   plugged pocket (`mul=B:10`: no species moves at any seed) or in the open one (`cap=8,mul=B:10`:
-   every size as with `cap=8` alone). Less boron does move it. At half the boron tourmaline is
-   0.14 / 0.17 / 0.18 mm in the plugged pocket and 5.6 / 5.6 / 5.4 mm in the open one; at a quarter
-   (`mul=B:0.25`) the plugged pocket keeps one crystal of 0.02 mm. All four of tourmaline's
-   concentration factors sit at their caps in this broth (Na 40, B 35, Al 150, SiO2 8,000 ppm
-   against ceilings reached at 30, 30, 22.5 and 600), so a residual-concentration term cannot raise
-   its σ here, before or after the plug is cured. WP8(b) needs a species whose factor is below its
-   cap.
-3. *Beryl is a separate defect.* No arm grows beryl. That is the Wise review's W1 (the Cr/V fence),
-   untouched here.
+   starts at 35 and no event lowers it. (One authored movement adds boron: from step 30 it feeds a
+   halo at the cavity's feeder cell, `fluid.B` with `origin: "cell"` in `data/scenarios.json5`. That
+   can only push the factor further past its cap.) Ten times the boron therefore moves nothing, in
+   the plugged pocket (`mul=B:10`: no species moves at any seed) or in the open one
+   (`cap=8,mul=B:10`: every size as with `cap=8` alone). Less boron does move it. At half the
+   boron tourmaline is 0.14 / 0.17 / 0.18 mm in the plugged pocket and 5.6 / 5.6 / 5.4 mm in the
+   open one; at a quarter (`mul=B:0.25`) the plugged pocket keeps one crystal of 0.02 mm. All four
+   of tourmaline's concentration factors sit at their caps in this broth (Na 40, B 35, Al 150,
+   SiO2 8,000 ppm against ceilings reached at 30, 30, 22.5 and 600), so a residual-concentration
+   term cannot raise its σ here, before or after the plug is cured. WP8(b) needs a species whose
+   factor is below its cap.
+3. *Beryl is a separate defect.* No arm grows beryl. That is W1 of
+   `PROPOSAL-HOSTILE-REVIEW-WISE-2026-08-05.md` (the Cr/V fence), untouched here.
 
 **The other two pegmatites.**
 
@@ -539,10 +632,12 @@ Three readings follow.
   its documented late F-rich topaz pulse"). It ends 92 % full with a 270 mm albite. What keeps the
   larger cavity from sealing is the draw-down of §2.1: 83 % of this pocket's stored thickness is put
   on at a cell under half the bulk fluid's excess, and with every debit returned (`refund=1`) it is
-  full at step 23 to 26 and its topaz is gone. With the feldspar pair bounded it ends 0 % full. Its
-  tourmaline stays at 1.8 mm and its topaz at 0.6 to 0.7 mm (two more topaz crystals appear at
-  seeds 42 and 1): Shigar's gems are small for their own reasons. Its aquamarine has been absent
-  since SIM 272 and is absent in all 55 canary seeds; no arm here restores it.
+  full at step 23 to 26 and its topaz is gone. With the feldspar pair clamped as `gem_pegmatite`'s
+  is above, its albite is 9.7 to 9.9 mm where it is 270 as shipped, and the 220 mm pocket ends
+  0.0 % full (§4, C1). Its tourmaline stays at 1.8 mm and its topaz at 0.6 to 0.7 mm (two more
+  topaz crystals appear at seeds 42 and 1): Shigar's gems are small for their own reasons. Its
+  aquamarine has been absent since SIM 272 and is absent in all 55 canary seeds; no arm here
+  restores it.
 
 ### 3.2 F2 — three engines propose growth at saturation
 
@@ -610,15 +705,19 @@ carried to the voxels and was not.
   largest at step 0, before anything has run.
 - *The vadose override.* When the water level drops, `_applyVadoseOxidationOverride` (`js/85c`)
   raises O2 to at least its target (1.8 by default) and multiplies `concentration` in every voxel
-  of the rings that dried, and in each of those rings' own fluid. The equator ring's fluid is the bulk handle. In `wittichen`,
-  `roughten_gill`, `supergene_oxidation`, `schneeberg` and `searles_lake` the equator ring dries
-  while rings below it stay wet, so the bulk handle takes the dried rings' oxygen and the floor
-  keeps its own: `wittichen`'s bulk O2 goes from 0.40 to 1.80 at step 170, and at run end its
-  voxel-mean O2 runs from 0.54 in the floor ring to 1.80 in the upper eight. Eh follows O2. This is
-  deliberate (the comment there records why the ring's fluid is written as well). It means the bulk
-  handle is the equator ring, not a cavity average, wherever the water level has dropped part-way.
-  In the four other scenarios where the override fires it dries all 16 rings at once and leaves no
-  gap.
+  of the rings that dried. Each ring also keeps a legacy fluid slot beside its voxels
+  (`ring_fluids[r]`), which the override writes as well, and the equator ring's slot is the bulk
+  handle itself, by alias (`js/85-simulator.ts`). In `wittichen`, `roughten_gill`,
+  `supergene_oxidation`, `schneeberg` and `searles_lake` the equator ring dries while rings below
+  it stay wet, so the bulk handle takes the drying write and the floor keeps its own chemistry:
+  `wittichen`'s bulk O2 goes from 0.40 to 1.80 at step 170, and at run end its voxel-mean O2 runs
+  from 0.54 in the floor ring to 1.80 in the upper six. Eh follows O2. This is deliberate (the
+  comment there records why the slot is written as well). After that write the bulk handle is on
+  its own: the voxels it was written with diffuse into their neighbours and it does not. In
+  `supergene_oxidation` it ends at O2 1.000 while every ring's voxel mean ends below it, from 0.707
+  in the floor ring to 0.998 at the top. So wherever the water level has dropped part-way the bulk
+  handle is neither a cavity average nor any ring's fluid. In the four other scenarios where the
+  override fires it dries all 16 rings at once and leaves no gap.
 - *`concentration` itself.* The simulator keeps that field out of diffusion and out of event
   propagation on purpose (`js/85-simulator.ts`, where `_fluidFieldNames` is built: it is per-ring
   evaporative state). One event writes it on the bulk handle all the same: `event_sabkha_evap`
@@ -634,15 +733,22 @@ handle is what the broth panel shows and what nucleation gates read, so the scen
 lead-rich while no crystal can reach the lead. `_wallStrangledFor` then blocks births that the bulk
 σ admits, because no wall cell clears the threshold.
 
-**A/B** (`pb`: the same increment also lands on every voxel):
+**A/B.** Two arms send the lead somewhere else. `pb` also adds the same increment to every voxel,
+as a propagated event would. `nopb` takes it off the bulk handle again, so that it reaches no
+fluid at all. Both are run in the pocket as shipped and in the pocket held open (`cap=8` on
+feldspar, albite and quartz, which leaves it 11 to 18 % full). No arm grows galena.
 
-| Scenario, arm (seeds 42 / 1 / 2) | Bulk Pb, ppm | Voxel-mean Pb, ppm | Species moved against shipped | Lead minerals |
+| Scenario, arm (seeds 42 / 1 / 2) | Bulk Pb at run end, ppm | Voxel-mean Pb, ppm | Plumbogummite | Uraninite negative zones |
 |---|---|---|---|---|
-| `radioactive_pegmatite`, shipped | 146.8 / 127.7 / 147.2 | 30.00 | — | plumbogummite ×2–3 at 0.000 mm; no galena |
-| … `pb` | 146.7 / 129.3 / 158.7 | equal to bulk | 1 / 0 / 1 | plumbogummite at 0.000 mm; no galena |
-| … `cap=8,pb` (pocket open and lead in the voxels) | 185.0 / 173.8 / 167.1 | equal to bulk | 9 / 12 / 10 | plumbogummite ×3 at 0.053 / 0.047 / 0.048 mm, growing to step 120; no galena |
-| `schneeberg`, shipped | 179.0 / 221.8 / 217.5 | 5.00 | — | none |
-| … `pb` | 178.9 / 221.7 / 217.4 | equal to bulk | 2 / 1 / 0 | none |
+| `radioactive_pegmatite`, shipped | 146.8 / 127.7 / 147.2 | 30.00 | ×2 / ×3 / ×3 at 0.000 mm | 3 / 6 / 29 |
+| … `pb` | 146.7 / 129.3 / 158.7 | equal to bulk | ×3 at 0.000 mm | 3 / 9 / 54 |
+| … `nopb` | 30.0 | 30.00 | none / none / ×1 at 0.000 mm | 3 / 6 / 29 |
+| … pocket held open | 312.6 / 299.2 / 287.9 | 30.00 | ×3 at 0.006 / 0.005 / 0.005 mm | 123 at every seed |
+| … pocket held open, `pb` | 312.5 / 299.1 / 287.8 | equal to bulk | ×3 at 0.71 / 0.70 / 0.69 mm, growing to step 120 | 123 |
+| … pocket held open, `nopb` | 30.0 | 30.00 | ×1 at 0.006 mm / none / none | 123 |
+| `schneeberg`, shipped | 179.0 / 221.8 / 217.5 | 5.00 | none (not licensed) | 79 / 149 / 149 |
+| … `pb` | 178.9 / 221.7 / 217.4 | equal to bulk | none | 79 / 149 / 149 |
+| … `nopb` | 5.0 | 5.00 | none | 79 / 149 / 149 |
 
 So the defect is real and at present latent. In `radioactive_pegmatite` the pocket is full by step
 61 at the latest, and the mineral the lead is meant for cannot form at all. The scenario's
@@ -654,13 +760,15 @@ unlicensed species' function runs (§2.3). On the bulk handle galena is past its
 33 / 30 / 30 steps of the shipped run, and every one of them reads "not licensed". The licensed
 sink is plumbogummite, a deterministic species of the scenario. `_wallStrangledFor` refuses it
 6 / 7 / 7 times, and the crystals that are born stay dust: it is present in all 55 canary seeds and
-never larger than 0.6 µm. With the pocket open *and* the lead in the voxels (`cap=8,pb`) it grows,
-to 0.05 mm.
+never larger than 0.6 µm. With the pocket held open *and* the lead in the voxels it grows, to
+0.7 mm. With the lead taken off the bulk handle it is gone at two seeds of three, in the plugged
+pocket and in the open one: nearly all of today's plumbogummite is born because the bulk handle
+carries lead that no cell holds.
 
 `schneeberg` licenses no lead mineral. There the radiogenic lead takes plumbogummite and anglesite
 past σ_crit on the bulk handle for 72 and 69 steps, neither of them licensed. The σ functions of
 several minerals that hold no lead read Pb as well, as a suppression or a competition term, which
-is why the `pb` arm still moves 2 / 1 / 0 species there.
+is why the `pb` arm still moves 2 / 1 / 0 species there. `nopb` moves none.
 
 **The science.** Radiogenic lead is not released to the fluid as it forms. It is held in the
 uraninite (about 19 wt % PbO in unaltered 2 Ga uraninite at Oklo) and leaves when the uraninite is
@@ -696,15 +804,16 @@ pre-registered here.
 
 ### C1 — bound the feldspar pair (cures F1)
 
-Three shapes were previewed on all 13 scenarios that grow feldspar or albite, at seeds 42, 1 and 2.
-All three cure `gem_pegmatite`'s plug with the same gem assemblage. They differ in what else they
+Four shapes were previewed on all 13 scenarios that grow feldspar or albite, at seeds 42, 1 and 2.
+All four cure `gem_pegmatite`'s plug with the same gem assemblage. They differ in what else they
 move. The table is seed 42. The counts, the scenarios and the species lost are the same at seeds 1
 and 2, where under the root `ouro_preto` falls from 32.3 to 0.3 % and from 22.8 to 0.2 % full and
 `bisbee` re-deals 7 and 17 species:
 
 | Shape | What it is | Scenarios moved (of 13) | Species lost |
 |---|---|---:|---|
-| clamp, σ ≤ 8 (`cap=8`) | The product is capped as a whole. Only fluids already past 8 feel it; the saturation boundary and every σ under 8 are untouched. | 7: the three pegmatites, `schneeberg`, `tormiq_alpine_cleft`, `ouro_preto`, `jeffrey_mine` | none |
+| clamp on the rate, σ − 1 ≤ 7 (`rclamp=7`) | The engine's rate becomes k·min(σ − 1, 7). σ itself is untouched, so births, the saturation boundary and every reading of σ are as shipped. Only growth in a fluid past σ = 8 feels it. | 7: the three pegmatites, `schneeberg`, `tormiq_alpine_cleft`, `ouro_preto`, `jeffrey_mine` | none; what it does to sizes is in the next table |
+| clamp on σ, σ ≤ 8 (`cap=8`) | The σ method is capped as a whole, for growth and for births alike. | the same 7 | none; no species differs from the clamp on the rate in any of the 39 runs |
 | factor caps at 2 (`fcap=2`) | Each concentration factor is capped, as the sister silicates' are. Ceiling 8. | 13 | albite and feldspar in `grimsel_alpine_cleft` (6.5 and 5.3 mm shipped) and in `chiastolite_hornfels` (0.7 mm feldspar); `deccan_zeolite`'s feldspar, which never grew |
 | per-factor root (`root=3`) | σ → σ^(1/3): the per-ion convention S = (IAP/K)^(1/ν) of the electrolyte crystal-growth literature (Nielsen 1981, read at abstract level), applied to the proxy's three factors. Keeps the saturation boundary. | 13 | none, but `ouro_preto` falls from 28.8 % to 0.3 % full and `bisbee` re-deals 8 species |
 
@@ -715,46 +824,79 @@ Grimsel cleft, a 6.5 mm albite and a 5.3 mm K-feldspar. Factor caps move the sat
 for a mineral already calibrated without them, that is a different mineral. The preview used one
 ceiling for every factor. Separate ceilings were not tried.
 
-**Recommendation: the clamp**, and applied to the rate inside `grow_feldspar` and `grow_albite`
-(`k·min(σ − 1, E)` with each engine's own k, 3 and 4; E = 7 is the previewed σ ≤ 8) so that σ
-itself keeps reporting what the proxy says. The preview clamps the σ method, which births read as
-well; a clamp on the rate leaves births on the unclamped σ, so C1's bump re-measures this table.
-The clamp has a physical reading: far from saturation, growth is limited by transport and stops
-scaling with σ. Its value is still a calibration constant, and the outcome is sensitive to it
-(`gem_pegmatite`, seed 42; seeds 1 and 2 differ by at most 0.2 mm and three steps):
+**Recommendation: the clamp on the rate**, inside `grow_feldspar` and `grow_albite`
+(`k·min(σ − 1, E)` with each engine's own k, 3 and 4), so that σ itself keeps reporting what the
+proxy says. The clamp has a physical reading: far from saturation, growth is limited by transport
+and stops scaling with σ.
 
-| σ ≤ | fill at end | first step at fill ≥ 0.999 | tourmaline, mm | topaz, mm |
-|---:|---:|---:|---:|---:|
-| 4 | 21 % | — | 12.0 | 2.5 |
-| 8 | 42 % | — | 12.0 | 2.5 |
-| 12 | 90 % | — | 12.0 | 2.5 |
-| 16 | 99 % | — | 9.4 | 0.87 |
-| 24 | 100 % | 113 | 6.1 | 0.007 |
-| 48 | 100 % | 55 | 2.8 | none |
-| shipped (552–672) | 100 % | 9 | 0.29 | none |
+Its value is a calibration constant, and it cannot be chosen on `gem_pegmatite` alone. In a fluid
+past the clamp a crystal grows k·E micrometres a step, times the time scale of 5, whatever the
+fluid holds. Its size is then its step count times a constant, and one value has to serve
+scenarios of 70 to 260 steps in cavities of very different sizes. The next table is the largest
+crystal in millimetres at seeds 42 / 1 / 2, for six values of E. A dash is a scenario that value
+leaves exactly as shipped.
+
+| E | `gem_pegmatite`: fill at end; tourmaline; topaz | `tormiq_alpine_cleft`: albite; feldspar | `schneeberg`: feldspar | `ouro_preto`: albite | `jeffrey_mine`: albite | `shigar_pegmatite`: albite; fill at end | `radioactive_pegmatite`: fill at end |
+|---:|---|---|---|---|---|---|---|
+| shipped | 100 %, full at step 9 / 10 / 10; 0.29 / 0.37 / 0.39; none | 65.8 / 66.5 / 66.5; 36.5 / 37.2 / 37.4 | 27.6 / 26.6 / 26.7 | 39.6 / 41.3 / 36.8 | 11.0 / 10.4 / 11.2 | 270 / 268 / 277; 92.5 / 91.6 / 90.4 % | 100 %, full at step 61 / 55 / 59 |
+| 3 | 21 / 21 / 20 %; 12.0 / 11.9 / 12.0; 2.5 | 12.1 / 11.8 / 11.9; 8.6 / 8.3 / 8.5 | 5.2 / 4.9 / 5.0 | 14.3 / 14.9 / 12.4 | 3.6 / 3.6 / 3.7 | 4.2 / 4.1 / 4.2; 0.0 % | 98.3 / 98.8 / 98.6 % |
+| 7 | 42 / 41 / 41 %; 12.0 / 11.9 / 12.0; 2.5 | 26.7 / 26.5 / 26.3; 19.0 / 18.8 / 18.9 | 10.3 / 9.8 / 9.8 | 30.7 / 31.8 / 27.9 | 8.4 / 8.2 / 8.6 | 9.7 / 9.7 / 9.9; 0.0 % | 98.3 / 98.6 / 98.7 % |
+| 11 | 90 %; 12.0; 2.5 / 2.4 / 2.5 | 41.0 / 40.3 / 40.3; 27.3 / 27.7 / 28.1 | 14.4 / 13.9 / 13.9 | — | — | 15.3 / 15.2 / 15.5; 0.0 % | 98.4 / 98.8 / 98.8 % |
+| 15 | 99 %; 9.4 / 9.5 / 9.6; 0.87 / 0.92 / 0.96 | 55.2 / 54.4 / 54.3; 32.0 / 32.5 / 32.9 | 18.5 / 17.8 / 17.7 | — | — | 20.9 / 20.7 / 21.1; 0.1 % | 98.6 / 99.1 / 99.0 % |
+| 23 | 100 %, full at step 113 / 115 / 116; 6.1 / 6.2 / 6.2; 0.007 / 0.008 / 0.008 | — | 26.2 / 25.2 / 25.2 | — | — | 32.0 / 31.7 / 32.4; 0.3 % | 99.2 / 99.8 / 99.5 % |
+| 47 | 100 %, full at step 55 / 56 / 57; 2.8 / 2.9 / 2.9; none | — | — | — | — | 65.4 / 64.8 / 66.1; 2.5 / 2.3 / 2.3 % | 100 %, full at step 92 / 90 / 93 |
+
+A clamp on σ at E + 1 gives `gem_pegmatite` the same row at each of the six values
+(`probe-ab-digest.txt`). Three things follow.
+
+1. *No value both cures `gem_pegmatite` and leaves the others as they are.* The values that leave
+   it under 0.7 full (E = 3 and E = 7) take `tormiq_alpine_cleft`'s albite from 66 mm to 27 or
+   less and `schneeberg`'s feldspar from 28 mm to 10.3 or less. No species is lost: both feldspars
+   stay in the cleft, where they are `expects_species`. In `schneeberg` the largest crystal
+   becomes quartz, and at E = 7 it moves 9 / 6 / 8 of that scenario's species. The values that
+   leave the cleft alone (E = 23 and E = 47) leave the pocket plugged. The cleft's and `schneeberg`'s
+   bulk σ for the pair peaks at 30 and 35 (`probe-sigma-maxima.txt`), about four times the σ of 8
+   that cures the pegmatite.
+2. *Shigar's pocket empties.* At every value its albite is a quarter of its shipped 270 mm or
+   less. At E = 7 it is 9.7 mm in a 220 mm cavity that ends 0.0 % full, with its tourmaline and
+   topaz barely changed (1.8 and 0.7 mm). Shigar runs 70 steps to `gem_pegmatite`'s 230, so a
+   clamp that suits one gives the other a third as much feldspar. The shipped pocket is 92 % full
+   of the same two minerals: v241 enlarged the cavity to keep them from sealing it, and the clamp
+   takes that reason away. What Shigar's pocket should hold is a ruling for the owner, with its
+   sources.
+3. *`radioactive_pegmatite` still plugs, on quartz,* at every value. That is not a reason to cap
+   quartz: its σ is a solubility ratio, and 245 is what that ratio is in a fluid that cools to
+   100 °C still holding 15,000 ppm of silica. It is the clearest single case for C4.
+
+So the recommendation comes with a cost, and the owner chooses it: the clamp at E = 7, the
+loosest previewed value that leaves `gem_pegmatite` under 0.7 full, with the changes in the E = 7 row
+accepted on purpose and Shigar decided in the same change. If the owner would rather move one
+scenario than seven, the same clamp can be authored on `gem_pegmatite` alone. That cures the plug
+where it was found, and leaves the uncapped product and Shigar's 270 mm albite as they are.
 
 A clamp does not make feldspar stop. It slows feldspar enough that this scenario's 230 steps end
-before the pocket fills, which is the argument for C4. A fourth shape, enlarging the cavity as v241
-did for Shigar, was not previewed: feldspar still adds about 8 mm a step, any cavity fills in time,
-and no locality's pocket should be sized to fit its feldspar.
+before the pocket fills, which is the argument for C4. Enlarging the cavity, as v241 did for
+Shigar, was not previewed: feldspar still adds about 8 mm a step, any cavity fills in time, and
+no locality's pocket should be sized to fit its feldspar.
 
 Pre-registered acceptance for C1's bump:
 
 - `gem_pegmatite` at seeds 42, 1 and 2: fill stays under 0.7 for the whole run, so the fill
   dampener never engages; some crystal stores a positive zone after step 215; tourmaline ≥ 5 mm;
-  topaz ≥ 1 mm. (In the table above σ ≤ 4 and σ ≤ 8 meet the fill, tourmaline and topaz bounds;
-  σ ≤ 12 and looser do not.)
+  topaz ≥ 1 mm. (In the table above E = 3 and E = 7 end the run 21 and 42 % full and meet the
+  tourmaline and topaz bounds. E = 11 ends it 90 % full and the looser values plug. The table
+  gives the fill at the end of the run; the bump has to show it at every step.)
 - The census controls `space+end` (positive) and `time` (negative) fail, and the same commit
   rewrites them.
 - Movers are a subset of the 13 scenarios that grow feldspar or albite, and no scenario loses a
   species it grows at seeds 42, 1 or 2 today.
-- `shigar_pegmatite` is also run at the 140 mm cavity it had before v241, to learn whether the
-  clamp alone keeps that pocket open. That is a measurement, not a reversion: 220 mm is the
-  source-bounded cavity (`js/15-version.ts`, v241).
-
-`radioactive_pegmatite` will still plug, on quartz. That is not a reason to cap quartz: its σ is a
-solubility ratio, and 245 is what that ratio is in a fluid that cools to 100 °C still holding
-15,000 ppm of silica. It is the clearest single case for C4.
+- In the six other scenarios the clamp moves, the pair's largest crystals land within a tenth of
+  the table's row for the value chosen. Those changes are the clamp acting where σ passes it. They
+  are expected, and a reviewer of the bump should not read them as a regression.
+- Shigar's outcome is decided before the bump, not discovered by it: the table's row, a retuned
+  scenario, or Shigar left outside the clamp. It is also run at the 140 mm cavity it had before
+  v241, to learn what the clamp leaves in that pocket. That is a measurement, not a reversion:
+  220 mm is the source-bounded cavity (`js/15-version.ts`, v241).
 
 ### C2 — put the three engines on σ − 1 (cures F2)
 
@@ -781,12 +923,12 @@ species and at seed 2 costs it its mottramite.
 
 `reactive_wall` teaches something. With the same constant its galena keeps 19 % of its size at
 seed 42, not the 2 % that §3.2's last column predicts. The bulk fluid there is 12 % past saturation
-for galena (median σ 1.119), but the galena's own cell sat at a median 1.004: under k·σ the crystal
-grew at full rate at saturation and drew its cell down until nothing was left to draw. Under σ − 1
-it slows as it nears saturation, the cell is drawn down less, and its σ settles at a median 1.094
-(`--trace galena`). That is supply and growth regulating each other, the mechanism of §2.1, and the
-k·σ law was replacing it with stop and start. At seeds 1 and 2 the same galena is 1.1 mm as
-shipped, on a cell at a median σ of 1.08, and 0.7 mm under σ − 1.
+for galena (median σ 1.121), but the galena's own cell sat at a median 1.005 when its engine ran:
+under k·σ the crystal grew at full rate at saturation and drew its cell down until nothing was
+left to draw. Under σ − 1 it slows as it nears saturation, the cell is drawn down less, and its σ
+settles at a median 1.098 (`--trace galena`). That is supply and growth regulating each other, the
+mechanism of §2.1, and the k·σ law was replacing it with stop and start. At seeds 1 and 2 the same
+galena is 1.1 mm as shipped, on a cell at a median σ of 1.085, and 0.7 mm under σ − 1.
 
 Acceptance: the engine probe reads "vanishes" for all 174 driven engines, and for the three it
 reads the shape of a law linear in σ − 1, as it does today for 169 of the 174 (the proposed
@@ -802,18 +944,37 @@ dissolution zone removes that shell, which is the path `applyStoichiometricGrowt
 walks for every booked species. Propagating the bulk write to the voxels instead is a one-line
 change that fixes the bookkeeping and keeps the wrong mechanism.
 
-Neither has a preview that fits. The `pb` arm of §3.3 previews the propagation, the mechanism this
-recommendation turns down; book-and-release takes the 98 to 217 ppm of radiogenic lead off the
-bulk handle altogether, which no arm here does.
+Two arms bracket it (§3.3). `pb` is the propagation this recommendation turns down. `nopb` is
+book-and-release with the release left out: the radiogenic lead never reaches a fluid. So `nopb`
+shows what C3 costs wherever the release does not deliver.
+
+- `radioactive_pegmatite` loses its plumbogummite at seeds 42 and 1 and keeps one crystal of it
+  at seed 2. Plumbogummite is a deterministic species of that scenario. Today the only lead it
+  sees above the broth's 30 ppm is the radiogenic lead on the bulk handle, which admits its births
+  and feeds none of its growth.
+- `schneeberg` does not change at any seed. It licenses no lead mineral.
+
+Whether the release delivers depends on how often the uraninite is attacked, since a release
+fires on a negative zone. `schneeberg`'s uraninites take 79 / 149 / 149 of them. In
+`radioactive_pegmatite` they take 3 / 6 / 29 as shipped, and 11 / 9 / 9 with the feldspar pair
+clamped, because that pocket still fills, on quartz (§3.1). With quartz bounded as well they take
+123 at every seed. So in the one scenario that promises lead minerals, C3 has almost nothing to
+release for as long as the pocket plugs, and C1 alone does not unplug it. With the pocket open
+and the lead in the voxels plumbogummite grows to 0.7 mm. How much of that a release at the
+uraninite's own cell would reproduce is not previewed: no arm here books lead into a crystal.
 
 The description of `radioactive_pegmatite` needs a ruling with it. It promises galena, and the
 scenario does not license galena (§3.3). Either the license gains galena, with a source for galena
-in that pocket, or the two sentences go.
+in a pocket of that kind (the scenario declares itself generic, "not anchored to a specific
+locality"), or the two sentences go.
 
-Acceptance: the census control `two-fluids` (positive) fails and is rewritten as a negative; bulk Pb
-and voxel-mean Pb stay within 1 % of the field's scale of each other in both uraninite scenarios (the
-bound the negative control puts on `mvt`'s Ca); and no lead mineral is born that never stores a
-positive zone, where today plumbogummite is.
+Acceptance: the census controls `two-fluids` (positive) and `strangled` (positive) fail and are
+rewritten; bulk Pb and voxel-mean Pb stay within 1 % of the field's scale of each other in both
+uraninite scenarios (the bound the negative control puts on `mvt`'s Ca); and in
+`radioactive_pegmatite`, at seeds 42, 1 and 2, plumbogummite is present and stores a positive zone
+after step 80, on lead released from uraninite. That line can only be met once the pocket no
+longer plugs. A lead mineral that is born and never grows, as plumbogummite is today, fails it. So
+does a run with no plumbogummite, which an earlier wording of this line would have passed.
 
 ### C4 — give supply a scale above the cell (S1, S2, S3; the larger direction)
 
@@ -853,15 +1014,19 @@ Pre-registered acceptance for the pilot:
 - With the pilot on, the census's cavity-scale share (what the solids hold ÷ the most the field ever
   held, §2.1) passes 10 % for at least one ingredient. The largest in `gem_pegmatite` today is
   potassium's 0.03 %, 2.4 voxels' worth.
-- The feldspar pair's pauses read "its cell ran short of an ingredient", and no crystal reads
-  "pocket full".
+- With the pilot on and C1's clamp lifted in the piloted scenario, the pocket does not plug: its
+  fill stays under 0.7 for the whole run and no crystal reads "pocket full". That is the claim C4
+  makes for itself, that a phase stops for want of supply and needs no cap. (The second version of
+  this document asked instead for the feldspar pair's pauses to read "its cell ran short". An
+  engine linear in σ − 1 slows on a drawn-down cell and does not pause, so that line could have
+  passed with no pause to read.)
 
 ### C5 — keep the census
 
-Run `tools/sim-side-census.mjs` at each SIM bump, as `baseline-diff` is. It takes about 25 minutes
+Run `tools/sim-side-census.mjs` at each SIM bump, as `baseline-diff` is. It takes about 20 minutes
 a seed and answers what the baselines cannot: not what grew, but what slowed it and why it
 stopped. It is worth keeping only as far as its readings are guarded: the mutation tool runs with
-it, and a reading without a control (§1 names three) stays labelled as one.
+it (about 25 minutes), and a reading without a control (§1 lists them) stays labelled as one.
 
 ## 5. Traps
 
@@ -870,17 +1035,17 @@ it, and a reading without a control (§1 names three) stays labelled as one.
    feed. The one field that does follow the voxels is deliberate too: under a carbonate boundary the
    bulk handle's CO3 and pH are set each step to the mean over the wet voxels (`js/85c`). F3 is one
    write to the bulk handle alone, not a reason to merge the two fluids.
-2. **A feldspar cap is a calibration constant, not physics.** It removes a runaway; it does not make
-   feldspar stop for a reason. C4 would.
+2. **A feldspar clamp is a calibration constant, not physics.** It removes a runaway; it does not
+   make feldspar stop for a reason, and no one value suits every scenario (§4, C1). C4 would.
 3. **Bounding feldspar moves the plug to quartz in `radioactive_pegmatite`** (98 % full, a 53 to
    55 mm quartz).
 4. **Boron is not the lever in `gem_pegmatite`.** Tourmaline's boron factor is at its cap before and
    after C1 (§3.1). A residual-concentration test (WP8(b)) run on that tourmaline reads "no effect"
    whatever the mechanism does.
-5. **Four controls sit on today's defects, and flip.** The commit that cures F1 rewrites
+5. **Five controls sit on today's defects, and flip.** The commit that cures F1 rewrites
    `space+end` (positive) and `time` (negative). The one that cures F3 rewrites `two-fluids`
-   (positive), and `count` (positive) too if galena is licensed. Otherwise the census reports a
-   regression that is the fix.
+   (positive) and `strangled` (positive), and `count` (positive) too if galena is licensed.
+   Otherwise the census reports a regression that is the fix.
 6. **Beryl stays absent after C1** (W1). Do not count it against C1.
 7. **"Dissolving" in §2.2 is not "dissolved".** A crystal that took a negative zone and kept solid is
    still surviving, and is filed under "dissolving" if it never grew again. The `dissolved` flag
@@ -888,29 +1053,40 @@ it, and a reading without a control (§1 names three) stays labelled as one.
 8. **A cell read after the step is a cell that has been refilled.** Diffusion runs at the end of
    every step. The first version of this census read a stopped crystal's σ then, and filed starved
    crystals as saturated. The engine's view has to be read at the dry run.
-9. **The bulk handle is the equator ring.** After a partial drop in water level its O2, Eh and
-   `concentration` are those of the dried rings, not a cavity average (§3.3).
+9. **The bulk handle is one fluid object, not a cavity average and not a ring.** It is aliased to
+   the equator ring's legacy slot, so a partial drop in water level writes the drying chemistry to
+   it once. Nothing diffuses it afterwards, and no ring's voxels need match it (§3.3).
+10. **An intervention can cancel an authored event.** The first version of the `refund` arm
+    returned carbonate after the ledger had written its receipt. The carbonate boundary's audit
+    then failed and paused `tutorial_travertine`'s CO2 vent, and the arm counted that scenario as
+    moved by supply. The arm now rewrites the receipt, and the A/B tool compares every arm's audit
+    counts with the shipped arm's and flags a difference (§7).
 
 ## 6. Decisions for the boss
 
-1. **C1's shape:** the clamp (recommended), factor caps, or the per-factor root; and the clamp's
-   value, which the outcome is sensitive to (§4, C1).
+1. **C1's shape and its cost:** the clamp (recommended), factor caps, or the per-factor root; the
+   clamp's value, which the outcome is sensitive to; and whether what the clamp does elsewhere is
+   acceptable. It loses no species, and it shrinks the feldspar pair in six other scenarios, most
+   of all in Shigar, whose pocket it leaves nearly empty (§4, C1).
 2. **C2's constant:** keep each k and let galena shrink where its fluid is barely saturated, or
    re-fit k at one reference scenario. And whether the galena of `reactive_wall` and
    `sunnyside_american_tunnel` should then be grown by a sourced change to the fluid or accepted
    small.
 3. **C3's mechanism, and `radioactive_pegmatite`'s promise:** book-and-release (recommended) or
    propagate; and whether that scenario's license gains galena, with a source, or its description
-   loses the two sentences that promise it.
+   loses the two sentences that promise it. Book-and-release without a working release deletes
+   that scenario's plumbogummite, and the release has little to act on while its pocket plugs,
+   which C1 alone does not cure there (the plug moves to quartz).
 4. **C4:** whether to pilot it, and who owns it. It overlaps the reservoir arc of PRs #35–#39 and
    #42, and one finding should have one owner.
 5. **C5:** whether the census, with its mutation tool, joins the SIM-bump routine.
 6. **Order against the open ladders.** My proposal: C1 first, because it is the one change that
    gives `gem_pegmatite` back seven of its eight events and four of its species (tourmaline, topaz,
-   spodumene, lepidolite); C3 with it, since C1 also opens `radioactive_pegmatite`, where F3 is
-   latent; C2 as a rung of its own beside the recipe review's R2 → R9; C4 after the ruling on 4.
-   Story-pocket WP8(b) waits on none of them, and should not be tested on `gem_pegmatite`'s
-   tourmaline (trap 4).
+   spodumene, lepidolite); C2 as a rung of its own beside the recipe review's R2 → R9; C3 once
+   `radioactive_pegmatite`'s pocket no longer plugs, which needs its quartz dealt with as well as
+   C1 (trap 3), and until then its bookkeeping half alone would cost that scenario its
+   plumbogummite; C4 after the ruling on 4. Story-pocket WP8(b) waits on none of them, and should
+   not be tested on `gem_pegmatite`'s tourmaline (trap 4).
 
 ## 7. Limits
 
@@ -920,8 +1096,12 @@ it, and a reading without a control (§1 names three) stays labelled as one.
 - **Draw-down is read against the bulk handle.** The reference is the bulk handle's fluid at the
   cell's temperature, so the reading sees every way the two fluids differ, not only consumption.
   The ingredient test separates them: what it does not restore is filed apart (the "otherwise"
-  share of §2.1, and 1,869 / 1,593 / 1,768 crystal-steps spent below saturation on such a cell,
-  most of them in `searles_lake`, whose bulk handle and voxels differ in `concentration`). In
+  share of §2.1, and 1,869 / 1,593 / 1,768 crystal-steps spent below saturation on such a cell),
+  and the census names the one further field that does restore it. For those crystal-steps it is
+  `concentration` on 1,447 / 1,064 / 1,334, nearly all of them `searles_lake`'s evaporites, and
+  oxygen on 421 / 509 / 428. The search sets one field at a time, with the fields coupled to it
+  (O2 with Eh, the sulfur pools, silica with its reactive share). A cell that needed two would be
+  filed as "no one field"; none is, at these seeds. In
   `zoned_dripstone_cave` 81 / 53 / 78 % of the stored thickness grew where the bulk handle itself
   is at or under saturation, because its ceiling zone is authored richer than the bulk. The two
   thresholds, 0.5 and 0.9 of the reference's excess, are choices. The ingredients are the formula
@@ -930,16 +1110,19 @@ it, and a reading without a control (§1 names three) stays labelled as one.
   enclosure and activity at the end of that step. A crystal that paused many times is filed under
   its last stop. The pauses are counted separately, one for every stop, so one mineral in one
   scenario can dominate them, as the galenas of §3.2 do.
-- **The count reading.** It is taken when the nucleation pass starts, on the bulk fluid that pass is
-  about to read. The four scenario tests are the simulator's own functions, called. The count-gate
-  attribution is a static reading of the source, in the forms the tool's header lists: 61 of the
-  169 functions show no gate in those forms, and a function that counts its own species another way
-  is read as having none. Where a gate keeps a side door (62 functions) a species-step filed under
-  it could still have rolled. The cap share and the single-crystal count are exact. Above fill 0.7
-  `_atNucleationCap` also refuses births with a probability set by the fill dampener; the census
-  does not attribute a species-step to it. The 15 species with no nucleation function of their own
-  (the beryl and corundum families, which share a nucleator, and seven transformation products) are
-  not in the reading.
+- **The count reading.** It is taken when the nucleation pass starts, on the σ that pass is about
+  to read: the bulk handle's, or the maximum over the wall cells where the scenario installs the
+  localized-nucleation envelope (§2.3). The four scenario tests are the simulator's own functions,
+  called. The count-gate attribution is a static reading of the source, in the forms the tool's
+  header lists: 61 of the 169 functions show no gate in those forms, and a function that counts
+  its own species another way is read as having none. Where a gate at one keeps a side door (62
+  functions) a species-step filed under it could still have rolled; §2.3 counts those apart. The
+  cap share and the single-crystal count are exact. Above fill 0.7 `_atNucleationCap` also refuses
+  births with a probability set by the fill dampener; the census does not attribute a species-step
+  to it. Fifteen minerals have no nucleation function of their own and are not in the reading: the
+  beryl family (five) and the corundum family (three), which share a nucleator; six transformation
+  products; and raspite, which stolzite's function nucleates. The attribution of a
+  `_wallStrangledFor` refusal is read on one wall cell, the one that came nearest to clearing.
 - **The engine probe calls engines outside `run_step`.** That isolates the engine's own law, which is
   the point, and means it says nothing about what competition, the dampener or the time scale do
   afterwards. §3.2's second table does.
@@ -954,20 +1137,36 @@ it, and a reading without a control (§1 names three) stays labelled as one.
 - **The interventions are diagnostics, not proposed rules.** `refund` returns what the ledger booked
   for a zone, formula and trace species alike, and leaves the solid's booked inventory in place, so
   a crystal that later dissolves returns it a second time: the arm is an unlimited local source,
-  not a closed system. `cap`, `fcap` and `root` wrap a σ method on the scenario's conditions
-  object. Growth, the nucleation gates and the strangulation test all read that method. So does
-  the localized-nucleation envelope of `js/85b`, which captures whatever method it finds there when
-  a nucleation pass starts. Four scenarios install that envelope at seed 42 (`naica_geothermal`,
-  `stalactite_demo`, `wittichen`, `zoned_dripstone_cave`), and none grows a mineral whose σ method
-  an arm of this review wraps. In three of them, pass-through wrappers on minerals they do grow
+  not a closed system. Under a carbonate boundary it also rewrites the carbonate receipt of each
+  refunded zone, so that the boundary's audit sees the cell as it now is (trap 10). `rclamp`
+  rescales a positive zone inside the engine's call, on a σ read before the engine runs, and
+  leaves the σ method alone. It is the shape C1 recommends; at the values previewed, the tests the
+  two engines make on their own rate (a habit, an inclusion roll) fall on the same side as they
+  would with the clamp written into the engine. `rind` drops a positive zone once the crystal has
+  reached the rind and lets a dissolution zone through. `nopb` takes off the bulk handle the
+  increment the uraninite block has just added. `cap`, `fcap` and `root` wrap a σ method on the
+  scenario's conditions object. Growth, the nucleation gates and the strangulation test all read
+  that method. So does the localized-nucleation envelope of `js/85b`, which captures whatever
+  method it finds there when a nucleation pass starts. Four scenarios install that envelope
+  (`naica_geothermal`, `stalactite_demo`, `wittichen`, `zoned_dripstone_cave`), and none grows a
+  mineral whose σ method an arm of this review wraps. In three of them, pass-through wrappers on minerals they do grow
   were called under the envelope 192,000 to 576,000 times and the runs still reproduced the
   baseline (`probe-nucleation-envelope.txt`, `-per-vertex.txt`). `fcap` is exact for the product
-  and does not re-derive the functions' subtractive acid term. `excess` and `pb` have no neutral
-  setting to self-check against.
-- **Not examined:** which difference between the two fluids produced each `_wallStrangledFor`
-  verdict; whether the bulk-only `concentration` of `sabkha_dolomitization` matters beyond the
-  license check of §3.3; the carbonate and sulfate solubility kernels, the thermal field, physical
-  dissolution, the cavity geometry, the renderer, the agent API.
+  and does not re-derive the functions' subtractive acid term. `excess`, `pb` and `nopb` have no
+  neutral setting to self-check against.
+- **What an arm may break.** An arm can move a run by tripping one of the simulator's own audits
+  (trap 10). The A/B tool therefore counts, for every run, the step-log lines in which an event
+  says it was paused or refused, the failed transactions of the carbonate boundary and the entries
+  of the three violation ledgers, and flags an arm whose counts differ from the shipped arm's. No
+  arm run in the committed outputs is flagged (`probe-ab-digest.txt` lists every file). The tool
+  also reports the steps on which the wall's dissolution was withheld as too small to resolve.
+  That is a notice and not a failure, and it follows how much of the wall the crystals cover: it
+  falls under `refund` in `bisbee` and `supergene_oxidation`, whose pockets fill, and shifts by
+  one to five steps in four other arm runs. The comparison covers the audits named here. It does
+  not show that an arm has no other side effect.
+- **Not examined:** whether the bulk-only `concentration` of `sabkha_dolomitization` matters beyond
+  the license check of §3.3; the carbonate and sulfate solubility kernels, the thermal field,
+  physical dissolution, the cavity geometry, the renderer, the agent API.
 - **Citations.** The rate and temperature quoted from Van Driessche et al. 2011 were checked
   against the paper's abstract. Janeczek & Ewing 1995, Evins et al. 2005 and Nielsen 1981 were read
   at abstract level through search results, not in full. García-Ruiz et al. 2007 is cited as the
@@ -979,22 +1178,25 @@ Windows x64, Node 24.15.0, from the repository root, after `npm ci` and `npm run
 runs are independent and can run side by side.
 
 ```text
-node tools/sim-side-census.mjs                       # seed 42, about 25 min; report in .local-evidence/sim-side-census/seed-42/
+node tools/sim-side-census.mjs                       # seed 42, about 20 min; report in .local-evidence/sim-side-census/seed-42/
 node tools/sim-side-census.mjs --seed 1
 node tools/sim-side-census.mjs --seed 2
-node tools/sim-side-census-mutations.mjs             # about 20 min
+node tools/sim-side-census-mutations.mjs             # about 25 min
 node tools/rate-at-saturation-census.mjs             # a few minutes
 node tools/seed-variety-census.mjs --stratum <vugg-canary>/logs/2026-11-04/v286
 
 node tools/sim-side-ab.mjs --arm refund=1 --seeds 42 <all 41 scenarios>      # and --seeds 1, --seeds 2: three files
-node tools/sim-side-ab.mjs --arm rind=5000 --arm cap=8 --seeds 42,1,2 gem_pegmatite radioactive_pegmatite shigar_pegmatite
+node tools/sim-side-ab.mjs --arm rind=5000 --arm cap=8 --arm rclamp=7 --seeds 42,1,2 gem_pegmatite radioactive_pegmatite shigar_pegmatite
 node tools/sim-side-ab.mjs --arm fcap=2 --arm root=3 --seeds 42,1,2 gem_pegmatite
 node tools/sim-side-ab.mjs --arm mul=B:10 --arm mul=B:0.5 --arm mul=B:0.25 --arm cap=8,mul=B:10 --arm cap=8,mul=B:0.5 --seeds 42,1,2 gem_pegmatite
-node tools/sim-side-ab.mjs --arm cap=8 --arm fcap=2 --arm root=3 --seeds 42,1,2 bisbee chiastolite_hornfels deccan_zeolite epithermal_telluride gem_pegmatite grimsel_alpine_cleft jeffrey_mine ouro_preto porphyry radioactive_pegmatite schneeberg shigar_pegmatite tormiq_alpine_cleft
+node tools/sim-side-ab.mjs --arm cap=8 --arm rclamp=7 --arm fcap=2 --arm root=3 --seeds 42,1,2 bisbee chiastolite_hornfels deccan_zeolite epithermal_telluride gem_pegmatite grimsel_alpine_cleft jeffrey_mine ouro_preto porphyry radioactive_pegmatite schneeberg shigar_pegmatite tormiq_alpine_cleft
+node tools/sim-side-ab.mjs --arm rclamp=3 --arm rclamp=7 --arm rclamp=11 --arm rclamp=15 --arm rclamp=23 --arm rclamp=47 --arm cap=4 --arm cap=8 --arm cap=12 --arm cap=16 --arm cap=24 --arm cap=48 --seeds 42,1,2 gem_pegmatite
+node tools/sim-side-ab.mjs --arm rclamp=3 --arm rclamp=7 --arm rclamp=11 --arm rclamp=15 --arm rclamp=23 --arm rclamp=47 --seeds 42,1,2 tormiq_alpine_cleft schneeberg ouro_preto jeffrey_mine
+node tools/sim-side-ab.mjs --arm rclamp=3 --arm rclamp=7 --arm rclamp=11 --arm rclamp=15 --arm rclamp=23 --arm rclamp=47 --seeds 42,1,2 shigar_pegmatite radioactive_pegmatite
 node tools/sim-side-ab.mjs --arm cap=8 --minerals feldspar,albite,quartz --seeds 42,1,2 radioactive_pegmatite gem_pegmatite
-node tools/sim-side-ab.mjs --arm pb --arm cap=8,pb --seeds 42,1,2 radioactive_pegmatite schneeberg
+node tools/sim-side-ab.mjs --arm pb --arm nopb --seeds 42,1,2 radioactive_pegmatite schneeberg
+node tools/sim-side-ab.mjs --arm cap=8 --arm cap=8,pb --arm cap=8,nopb --minerals feldspar,albite,quartz --seeds 42,1,2 radioactive_pegmatite
 node tools/sim-side-ab.mjs --arm excess=1 --arm excess=3 --minerals galena,molybdenite,uraninite --seeds 42,1,2 mvt porphyry radioactive_pegmatite reactivated_fluorite_vein reactive_wall roughten_gill schneeberg sunnyside_american_tunnel
-node tools/sim-side-ab.mjs --arm cap=4 --arm cap=8 --arm cap=12 --arm cap=16 --arm cap=24 --arm cap=48 --seeds 42,1,2 gem_pegmatite
 node tools/sim-side-ab.mjs --arm excess=1 --minerals galena --trace galena --seeds 42,1,2 reactive_wall
 
 node proposals/evidence/sim-side-2026-11-09/probe-sigma-maxima.mjs
@@ -1002,7 +1204,9 @@ node proposals/evidence/sim-side-2026-11-09/probe-sigma-maxima.mjs --minerals se
 node proposals/evidence/sim-side-2026-11-09/probe-baseline-history.mjs <vugg-canary>/logs/2026-11-04/v286
 node proposals/evidence/sim-side-2026-11-09/probe-nucleation-envelope.mjs
 node proposals/evidence/sim-side-2026-11-09/probe-nucleation-envelope.mjs --minerals selenite,celestine,calcite,aragonite,anhydrite naica_geothermal stalactite_demo zoned_dripstone_cave
-node proposals/evidence/sim-side-2026-11-09/probe-ab-digest.mjs      # reads the committed A/B outputs; runs nothing
+node proposals/evidence/sim-side-2026-11-09/probe-cell-field-gap.mjs schneeberg uranophane pH 6.0
+node proposals/evidence/sim-side-2026-11-09/probe-cell-field-gap.mjs supergene_oxidation ferrimolybdite O2      # and Mo
+node proposals/evidence/sim-side-2026-11-09/probe-ab-digest.mjs      # reads the committed A/B outputs and census reports; runs nothing
 
 npm run audit:runtime
 npm run typecheck
@@ -1012,17 +1216,20 @@ npm run audit:evidence
 npm run audit:release
 ```
 
-The five tools write only under `.local-evidence/`, the directory the test identity guard excludes,
-and exit 0 whatever they find. The four probes print and write nothing. The outputs quoted in this
-document are committed in `proposals/evidence/sim-side-2026-11-09/`, and the README there gives the
-exact command behind each file, the 41 scenario names of the `refund` runs included. The three
-census reports and the mutation report each name the sha256 of `tools/sim-side-census.mjs` as it
-ran, and it is the committed file's. A census row is cached under a digest that includes the text
-of the code that produces it, so a row cannot outlive a change to that code.
+The five tools write only under `.local-evidence/`, the directory the test identity guard excludes.
+They exit 0 whatever their readings and controls say; they throw on a bad argument, and the
+mutation tool throws if a mutant no longer matches the census. The five probes print and write
+nothing. The outputs quoted in this document are committed in
+`proposals/evidence/sim-side-2026-11-09/`, and the README there gives the exact command behind each
+file, the 41 scenario names of the `refund` runs included. The three census reports and the
+mutation report each name the sha256 of `tools/sim-side-census.mjs` as it ran, and it is the
+committed file's. A census row is cached under a digest that includes the seed and the text of
+the code that produces the row, so a row cannot outlive a change to that code or be handed to
+another seed.
 
 The six gates pass on this tree. **The full suite** (`npm run ci`, about 2.5 hours cold) is not part
-of this commit's evidence: it is run on the tip of the branch, and its verdict is recorded on the
-pull request. The repository's chip selector (`tools/test-chip-check.mjs`) has none of this
+of this commit's evidence, and it has not been run on this tip. It is to be run on the final tip
+of the branch, and its verdict recorded in a comment on the pull request. The repository's chip selector (`tools/test-chip-check.mjs`) has none of this
 change's paths in its authored map, so it offers no bounded test set for it; its own answer for
 such a change is a full check. No file the suite reads is changed, and no test was added.
 
@@ -1042,7 +1249,7 @@ such a change is a full check. No file the suite reads is changed, and no test w
 ## Appendix A — census tables (generated, seed 42)
 
 Copied from `proposals/evidence/sim-side-2026-11-09/census-seed-42.md` and `census-seed-42.json`
-(census v4, SIM 286; 41 of 41 runs reproduce the baseline).
+(census v5, SIM 286; 41 of 41 runs reproduce the baseline).
 
 #### Space and time
 
@@ -1102,7 +1309,8 @@ Copied from `proposals/evidence/sim-side-2026-11-09/census-seed-42.md` and `cens
 | at or above saturation on its cell, nothing proposed | 27 (2.4 %) | 4 (0.7 %) |
 | a zone proposed and not stored | 2 (0.2 %) | 1 (0.2 %) |
 | enclosed | 213 (18.7 %) | 8 (1.4 %) |
-| dissolving | 61 (5.3 %) | 41 (7.2 %) |
+| dissolving | 57 (5.0 %) | 37 (6.5 %) |
+| dissolving while the bulk handle reads at or above saturation | 4 (0.4 %) | 4 (0.7 %) |
 | size cap | 17 (1.5 %) | 17 (3.0 %) |
 | never grew | 42 (3.7 %) | 0 (0.0 %) |
 | no sigma method | 6 (0.5 %) | 6 (1.1 %) |
@@ -1268,18 +1476,22 @@ The instruments' outputs are committed unedited in `proposals/evidence/sim-side-
 | `census-seed-42.txt`, `census-seed-1.txt`, `census-seed-2.txt` | §2 and §3.3 |
 | `census-mutations.txt` | §1 |
 | `ab-refund-seed-42.txt`, `-seed-1.txt`, `-seed-2.txt` | §2.1: every debit returned to its cell, all 41 scenarios |
-| `ab-pegmatites-rind-clamp.txt` | §3.1 A/B table (rind, clamp); the other two pegmatites |
+| `ab-pegmatites-rind-clamp.txt` | §3.1 A/B table (rind, the clamp on sigma, the clamp on the rate); the other two pegmatites |
 | `ab-gem-factor-caps-root.txt` | §3.1 A/B table (factor caps, root) |
 | `ab-gem-boron.txt` | §3.1: tourmaline against the boron, in the plugged pocket and the open one |
 | `ab-feldspar-13-scenarios.txt` | §4 C1: what each shape moves in the 13 scenarios that grow feldspar or albite |
 | `ab-quartz-also-clamped.txt` | §3.1: radioactive_pegmatite with quartz bounded as well |
-| `ab-radiogenic-lead.txt` | §3.3 A/B table |
+| `ab-radiogenic-lead.txt` | §3.3 A/B table: radiogenic lead carried to the voxels, and taken off the bulk handle |
+| `ab-radiogenic-lead-open-pocket.txt` | §3.3 and §4 C3: the same two arms with the pocket open (feldspar, albite and quartz clamped) |
 | `ab-rate-on-excess.txt` | §4 C2 preview table |
-| `ab-gem-clamp-sensitivity.txt` | §4 C1: sensitivity to the clamp value |
+| `ab-gem-clamp-sensitivity.txt` | §4 C1: sensitivity to the clamp value, on the rate and on sigma |
+| `ab-clamp-collateral.txt` | §4 C1: what each clamp value costs the feldspar pair in the four other scenarios whose sigma passes it |
+| `ab-clamp-other-pegmatites.txt` | §4 C1: the same clamp values on the other two pegmatites |
 | `ab-reactive-wall-trace.txt` | §4 C2: galena sigma on the bulk handle and on its own cell |
 | `rate-at-saturation.txt` | §3.2; the shape test of §4 C2 |
 | `seed-variety.txt` | §2.4 |
 | `probe-sigma-maxima.txt`, `probe-sigma-maxima-naica.txt` | §3.1 (cause), §3.4 |
 | `probe-baseline-history.txt` | §3.1, §3.4 |
 | `probe-nucleation-envelope.txt`, `probe-nucleation-envelope-per-vertex.txt` | §7 |
-| `probe-ab-digest.txt` | the counts §2.1, §3.1 and §4 draw from the A/B outputs |
+| `probe-cell-field-gap-uranophane-pH.txt`, `-ferrimolybdite-O2.txt`, `-ferrimolybdite-Mo.txt` | §2.1 |
+| `probe-ab-digest.txt` | the counts §2.1, §3.1, §3.3 and §4 draw from the A/B outputs |

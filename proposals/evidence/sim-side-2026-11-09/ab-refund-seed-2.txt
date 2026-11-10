@@ -1,5 +1,6 @@
 sim-side A/B — SIM 286; arms refund=1; minerals feldspar, albite; seeds 2
-self-check on schneeberg, seed 42: shipped arm reproduces the baseline; neutral knobs — rind=Infinity ok; cap=Infinity ok; root=1 ok; mul=Ca:1 ok; refund=0 ok; fcap=Infinity ok
+self-check on schneeberg, seed 42: shipped arm reproduces the baseline; neutral knobs — rind=Infinity ok; cap=Infinity ok; rclamp=Infinity ok; root=1 ok; mul=Ca:1 ok; refund=0 ok; fcap=Infinity ok
+self-check on tutorial_travertine, seed 42: refund=1 leaves the simulator's audits as the shipped arm has them (shipped: event refusals 0, failed carbonate transactions 0, ledger violations 0; refund=1: event refusals 0, failed carbonate transactions 0, ledger violations 0)
 
 ### amethyst_geode — 240 steps — events: 18 Agate-to-Quartz Maturation | 80 Celadonite Film (prism frost) | 90 Quartz-Window Renewal | 214 Goethite Base Stain
 seed 2
@@ -32,6 +33,7 @@ seed 2
   B refund=1       fill  86.0 %  full at step   —  last growth at step 340
       chalcopyrite ×1 @ 73.9 (→119), malachite ×1 @ 28.7 (→264), atacamite ×5 @ 14.1 (→340), pyrite ×1 @ 11.8 (→119), albite ×2 @ 8.8 (→64), chrysocolla ×5 @ 5.7 (→340), goethite ×2 @ 3.9 (→340), acanthite ×5 @ 3.6 (→71), feldspar ×2 @ 3.5 (→64), opal ×6 @ 2.4 (→340), hematite ×2 @ 1.7 (→340), siderite ×1 @ 0.904 (→64), chalcedony ×4 @ 0.802 (→179), turquoise ×4 @ 0.745 (→340), native_gold ×8 @ 0.688 (→340), lepidocrocite ×10 @ 0.669 (→340), dioptase ×4 @ 0.315 (→340), covellite ×4 @ 0.289 (→119), mimetite ×3 @ 0.288 (→340), alunite ×1 @ 0.128 (→116), cuprite ×2 @ 0.053 (→154), native_copper ×1 @ 0.010 (→143), chalcocite ×4 @ 0.005 (→119), tetrahedrite ×1 @ 0.000 (→0), tennantite ×1 @ 0.000 (→0), jarosite ×3 @ 0.000 (→116), bornite ×2 @ 0.000 (→119), marcasite ×1 @ 0.000 (→119), azurite ×4 @ 0.000 (→224)
       against A: 31 species; moved 22 (acanthite, alunite, atacamite, azurite, bornite, chalcedony, chalcocite, chrysocolla, covellite, cuprite, dioptase, goethite, hematite, jarosite, lepidocrocite, malachite, marcasite, native_copper, native_gold, opal, siderite, turquoise); gained none; lost brochantite, native_silver
+      wall dissolution withheld as too small to resolve: on 38 steps in A, 25 in B
 
 ### chiastolite_hornfels — 120 steps — events: 
 seed 2
@@ -264,6 +266,7 @@ seed 2
   B refund=1       fill  98.5 %  full at step   —  last growth at step 200
       ferrimolybdite ×6 @ 43.9 (→200), malachite ×1 @ 37.3 (→200), powellite ×4 @ 20.1 (→153), wulfenite ×1 @ 14.9 (→200), brochantite ×5 @ 8.0 (→200), caledonite ×2 @ 7.7 (→133), conichalcite ×4 @ 5.1 (→89), mimetite ×2 @ 4.2 (→159), anglesite ×4 @ 3.2 (→200), cerussite ×4 @ 3.1 (→200), azurite ×4 @ 2.9 (→159), smithsonite ×1 @ 2.8 (→133), stolzite ×4 @ 2.8 (→169), scorodite ×8 @ 2.6 (→159), duftite ×2 @ 2.6 (→133), adamite ×1 @ 2.3 (→159), raspite ×2 @ 1.7 (→162), plumbogummite ×3 @ 1.6 (→200), pyromorphite ×6 @ 0.952 (→200), goethite ×1 @ 0.890 (→159), erythrite ×1 @ 0.809 (→133), annabergite ×1 @ 0.771 (→133), aurichalcite ×3 @ 0.468 (→100), vanadinite ×6 @ 0.438 (→200), olivenite ×4 @ 0.376 (→94), selenite ×4 @ 0.275 (→171), descloizite ×4 @ 0.227 (→159), jarosite ×7 @ 0.146 (→200), cuprite ×1 @ 0.083 (→69), lepidocrocite ×2 @ 0.081 (→108)
       against A: 30 species; moved 18 (anglesite, aurichalcite, brochantite, caledonite, cerussite, descloizite, duftite, ferrimolybdite, jarosite, lepidocrocite, mimetite, olivenite, plumbogummite, pyromorphite, raspite, scorodite, selenite, vanadinite); gained none; lost none
+      wall dissolution withheld as too small to resolve: on 16 steps in A, 3 in B
 
 ### tn457_barite_pulses — 110 steps — events: 5 Pulse  1 | 7 Pulse  2 | 9 Pulse  3 | 11 Pulse  4 | 13 Pulse  5 | 15 Pulse  6 | 17 Pulse  7 | 19 Pulse  8 | 21 Pulse  9 | 23 Pulse 10 | 25 Pulse 11 | 27 Pulse 12 | 29 Pulse 13 | 31 Pulse 14 | 33 Pulse 15 | 35 Pulse 16 | 37 Pulse 17 | 39 Pulse 18 | 41 Pulse 19 | 43 Pulse 20 | 45 Pulse 21 | 47 Pulse 22 | 49 Pulse 23 | 51 Pulse 24 | 53 Pulse 25 | 55 Pulse 26 | 57 Pulse 27 | 59 Pulse 28 | 61 Pulse 29 | 63 Pulse 30 | 65 Pulse 31 | 67 Pulse 32 | 69 Pulse 33 | 71 Pulse 34 | 73 Pulse 35 | 75 Pulse 36 | 77 Pulse 37 | 79 Pulse 38 | 81 Pulse 39 | 83 Pulse 40 | 85 Pulse 41 | 87 Pulse 42 | 89 Pulse 43 | 91 Pulse 44 | 93 Pulse 45 | 95 Pulse 46 | 97 Pulse 47 | 99 Pulse 48 | 101 Pulse 49 | 103 Pulse 50
 seed 2
@@ -302,8 +305,8 @@ seed 2
   A shipped        fill   0.0 %  full at step   —  last growth at step  60
       aragonite ×1 @ 2.5 (→60), calcite ×1 @ 1.5 (→60)
   B refund=1       fill   0.0 %  full at step   —  last growth at step  60
-      aragonite ×1 @ 1.7 (→60), calcite ×1 @ 1.4 (→60)
-      against A: 2 species; moved 1 (aragonite); gained none; lost none
+      aragonite ×1 @ 2.5 (→60), calcite ×1 @ 1.5 (→60)
+      against A: 2 species; moved 0; gained none; lost none
 
 ### ultramafic_supergene — 200 steps — events: 40 Wet Season | 80 Ni Pulse | 130 Dry Season | 175 Alkaline Cap
 seed 2
@@ -328,3 +331,5 @@ seed 2
   B refund=1       fill   0.0 %  full at step   —  last growth at step 150
       aragonite ×4 @ 1.6 (→150), calcite ×7 @ 0.535 (→150), dolomite ×1 @ 0.351 (→150)
       against A: 3 species; moved 0; gained none; lost none
+
+audits: every arm run reads the simulator's audits as the shipped arm does

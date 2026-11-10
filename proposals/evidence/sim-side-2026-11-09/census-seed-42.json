@@ -1,9 +1,9 @@
 {
- "census_version": 4,
+ "census_version": 5,
  "sim_version": 286,
  "seed": 42,
- "inputs": "870a43a4d610acd2d8377cc88c738476702633c142beda2b32025acb7bbf0e0d",
- "tool_sha256": "6b63cc216f64b6066a2f47aea30cc4144d79b0f29652e48ca626f1d4a8574897",
+ "inputs": "ccb0db2bfa2c29949670b1ca5a36bdd73167103e5b0a5a25c5ba44aa4fcc9cc2",
+ "tool_sha256": "a1eca64df002f9fe14b401d4f67a8e6a72cb9e8379e1e418e83cba09675e7c0d",
  "scenarios": 41,
  "baseline": {
   "reproduced": 41,
@@ -108,6 +108,90 @@
    "label": "mvt's galena is past sigma_crit on the bulk handle and never reads \"not licensed\"",
    "pass": true,
    "detail": "101 steps past sigma_crit, 0 not licensed"
+  },
+  {
+   "id": "count-excluded",
+   "kind": "positive",
+   "label": "great_salt_plains' calcite is past sigma_crit on at least 100 steps, and every one of them reads \"excluded by the scenario\"",
+   "pass": true,
+   "detail": "150 steps past sigma_crit, 150 excluded"
+  },
+  {
+   "id": "count-window",
+   "kind": "positive",
+   "label": "porphyry's native gold is past sigma_crit and reads \"outside its nucleation window\" on at least 30 steps",
+   "pass": true,
+   "detail": "60 steps past sigma_crit, 60 outside its window"
+  },
+  {
+   "id": "count-cap",
+   "kind": "positive",
+   "label": "tormiq_alpine_cleft's titanite is past sigma_crit and reads \"count cap\" on at least 100 steps",
+   "pass": true,
+   "detail": "200 steps past sigma_crit, 183 at the count cap"
+  },
+  {
+   "id": "count-gate",
+   "kind": "positive",
+   "label": "cooling's quartz is past sigma_crit and reads \"the function's own count gate\" on at least 50 steps, every one of them on a gate that keeps a side door",
+   "pass": true,
+   "detail": "88 steps past sigma_crit, 87 at its own gate, 87 of them with a side door"
+  },
+  {
+   "id": "count-envelope",
+   "kind": "positive",
+   "label": "zoned_dripstone_cave installs the localized-nucleation envelope on every pass, and on at least 20 steps its aragonite is past sigma_crit on the envelope and not on the bulk handle",
+   "pass": true,
+   "detail": "150 of 150 passes under the envelope; aragonite past sigma_crit on the envelope only on 150 steps"
+  },
+  {
+   "id": "count-envelope",
+   "kind": "negative",
+   "label": "mvt installs no localized-nucleation envelope, and no species-step is past sigma_crit on an envelope only",
+   "pass": true,
+   "detail": "0 passes under an envelope; 0 species-steps on which the two readings disagree"
+  },
+  {
+   "id": "strangled",
+   "kind": "positive",
+   "label": "_wallStrangledFor refuses radioactive_pegmatite's plumbogummite at least 3 times, each for want of an ingredient (the lead that reaches only the bulk handle); FLIPS when that lead reaches the voxels or leaves the bulk handle",
+   "pass": true,
+   "detail": "6 of 18 calls refused; ingredient Pb ×6"
+  },
+  {
+   "id": "strangled",
+   "kind": "negative",
+   "label": "_wallStrangledFor is called at least 100 times in mvt and refuses nothing",
+   "pass": true,
+   "detail": "0 of 300 calls refused"
+  },
+  {
+   "id": "enclosed",
+   "kind": "positive",
+   "label": "at least 20 of mvt's surviving crystals read \"enclosed\", and each names the mineral that enclosed it",
+   "pass": true,
+   "detail": "33 enclosed, 33 with the encloser named"
+  },
+  {
+   "id": "vadose",
+   "kind": "positive",
+   "label": "the vadose override dries rings in schneeberg, the equator ring among them, and the bulk handle's O2 rises by at least 0.2 ppm on that step",
+   "pass": true,
+   "detail": "step 110: 10 rings from ring 6 up; bulk O2 1.50 → 1.80"
+  },
+  {
+   "id": "vadose",
+   "kind": "negative",
+   "label": "the vadose override dries no ring in mvt",
+   "pass": true,
+   "detail": "0 step(s) on which a ring dried"
+  },
+  {
+   "id": "draw-down-other",
+   "kind": "positive",
+   "label": "schneeberg stores at least 0.5 mm on a cell under half the reference's excess that its ingredients do not explain, and pH restores at least nine tenths of it",
+   "pass": true,
+   "detail": "3.93 mm not through the ingredients; uranophane:pH 3.93 mm"
   }
  ],
  "space": {
@@ -134,7 +218,8 @@
    "a zone proposed and not stored": 2,
    "rationed to zero": 0,
    "enclosed": 213,
-   "dissolving": 61,
+   "dissolving": 57,
+   "dissolving while the bulk handle reads at or above saturation": 4,
    "inactive": 0,
    "size cap": 17,
    "never grew": 42,
@@ -152,7 +237,8 @@
    "a zone proposed and not stored": 1,
    "rationed to zero": 0,
    "enclosed": 8,
-   "dissolving": 41,
+   "dissolving": 37,
+   "dissolving while the bulk handle reads at or above saturation": 4,
    "inactive": 0,
    "size cap": 17,
    "never grew": 0,
@@ -170,12 +256,18 @@
     "sunnyside_american_tunnel/galena 2.5 mm (step 149, Pb)"
    ],
    "cellOnlyOther": [
-    "supergene_oxidation/mimetite 3.1 mm (step 160)",
-    "supergene_oxidation/scorodite 3.5 mm (step 160)",
-    "supergene_oxidation/scorodite 3.4 mm (step 160)",
-    "supergene_oxidation/scorodite 2.7 mm (step 160)",
-    "supergene_oxidation/scorodite 2.9 mm (step 160)",
-    "supergene_oxidation/scorodite 2.5 mm (step 160)"
+    "supergene_oxidation/mimetite 3.1 mm (step 160, restored by O2)",
+    "supergene_oxidation/scorodite 3.5 mm (step 160, restored by O2)",
+    "supergene_oxidation/scorodite 3.4 mm (step 160, restored by O2)",
+    "supergene_oxidation/scorodite 2.7 mm (step 160, restored by O2)",
+    "supergene_oxidation/scorodite 2.9 mm (step 160, restored by O2)",
+    "supergene_oxidation/scorodite 2.5 mm (step 160, restored by O2)"
+   ],
+   "dissolvingBulkOver": [
+    "supergene_oxidation/azurite 2.6 mm (step 160)",
+    "supergene_oxidation/azurite 2.9 mm (step 160)",
+    "supergene_oxidation/azurite 2.9 mm (step 160)",
+    "supergene_oxidation/azurite 3.0 mm (step 160)"
    ],
    "nothingProposed": [
     "reactivated_fluorite_vein/anhydrite 1.8 mm (step 78)",
@@ -225,12 +317,13 @@
     "at or above saturation on its cell, nothing proposed": 148,
     "a zone proposed and not stored": 2,
     "enclosed": 213,
-    "dissolving": 127,
+    "dissolving": 115,
     "its cell ran short of an ingredient": 222,
     "size cap": 17,
     "pocket full": 63,
     "undersaturated on its cell only, not through its ingredients": 10,
-    "no sigma method": 6
+    "no sigma method": 6,
+    "dissolving while the bulk handle reads at or above saturation": 12
    },
    "ranShortBy": {
     "chiastolite_hornfels/albite": 1,
@@ -254,6 +347,11 @@
     "supergene_oxidation/stolzite": 4,
     "supergene_oxidation/olivenite": 1,
     "supergene_oxidation/descloizite": 1
+   },
+   "ranShort": {
+    "all": 222,
+    "rateAtSaturationEngines": 180,
+    "others": 42
    }
   },
   "enclosedBy": {
@@ -427,6 +525,31 @@
    "tormiq_alpine_cleft/feldspar:Al": 16031.811003370847,
    "tormiq_alpine_cleft/albite:Al": 20960.54678008077,
    "tormiq_alpine_cleft/epidote:Al": 7351.9428655666015
+  },
+  "underHalfNotThroughIngredients_um": {
+   "roughten_gill/mimetite:O2": 21.65359798343742,
+   "roughten_gill/smithsonite:O2": 2.7044950773730734,
+   "schneeberg/uranophane:pH": 3933.3425925215893,
+   "supergene_oxidation/goethite:O2": 319.2590366931373,
+   "supergene_oxidation/ferrimolybdite:O2": 67548.12067865275,
+   "supergene_oxidation/mimetite:O2": 981.4861260926878,
+   "supergene_oxidation/wulfenite:O2": 43.44680213468429,
+   "supergene_oxidation/stolzite:O2": 96.71525080927046,
+   "supergene_oxidation/plumbogummite:O2": 149.43518856514032,
+   "supergene_oxidation/raspite:O2": 0.6658480580797828
+  },
+  "cellOnlyNotThroughIngredientsBy": {
+   "great_salt_plains/halite:concentration": 5,
+   "radioactive_pegmatite/topaz:temperature": 1,
+   "roughten_gill/smithsonite:O2": 10,
+   "schneeberg/goethite:O2": 34,
+   "searles_lake/mirabilite:concentration": 855,
+   "searles_lake/halite:concentration": 490,
+   "searles_lake/borax:concentration": 97,
+   "supergene_oxidation/azurite:O2": 8,
+   "supergene_oxidation/mimetite:O2": 41,
+   "supergene_oxidation/scorodite:O2": 205,
+   "supergene_oxidation/descloizite:O2": 123
   },
   "scenarios": [
    {
@@ -3887,6 +4010,7 @@
      ]
     }
    ],
+   "bulkO2End": 1.8,
    "ringO2End": [
     1.8,
     1.8,
@@ -3999,6 +4123,7 @@
      ]
     }
    ],
+   "bulkO2End": 1.8,
    "ringO2End": [
     1.8,
     1.8,
@@ -4055,6 +4180,7 @@
      ]
     }
    ],
+   "bulkO2End": 1.8,
    "ringO2End": [
     1.8,
     1.8,
@@ -4111,6 +4237,7 @@
      ]
     }
    ],
+   "bulkO2End": 1.2,
    "ringO2End": [
     0.7504,
     0.7509,
@@ -4167,6 +4294,7 @@
      ]
     }
    ],
+   "bulkO2End": 1.8,
    "ringO2End": [
     1.4976,
     1.4996,
@@ -4335,6 +4463,7 @@
      ]
     }
    ],
+   "bulkO2End": 1.8,
    "ringO2End": [
     1.6002,
     1.6039,
@@ -4391,6 +4520,7 @@
      ]
     }
    ],
+   "bulkO2End": 1,
    "ringO2End": [
     0.7069,
     0.71,
@@ -4447,6 +4577,7 @@
      ]
     }
    ],
+   "bulkO2End": 1.8,
    "ringO2End": [
     1.8,
     1.8,
@@ -4503,6 +4634,7 @@
      ]
     }
    ],
+   "bulkO2End": 1.8,
    "ringO2End": [
     0.5391,
     0.6471,
@@ -4545,16 +4677,18 @@
   "pairs": 351,
   "single": 119,
   "atOrOverCap": 172,
-  "speciesStepsPastSigmaCrit": 38017,
+  "speciesStepsPastSigmaCrit": 38167,
   "excluded": 2499,
   "unlicensed": 1398,
   "window": 504,
   "prerequisite": 0,
-  "cap": 14761,
-  "gate": 15073,
-  "open": 3782,
+  "cap": 14865,
+  "gate": 15104,
+  "open": 3797,
   "neverReachTheirFunction": 4401,
-  "reachTheirFunction": 33616,
+  "reachTheirFunction": 33766,
+  "gateWithSideDoor": 5757,
+  "capOrGateWithNoSideDoor": 24212,
   "unlicensedBy": {
    "bisbee/antlerite": 21,
    "bisbee/chalcanthite": 12,
@@ -4593,6 +4727,20 @@
    "roughten_gill/plumbogummite": 115,
    "wittichen/erythrite": 1
   },
+  "envelope": {
+   "scenarios": [
+    "naica_geothermal 61/320",
+    "stalactite_demo 100/100",
+    "wittichen 51/220",
+    "zoned_dripstone_cave 150/150"
+   ],
+   "pastOnEnvelopeOnly": 150,
+   "pastOnBulkOnly": 0,
+   "envelopeOnlyBy": {
+    "zoned_dripstone_cave/aragonite": 150
+   },
+   "bulkOnlyBy": {}
+  },
   "nucleationFunctions": 169,
   "ownCountGate": {
    "atOne": 86,
@@ -4602,15 +4750,37 @@
    "none": 61
   },
   "callAtNucleationCap": 167,
+  "noOwnFunction": [
+   "aquamarine",
+   "beryl",
+   "corundum",
+   "emerald",
+   "haidingerite",
+   "heliodor",
+   "meta-autunite",
+   "metatorbernite",
+   "metazeunerite",
+   "morganite",
+   "pararealgar",
+   "raspite",
+   "ruby",
+   "sapphire",
+   "tincalconite"
+  ],
   "wallStrangled": {
    "calls": 10382,
    "refused": 48,
    "by": {
-    "deccan_zeolite/chalcedony": "1 of 19",
-    "radioactive_pegmatite/plumbogummite": "6 of 18",
-    "schneeberg/proustite": "1 of 3",
-    "supergene_oxidation/azurite": "39 of 66",
-    "supergene_oxidation/olivenite": "1 of 21"
+    "deccan_zeolite/chalcedony": "1 of 19 (temperature ×1)",
+    "radioactive_pegmatite/plumbogummite": "6 of 18 (ingredient Pb ×6)",
+    "schneeberg/proustite": "1 of 3 (temperature ×1)",
+    "supergene_oxidation/azurite": "39 of 66 (O2 ×39)",
+    "supergene_oxidation/olivenite": "1 of 21 (temperature ×1)"
+   },
+   "why": {
+    "temperature": 3,
+    "ingredient Pb": 6,
+    "O2": 39
    }
   },
   "rolls": {

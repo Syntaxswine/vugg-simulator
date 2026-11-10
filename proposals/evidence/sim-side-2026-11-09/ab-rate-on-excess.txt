@@ -1,5 +1,5 @@
 sim-side A/B — SIM 286; arms excess=1 | excess=3; minerals galena, molybdenite, uraninite; seeds 42, 1, 2
-self-check on schneeberg, seed 42: shipped arm reproduces the baseline; neutral knobs — rind=Infinity ok; cap=Infinity ok; root=1 ok; mul=Ca:1 ok; refund=0 ok
+self-check on schneeberg, seed 42: shipped arm reproduces the baseline; neutral knobs — rind=Infinity ok; cap=Infinity ok; rclamp=Infinity ok; root=1 ok; mul=Ca:1 ok; refund=0 ok
 
 ### mvt — 120 steps — events: 20 Tri-State Ore-Fluid Mixing | 60 Second Pulse | 80 Tectonic
 seed 42 (shipped arm reproduces the baseline)
@@ -136,6 +136,7 @@ seed 1
   B excess=3       fill   0.1 %  full at step   —  last growth at step 120
       sphalerite ×1 @ 6.3 (→120), pyrite ×2 @ 0.454 (→120), galena ×1 @ 0.391 (→120), anhydrite ×6 @ 0.128 (→92), marcasite ×2 @ 0.003 (→70)
       against A: 5 species; moved 2 (galena, marcasite); gained none; lost none
+      wall dissolution withheld as too small to resolve: on 45 steps in A, 46 in B
 seed 2
   A shipped        fill   0.1 %  full at step   —  last growth at step 120
       sphalerite ×1 @ 6.4 (→120), pyrite ×1 @ 2.8 (→120), galena ×1 @ 1.1 (→120), anhydrite ×6 @ 0.115 (→92), marcasite ×2 @ 0.007 (→70)
@@ -232,3 +233,5 @@ seed 2
   B excess=3       fill  88.1 %  full at step   —  last growth at step 200
       calcite ×1 @ 72.9 (→200), galena ×4 @ 23.3 (→149), rhodochrosite ×1 @ 5.2 (→200), argentite ×8 @ 2.6 (→200), tennantite ×1 @ 2.5 (→149), arsenopyrite ×3 @ 1.6 (→29), quartz ×3 @ 1.4 (→200), fluorite ×1 @ 1.3 (→149), native_gold ×4 @ 0.831 (→200), pyrite ×1 @ 0.707 (→29), sphalerite ×1 @ 0.519 (→29), chalcopyrite ×1 @ 0.491 (→29), tetrahedrite ×1 @ 0.226 (→29), calaverite ×2 @ 0.015 (→3), sylvanite ×2 @ 0.000 (→0), native_silver ×4 @ 0.000 (→0)
       against A: 16 species; moved 0; gained none; lost none
+
+audits: every arm run reads the simulator's audits as the shipped arm does

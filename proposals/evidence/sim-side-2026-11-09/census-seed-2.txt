@@ -1,4 +1,4 @@
-sim-side census v4 — SIM 286, seed 2, 41 scenario(s); inputs 870a43a4d610; tools/sim-side-census.mjs sha256 6b63cc216f64
+sim-side census v5 — SIM 286, seed 2, 41 scenario(s); inputs 71ceeef6c482; tools/sim-side-census.mjs sha256 a1eca64df002
 integrity: no seed-42 baseline applies to this seed; the runs are not compared
 
 CONTROLS
@@ -16,6 +16,18 @@ CONTROLS
   [PASS] positive pause: sunnyside_american_tunnel's crystals pause at least 5 times because their cell ran short of an ingredient, and more often than they pause on a cell that reads saturated (a cell read after the step's diffusion has been refilled, and reads saturated) — 12 pauses on a cell run short (galena ×4, argentite ×4, tetrahedrite ×2); 0 on a cell that reads saturated
   [PASS] positive count: radioactive_pegmatite's galena is past sigma_crit on the bulk handle on at least 10 steps, and every one of them reads "not licensed" — 30 steps past sigma_crit, 30 not licensed
   [PASS] negative count: mvt's galena is past sigma_crit on the bulk handle and never reads "not licensed" — 101 steps past sigma_crit, 0 not licensed
+  [PASS] positive count-excluded: great_salt_plains' calcite is past sigma_crit on at least 100 steps, and every one of them reads "excluded by the scenario" — 150 steps past sigma_crit, 150 excluded
+  [PASS] positive count-window: porphyry's native gold is past sigma_crit and reads "outside its nucleation window" on at least 30 steps — 60 steps past sigma_crit, 60 outside its window
+  [PASS] positive count-cap: tormiq_alpine_cleft's titanite is past sigma_crit and reads "count cap" on at least 100 steps — 200 steps past sigma_crit, 187 at the count cap
+  [PASS] positive count-gate: cooling's quartz is past sigma_crit and reads "the function's own count gate" on at least 50 steps, every one of them on a gate that keeps a side door — 88 steps past sigma_crit, 87 at its own gate, 87 of them with a side door
+  [PASS] positive count-envelope: zoned_dripstone_cave installs the localized-nucleation envelope on every pass, and on at least 20 steps its aragonite is past sigma_crit on the envelope and not on the bulk handle — 150 of 150 passes under the envelope; aragonite past sigma_crit on the envelope only on 150 steps
+  [PASS] negative count-envelope: mvt installs no localized-nucleation envelope, and no species-step is past sigma_crit on an envelope only — 0 passes under an envelope; 0 species-steps on which the two readings disagree
+  [PASS] positive strangled: _wallStrangledFor refuses radioactive_pegmatite's plumbogummite at least 3 times, each for want of an ingredient (the lead that reaches only the bulk handle); FLIPS when that lead reaches the voxels or leaves the bulk handle — 7 of 13 calls refused; ingredient Pb ×7
+  [PASS] negative strangled: _wallStrangledFor is called at least 100 times in mvt and refuses nothing — 0 of 289 calls refused
+  [PASS] positive enclosed: at least 20 of mvt's surviving crystals read "enclosed", and each names the mineral that enclosed it — 48 enclosed, 48 with the encloser named
+  [PASS] positive vadose: the vadose override dries rings in schneeberg, the equator ring among them, and the bulk handle's O2 rises by at least 0.2 ppm on that step — step 110: 10 rings from ring 6 up; bulk O2 1.50 → 1.80
+  [PASS] negative vadose: the vadose override dries no ring in mvt — 0 step(s) on which a ring dried
+  [PASS] positive draw-down-other: schneeberg stores at least 0.5 mm on a cell under half the reference's excess that its ingredients do not explain, and pH restores at least nine tenths of it — 4.66 mm not through the ingredients; uranophane:pH 4.66 mm
 
 SPACE and TIME
 scenario                               steps  cavity mm  fill at end  first step fill>=0.7 / >=0.999  last growth  largest crystal, and what ended its growth
@@ -71,13 +83,15 @@ END — what ended the growth of each surviving crystal
   at or above saturation on its cell, nothing proposed    25 ( 2.1 %)   >= 1 mm:   10 ( 1.7 %)
   a zone proposed and not stored                 2 ( 0.2 %)   >= 1 mm:    0 ( 0.0 %)
   enclosed                                     232 (19.4 %)   >= 1 mm:    7 ( 1.2 %)
-  dissolving                                    60 ( 5.0 %)   >= 1 mm:   40 ( 7.0 %)
+  dissolving                                    56 ( 4.7 %)   >= 1 mm:   36 ( 6.3 %)
+  dissolving while the bulk handle reads at or above saturation     4 ( 0.3 %)   >= 1 mm:    4 ( 0.7 %)
   size cap                                      19 ( 1.6 %)   >= 1 mm:   19 ( 3.3 %)
   never grew                                    46 ( 3.9 %)   >= 1 mm:    0 ( 0.0 %)
   no sigma method                                6 ( 0.5 %)   >= 1 mm:    4 ( 0.7 %)
   surviving crystals 1194; >= 1 mm 572; the largest crystal is still growing on the final step in 27 of 40 scenarios with crystals
   >= 1 mm and its cell ran short of an ingredient: none
-  >= 1 mm and undersaturated on its cell only, not through its ingredients: supergene_oxidation/mimetite 3.5 mm (step 160); supergene_oxidation/scorodite 3.3 mm (step 160); supergene_oxidation/scorodite 3.1 mm (step 160); supergene_oxidation/scorodite 2.6 mm (step 160); supergene_oxidation/scorodite 2.8 mm (step 160); supergene_oxidation/scorodite 2.7 mm (step 160)
+  >= 1 mm and undersaturated on its cell only, not through its ingredients: supergene_oxidation/mimetite 3.5 mm (step 160, restored by O2); supergene_oxidation/scorodite 3.3 mm (step 160, restored by O2); supergene_oxidation/scorodite 3.1 mm (step 160, restored by O2); supergene_oxidation/scorodite 2.6 mm (step 160, restored by O2); supergene_oxidation/scorodite 2.8 mm (step 160, restored by O2); supergene_oxidation/scorodite 2.7 mm (step 160, restored by O2)
+  >= 1 mm and dissolving while the bulk handle reads at or above saturation: supergene_oxidation/azurite 3.3 mm (step 160); supergene_oxidation/azurite 3.2 mm (step 160); supergene_oxidation/azurite 2.5 mm (step 160); supergene_oxidation/azurite 2.6 mm (step 160)
   >= 1 mm and at or above saturation on its cell with nothing proposed: grimsel_alpine_cleft/epidote 1.0 mm (step 171); reactivated_fluorite_vein/anhydrite 2.0 mm (step 78); reactivated_fluorite_vein/anhydrite 1.9 mm (step 78); reactivated_fluorite_vein/anhydrite 1.4 mm (step 78); reactivated_fluorite_vein/anhydrite 1.3 mm (step 78); roughten_gill/cerussite 1.0 mm (step 216); wittichen/nickeline 1.8 mm (step 106); wittichen/nickeline 1.7 mm (step 106); wittichen/nickeline 1.7 mm (step 106); wittichen/nickeline 1.7 mm (step 106)
   >= 1 mm and a zone proposed and not stored: none
   >= 1 mm and stopped by the authored size cap: epithermal_telluride/hessite 17.3 mm (step 126); epithermal_telluride/calaverite 10.1 mm (step 169); epithermal_telluride/hessite 17.3 mm (step 69); epithermal_telluride/hessite 17.2 mm (step 69); epithermal_telluride/sylvanite 10.1 mm (step 90); epithermal_telluride/calaverite 10.0 mm (step 82); supergene_oxidation/conichalcite 5.0 mm (step 87); supergene_oxidation/conichalcite 5.0 mm (step 91); supergene_oxidation/powellite 20.2 mm (step 166); supergene_oxidation/powellite 20.0 mm (step 171); supergene_oxidation/conichalcite 5.0 mm (step 92); supergene_oxidation/conichalcite 5.1 mm (step 95); supergene_oxidation/powellite 20.1 mm (step 163); supergene_oxidation/powellite 20.2 mm (step 164); wittichen/haidingerite 4.9 mm (step 202); wittichen/haidingerite 4.8 mm (step 208); wittichen/haidingerite 4.6 mm (step 210); wittichen/haidingerite 5.1 mm (step 211); wittichen/haidingerite 5.0 mm (step 213)
@@ -91,10 +105,12 @@ PAUSES — every time a crystal that grew on one step stored no positive zone on
   at or above saturation on its cell, nothing proposed              142 (11.1 %)
   a zone proposed and not stored                                      4 ( 0.3 %)
   enclosed                                                          235 (18.4 %)
-  dissolving                                                        129 (10.1 %)
+  dissolving                                                        118 ( 9.2 %)
+  dissolving while the bulk handle reads at or above saturation      11 ( 0.9 %)
   size cap                                                           19 ( 1.5 %)
   no sigma method                                                     6 ( 0.5 %)
   "its cell ran short of an ingredient", by scenario and mineral: epithermal_telluride/sylvanite ×7; sunnyside_american_tunnel/galena ×4; sunnyside_american_tunnel/argentite ×4; supergene_oxidation/stolzite ×4; schneeberg/topaz ×3; shigar_pegmatite/feldspar ×2; sunnyside_american_tunnel/tetrahedrite ×2; supergene_oxidation/descloizite ×2; chiastolite_hornfels/albite ×1; epithermal_telluride/calaverite ×1; gem_pegmatite/lepidolite ×1; jeffrey_mine/vesuvianite ×1; roughten_gill/tetrahedrite ×1; roughten_gill/tennantite ×1; schneeberg/morganite ×1; sunnyside_american_tunnel/calaverite ×1; sunnyside_american_tunnel/tennantite ×1; supergene_oxidation/raspite ×1
+  of those 38, 4 belong to galena, molybdenite, uraninite (the three engines whose rate does not vanish at saturation) and 34 to every other mineral (2.7 % of all pauses)
   enclosed, by the mineral that enclosed them: celestine ×53, anhydrite ×34, galena ×20, sphalerite ×18, thenardite ×13, quartz ×11, selenite ×10, feldspar ×10, calcite ×8, pyrite ×6, chalcocite ×5, atacamite ×4, greenockite ×4, spodumene ×3, metacinnabar ×3, crocidolite ×2
   scenarios whose flow_rate changed during the run: 34 of 41
 
@@ -144,11 +160,12 @@ scenarios that stored growth: 40; stored on a cell under half the reference's ex
 surviving crystals >= 1 mm: 572; more than half their growth stored that way: 55 (9.6 %)
   drawn down through (mm stored): shigar_pegmatite/albite:Na 457.87; shigar_pegmatite/feldspar:K 181.33; supergene_oxidation/ferrimolybdite:Mo 73.01; radioactive_pegmatite/feldspar:Al 72.56; radioactive_pegmatite/albite:Al 59.08; sunnyside_american_tunnel/galena:Pb 44.42; porphyry/molybdenite:Mo 32.14; epithermal_telluride/hessite:Ag 30.62; colorado_plateau/uranophane:U 26.22; tormiq_alpine_cleft/epidote:Al 25.54; sulphur_bank/metacinnabar:Hg 23.03; porphyry/ferrimolybdite:Mo 19.69; epithermal_telluride/calaverite:Au 19.06; gem_pegmatite/feldspar:K 16.75; tormiq_alpine_cleft/feldspar:Al 16.41; shigar_pegmatite/albite:Al 15.28; epithermal_telluride/sylvanite:Au 14.88; gem_pegmatite/albite:Na 9.87; radioactive_pegmatite/morganite:Al 8.78; sunnyside_american_tunnel/argentite:Ag 6.27; reactivated_fluorite_vein/greenockite:Cd 5.33; reactivated_fluorite_vein/galena:Pb 5.06; mvt/greenockite:Cd 4.44; sulphur_bank/cinnabar:Hg 3.94
 starved crystal-steps (nothing proposed, the cell below saturation, the bulk handle at or above it, the ingredients enough to restore it): 1725 — sunnyside_american_tunnel/sylvanite ×368; sunnyside_american_tunnel/calaverite ×367; ultramafic_supergene/dolomite ×193; schneeberg/topaz ×184; chiastolite_hornfels/albite ×119; supergene_oxidation/descloizite ×63; roughten_gill/tetrahedrite ×58; roughten_gill/tennantite ×58; schneeberg/morganite ×54; sunnyside_american_tunnel/native_silver ×48; supergene_oxidation/stolzite ×38; sunnyside_american_tunnel/argentite ×28; sunnyside_american_tunnel/galena ×24; jeffrey_mine/vesuvianite ×23; roughten_gill/cerussite ×22; epithermal_telluride/calaverite ×16; deccan_zeolite/feldspar ×14; ouro_preto/albite ×9; epithermal_telluride/sylvanite ×7; shigar_pegmatite/feldspar ×6; sunnyside_american_tunnel/tennantite ×6; supergene_oxidation/raspite ×6; grimsel_alpine_cleft/epidote ×3; schneeberg/cobaltite ×3
-  below saturation on the cell only and NOT restored by the ingredients: 1768 crystal-steps
+  under 0.5 and NOT through the ingredients alone, by the one further field whose bulk value, set in the cell with them, restores it (mm stored): supergene_oxidation/ferrimolybdite:O2 44.85; schneeberg/uranophane:pH 4.66; supergene_oxidation/wulfenite:O2 0.58; roughten_gill/malachite:O2 0.18; supergene_oxidation/stolzite:O2 0.16; supergene_oxidation/raspite:O2 0.12; supergene_oxidation/lepidocrocite:O2 0.00
+  below saturation on the cell only and NOT restored by the ingredients: 1768 crystal-steps — by what does restore it: searles_lake/mirabilite:concentration ×901; searles_lake/halite:concentration ×307; supergene_oxidation/scorodite:O2 ×205; searles_lake/borax:concentration ×126; supergene_oxidation/descloizite:O2 ×83; supergene_oxidation/mimetite:O2 ×41; roughten_gill/smithsonite:O2 ×35; roughten_gill/mimetite:O2 ×35; schneeberg/goethite:O2 ×12; supergene_oxidation/lepidocrocite:O2 ×9; supergene_oxidation/azurite:O2 ×8; deccan_zeolite/stilbite:temperature ×4; deccan_zeolite/scolecite:temperature ×1; supergene_oxidation/raspite:temperature ×1
   the dry run was read once in every step of every run
 
 SUPPLY
-(scenario, species) pairs with booked solids: 320; solids / the most the voxel field ever held: median 0.0082 %, 90th percentile 0.16 %
+(scenario, solute) pairs with booked solids: 320; solids / the most the voxel field ever held: median 0.0082 %, 90th percentile 0.16 %
   above 1 % (3; above 10 %: 0): colorado_plateau/U 1.7 %; supergene_oxidation/Mo 1.3 %; sulphur_bank/Hg 1.2 %
   the same solids in voxels' worth of that peak (the field is 7680 voxels; a crystal debits one): median 0.63, 90th percentile 12.0, largest 130; more than one voxel's worth in 125 of 320 pairs
 stored positive zones 78993; scaled below 1 by competition 422; cut by the formula budget 19; either 422 (0.53 %)
@@ -173,42 +190,48 @@ TWO FLUIDS — fields whose bulk value left the voxel mean by more than 5 % of t
   supergene_oxidation                Eh     largest gap    26.3 (7.4 %) at step 160; at run end bulk 220, voxel mean 194, wall minimum 161
   schneeberg                         O2     largest gap    0.11 (6.3 %) at step 154; at run end bulk 1.80, voxel mean 1.69, wall minimum 1.50
   supergene_oxidation                O2     largest gap    0.13 (6.0 %) at step 164; at run end bulk 1.00, voxel mean 0.87, wall minimum 0.71
-the vadose override dried rings in 9 scenario(s); the equator ring, whose fluid is the bulk handle, among them in 9
+the vadose override dried rings in 9 scenario(s); the equator ring, whose legacy fluid slot is the bulk handle itself, among them in 9
   bisbee                             step 305: 16 ring(s) from ring 0 up, the equator ring among them; bulk O2 1.00 → 1.80, bulk concentration 1.00 → 3.00
-                                     voxel-mean O2 by ring at run end, floor first: 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80
+                                     at run end the bulk handle's O2 is 1.800; voxel-mean O2 by ring, floor first: 1.800 1.799 1.799 1.799 1.799 1.799 1.799 1.799 1.799 1.799 1.799 1.799 1.799 1.799 1.799 1.800
   great_salt_plains                  step  45: 16 ring(s) from ring 0 up, the equator ring among them; bulk O2 1.60 → 1.80, bulk concentration 1.00 → 3.00
   great_salt_plains                  step  95: 16 ring(s) from ring 0 up, the equator ring among them; bulk O2 1.60 → 1.80, bulk concentration 1.00 → 3.00
   great_salt_plains                  step 145: 16 ring(s) from ring 0 up, the equator ring among them; bulk O2 1.60 → 1.80, bulk concentration 1.00 → 3.00
   great_salt_plains                  step 195: 16 ring(s) from ring 0 up, the equator ring among them; bulk O2 1.60 → 1.80, bulk concentration 1.00 → 3.00
                                      … and 1 more step(s)
-                                     voxel-mean O2 by ring at run end, floor first: 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80
+                                     at run end the bulk handle's O2 is 1.800; voxel-mean O2 by ring, floor first: 1.800 1.800 1.800 1.800 1.800 1.800 1.800 1.800 1.800 1.800 1.800 1.800 1.800 1.800 1.800 1.800
   naica_geothermal                   step 260: 16 ring(s) from ring 0 up, the equator ring among them; bulk O2 1.50 → 1.80, bulk concentration 1.00 → 1.00
-                                     voxel-mean O2 by ring at run end, floor first: 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80
+                                     at run end the bulk handle's O2 is 1.800; voxel-mean O2 by ring, floor first: 1.800 1.800 1.800 1.800 1.800 1.800 1.800 1.800 1.800 1.800 1.800 1.800 1.800 1.800 1.800 1.800
   roughten_gill                      step 180: 8 ring(s) from ring 8 up, the equator ring among them; bulk O2 1.35 → 1.80, bulk concentration 1.00 → 3.00
-                                     voxel-mean O2 by ring at run end, floor first: 0.75 0.75 0.75 0.76 0.77 0.79 0.84 0.92 1.03 1.11 1.16 1.18 1.19 1.20 1.20 1.20
+                                     at run end the bulk handle's O2 is 1.200; voxel-mean O2 by ring, floor first: 0.750 0.751 0.753 0.757 0.767 0.790 0.835 0.919 1.031 1.115 1.160 1.183 1.193 1.197 1.199 1.200
   schneeberg                         step 110: 10 ring(s) from ring 6 up, the equator ring among them; bulk O2 1.50 → 1.80, bulk concentration 1.00 → 3.00
-                                     voxel-mean O2 by ring at run end, floor first: 1.50 1.50 1.50 1.52 1.55 1.61 1.69 1.75 1.78 1.79 1.80 1.80 1.80 1.80 1.80 1.80
+                                     at run end the bulk handle's O2 is 1.800; voxel-mean O2 by ring, floor first: 1.498 1.500 1.505 1.518 1.547 1.605 1.691 1.749 1.778 1.791 1.797 1.799 1.800 1.800 1.800 1.800
   searles_lake                       step  30: 12 ring(s) from ring 4 up, the equator ring among them; bulk O2 1.60 → 1.80, bulk concentration 1.00 → 3.00
   searles_lake                       step  60: 4 ring(s) from ring 0 up; bulk O2 1.80 → 1.80, bulk concentration 3.00 → 3.00
   searles_lake                       step  90: 12 ring(s) from ring 4 up, the equator ring among them; bulk O2 1.60 → 1.80, bulk concentration 1.00 → 3.00
   searles_lake                       step 120: 4 ring(s) from ring 0 up; bulk O2 1.80 → 1.80, bulk concentration 3.00 → 3.00
                                      … and 5 more step(s)
-                                     voxel-mean O2 by ring at run end, floor first: 1.60 1.60 1.62 1.66 1.73 1.78 1.79 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80
+                                     at run end the bulk handle's O2 is 1.800; voxel-mean O2 by ring, floor first: 1.600 1.604 1.617 1.655 1.734 1.776 1.792 1.798 1.799 1.800 1.800 1.800 1.800 1.800 1.800 1.800
   supergene_oxidation                step  70: 9 ring(s) from ring 7 up, the equator ring among them; bulk O2 1.50 → 1.80, bulk concentration 1.00 → 3.00
-                                     voxel-mean O2 by ring at run end, floor first: 0.71 0.71 0.72 0.73 0.75 0.78 0.83 0.87 0.92 0.95 0.97 0.98 0.99 1.00 1.00 1.00
+                                     at run end the bulk handle's O2 is 1.000; voxel-mean O2 by ring, floor first: 0.707 0.710 0.717 0.730 0.751 0.783 0.826 0.874 0.917 0.949 0.970 0.983 0.991 0.995 0.997 0.998
   ultramafic_supergene               step 130: 16 ring(s) from ring 0 up, the equator ring among them; bulk O2 1.50 → 1.80, bulk concentration 1.00 → 3.00
-                                     voxel-mean O2 by ring at run end, floor first: 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80
+                                     at run end the bulk handle's O2 is 1.800; voxel-mean O2 by ring, floor first: 1.800 1.800 1.800 1.800 1.800 1.800 1.800 1.800 1.800 1.800 1.800 1.800 1.800 1.800 1.800 1.800
   wittichen                          step 170: 13 ring(s) from ring 3 up, the equator ring among them; bulk O2 0.40 → 1.80, bulk concentration 1.00 → 1.20
-                                     voxel-mean O2 by ring at run end, floor first: 0.54 0.65 0.91 1.30 1.57 1.70 1.76 1.79 1.80 1.80 1.80 1.80 1.80 1.80 1.80 1.80
+                                     at run end the bulk handle's O2 is 1.800; voxel-mean O2 by ring, floor first: 0.539 0.647 0.907 1.297 1.566 1.700 1.760 1.785 1.795 1.799 1.800 1.800 1.800 1.800 1.800 1.800
 
 COUNT
-(scenario, species) pairs 348: exactly one crystal 114 (32.8 %); crystals born >= max_nucleation_count 182 (52.3 %)
-species-steps with the bulk fluid past sigma_crit when the nucleation pass starts: 38020
-  never reach the species' function (the four tests of _runNuc): 4470 (11.8 %) — excluded by the scenario 2516, not licensed 1450, outside its nucleation window 504, prerequisite event missing 0
-  reach it: 33550; the spec cap was binding on 14585 (43.5 %); the function's own count gate on 15192 (45.3 %); neither on 3773 (11.2 %)
+(scenario, mineral) pairs 348: exactly one crystal 114 (32.8 %); crystals born >= max_nucleation_count 182 (52.3 %)
+species-steps past sigma_crit on the sigma the nucleation pass is about to read: 38170
+  that sigma is the bulk handle's, except under the localized-nucleation envelope, where it is the maximum over the boundary cells: naica_geothermal (61 of 320 passes), stalactite_demo (100 of 100 passes), wittichen (51 of 220 passes), zoned_dripstone_cave (150 of 150 passes)
+  past sigma_crit on the envelope and not on the bulk handle (counted above): 150 — zoned_dripstone_cave/aragonite ×150
+  past sigma_crit on the bulk handle and not on the envelope (not counted): 0
+  never reach the species' function (the four tests of _runNuc): 4470 (11.7 %) — excluded by the scenario 2516, not licensed 1450, outside its nucleation window 504, prerequisite event missing 0
+  reach it: 33700; the spec cap was binding on 14674 (43.5 %); the function's own count gate on 15239 (45.2 %); neither on 3787 (11.2 %)
+  of the 15239 at the function's own gate, 6023 are at a gate that keeps a side door and could still have rolled; the cap or a gate with no side door stood on 23890 (70.9 % of those that reach the function)
   scenarios with authored nucleation windows: deccan_zeolite (apophyllite, heulandite, mesolite, scolecite, stilbite); porphyry (native_gold); roughten_gill (plumbogummite); wittichen (aragonite, erythrite); with prerequisites: porphyry (native_gold)
   licensed species per scenario: 1 1 1 2 2 2 2 2 2 3 3 4 4 4 5 6 6 6 7 7 7 8 8 8 9 9 10 10 10 10 13 14 14 18 18 18 27 29 32 33 38
-_wallStrangledFor refused 47 births the bulk sigma admitted (10941 calls): radioactive_pegmatite/plumbogummite 7 of 13; supergene_oxidation/azurite 39 of 72; supergene_oxidation/olivenite 1 of 24
+_wallStrangledFor refused 47 births the sigma it was handed admitted (10941 calls): radioactive_pegmatite/plumbogummite 7 of 13 (ingredient Pb ×7); supergene_oxidation/azurite 39 of 72 (O2 ×39); supergene_oxidation/olivenite 1 of 24 (temperature ×1)
+  on the wall cell that came nearest to clearing, what kept it under sigma_crit: O2 ×39; ingredient Pb ×7; temperature ×1
+minerals of the spec with no _nuc_<name> function of their own (not in this reading): aquamarine, beryl, corundum, emerald, haidingerite, heliodor, meta-autunite, metatorbernite, metazeunerite, morganite, pararealgar, raspite, ruby, sapphire, tincalconite
 static: 169 nucleation functions; own count gate at one active crystal 86 (62 with a side door on the same line), at two or more 22, a limit on crystals ever 15, none recognized 61; 167 call _atNucleationCap
 static: 489 rng.random() comparisons in the nucleation files; 487 against a numeric literal; the rest: _AIR_MODE_NUCLEATION_PROB ×2
 

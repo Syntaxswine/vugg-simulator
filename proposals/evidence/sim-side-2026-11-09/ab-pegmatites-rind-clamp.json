@@ -2,7 +2,8 @@
  "sim_version": 286,
  "arms": [
   "rind=5000",
-  "cap=8"
+  "cap=8",
+  "rclamp=7"
  ],
  "minerals": [
   "feldspar",
@@ -18,6 +19,7 @@
   "neutral": {
    "rind=Infinity": true,
    "cap=Infinity": true,
+   "rclamp=Infinity": true,
    "root=1": true,
    "mul=Ca:1": true,
    "refund=0": true,
@@ -73,17 +75,24 @@
     },
     "bulkPb": 0,
     "voxPb": 0,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
     "rind=5000": {
-     "fill": 0.21576926316835926,
+     "fill": 0.2285423364900755,
      "full": null,
      "lastGrowth": 230,
      "species": {
       "quartz": {
        "n": 3,
-       "max_um": 37370.750084863896,
+       "max_um": 38002.0907356441,
        "last": 230
       },
       "feldspar": {
@@ -93,37 +102,45 @@
       },
       "albite": {
        "n": 2,
-       "max_um": 5539.372367909547,
-       "last": 2
+       "max_um": 8132.680063566068,
+       "last": 3
       },
       "spodumene": {
        "n": 4,
-       "max_um": 3712.630975997998,
+       "max_um": 4197.223010899218,
        "last": 159
       },
       "tourmaline": {
        "n": 8,
-       "max_um": 12062.672447234538,
+       "max_um": 12005.904684310803,
        "last": 197
       },
       "lepidolite": {
        "n": 5,
-       "max_um": 4683.699179933818,
+       "max_um": 4873.779527016483,
        "last": 159
       },
       "cassiterite": {
-       "n": 10,
-       "max_um": 1425.3749546700815,
+       "n": 8,
+       "max_um": 1438.975720534367,
        "last": 230
       },
       "topaz": {
        "n": 6,
-       "max_um": 2464.5593755815557,
+       "max_um": 2440.4734257510454,
        "last": 215
       }
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 8,
      "gained": [
@@ -188,6 +205,86 @@
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
+     "trace": null,
+     "speciesCount": 8,
+     "gained": [
+      "topaz"
+     ],
+     "lost": [],
+     "moved": [
+      "albite",
+      "cassiterite",
+      "feldspar",
+      "lepidolite",
+      "quartz",
+      "spodumene",
+      "tourmaline"
+     ]
+    },
+    "rclamp=7": {
+     "fill": 0.4209569297522651,
+     "full": null,
+     "lastGrowth": 230,
+     "species": {
+      "quartz": {
+       "n": 3,
+       "max_um": 37461.053702270736,
+       "last": 230
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 24139.48865607055,
+       "last": 230
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 32316.43577799946,
+       "last": 230
+      },
+      "spodumene": {
+       "n": 4,
+       "max_um": 4226.565129611793,
+       "last": 159
+      },
+      "tourmaline": {
+       "n": 8,
+       "max_um": 12014.843183248327,
+       "last": 197
+      },
+      "lepidolite": {
+       "n": 5,
+       "max_um": 4735.560169011542,
+       "last": 159
+      },
+      "cassiterite": {
+       "n": 10,
+       "max_um": 1437.8080009505677,
+       "last": 230
+      },
+      "topaz": {
+       "n": 6,
+       "max_um": 2502.000118283215,
+       "last": 215
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 8,
      "gained": [
@@ -253,22 +350,29 @@
     },
     "bulkPb": 0,
     "voxPb": 0,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
     "rind=5000": {
-     "fill": 0.22562968522968846,
+     "fill": 0.22682280250535725,
      "full": null,
      "lastGrowth": 230,
      "species": {
       "cassiterite": {
        "n": 8,
-       "max_um": 1472.471557021085,
+       "max_um": 1466.7823113761135,
        "last": 230
       },
       "quartz": {
        "n": 3,
-       "max_um": 37354.4063256572,
+       "max_um": 36958.862158856304,
        "last": 230
       },
       "feldspar": {
@@ -278,32 +382,40 @@
       },
       "albite": {
        "n": 2,
-       "max_um": 6834.691426341949,
+       "max_um": 7381.780302947931,
        "last": 5
       },
       "spodumene": {
        "n": 5,
-       "max_um": 1921.895456669773,
+       "max_um": 2173.834254089028,
        "last": 158
       },
       "tourmaline": {
        "n": 8,
-       "max_um": 11905.43270287541,
+       "max_um": 11948.89235432872,
        "last": 197
       },
       "lepidolite": {
        "n": 3,
-       "max_um": 4016.144320238585,
+       "max_um": 4038.9142338876363,
        "last": 159
       },
       "topaz": {
        "n": 6,
-       "max_um": 2519.658103685629,
+       "max_um": 2511.34125853743,
        "last": 215
       }
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 8,
      "gained": [
@@ -368,6 +480,86 @@
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
+     "trace": null,
+     "speciesCount": 8,
+     "gained": [
+      "topaz"
+     ],
+     "lost": [],
+     "moved": [
+      "albite",
+      "cassiterite",
+      "feldspar",
+      "lepidolite",
+      "quartz",
+      "spodumene",
+      "tourmaline"
+     ]
+    },
+    "rclamp=7": {
+     "fill": 0.4143979815652113,
+     "full": null,
+     "lastGrowth": 230,
+     "species": {
+      "cassiterite": {
+       "n": 8,
+       "max_um": 1462.7974044525395,
+       "last": 230
+      },
+      "quartz": {
+       "n": 3,
+       "max_um": 36656.347058571526,
+       "last": 230
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 24673.6064926337,
+       "last": 230
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 32168.510328173637,
+       "last": 230
+      },
+      "spodumene": {
+       "n": 5,
+       "max_um": 2173.6881857910985,
+       "last": 158
+      },
+      "tourmaline": {
+       "n": 8,
+       "max_um": 11949.988512238122,
+       "last": 197
+      },
+      "lepidolite": {
+       "n": 3,
+       "max_um": 4038.9164883163235,
+       "last": 159
+      },
+      "topaz": {
+       "n": 6,
+       "max_um": 2512.763812175913,
+       "last": 215
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 8,
      "gained": [
@@ -433,17 +625,24 @@
     },
     "bulkPb": 0,
     "voxPb": 0,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
     "rind=5000": {
-     "fill": 0.1967046904745603,
+     "fill": 0.19619570766228417,
      "full": null,
      "lastGrowth": 230,
      "species": {
       "quartz": {
        "n": 3,
-       "max_um": 36961.26028721368,
+       "max_um": 36440.863977731016,
        "last": 230
       },
       "feldspar": {
@@ -458,32 +657,40 @@
       },
       "spodumene": {
        "n": 4,
-       "max_um": 5080.798486219341,
+       "max_um": 5086.976257791124,
        "last": 159
       },
       "tourmaline": {
        "n": 8,
-       "max_um": 11899.931417568941,
+       "max_um": 12011.807064254745,
        "last": 197
       },
       "lepidolite": {
        "n": 4,
-       "max_um": 3439.018765380327,
+       "max_um": 3487.1027779408064,
        "last": 159
       },
       "cassiterite": {
        "n": 5,
-       "max_um": 1438.975095484057,
+       "max_um": 1441.186318516535,
        "last": 230
       },
       "topaz": {
        "n": 6,
-       "max_um": 2488.606670632592,
+       "max_um": 2458.264291282236,
        "last": 215
       }
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 8,
      "gained": [
@@ -548,6 +755,86 @@
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
+     "trace": null,
+     "speciesCount": 8,
+     "gained": [
+      "topaz"
+     ],
+     "lost": [],
+     "moved": [
+      "albite",
+      "cassiterite",
+      "feldspar",
+      "lepidolite",
+      "quartz",
+      "spodumene",
+      "tourmaline"
+     ]
+    },
+    "rclamp=7": {
+     "fill": 0.40984019186216397,
+     "full": null,
+     "lastGrowth": 230,
+     "species": {
+      "quartz": {
+       "n": 3,
+       "max_um": 37298.644377114215,
+       "last": 230
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 24659.59603874758,
+       "last": 230
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 32538.800029469654,
+       "last": 230
+      },
+      "spodumene": {
+       "n": 4,
+       "max_um": 5087.242540120094,
+       "last": 159
+      },
+      "tourmaline": {
+       "n": 8,
+       "max_um": 11975.231092249433,
+       "last": 197
+      },
+      "lepidolite": {
+       "n": 4,
+       "max_um": 3366.6411767583822,
+       "last": 159
+      },
+      "cassiterite": {
+       "n": 5,
+       "max_um": 1444.3280976628096,
+       "last": 230
+      },
+      "topaz": {
+       "n": 6,
+       "max_um": 2479.9839491120415,
+       "last": 215
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 8,
      "gained": [
@@ -638,27 +925,34 @@
     },
     "bulkPb": 146.75794143026854,
     "voxPb": 30,
+    "uraniniteNegativeZones": 3,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
     "rind=5000": {
-     "fill": 0.9859294641297235,
+     "fill": 0.9831765141942668,
      "full": null,
      "lastGrowth": 120,
      "species": {
       "uraninite": {
        "n": 3,
-       "max_um": 12078.07029029556,
+       "max_um": 12239.247767492456,
        "last": 79
       },
       "quartz": {
        "n": 3,
-       "max_um": 52199.591676682554,
+       "max_um": 52942.49696692644,
        "last": 93
       },
       "feldspar": {
        "n": 2,
-       "max_um": 6252.603665050674,
+       "max_um": 5725.393711993431,
        "last": 4
       },
       "albite": {
@@ -668,47 +962,55 @@
       },
       "spodumene": {
        "n": 4,
-       "max_um": 2144.1199936080866,
+       "max_um": 2099.4608843739184,
        "last": 49
       },
       "morganite": {
        "n": 4,
-       "max_um": 23544.874742555934,
+       "max_um": 23447.796163244853,
        "last": 79
       },
       "tourmaline": {
        "n": 8,
-       "max_um": 2884.2607178597073,
+       "max_um": 2909.6009253359694,
        "last": 49
       },
       "lepidolite": {
        "n": 4,
-       "max_um": 1080.9185123333218,
+       "max_um": 1087.5631201321683,
        "last": 49
       },
       "cassiterite": {
        "n": 5,
-       "max_um": 158.35162683048213,
+       "max_um": 158.8798709714296,
        "last": 49
       },
       "topaz": {
        "n": 4,
-       "max_um": 237.7378910057469,
+       "max_um": 236.9853089588822,
        "last": 49
       },
       "opal": {
        "n": 5,
-       "max_um": 115.50441631123395,
+       "max_um": 114.56154953990468,
        "last": 120
       },
       "plumbogummite": {
        "n": 2,
-       "max_um": 0.25144052654266397,
+       "max_um": 0.24778241328638245,
        "last": 114
       }
      },
-     "bulkPb": 181.97247482348064,
-     "voxPb": 29.999999033887754,
+     "bulkPb": 185.07775229969758,
+     "voxPb": 29.999998990973246,
+     "uraniniteNegativeZones": 11,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 12,
      "gained": [],
@@ -719,7 +1021,6 @@
       "lepidolite",
       "morganite",
       "opal",
-      "plumbogummite",
       "quartz",
       "topaz",
       "uraninite"
@@ -793,6 +1094,105 @@
      },
      "bulkPb": 185.07730406235422,
      "voxPb": 29.999998992067212,
+     "uraniniteNegativeZones": 11,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
+     "trace": null,
+     "speciesCount": 12,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "feldspar",
+      "lepidolite",
+      "morganite",
+      "opal",
+      "quartz",
+      "topaz",
+      "uraninite"
+     ]
+    },
+    "rclamp=7": {
+     "fill": 0.9833150744782321,
+     "full": null,
+     "lastGrowth": 120,
+     "species": {
+      "uraninite": {
+       "n": 3,
+       "max_um": 12239.248135514896,
+       "last": 79
+      },
+      "quartz": {
+       "n": 3,
+       "max_um": 53023.81412659606,
+       "last": 93
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 9151.121111938244,
+       "last": 120
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 12793.087829895429,
+       "last": 120
+      },
+      "spodumene": {
+       "n": 4,
+       "max_um": 2099.4608843436595,
+       "last": 49
+      },
+      "morganite": {
+       "n": 4,
+       "max_um": 23351.410272630674,
+       "last": 79
+      },
+      "tourmaline": {
+       "n": 8,
+       "max_um": 2909.5987232214743,
+       "last": 49
+      },
+      "lepidolite": {
+       "n": 4,
+       "max_um": 1087.880389131108,
+       "last": 49
+      },
+      "cassiterite": {
+       "n": 5,
+       "max_um": 158.87946952880498,
+       "last": 49
+      },
+      "topaz": {
+       "n": 4,
+       "max_um": 237.03458830181296,
+       "last": 49
+      },
+      "opal": {
+       "n": 5,
+       "max_um": 114.49686425329051,
+       "last": 120
+      },
+      "plumbogummite": {
+       "n": 2,
+       "max_um": 0.24766835722427552,
+       "last": 114
+      }
+     },
+     "bulkPb": 185.07730406235422,
+     "voxPb": 29.999998992067212,
+     "uraniniteNegativeZones": 11,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 12,
      "gained": [],
@@ -882,27 +1282,34 @@
     },
     "bulkPb": 127.72937197789254,
     "voxPb": 30,
+    "uraniniteNegativeZones": 6,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
     "rind=5000": {
-     "fill": 0.9768313296778832,
+     "fill": 0.9860177745305639,
      "full": null,
      "lastGrowth": 120,
      "species": {
       "uraninite": {
        "n": 3,
-       "max_um": 11852.41524334058,
+       "max_um": 11835.8534554728,
        "last": 79
       },
       "cassiterite": {
        "n": 6,
-       "max_um": 179.76148821543774,
+       "max_um": 182.21138909761382,
        "last": 49
       },
       "quartz": {
        "n": 3,
-       "max_um": 53599.45704045467,
+       "max_um": 53604.405062326536,
        "last": 93
       },
       "feldspar": {
@@ -912,53 +1319,62 @@
       },
       "albite": {
        "n": 2,
-       "max_um": 5338.478796768384,
+       "max_um": 5896.44171101422,
        "last": 7
       },
       "spodumene": {
        "n": 4,
-       "max_um": 2216.934684916158,
+       "max_um": 2242.401117442229,
        "last": 49
       },
       "morganite": {
        "n": 4,
-       "max_um": 26342.889805069783,
+       "max_um": 26498.965206218778,
        "last": 79
       },
       "tourmaline": {
        "n": 8,
-       "max_um": 2913.80862798116,
+       "max_um": 2777.5183296384257,
        "last": 49
       },
       "lepidolite": {
-       "n": 5,
-       "max_um": 973.2450787362253,
+       "n": 4,
+       "max_um": 982.3592226602563,
        "last": 49
       },
       "topaz": {
        "n": 3,
-       "max_um": 134.1317598266989,
+       "max_um": 290.50572795174173,
        "last": 49
       },
       "opal": {
        "n": 5,
-       "max_um": 135.2325771077904,
+       "max_um": 113.3318916390874,
        "last": 120
       },
       "plumbogummite": {
        "n": 3,
-       "max_um": 0.4002858109603211,
+       "max_um": 0.28768690800720537,
        "last": 111
       }
      },
-     "bulkPb": 174.29067309018407,
-     "voxPb": 29.99999797195237,
+     "bulkPb": 173.84337184626818,
+     "voxPb": 29.999998438654846,
+     "uraniniteNegativeZones": 9,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 12,
      "gained": [],
      "lost": [],
      "moved": [
       "albite",
+      "cassiterite",
       "feldspar",
       "lepidolite",
       "morganite",
@@ -1039,6 +1455,109 @@
      },
      "bulkPb": 173.84022301965865,
      "voxPb": 29.999998446219593,
+     "uraniniteNegativeZones": 9,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
+     "trace": null,
+     "speciesCount": 12,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "cassiterite",
+      "feldspar",
+      "lepidolite",
+      "morganite",
+      "opal",
+      "plumbogummite",
+      "quartz",
+      "spodumene",
+      "topaz",
+      "tourmaline",
+      "uraninite"
+     ]
+    },
+    "rclamp=7": {
+     "fill": 0.9864368523312144,
+     "full": null,
+     "lastGrowth": 120,
+     "species": {
+      "uraninite": {
+       "n": 3,
+       "max_um": 11836.122338415244,
+       "last": 79
+      },
+      "cassiterite": {
+       "n": 6,
+       "max_um": 182.21138909761382,
+       "last": 49
+      },
+      "quartz": {
+       "n": 3,
+       "max_um": 53632.40761233674,
+       "last": 93
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 9542.593757691406,
+       "last": 120
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 12583.658308300117,
+       "last": 120
+      },
+      "spodumene": {
+       "n": 4,
+       "max_um": 2242.3277971807584,
+       "last": 49
+      },
+      "morganite": {
+       "n": 4,
+       "max_um": 26498.451920654665,
+       "last": 79
+      },
+      "tourmaline": {
+       "n": 8,
+       "max_um": 2777.5183296384257,
+       "last": 49
+      },
+      "lepidolite": {
+       "n": 4,
+       "max_um": 921.032081155587,
+       "last": 49
+      },
+      "topaz": {
+       "n": 3,
+       "max_um": 291.0101957959209,
+       "last": 49
+      },
+      "opal": {
+       "n": 5,
+       "max_um": 112.81913310534131,
+       "last": 120
+      },
+      "plumbogummite": {
+       "n": 3,
+       "max_um": 0.28634236803399227,
+       "last": 111
+      }
+     },
+     "bulkPb": 173.84022301965865,
+     "voxPb": 29.999998446219593,
+     "uraniniteNegativeZones": 9,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 12,
      "gained": [],
@@ -1132,27 +1651,34 @@
     },
     "bulkPb": 147.15031471932483,
     "voxPb": 30,
+    "uraniniteNegativeZones": 29,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
     "rind=5000": {
-     "fill": 0.9768085317031586,
+     "fill": 0.9854740234398466,
      "full": null,
      "lastGrowth": 120,
      "species": {
       "uraninite": {
        "n": 3,
-       "max_um": 11871.273391823453,
+       "max_um": 11947.516249593325,
        "last": 79
       },
       "quartz": {
        "n": 3,
-       "max_um": 54651.59526084049,
+       "max_um": 55197.46030920701,
        "last": 93
       },
       "feldspar": {
        "n": 2,
-       "max_um": 6329.336732829854,
+       "max_um": 6298.731015344558,
        "last": 6
       },
       "albite": {
@@ -1162,47 +1688,55 @@
       },
       "spodumene": {
        "n": 4,
-       "max_um": 2077.3459405937892,
+       "max_um": 2152.7128490610944,
        "last": 49
       },
       "morganite": {
        "n": 4,
-       "max_um": 27739.57832105581,
+       "max_um": 27462.844004242477,
        "last": 79
       },
       "tourmaline": {
        "n": 8,
-       "max_um": 2452.1913341919994,
+       "max_um": 2387.5445218915884,
        "last": 49
       },
       "lepidolite": {
-       "n": 5,
-       "max_um": 1052.0073348183673,
+       "n": 4,
+       "max_um": 1042.0337927421006,
        "last": 49
       },
       "cassiterite": {
        "n": 4,
-       "max_um": 159.15246970721932,
+       "max_um": 161.55107396524713,
        "last": 49
       },
       "topaz": {
        "n": 4,
-       "max_um": 569.081094187846,
+       "max_um": 531.3437286364715,
        "last": 50
       },
       "opal": {
        "n": 5,
-       "max_um": 121.08985111734368,
+       "max_um": 114.23498699582795,
        "last": 120
       },
       "plumbogummite": {
        "n": 3,
-       "max_um": 0.3393741642596331,
+       "max_um": 0.2964012122802532,
        "last": 112
       }
      },
-     "bulkPb": 167.55344301039645,
-     "voxPb": 29.99999802695149,
+     "bulkPb": 167.09126623166546,
+     "voxPb": 29.999998141492632,
+     "uraniniteNegativeZones": 9,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 12,
      "gained": [],
@@ -1288,6 +1822,107 @@
      },
      "bulkPb": 167.0912662310804,
      "voxPb": 29.999998175462814,
+     "uraniniteNegativeZones": 9,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
+     "trace": null,
+     "speciesCount": 12,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "cassiterite",
+      "feldspar",
+      "lepidolite",
+      "morganite",
+      "opal",
+      "plumbogummite",
+      "quartz",
+      "topaz",
+      "uraninite"
+     ]
+    },
+    "rclamp=7": {
+     "fill": 0.9865771096447947,
+     "full": null,
+     "lastGrowth": 120,
+     "species": {
+      "uraninite": {
+       "n": 3,
+       "max_um": 11947.51624901024,
+       "last": 79
+      },
+      "quartz": {
+       "n": 3,
+       "max_um": 54581.887525611535,
+       "last": 93
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 8994.973922140001,
+       "last": 120
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 12357.09593126328,
+       "last": 120
+      },
+      "spodumene": {
+       "n": 4,
+       "max_um": 2150.3342219974975,
+       "last": 49
+      },
+      "morganite": {
+       "n": 4,
+       "max_um": 27462.84394447886,
+       "last": 79
+      },
+      "tourmaline": {
+       "n": 8,
+       "max_um": 2387.5445218915884,
+       "last": 49
+      },
+      "lepidolite": {
+       "n": 4,
+       "max_um": 1042.0337927421006,
+       "last": 49
+      },
+      "cassiterite": {
+       "n": 4,
+       "max_um": 161.55107396524713,
+       "last": 49
+      },
+      "topaz": {
+       "n": 4,
+       "max_um": 532.171337087597,
+       "last": 50
+      },
+      "opal": {
+       "n": 5,
+       "max_um": 112.213990108518,
+       "last": 120
+      },
+      "plumbogummite": {
+       "n": 3,
+       "max_um": 0.2908613653788278,
+       "last": 112
+      }
+     },
+     "bulkPb": 167.0912662310804,
+     "voxPb": 29.999998175462814,
+     "uraniniteNegativeZones": 9,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 12,
      "gained": [],
@@ -1344,17 +1979,24 @@
     },
     "bulkPb": 0,
     "voxPb": 0,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 1,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
     "rind=5000": {
-     "fill": 0.00042631737301537565,
+     "fill": 0.00036077246301402456,
      "full": null,
      "lastGrowth": 70,
      "species": {
       "quartz": {
        "n": 3,
-       "max_um": 12587.932714179384,
+       "max_um": 13177.512552806207,
        "last": 70
       },
       "feldspar": {
@@ -1364,22 +2006,30 @@
       },
       "albite": {
        "n": 2,
-       "max_um": 5522.663802081165,
+       "max_um": 6133.430754304437,
        "last": 2
       },
       "tourmaline": {
        "n": 7,
-       "max_um": 1803.1906648804302,
+       "max_um": 1838.628561750439,
        "last": 57
       },
       "topaz": {
        "n": 6,
-       "max_um": 689.6352257826143,
+       "max_um": 661.7419948336427,
        "last": 64
       }
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 1,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 5,
      "gained": [],
@@ -1423,6 +2073,65 @@
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 1,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
+     "trace": null,
+     "speciesCount": 5,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "feldspar",
+      "topaz"
+     ]
+    },
+    "rclamp=7": {
+     "fill": 0.00016671684838998952,
+     "full": null,
+     "lastGrowth": 70,
+     "species": {
+      "quartz": {
+       "n": 3,
+       "max_um": 13181.194815442495,
+       "last": 70
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 7491.725352642825,
+       "last": 70
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 9746.361712228507,
+       "last": 70
+      },
+      "tourmaline": {
+       "n": 7,
+       "max_um": 1838.7306246608016,
+       "last": 57
+      },
+      "topaz": {
+       "n": 6,
+       "max_um": 661.7419948336427,
+       "last": 64
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 1,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 5,
      "gained": [],
@@ -1472,17 +2181,24 @@
     },
     "bulkPb": 0,
     "voxPb": 0,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 1,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
     "rind=5000": {
-     "fill": 0.00026187039676373676,
+     "fill": 0.00027353771491549775,
      "full": null,
      "lastGrowth": 70,
      "species": {
       "quartz": {
        "n": 3,
-       "max_um": 12538.128370993974,
+       "max_um": 12791.824747915138,
        "last": 70
       },
       "feldspar": {
@@ -1497,17 +2213,25 @@
       },
       "tourmaline": {
        "n": 8,
-       "max_um": 1830.827687051049,
+       "max_um": 1791.79231285683,
        "last": 57
       },
       "topaz": {
        "n": 4,
-       "max_um": 651.5433013276422,
+       "max_um": 709.0563487359357,
        "last": 64
       }
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 1,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 5,
      "gained": [],
@@ -1551,6 +2275,65 @@
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 1,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
+     "trace": null,
+     "speciesCount": 5,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "feldspar",
+      "topaz"
+     ]
+    },
+    "rclamp=7": {
+     "fill": 0.0001620612189137511,
+     "full": null,
+     "lastGrowth": 70,
+     "species": {
+      "quartz": {
+       "n": 3,
+       "max_um": 12792.18528631927,
+       "last": 70
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 7338.668423014227,
+       "last": 70
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 9655.08403037861,
+       "last": 70
+      },
+      "tourmaline": {
+       "n": 8,
+       "max_um": 1792.0769908564537,
+       "last": 57
+      },
+      "topaz": {
+       "n": 4,
+       "max_um": 709.0563487359357,
+       "last": 64
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 1,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 5,
      "gained": [],
@@ -1600,22 +2383,29 @@
     },
     "bulkPb": 0,
     "voxPb": 0,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 1,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 0,
     "trace": null
    },
    "B": {
     "rind=5000": {
-     "fill": 0.00021881726506189466,
+     "fill": 0.00037282501558544734,
      "full": null,
      "lastGrowth": 70,
      "species": {
       "quartz": {
        "n": 3,
-       "max_um": 13009.10073446483,
+       "max_um": 12775.034909186617,
        "last": 70
       },
       "feldspar": {
        "n": 2,
-       "max_um": 7261.672662085946,
+       "max_um": 10409.336945323312,
        "last": 4
       },
       "albite": {
@@ -1625,17 +2415,25 @@
       },
       "tourmaline": {
        "n": 8,
-       "max_um": 1790.9384080057969,
+       "max_um": 1796.467947270518,
        "last": 57
       },
       "topaz": {
        "n": 6,
-       "max_um": 659.3032355407204,
+       "max_um": 681.995141956331,
        "last": 64
       }
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 1,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 5,
      "gained": [],
@@ -1678,6 +2476,64 @@
      },
      "bulkPb": 0,
      "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 1,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
+     "trace": null,
+     "speciesCount": 5,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "feldspar"
+     ]
+    },
+    "rclamp=7": {
+     "fill": 0.00014432355253580036,
+     "full": null,
+     "lastGrowth": 70,
+     "species": {
+      "quartz": {
+       "n": 3,
+       "max_um": 12785.567432937332,
+       "last": 70
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 7252.553434824105,
+       "last": 70
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 9850.97516384162,
+       "last": 70
+      },
+      "tourmaline": {
+       "n": 8,
+       "max_um": 1796.4679140182307,
+       "last": 57
+      },
+      "topaz": {
+       "n": 6,
+       "max_um": 681.9951419330591,
+       "last": 64
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 1,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "auditMoved": false,
+     "wallDissolutionWithheld": 0,
      "trace": null,
      "speciesCount": 5,
      "gained": [],
@@ -1689,5 +2545,6 @@
     }
    }
   }
- ]
+ ],
+ "auditMoved": []
 }

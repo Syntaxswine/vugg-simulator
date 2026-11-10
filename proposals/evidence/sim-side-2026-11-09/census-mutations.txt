@@ -1,6 +1,6 @@
-sim-side census mutations — 19 mutants of tools/sim-side-census.mjs (sha256 6b63cc216f64); the census as committed runs once on bisbee, colorado_plateau, epithermal_telluride, gem_pegmatite, mvt, porphyry, radioactive_pegmatite, schneeberg, shigar_pegmatite, sunnyside_american_tunnel, tn457_barite_pulses (seed 42)
+sim-side census mutations — 35 mutants of tools/sim-side-census.mjs (sha256 a1eca64df002); the census as committed runs once on bisbee, colorado_plateau, cooling, epithermal_telluride, gem_pegmatite, great_salt_plains, mvt, porphyry, radioactive_pegmatite, schneeberg, shigar_pegmatite, sunnyside_american_tunnel, tn457_barite_pulses, tormiq_alpine_cleft, zoned_dripstone_cave (seed 42)
 
-the census as committed (11 of 11 runs reproduce the baseline):
+the census as committed (15 of 15 runs reproduce the baseline):
   [PASS] positive competition-log — 64/64/60/60/65 = 313
   [PASS] positive supply — 268 zones on Au; scenario-wide 268 rationed, 45 budget-cut
   [PASS] positive supply-share — 1.68 %
@@ -15,6 +15,18 @@ the census as committed (11 of 11 runs reproduce the baseline):
   [PASS] positive pause — 175 pauses on a cell run short (galena ×156, tetrahedrite ×11, argentite ×4); 0 on a cell that reads saturated
   [PASS] positive count — 33 steps past sigma_crit, 33 not licensed
   [PASS] negative count — 101 steps past sigma_crit, 0 not licensed
+  [PASS] positive count-excluded — 150 steps past sigma_crit, 150 excluded
+  [PASS] positive count-window — 60 steps past sigma_crit, 60 outside its window
+  [PASS] positive count-cap — 200 steps past sigma_crit, 183 at the count cap
+  [PASS] positive count-gate — 88 steps past sigma_crit, 87 at its own gate, 87 of them with a side door
+  [PASS] positive count-envelope — 150 of 150 passes under the envelope; aragonite past sigma_crit on the envelope only on 150 steps
+  [PASS] negative count-envelope — 0 passes under an envelope; 0 species-steps on which the two readings disagree
+  [PASS] positive strangled — 6 of 18 calls refused; ingredient Pb ×6
+  [PASS] negative strangled — 0 of 300 calls refused
+  [PASS] positive enclosed — 33 enclosed, 33 with the encloser named
+  [PASS] positive vadose — step 110: 10 rings from ring 6 up; bulk O2 1.50 → 1.80
+  [PASS] negative vadose — 0 step(s) on which a ring dried
+  [PASS] positive draw-down-other — 3.93 mm not through the ingredients; uranophane:pH 3.93 mm
 
 mutant                    control it should fail      committed  mutant   what was broken
 log-read-once             positive competition-log    PASS       FAIL     the step log is scanned on the final step only (run_step resets it every step)
@@ -74,5 +86,54 @@ license-not-asked         positive count              PASS       FAIL     the sc
 license-always-refuses    negative count              PASS       FAIL     every species is read as not licensed
                                                       committed: 101 steps past sigma_crit, 0 not licensed
                                                       mutant:    101 steps past sigma_crit, 101 not licensed
+exclusion-not-asked       positive count-excluded     PASS       FAIL     the scenario's exclusion list is not asked
+                                                      committed: 150 steps past sigma_crit, 150 excluded
+                                                      mutant:    150 steps past sigma_crit, 0 excluded
+window-not-asked          positive count-window       PASS       FAIL     the scenario's nucleation windows are not asked
+                                                      committed: 60 steps past sigma_crit, 60 outside its window
+                                                      mutant:    60 steps past sigma_crit, 0 outside its window
+cap-never-binding         positive count-cap          PASS       FAIL     the count cap is never tested
+                                                      committed: 200 steps past sigma_crit, 183 at the count cap
+                                                      mutant:    200 steps past sigma_crit, 0 at the count cap
+gate-never-binding        positive count-gate         PASS       FAIL     the function's own count gate is never tested
+                                                      committed: 88 steps past sigma_crit, 87 at its own gate, 87 of them with a side door
+                                                      mutant:    88 steps past sigma_crit, 0 at its own gate, 0 of them with a side door
+side-door-never-read      positive count-gate         PASS       FAIL     a gate is never read as keeping a side door
+                                                      committed: 88 steps past sigma_crit, 87 at its own gate, 87 of them with a side door
+                                                      mutant:    88 steps past sigma_crit, 87 at its own gate, 0 of them with a side door
+envelope-not-put-up       positive count-envelope     PASS       FAIL     the localized-nucleation envelope is not put up for the reading
+                                                      committed: 150 of 150 passes under the envelope; aragonite past sigma_crit on the envelope only on 150 steps
+                                                      mutant:    0 of 150 passes under the envelope; aragonite past sigma_crit on the envelope only on 0 steps
+envelope-read-as-bulk     positive count-envelope     PASS       FAIL     the envelope is put up and the bulk handle is read all the same
+                                                      committed: 150 of 150 passes under the envelope; aragonite past sigma_crit on the envelope only on 150 steps
+                                                      mutant:    150 of 150 passes under the envelope; aragonite past sigma_crit on the envelope only on 0 steps
+envelope-always-claimed   negative count-envelope     PASS       FAIL     every pass is counted as running under an envelope
+                                                      committed: 0 passes under an envelope; 0 species-steps on which the two readings disagree
+                                                      mutant:    120 passes under an envelope; 0 species-steps on which the two readings disagree
+strangle-verdict-ignored  positive strangled          PASS       FAIL     a refusal by _wallStrangledFor is never counted
+                                                      committed: 6 of 18 calls refused; ingredient Pb ×6
+                                                      mutant:    0 of 18 calls refused; ingredient Pb ×6
+strangle-ingredients-not-tried positive strangled          PASS       FAIL     the attribution of a refusal never tries the mineral's ingredients
+                                                      committed: 6 of 18 calls refused; ingredient Pb ×6
+                                                      mutant:    6 of 18 calls refused; SiO2 ×6
+every-call-a-refusal      negative strangled          PASS       FAIL     every call of _wallStrangledFor is counted as a refusal
+                                                      committed: 0 of 300 calls refused
+                                                      mutant:    300 of 300 calls refused
+enclosure-never-read      positive enclosed           PASS       FAIL     the END reading never tests enclosure
+                                                      committed: 33 enclosed, 33 with the encloser named
+                                                      mutant:    0 enclosed, 0 with the encloser named
+encloser-not-named        positive enclosed           PASS       FAIL     the mineral that enclosed a crystal is never looked up
+                                                      committed: 33 enclosed, 33 with the encloser named
+                                                      mutant:    33 enclosed, 0 with the encloser named
+vadose-read-late          positive vadose             PASS       FAIL     the bulk handle's O2 "before" the vadose override is read after it
+                                                      committed: step 110: 10 rings from ring 6 up; bulk O2 1.50 → 1.80
+                                                      mutant:    step 110: 10 rings from ring 6 up; bulk O2 1.80 → 1.80
+vadose-every-call         negative vadose             PASS       FAIL     every call of the vadose override is recorded as a drying
+                                                      committed: 0 step(s) on which a ring dried
+                                                      mutant:    120 step(s) on which a ring dried
+other-field-not-set       positive draw-down-other    PASS       FAIL     the search for one further field never sets that field to the bulk handle's value
+                                                      committed: 3.93 mm not through the ingredients; uranophane:pH 3.93 mm
+                                                      mutant:    3.93 mm not through the ingredients; uranophane:no one field 3.93 mm
 
-all 19 mutants: the control passes on the census as committed and fails on the mutant
+all 35 mutants: the control passes on the census as committed and fails on the mutant
+controls the census declares: 26; with no mutant aimed at them: none
