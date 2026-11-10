@@ -1,0 +1,42 @@
+refund=1 — every positive zone's debit returned to its cell (ab-refund-seed-*.json)
+  seed 42: 41 scenarios; moved 27; a crystal >= 1 mm changed size by more than 25 % in 22; fill rose by more than ten points in 7
+           fill, shipped → refund: ouro_preto 29 → 46 %; porphyry 12 → 82 %; roughten_gill 15 → 98 %; sulphur_bank 31 → 72 %; sunnyside_american_tunnel 85 → 99 %; supergene_oxidation 41 → 98 %; tormiq_alpine_cleft 8 → 31 %
+           first step at fill >= 0.999, shipped → refund: gem_pegmatite 9 → 5; radioactive_pegmatite 61 → 17; searles_lake 134 → 133; shigar_pegmatite never → 23
+           species lost: bisbee (brochantite); radioactive_pegmatite (topaz); roughten_gill (mottramite); shigar_pegmatite (topaz)
+           not moved: amethyst_geode, cooling, elmwood, great_salt_plains, jeffrey_mine, marble_contact_metamorphism, naica_geothermal, searles_lake, sicily_solfifera, stalactite_demo, tn457_barite_pulses, tutorial_first_crystal, tutorial_mn_calcite, zoned_dripstone_cave
+  seed  1: 41 scenarios; moved 28; a crystal >= 1 mm changed size by more than 25 % in 22; fill rose by more than ten points in 7
+           fill, shipped → refund: ouro_preto 32 → 51 %; porphyry 14 → 94 %; roughten_gill 52 → 99 %; sulphur_bank 28 → 67 %; sunnyside_american_tunnel 88 → 99 %; supergene_oxidation 43 → 98 %; tormiq_alpine_cleft 8 → 32 %
+           first step at fill >= 0.999, shipped → refund: gem_pegmatite 10 → 5; radioactive_pegmatite 55 → 16; shigar_pegmatite never → 26
+           species lost: bisbee (brochantite, native_silver); radioactive_pegmatite (topaz); shigar_pegmatite (topaz)
+           not moved: amethyst_geode, cooling, elmwood, great_salt_plains, marble_contact_metamorphism, naica_geothermal, searles_lake, sicily_solfifera, stalactite_demo, tn457_barite_pulses, tutorial_first_crystal, tutorial_mn_calcite, zoned_dripstone_cave
+  seed  2: 41 scenarios; moved 26; a crystal >= 1 mm changed size by more than 25 % in 19; fill rose by more than ten points in 7
+           fill, shipped → refund: ouro_preto 23 → 36 %; porphyry 12 → 90 %; roughten_gill 67 → 98 %; sulphur_bank 29 → 70 %; sunnyside_american_tunnel 88 → 99 %; supergene_oxidation 40 → 99 %; tormiq_alpine_cleft 6 → 19 %
+           first step at fill >= 0.999, shipped → refund: gem_pegmatite 10 → 5; radioactive_pegmatite 59 → 17; searles_lake 188 → 187; shigar_pegmatite never → 26
+           species lost: bisbee (brochantite, native_silver); radioactive_pegmatite (topaz); roughten_gill (mottramite); shigar_pegmatite (topaz)
+           not moved: amethyst_geode, cooling, elmwood, great_salt_plains, jeffrey_mine, marble_contact_metamorphism, naica_geothermal, pulse, reactive_wall, sicily_solfifera, stalactite_demo, tn457_barite_pulses, tutorial_first_crystal, tutorial_mn_calcite, zoned_dripstone_cave
+  seed 42, largest crystal: mvt greenockite 2.4 → 7.3 mm; colorado_plateau uranophane 12.6 → 25.7 mm; reactive_wall galena 3.9 → 7.0 mm; sunnyside_american_tunnel galena 15.4 → 31.1 mm
+  seed 42, bisbee: 23 of 31 species moved
+
+the three feldspar shapes on the 13 scenarios that grow feldspar or albite (ab-feldspar-13-scenarios.json)
+  cap=8   seed 42: moved 7 of 13 (gem_pegmatite, jeffrey_mine, ouro_preto, radioactive_pegmatite, schneeberg, shigar_pegmatite, tormiq_alpine_cleft); lost: none; ouro_preto fill 28.8 → 21.9 %; bisbee species moved 0
+  cap=8   seed  1: moved 7 of 13 (gem_pegmatite, jeffrey_mine, ouro_preto, radioactive_pegmatite, schneeberg, shigar_pegmatite, tormiq_alpine_cleft); lost: none; ouro_preto fill 32.3 → 24.3 %; bisbee species moved 0
+  cap=8   seed  2: moved 7 of 13 (gem_pegmatite, jeffrey_mine, ouro_preto, radioactive_pegmatite, schneeberg, shigar_pegmatite, tormiq_alpine_cleft); lost: none; ouro_preto fill 22.8 → 17.0 %; bisbee species moved 0
+  fcap=2  seed 42: moved 13 of 13; lost: chiastolite_hornfels (albite 0.001 mm, feldspar 0.710 mm); deccan_zeolite (feldspar 0.000 mm); grimsel_alpine_cleft (albite 6.5 mm, feldspar 5.3 mm); ouro_preto fill 28.8 → 4.1 %; bisbee species moved 1
+  fcap=2  seed  1: moved 13 of 13; lost: chiastolite_hornfels (albite 0.001 mm, feldspar 0.664 mm); deccan_zeolite (feldspar 0.000 mm); grimsel_alpine_cleft (albite 6.6 mm, feldspar 5.2 mm); ouro_preto fill 32.3 → 4.5 %; bisbee species moved 2
+  fcap=2  seed  2: moved 13 of 13; lost: chiastolite_hornfels (albite 0.001 mm, feldspar 0.697 mm); deccan_zeolite (feldspar 0.000 mm); grimsel_alpine_cleft (albite 6.5 mm, feldspar 5.3 mm); ouro_preto fill 22.8 → 3.3 %; bisbee species moved 1
+  root=3  seed 42: moved 13 of 13; lost: none; ouro_preto fill 28.8 → 0.3 %; bisbee species moved 8
+  root=3  seed  1: moved 13 of 13; lost: none; ouro_preto fill 32.3 → 0.3 %; bisbee species moved 7
+  root=3  seed  2: moved 13 of 13; lost: none; ouro_preto fill 22.8 → 0.2 %; bisbee species moved 17
+
+k·σ rescaled to m·k·(σ − 1) for galena, molybdenite and uraninite (ab-rate-on-excess.json)
+  excess=1  seed 42: other species moved — sunnyside_american_tunnel 1 (argentite); porphyry fill 12 → 10 %
+  excess=1  seed  1: other species moved — mvt 3 (barite, quartz, sphalerite); reactive_wall 1 (marcasite); sunnyside_american_tunnel 1 (argentite); porphyry fill 14 → 12 %
+  excess=1  seed  2: other species moved — radioactive_pegmatite 1 (cassiterite); porphyry fill 12 → 11 %
+  excess=3  seed 42: other species moved — schneeberg 1 (uranophane); sunnyside_american_tunnel 1 (argentite); porphyry fill 12 → 48 %
+  excess=3  seed  1: other species moved — reactive_wall 1 (marcasite); roughten_gill 19 (acanthite, anglesite, aurichalcite, azurite, …); porphyry fill 14 → 54 %
+  excess=3  seed  2: other species moved — radioactive_pegmatite 1 (opal); roughten_gill 19 (anglesite, aurichalcite, azurite, brochantite, …); schneeberg 1 (native_silver); porphyry fill 12 → 48 %
+
+ten times the boron in gem_pegmatite (ab-gem-boron.json, ab-pegmatites-rind-clamp.json)
+  seed 42: mul=B:10 identical to shipped: true; cap=8,mul=B:10 identical to cap=8: true; tourmaline at half the boron 0.135 mm plugged, 5.6 mm open; at a quarter 0.018 mm plugged
+  seed  1: mul=B:10 identical to shipped: true; cap=8,mul=B:10 identical to cap=8: true; tourmaline at half the boron 0.169 mm plugged, 5.6 mm open; at a quarter 0.017 mm plugged
+  seed  2: mul=B:10 identical to shipped: true; cap=8,mul=B:10 identical to cap=8: true; tourmaline at half the boron 0.179 mm plugged, 5.4 mm open; at a quarter 0.020 mm plugged

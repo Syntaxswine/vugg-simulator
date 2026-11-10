@@ -1,5 +1,5 @@
 sim-side A/B — SIM 286; arms rind=5000 | cap=8; minerals feldspar, albite; seeds 42, 1, 2
-self-check on schneeberg, seed 42: shipped arm reproduces the baseline; neutral knobs — rind=Infinity ok; cap=Infinity ok; root=1 ok; mul=Ca:1 ok; fcap=Infinity ok
+self-check on schneeberg, seed 42: shipped arm reproduces the baseline; neutral knobs — rind=Infinity ok; cap=Infinity ok; root=1 ok; mul=Ca:1 ok; refund=0 ok; fcap=Infinity ok
 
 ### gem_pegmatite — 230 steps — events: 5 Outer Shell | 30 Schorl Arrives | 60 Albitization | 90 Be Saturation | 130 Li Phase | 160 Late Hydrothermal | 190 Clay Softening | 215 Final Cooling
 seed 42 (shipped arm reproduces the baseline)

@@ -20,6 +20,7 @@
    "cap=Infinity": true,
    "root=1": true,
    "mul=Ca:1": true,
+   "refund=0": true,
    "fcap=Infinity": true
   },
   "shippedReproducesBaseline": true

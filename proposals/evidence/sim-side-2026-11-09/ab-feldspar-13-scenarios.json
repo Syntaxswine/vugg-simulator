@@ -10,7 +10,9 @@
   "albite"
  ],
  "seeds": [
-  42
+  42,
+  1,
+  2
  ],
  "selfcheck": {
   "scenario": "schneeberg",
@@ -19,6 +21,7 @@
    "cap=Infinity": true,
    "root=1": true,
    "mul=Ca:1": true,
+   "refund=0": true,
    "fcap=Infinity": true
   },
   "shippedReproducesBaseline": true
@@ -715,6 +718,1395 @@
    }
   },
   {
+   "scenario": "bisbee",
+   "seed": 1,
+   "shippedReproducesBaseline": null,
+   "A": {
+    "fill": 0.9092762853926815,
+    "full": null,
+    "lastGrowth": 340,
+    "species": {
+     "feldspar": {
+      "n": 2,
+      "max_um": 3403.6127097486137,
+      "last": 64
+     },
+     "albite": {
+      "n": 2,
+      "max_um": 8019.963107217018,
+      "last": 64
+     },
+     "pyrite": {
+      "n": 1,
+      "max_um": 9626.395407522474,
+      "last": 119
+     },
+     "chalcopyrite": {
+      "n": 1,
+      "max_um": 56563.331132008185,
+      "last": 119
+     },
+     "tetrahedrite": {
+      "n": 1,
+      "max_um": 0,
+      "last": 0
+     },
+     "tennantite": {
+      "n": 1,
+      "max_um": 0,
+      "last": 0
+     },
+     "acanthite": {
+      "n": 4,
+      "max_um": 3087.848201504322,
+      "last": 119
+     },
+     "siderite": {
+      "n": 2,
+      "max_um": 310.4639916744501,
+      "last": 145
+     },
+     "chalcedony": {
+      "n": 4,
+      "max_um": 4600,
+      "last": 179
+     },
+     "marcasite": {
+      "n": 1,
+      "max_um": 1497.2738220980318,
+      "last": 119
+     },
+     "chalcocite": {
+      "n": 5,
+      "max_um": 339.5652979020434,
+      "last": 119
+     },
+     "covellite": {
+      "n": 4,
+      "max_um": 1950.2337971499974,
+      "last": 119
+     },
+     "native_gold": {
+      "n": 14,
+      "max_um": 1570.6971340085856,
+      "last": 336
+     },
+     "malachite": {
+      "n": 1,
+      "max_um": 13592.607218749583,
+      "last": 264
+     },
+     "goethite": {
+      "n": 3,
+      "max_um": 12265.266076322148,
+      "last": 340
+     },
+     "cuprite": {
+      "n": 1,
+      "max_um": 374.6390918829943,
+      "last": 156
+     },
+     "hematite": {
+      "n": 1,
+      "max_um": 5320.073160745705,
+      "last": 340
+     },
+     "jarosite": {
+      "n": 6,
+      "max_um": 3518.9761419910774,
+      "last": 116
+     },
+     "brochantite": {
+      "n": 5,
+      "max_um": 2090.3244823338337,
+      "last": 116
+     },
+     "alunite": {
+      "n": 5,
+      "max_um": 115.10164743892557,
+      "last": 116
+     },
+     "atacamite": {
+      "n": 8,
+      "max_um": 43115.87026441611,
+      "last": 340
+     },
+     "bornite": {
+      "n": 3,
+      "max_um": 397.6680392782428,
+      "last": 119
+     },
+     "native_copper": {
+      "n": 1,
+      "max_um": 0,
+      "last": 143
+     },
+     "native_silver": {
+      "n": 3,
+      "max_um": 4.086877768100329,
+      "last": 139
+     },
+     "chrysocolla": {
+      "n": 5,
+      "max_um": 17290.13682386607,
+      "last": 340
+     },
+     "turquoise": {
+      "n": 4,
+      "max_um": 1791.983720189134,
+      "last": 340
+     },
+     "lepidocrocite": {
+      "n": 10,
+      "max_um": 1786.5457156000666,
+      "last": 340
+     },
+     "azurite": {
+      "n": 4,
+      "max_um": 621.9739560725219,
+      "last": 224
+     },
+     "opal": {
+      "n": 6,
+      "max_um": 7949.467921428908,
+      "last": 340
+     },
+     "mimetite": {
+      "n": 3,
+      "max_um": 2.854563434637294,
+      "last": 247
+     },
+     "dioptase": {
+      "n": 4,
+      "max_um": 751.1812413072756,
+      "last": 340
+     }
+    },
+    "bulkPb": 15,
+    "voxPb": 14.99992786935829,
+    "trace": null
+   },
+   "B": {
+    "cap=8": {
+     "fill": 0.9092640921476696,
+     "full": null,
+     "lastGrowth": 340,
+     "species": {
+      "feldspar": {
+       "n": 2,
+       "max_um": 3403.6127097486137,
+       "last": 64
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 7907.080223173588,
+       "last": 64
+      },
+      "pyrite": {
+       "n": 1,
+       "max_um": 9626.395407522474,
+       "last": 119
+      },
+      "chalcopyrite": {
+       "n": 1,
+       "max_um": 56563.331132008185,
+       "last": 119
+      },
+      "tetrahedrite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "tennantite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "acanthite": {
+       "n": 4,
+       "max_um": 3087.848201488005,
+       "last": 119
+      },
+      "siderite": {
+       "n": 2,
+       "max_um": 310.4639916744501,
+       "last": 145
+      },
+      "chalcedony": {
+       "n": 4,
+       "max_um": 4600,
+       "last": 179
+      },
+      "marcasite": {
+       "n": 1,
+       "max_um": 1497.2738218768582,
+       "last": 119
+      },
+      "chalcocite": {
+       "n": 5,
+       "max_um": 339.5652979020434,
+       "last": 119
+      },
+      "covellite": {
+       "n": 4,
+       "max_um": 1950.2337971499962,
+       "last": 119
+      },
+      "native_gold": {
+       "n": 14,
+       "max_um": 1570.6972481623366,
+       "last": 336
+      },
+      "malachite": {
+       "n": 1,
+       "max_um": 13592.607218696447,
+       "last": 264
+      },
+      "goethite": {
+       "n": 3,
+       "max_um": 12265.596814537843,
+       "last": 340
+      },
+      "cuprite": {
+       "n": 1,
+       "max_um": 374.6390918829943,
+       "last": 156
+      },
+      "hematite": {
+       "n": 1,
+       "max_um": 5320.293778623545,
+       "last": 340
+      },
+      "jarosite": {
+       "n": 6,
+       "max_um": 3518.9761419910765,
+       "last": 116
+      },
+      "brochantite": {
+       "n": 5,
+       "max_um": 2090.3244823338337,
+       "last": 116
+      },
+      "alunite": {
+       "n": 5,
+       "max_um": 115.10478639281138,
+       "last": 116
+      },
+      "atacamite": {
+       "n": 8,
+       "max_um": 43117.35749631794,
+       "last": 340
+      },
+      "bornite": {
+       "n": 3,
+       "max_um": 397.66803716562174,
+       "last": 119
+      },
+      "native_copper": {
+       "n": 1,
+       "max_um": 0,
+       "last": 143
+      },
+      "native_silver": {
+       "n": 3,
+       "max_um": 4.086877768100329,
+       "last": 139
+      },
+      "chrysocolla": {
+       "n": 5,
+       "max_um": 17290.68343461324,
+       "last": 340
+      },
+      "turquoise": {
+       "n": 4,
+       "max_um": 1792.0465297954129,
+       "last": 340
+      },
+      "lepidocrocite": {
+       "n": 10,
+       "max_um": 1786.6304756027364,
+       "last": 340
+      },
+      "azurite": {
+       "n": 4,
+       "max_um": 621.9737957097434,
+       "last": 224
+      },
+      "opal": {
+       "n": 6,
+       "max_um": 7949.660792363435,
+       "last": 340
+      },
+      "mimetite": {
+       "n": 3,
+       "max_um": 2.8545634346339535,
+       "last": 247
+      },
+      "dioptase": {
+       "n": 4,
+       "max_um": 751.2252958409678,
+       "last": 340
+      }
+     },
+     "bulkPb": 15,
+     "voxPb": 14.99992786939098,
+     "trace": null,
+     "speciesCount": 31,
+     "gained": [],
+     "lost": [],
+     "moved": []
+    },
+    "fcap=2": {
+     "fill": 0.9090520112416862,
+     "full": null,
+     "lastGrowth": 340,
+     "species": {
+      "feldspar": {
+       "n": 2,
+       "max_um": 3403.612673076704,
+       "last": 64
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 4376.486334158391,
+       "last": 64
+      },
+      "pyrite": {
+       "n": 1,
+       "max_um": 9626.396167842953,
+       "last": 119
+      },
+      "chalcopyrite": {
+       "n": 1,
+       "max_um": 56563.334429707276,
+       "last": 119
+      },
+      "tetrahedrite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "tennantite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "acanthite": {
+       "n": 4,
+       "max_um": 3087.8481591836485,
+       "last": 119
+      },
+      "siderite": {
+       "n": 2,
+       "max_um": 310.4663760839496,
+       "last": 145
+      },
+      "chalcedony": {
+       "n": 4,
+       "max_um": 4600,
+       "last": 179
+      },
+      "marcasite": {
+       "n": 1,
+       "max_um": 1497.2739656360172,
+       "last": 119
+      },
+      "chalcocite": {
+       "n": 5,
+       "max_um": 339.5652865281926,
+       "last": 119
+      },
+      "covellite": {
+       "n": 4,
+       "max_um": 1950.2337654192268,
+       "last": 119
+      },
+      "native_gold": {
+       "n": 11,
+       "max_um": 1759.679548365017,
+       "last": 340
+      },
+      "malachite": {
+       "n": 1,
+       "max_um": 13592.614962945234,
+       "last": 264
+      },
+      "goethite": {
+       "n": 3,
+       "max_um": 12272.538058393126,
+       "last": 340
+      },
+      "cuprite": {
+       "n": 1,
+       "max_um": 374.63907956923316,
+       "last": 156
+      },
+      "hematite": {
+       "n": 1,
+       "max_um": 5281.943103385046,
+       "last": 340
+      },
+      "jarosite": {
+       "n": 6,
+       "max_um": 3518.9760870492564,
+       "last": 116
+      },
+      "brochantite": {
+       "n": 5,
+       "max_um": 2090.3244542518364,
+       "last": 116
+      },
+      "alunite": {
+       "n": 5,
+       "max_um": 115.20196485726359,
+       "last": 116
+      },
+      "atacamite": {
+       "n": 8,
+       "max_um": 43082.75094658729,
+       "last": 340
+      },
+      "bornite": {
+       "n": 3,
+       "max_um": 397.6679623448804,
+       "last": 119
+      },
+      "native_copper": {
+       "n": 1,
+       "max_um": 0,
+       "last": 143
+      },
+      "native_silver": {
+       "n": 3,
+       "max_um": 4.086877499678835,
+       "last": 139
+      },
+      "chrysocolla": {
+       "n": 5,
+       "max_um": 17272.30873121265,
+       "last": 340
+      },
+      "turquoise": {
+       "n": 4,
+       "max_um": 1783.7509022338675,
+       "last": 340
+      },
+      "lepidocrocite": {
+       "n": 10,
+       "max_um": 1763.3411073528862,
+       "last": 340
+      },
+      "azurite": {
+       "n": 4,
+       "max_um": 621.9710338260894,
+       "last": 224
+      },
+      "opal": {
+       "n": 6,
+       "max_um": 7943.622205683946,
+       "last": 340
+      },
+      "mimetite": {
+       "n": 3,
+       "max_um": 2.8545630537963604,
+       "last": 247
+      },
+      "dioptase": {
+       "n": 4,
+       "max_um": 746.1140485426383,
+       "last": 340
+      }
+     },
+     "bulkPb": 15,
+     "voxPb": 14.999927870436101,
+     "trace": null,
+     "speciesCount": 31,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "native_gold"
+     ]
+    },
+    "root=3": {
+     "fill": 0.9066099088500281,
+     "full": null,
+     "lastGrowth": 340,
+     "species": {
+      "feldspar": {
+       "n": 1,
+       "max_um": 629.4115231660066,
+       "last": 64
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 1291.4395101489563,
+       "last": 64
+      },
+      "pyrite": {
+       "n": 1,
+       "max_um": 9755.315960883516,
+       "last": 119
+      },
+      "chalcopyrite": {
+       "n": 1,
+       "max_um": 54204.16705048685,
+       "last": 119
+      },
+      "tetrahedrite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "tennantite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "acanthite": {
+       "n": 4,
+       "max_um": 3075.0538137584626,
+       "last": 119
+      },
+      "siderite": {
+       "n": 2,
+       "max_um": 1036.086365392085,
+       "last": 145
+      },
+      "chalcedony": {
+       "n": 4,
+       "max_um": 4600,
+       "last": 179
+      },
+      "marcasite": {
+       "n": 1,
+       "max_um": 1344.3306417306228,
+       "last": 119
+      },
+      "chalcocite": {
+       "n": 5,
+       "max_um": 622.0604935480909,
+       "last": 119
+      },
+      "covellite": {
+       "n": 4,
+       "max_um": 1700.055194713463,
+       "last": 119
+      },
+      "native_gold": {
+       "n": 13,
+       "max_um": 1562.0917840613715,
+       "last": 335
+      },
+      "malachite": {
+       "n": 1,
+       "max_um": 13455.21070845115,
+       "last": 264
+      },
+      "goethite": {
+       "n": 3,
+       "max_um": 12412.530747682058,
+       "last": 340
+      },
+      "cuprite": {
+       "n": 1,
+       "max_um": 366.9995313922055,
+       "last": 156
+      },
+      "hematite": {
+       "n": 1,
+       "max_um": 5322.722432289123,
+       "last": 340
+      },
+      "jarosite": {
+       "n": 6,
+       "max_um": 3578.077042926635,
+       "last": 116
+      },
+      "brochantite": {
+       "n": 5,
+       "max_um": 2089.315740629782,
+       "last": 116
+      },
+      "alunite": {
+       "n": 5,
+       "max_um": 0,
+       "last": 116
+      },
+      "atacamite": {
+       "n": 8,
+       "max_um": 43566.03521636961,
+       "last": 340
+      },
+      "bornite": {
+       "n": 3,
+       "max_um": 411.2122215222328,
+       "last": 119
+      },
+      "native_copper": {
+       "n": 1,
+       "max_um": 0,
+       "last": 143
+      },
+      "native_silver": {
+       "n": 3,
+       "max_um": 3.587843350168904,
+       "last": 139
+      },
+      "chrysocolla": {
+       "n": 5,
+       "max_um": 17575.13820976502,
+       "last": 340
+      },
+      "turquoise": {
+       "n": 4,
+       "max_um": 1827.407766425666,
+       "last": 340
+      },
+      "lepidocrocite": {
+       "n": 10,
+       "max_um": 1814.1952794292126,
+       "last": 340
+      },
+      "azurite": {
+       "n": 4,
+       "max_um": 622.6028088383912,
+       "last": 224
+      },
+      "opal": {
+       "n": 5,
+       "max_um": 8233.860216524565,
+       "last": 340
+      },
+      "mimetite": {
+       "n": 3,
+       "max_um": 2.757459291416862,
+       "last": 248
+      },
+      "dioptase": {
+       "n": 4,
+       "max_um": 772.4333092361784,
+       "last": 340
+      }
+     },
+     "bulkPb": 15,
+     "voxPb": 14.9999200069913,
+     "trace": null,
+     "speciesCount": 31,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "alunite",
+      "chalcocite",
+      "feldspar",
+      "native_gold",
+      "opal",
+      "siderite"
+     ]
+    }
+   }
+  },
+  {
+   "scenario": "bisbee",
+   "seed": 2,
+   "shippedReproducesBaseline": null,
+   "A": {
+    "fill": 0.9204107574610911,
+    "full": null,
+    "lastGrowth": 340,
+    "species": {
+     "feldspar": {
+      "n": 2,
+      "max_um": 3291.6411385567976,
+      "last": 64
+     },
+     "albite": {
+      "n": 2,
+      "max_um": 8472.041071187698,
+      "last": 64
+     },
+     "pyrite": {
+      "n": 1,
+      "max_um": 12603.626484299524,
+      "last": 119
+     },
+     "chalcopyrite": {
+      "n": 1,
+      "max_um": 59397.8394870832,
+      "last": 119
+     },
+     "tetrahedrite": {
+      "n": 1,
+      "max_um": 0,
+      "last": 0
+     },
+     "tennantite": {
+      "n": 1,
+      "max_um": 0,
+      "last": 0
+     },
+     "acanthite": {
+      "n": 4,
+      "max_um": 3576.4688539717326,
+      "last": 119
+     },
+     "siderite": {
+      "n": 2,
+      "max_um": 1041.474147373696,
+      "last": 145
+     },
+     "chalcedony": {
+      "n": 4,
+      "max_um": 4600,
+      "last": 179
+     },
+     "marcasite": {
+      "n": 1,
+      "max_um": 1526.96233392462,
+      "last": 119
+     },
+     "chalcocite": {
+      "n": 5,
+      "max_um": 884.0099699017785,
+      "last": 119
+     },
+     "covellite": {
+      "n": 4,
+      "max_um": 2029.6623598868114,
+      "last": 119
+     },
+     "native_gold": {
+      "n": 9,
+      "max_um": 1727.2673986035672,
+      "last": 340
+     },
+     "malachite": {
+      "n": 1,
+      "max_um": 13691.455713824118,
+      "last": 264
+     },
+     "goethite": {
+      "n": 3,
+      "max_um": 11767.465687362152,
+      "last": 340
+     },
+     "cuprite": {
+      "n": 1,
+      "max_um": 372.5805672927541,
+      "last": 156
+     },
+     "jarosite": {
+      "n": 6,
+      "max_um": 3560.2298449488135,
+      "last": 116
+     },
+     "hematite": {
+      "n": 1,
+      "max_um": 5026.412292816479,
+      "last": 340
+     },
+     "atacamite": {
+      "n": 8,
+      "max_um": 41028.31323991632,
+      "last": 340
+     },
+     "alunite": {
+      "n": 5,
+      "max_um": 501.4812848362949,
+      "last": 116
+     },
+     "brochantite": {
+      "n": 5,
+      "max_um": 1887.8038344038735,
+      "last": 116
+     },
+     "bornite": {
+      "n": 3,
+      "max_um": 386.1021978945212,
+      "last": 119
+     },
+     "native_silver": {
+      "n": 2,
+      "max_um": 0,
+      "last": 140
+     },
+     "native_copper": {
+      "n": 1,
+      "max_um": 21.270557778748014,
+      "last": 143
+     },
+     "chrysocolla": {
+      "n": 5,
+      "max_um": 16671.137738061643,
+      "last": 340
+     },
+     "turquoise": {
+      "n": 4,
+      "max_um": 1254.9395661156332,
+      "last": 340
+     },
+     "lepidocrocite": {
+      "n": 11,
+      "max_um": 1641.0156512206454,
+      "last": 340
+     },
+     "azurite": {
+      "n": 4,
+      "max_um": 644.6342663714499,
+      "last": 224
+     },
+     "opal": {
+      "n": 6,
+      "max_um": 7878.836725516567,
+      "last": 340
+     },
+     "mimetite": {
+      "n": 3,
+      "max_um": 246.28763401304687,
+      "last": 340
+     },
+     "dioptase": {
+      "n": 4,
+      "max_um": 697.7871933201027,
+      "last": 340
+     }
+    },
+    "bulkPb": 15,
+    "voxPb": 14.997242078163023,
+    "trace": null
+   },
+   "B": {
+    "cap=8": {
+     "fill": 0.920403204190019,
+     "full": null,
+     "lastGrowth": 340,
+     "species": {
+      "feldspar": {
+       "n": 2,
+       "max_um": 3296.2083266704058,
+       "last": 64
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 8289.970644159226,
+       "last": 64
+      },
+      "pyrite": {
+       "n": 1,
+       "max_um": 12603.62648964494,
+       "last": 119
+      },
+      "chalcopyrite": {
+       "n": 1,
+       "max_um": 59397.839487083336,
+       "last": 119
+      },
+      "tetrahedrite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "tennantite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "acanthite": {
+       "n": 4,
+       "max_um": 3576.4685971113317,
+       "last": 119
+      },
+      "siderite": {
+       "n": 2,
+       "max_um": 1041.474147373696,
+       "last": 145
+      },
+      "chalcedony": {
+       "n": 4,
+       "max_um": 4600,
+       "last": 179
+      },
+      "marcasite": {
+       "n": 1,
+       "max_um": 1526.96233392462,
+       "last": 119
+      },
+      "chalcocite": {
+       "n": 5,
+       "max_um": 884.0099660971002,
+       "last": 119
+      },
+      "covellite": {
+       "n": 4,
+       "max_um": 2029.6623598825877,
+       "last": 119
+      },
+      "native_gold": {
+       "n": 9,
+       "max_um": 1727.3055632942912,
+       "last": 340
+      },
+      "malachite": {
+       "n": 1,
+       "max_um": 13691.45570856991,
+       "last": 264
+      },
+      "goethite": {
+       "n": 3,
+       "max_um": 11767.861160956896,
+       "last": 340
+      },
+      "cuprite": {
+       "n": 1,
+       "max_um": 372.5805672890611,
+       "last": 156
+      },
+      "jarosite": {
+       "n": 6,
+       "max_um": 3560.2292698209703,
+       "last": 116
+      },
+      "hematite": {
+       "n": 1,
+       "max_um": 5026.633820711035,
+       "last": 340
+      },
+      "atacamite": {
+       "n": 8,
+       "max_um": 41029.93816390225,
+       "last": 340
+      },
+      "alunite": {
+       "n": 5,
+       "max_um": 501.4812848362949,
+       "last": 116
+      },
+      "brochantite": {
+       "n": 5,
+       "max_um": 1887.8038325916748,
+       "last": 116
+      },
+      "bornite": {
+       "n": 3,
+       "max_um": 386.1021978921824,
+       "last": 119
+      },
+      "native_silver": {
+       "n": 2,
+       "max_um": 0,
+       "last": 140
+      },
+      "native_copper": {
+       "n": 1,
+       "max_um": 21.270557777369916,
+       "last": 143
+      },
+      "chrysocolla": {
+       "n": 5,
+       "max_um": 16671.72084428035,
+       "last": 340
+      },
+      "turquoise": {
+       "n": 4,
+       "max_um": 1255.0063333873168,
+       "last": 340
+      },
+      "lepidocrocite": {
+       "n": 11,
+       "max_um": 1641.1041040820364,
+       "last": 340
+      },
+      "azurite": {
+       "n": 4,
+       "max_um": 644.6342663512881,
+       "last": 224
+      },
+      "opal": {
+       "n": 6,
+       "max_um": 7879.020868664115,
+       "last": 340
+      },
+      "mimetite": {
+       "n": 3,
+       "max_um": 246.31337582110643,
+       "last": 340
+      },
+      "dioptase": {
+       "n": 4,
+       "max_um": 697.8420030854835,
+       "last": 340
+      }
+     },
+     "bulkPb": 15,
+     "voxPb": 14.997241800403986,
+     "trace": null,
+     "speciesCount": 31,
+     "gained": [],
+     "lost": [],
+     "moved": []
+    },
+    "fcap=2": {
+     "fill": 0.92032594474871,
+     "full": null,
+     "lastGrowth": 340,
+     "species": {
+      "feldspar": {
+       "n": 2,
+       "max_um": 3393.88378835846,
+       "last": 64
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 4650.968644545483,
+       "last": 64
+      },
+      "pyrite": {
+       "n": 1,
+       "max_um": 12603.627979903935,
+       "last": 119
+      },
+      "chalcopyrite": {
+       "n": 1,
+       "max_um": 59397.843910041156,
+       "last": 119
+      },
+      "tetrahedrite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "tennantite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "acanthite": {
+       "n": 4,
+       "max_um": 3576.462819616653,
+       "last": 119
+      },
+      "siderite": {
+       "n": 2,
+       "max_um": 1041.4835669464576,
+       "last": 145
+      },
+      "chalcedony": {
+       "n": 4,
+       "max_um": 4600,
+       "last": 179
+      },
+      "marcasite": {
+       "n": 1,
+       "max_um": 1526.9625241228673,
+       "last": 119
+      },
+      "chalcocite": {
+       "n": 5,
+       "max_um": 884.0098457958447,
+       "last": 119
+      },
+      "covellite": {
+       "n": 4,
+       "max_um": 2029.6623200899567,
+       "last": 119
+      },
+      "native_gold": {
+       "n": 9,
+       "max_um": 1727.747823874935,
+       "last": 340
+      },
+      "malachite": {
+       "n": 1,
+       "max_um": 13691.464350510358,
+       "last": 264
+      },
+      "goethite": {
+       "n": 3,
+       "max_um": 11772.464174170902,
+       "last": 340
+      },
+      "cuprite": {
+       "n": 1,
+       "max_um": 372.58055211475545,
+       "last": 156
+      },
+      "jarosite": {
+       "n": 6,
+       "max_um": 3560.2186369082137,
+       "last": 116
+      },
+      "hematite": {
+       "n": 1,
+       "max_um": 5029.210744725564,
+       "last": 340
+      },
+      "atacamite": {
+       "n": 8,
+       "max_um": 41048.871174350614,
+       "last": 340
+      },
+      "alunite": {
+       "n": 5,
+       "max_um": 501.48127158029536,
+       "last": 116
+      },
+      "brochantite": {
+       "n": 5,
+       "max_um": 1887.8037531400498,
+       "last": 116
+      },
+      "bornite": {
+       "n": 3,
+       "max_um": 386.1021888083676,
+       "last": 119
+      },
+      "native_silver": {
+       "n": 2,
+       "max_um": 0,
+       "last": 140
+      },
+      "native_copper": {
+       "n": 1,
+       "max_um": 21.27055698022381,
+       "last": 143
+      },
+      "chrysocolla": {
+       "n": 5,
+       "max_um": 16678.51164547379,
+       "last": 340
+      },
+      "turquoise": {
+       "n": 4,
+       "max_um": 1255.7809424926675,
+       "last": 340
+      },
+      "lepidocrocite": {
+       "n": 11,
+       "max_um": 1642.1309476233162,
+       "last": 340
+      },
+      "azurite": {
+       "n": 4,
+       "max_um": 644.6342578858147,
+       "last": 224
+      },
+      "opal": {
+       "n": 6,
+       "max_um": 7881.172190026605,
+       "last": 340
+      },
+      "mimetite": {
+       "n": 3,
+       "max_um": 246.60925065701596,
+       "last": 340
+      },
+      "dioptase": {
+       "n": 4,
+       "max_um": 698.4829103654821,
+       "last": 340
+      }
+     },
+     "bulkPb": 15,
+     "voxPb": 14.997238608326795,
+     "trace": null,
+     "speciesCount": 31,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite"
+     ]
+    },
+    "root=3": {
+     "fill": 0.9528069551058184,
+     "full": null,
+     "lastGrowth": 340,
+     "species": {
+      "feldspar": {
+       "n": 1,
+       "max_um": 647.642328809734,
+       "last": 64
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 1281.8246758551957,
+       "last": 64
+      },
+      "pyrite": {
+       "n": 1,
+       "max_um": 14575.695101796744,
+       "last": 119
+      },
+      "chalcopyrite": {
+       "n": 1,
+       "max_um": 57708.565793408976,
+       "last": 119
+      },
+      "tetrahedrite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "tennantite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "acanthite": {
+       "n": 4,
+       "max_um": 4013.626930804784,
+       "last": 119
+      },
+      "siderite": {
+       "n": 2,
+       "max_um": 1132.1734033467576,
+       "last": 145
+      },
+      "chalcedony": {
+       "n": 4,
+       "max_um": 4600,
+       "last": 179
+      },
+      "marcasite": {
+       "n": 1,
+       "max_um": 1350.8650925613292,
+       "last": 119
+      },
+      "chalcocite": {
+       "n": 5,
+       "max_um": 981.2942929845974,
+       "last": 119
+      },
+      "covellite": {
+       "n": 4,
+       "max_um": 2024.8319448299717,
+       "last": 119
+      },
+      "native_gold": {
+       "n": 12,
+       "max_um": 900.3637111851209,
+       "last": 340
+      },
+      "malachite": {
+       "n": 1,
+       "max_um": 65360.26164925537,
+       "last": 264
+      },
+      "goethite": {
+       "n": 3,
+       "max_um": 5160.593135469283,
+       "last": 340
+      },
+      "cuprite": {
+       "n": 1,
+       "max_um": 363.69853612460815,
+       "last": 156
+      },
+      "jarosite": {
+       "n": 6,
+       "max_um": 4044.696934990725,
+       "last": 116
+      },
+      "hematite": {
+       "n": 1,
+       "max_um": 1955.5619826046604,
+       "last": 340
+      },
+      "atacamite": {
+       "n": 8,
+       "max_um": 13320.885438969948,
+       "last": 340
+      },
+      "alunite": {
+       "n": 5,
+       "max_um": 513.0085854021338,
+       "last": 116
+      },
+      "brochantite": {
+       "n": 5,
+       "max_um": 1915.0617639223406,
+       "last": 116
+      },
+      "bornite": {
+       "n": 3,
+       "max_um": 278.5455650617247,
+       "last": 119
+      },
+      "native_silver": {
+       "n": 2,
+       "max_um": 5.195701499717914,
+       "last": 140
+      },
+      "native_copper": {
+       "n": 1,
+       "max_um": 50.78266049459807,
+       "last": 143
+      },
+      "chrysocolla": {
+       "n": 7,
+       "max_um": 6434.974351107419,
+       "last": 340
+      },
+      "turquoise": {
+       "n": 3,
+       "max_um": 656.196198267766,
+       "last": 340
+      },
+      "lepidocrocite": {
+       "n": 11,
+       "max_um": 344.70299169654663,
+       "last": 340
+      },
+      "azurite": {
+       "n": 4,
+       "max_um": 421.0068168060737,
+       "last": 224
+      },
+      "opal": {
+       "n": 5,
+       "max_um": 3200.0514694216617,
+       "last": 340
+      },
+      "mimetite": {
+       "n": 3,
+       "max_um": 1.1681144552487568,
+       "last": 295
+      },
+      "dioptase": {
+       "n": 4,
+       "max_um": 81.43118260889347,
+       "last": 340
+      }
+     },
+     "bulkPb": 15,
+     "voxPb": 14.999977789097592,
+     "trace": null,
+     "speciesCount": 31,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "atacamite",
+      "azurite",
+      "bornite",
+      "chrysocolla",
+      "dioptase",
+      "feldspar",
+      "goethite",
+      "hematite",
+      "lepidocrocite",
+      "malachite",
+      "mimetite",
+      "native_copper",
+      "native_gold",
+      "native_silver",
+      "opal",
+      "turquoise"
+     ]
+    }
+   }
+  },
+  {
    "scenario": "chiastolite_hornfels",
    "seed": 42,
    "shippedReproducesBaseline": true,
@@ -813,6 +2205,236 @@
       "andalusite": {
        "n": 5,
        "max_um": 1176.6655054339385,
+       "last": 120
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 3,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "feldspar"
+     ]
+    }
+   }
+  },
+  {
+   "scenario": "chiastolite_hornfels",
+   "seed": 1,
+   "shippedReproducesBaseline": null,
+   "A": {
+    "fill": 0.00003993392663072188,
+    "full": null,
+    "lastGrowth": 120,
+    "species": {
+     "feldspar": {
+      "n": 1,
+      "max_um": 664.2762005356549,
+      "last": 120
+     },
+     "albite": {
+      "n": 1,
+      "max_um": 1.0427941964567373,
+      "last": 1
+     },
+     "andalusite": {
+      "n": 5,
+      "max_um": 1174.1503526061567,
+      "last": 120
+     }
+    },
+    "bulkPb": 0,
+    "voxPb": 0,
+    "trace": null
+   },
+   "B": {
+    "cap=8": {
+     "fill": 0.00003993392663072188,
+     "full": null,
+     "lastGrowth": 120,
+     "species": {
+      "feldspar": {
+       "n": 1,
+       "max_um": 664.2762005356549,
+       "last": 120
+      },
+      "albite": {
+       "n": 1,
+       "max_um": 1.0427941964567373,
+       "last": 1
+      },
+      "andalusite": {
+       "n": 5,
+       "max_um": 1174.1503526061567,
+       "last": 120
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 3,
+     "gained": [],
+     "lost": [],
+     "moved": []
+    },
+    "fcap=2": {
+     "fill": 0.000035791234564215616,
+     "full": null,
+     "lastGrowth": 120,
+     "species": {
+      "andalusite": {
+       "n": 5,
+       "max_um": 1172.6236713572341,
+       "last": 120
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 3,
+     "gained": [],
+     "lost": [
+      "albite",
+      "feldspar"
+     ],
+     "moved": []
+    },
+    "root=3": {
+     "fill": 0.000035878067533095745,
+     "full": null,
+     "lastGrowth": 120,
+     "species": {
+      "feldspar": {
+       "n": 1,
+       "max_um": 213.55685961697452,
+       "last": 120
+      },
+      "albite": {
+       "n": 1,
+       "max_um": 0.5033825151334073,
+       "last": 2
+      },
+      "andalusite": {
+       "n": 5,
+       "max_um": 1190.6581906346119,
+       "last": 120
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 3,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "feldspar"
+     ]
+    }
+   }
+  },
+  {
+   "scenario": "chiastolite_hornfels",
+   "seed": 2,
+   "shippedReproducesBaseline": null,
+   "A": {
+    "fill": 0.00002904531095347422,
+    "full": null,
+    "lastGrowth": 120,
+    "species": {
+     "feldspar": {
+      "n": 1,
+      "max_um": 696.9732306577093,
+      "last": 120
+     },
+     "albite": {
+      "n": 1,
+      "max_um": 1.210591515564323,
+      "last": 1
+     },
+     "andalusite": {
+      "n": 5,
+      "max_um": 1182.924601704209,
+      "last": 120
+     }
+    },
+    "bulkPb": 0,
+    "voxPb": 0,
+    "trace": null
+   },
+   "B": {
+    "cap=8": {
+     "fill": 0.00002904531095347422,
+     "full": null,
+     "lastGrowth": 120,
+     "species": {
+      "feldspar": {
+       "n": 1,
+       "max_um": 696.9732306577093,
+       "last": 120
+      },
+      "albite": {
+       "n": 1,
+       "max_um": 1.210591515564323,
+       "last": 1
+      },
+      "andalusite": {
+       "n": 5,
+       "max_um": 1182.924601704209,
+       "last": 120
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 3,
+     "gained": [],
+     "lost": [],
+     "moved": []
+    },
+    "fcap=2": {
+     "fill": 0.00002501154737915463,
+     "full": null,
+     "lastGrowth": 120,
+     "species": {
+      "andalusite": {
+       "n": 5,
+       "max_um": 1171.9772471478393,
+       "last": 120
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 3,
+     "gained": [],
+     "lost": [
+      "albite",
+      "feldspar"
+     ],
+     "moved": []
+    },
+    "root=3": {
+     "fill": 0.00002505843038912865,
+     "full": null,
+     "lastGrowth": 120,
+     "species": {
+      "feldspar": {
+       "n": 1,
+       "max_um": 209.17561115832257,
+       "last": 120
+      },
+      "albite": {
+       "n": 1,
+       "max_um": 0.5078106709783288,
+       "last": 10
+      },
+      "andalusite": {
+       "n": 5,
+       "max_um": 1163.9086856998802,
        "last": 120
       }
      },
@@ -1174,6 +2796,687 @@
    }
   },
   {
+   "scenario": "deccan_zeolite",
+   "seed": 1,
+   "shippedReproducesBaseline": null,
+   "A": {
+    "fill": 0.003030686300295728,
+    "full": null,
+    "lastGrowth": 200,
+    "species": {
+     "chalcedony": {
+      "n": 4,
+      "max_um": 1676.2089901933796,
+      "last": 200
+     },
+     "hematite": {
+      "n": 1,
+      "max_um": 3641.074330818552,
+      "last": 200
+     },
+     "quartz": {
+      "n": 3,
+      "max_um": 7966.495688400117,
+      "last": 159
+     },
+     "calcite": {
+      "n": 1,
+      "max_um": 1674.706515012013,
+      "last": 200
+     },
+     "albite": {
+      "n": 2,
+      "max_um": 4233.934636596908,
+      "last": 159
+     },
+     "pectolite": {
+      "n": 4,
+      "max_um": 1349.696239069317,
+      "last": 159
+     },
+     "scolecite": {
+      "n": 1,
+      "max_um": 1064.2808965163354,
+      "last": 200
+     },
+     "mesolite": {
+      "n": 1,
+      "max_um": 20.918630113187966,
+      "last": 94
+     },
+     "stilbite": {
+      "n": 5,
+      "max_um": 825.1727223037126,
+      "last": 159
+     },
+     "heulandite": {
+      "n": 5,
+      "max_um": 3586.0639464685123,
+      "last": 159
+     },
+     "apophyllite": {
+      "n": 1,
+      "max_um": 360.0203473735033,
+      "last": 159
+     },
+     "feldspar": {
+      "n": 1,
+      "max_um": 0,
+      "last": 0
+     },
+     "prehnite": {
+      "n": 1,
+      "max_um": 271.19558940631487,
+      "last": 159
+     },
+     "goethite": {
+      "n": 1,
+      "max_um": 2142.2892197972487,
+      "last": 200
+     }
+    },
+    "bulkPb": 0,
+    "voxPb": 0,
+    "trace": null
+   },
+   "B": {
+    "cap=8": {
+     "fill": 0.003030686300295728,
+     "full": null,
+     "lastGrowth": 200,
+     "species": {
+      "chalcedony": {
+       "n": 4,
+       "max_um": 1676.2089901933796,
+       "last": 200
+      },
+      "hematite": {
+       "n": 1,
+       "max_um": 3641.074330818552,
+       "last": 200
+      },
+      "quartz": {
+       "n": 3,
+       "max_um": 7966.495688400117,
+       "last": 159
+      },
+      "calcite": {
+       "n": 1,
+       "max_um": 1674.706515012013,
+       "last": 200
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 4233.934636596908,
+       "last": 159
+      },
+      "pectolite": {
+       "n": 4,
+       "max_um": 1349.696239069317,
+       "last": 159
+      },
+      "scolecite": {
+       "n": 1,
+       "max_um": 1064.2808965163354,
+       "last": 200
+      },
+      "mesolite": {
+       "n": 1,
+       "max_um": 20.918630113187966,
+       "last": 94
+      },
+      "stilbite": {
+       "n": 5,
+       "max_um": 825.1727223037126,
+       "last": 159
+      },
+      "heulandite": {
+       "n": 5,
+       "max_um": 3586.0639464685123,
+       "last": 159
+      },
+      "apophyllite": {
+       "n": 1,
+       "max_um": 360.0203473735033,
+       "last": 159
+      },
+      "feldspar": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "prehnite": {
+       "n": 1,
+       "max_um": 271.19558940631487,
+       "last": 159
+      },
+      "goethite": {
+       "n": 1,
+       "max_um": 2142.2892197972487,
+       "last": 200
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 14,
+     "gained": [],
+     "lost": [],
+     "moved": []
+    },
+    "fcap=2": {
+     "fill": 0.0028474119342617116,
+     "full": null,
+     "lastGrowth": 200,
+     "species": {
+      "chalcedony": {
+       "n": 4,
+       "max_um": 1632.3272936707597,
+       "last": 200
+      },
+      "hematite": {
+       "n": 1,
+       "max_um": 3674.4873930069066,
+       "last": 200
+      },
+      "quartz": {
+       "n": 3,
+       "max_um": 8039.483406045205,
+       "last": 159
+      },
+      "calcite": {
+       "n": 1,
+       "max_um": 1699.825378812056,
+       "last": 200
+      },
+      "pectolite": {
+       "n": 4,
+       "max_um": 1295.1468556778077,
+       "last": 159
+      },
+      "scolecite": {
+       "n": 2,
+       "max_um": 1306.5058974200238,
+       "last": 200
+      },
+      "mesolite": {
+       "n": 1,
+       "max_um": 18.06588979281125,
+       "last": 93
+      },
+      "albite": {
+       "n": 3,
+       "max_um": 642.9366520444744,
+       "last": 159
+      },
+      "stilbite": {
+       "n": 5,
+       "max_um": 831.909231268803,
+       "last": 159
+      },
+      "heulandite": {
+       "n": 5,
+       "max_um": 3052.342870167268,
+       "last": 159
+      },
+      "apophyllite": {
+       "n": 1,
+       "max_um": 363.72303175153525,
+       "last": 159
+      },
+      "prehnite": {
+       "n": 1,
+       "max_um": 267.9390218407306,
+       "last": 159
+      },
+      "goethite": {
+       "n": 1,
+       "max_um": 2164.37358220013,
+       "last": 200
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 14,
+     "gained": [],
+     "lost": [
+      "feldspar"
+     ],
+     "moved": [
+      "albite",
+      "scolecite"
+     ]
+    },
+    "root=3": {
+     "fill": 0.002915740868820658,
+     "full": null,
+     "lastGrowth": 200,
+     "species": {
+      "chalcedony": {
+       "n": 4,
+       "max_um": 1667.2689874029982,
+       "last": 200
+      },
+      "hematite": {
+       "n": 1,
+       "max_um": 3672.4677232131094,
+       "last": 200
+      },
+      "quartz": {
+       "n": 3,
+       "max_um": 8108.302453312113,
+       "last": 159
+      },
+      "calcite": {
+       "n": 1,
+       "max_um": 1680.4432456683237,
+       "last": 200
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 841.6361564457388,
+       "last": 159
+      },
+      "pectolite": {
+       "n": 4,
+       "max_um": 1292.6147360526268,
+       "last": 159
+      },
+      "scolecite": {
+       "n": 1,
+       "max_um": 1086.0196103629487,
+       "last": 200
+      },
+      "mesolite": {
+       "n": 1,
+       "max_um": 18.567360941580745,
+       "last": 93
+      },
+      "stilbite": {
+       "n": 5,
+       "max_um": 835.7500810312723,
+       "last": 159
+      },
+      "heulandite": {
+       "n": 5,
+       "max_um": 3544.087017610936,
+       "last": 159
+      },
+      "apophyllite": {
+       "n": 1,
+       "max_um": 391.26913024812603,
+       "last": 159
+      },
+      "feldspar": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "prehnite": {
+       "n": 1,
+       "max_um": 274.01944228545506,
+       "last": 159
+      },
+      "goethite": {
+       "n": 1,
+       "max_um": 2131.0116403302563,
+       "last": 200
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 14,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite"
+     ]
+    }
+   }
+  },
+  {
+   "scenario": "deccan_zeolite",
+   "seed": 2,
+   "shippedReproducesBaseline": null,
+   "A": {
+    "fill": 0.002399899612979816,
+    "full": null,
+    "lastGrowth": 200,
+    "species": {
+     "chalcedony": {
+      "n": 4,
+      "max_um": 1621.7959648373717,
+      "last": 200
+     },
+     "hematite": {
+      "n": 1,
+      "max_um": 3666.728429647549,
+      "last": 200
+     },
+     "quartz": {
+      "n": 3,
+      "max_um": 8082.536959946644,
+      "last": 159
+     },
+     "calcite": {
+      "n": 1,
+      "max_um": 1679.526417807665,
+      "last": 200
+     },
+     "albite": {
+      "n": 2,
+      "max_um": 4230.419612802651,
+      "last": 159
+     },
+     "pectolite": {
+      "n": 4,
+      "max_um": 1301.3193310296047,
+      "last": 159
+     },
+     "scolecite": {
+      "n": 3,
+      "max_um": 74.27239762538173,
+      "last": 113
+     },
+     "mesolite": {
+      "n": 1,
+      "max_um": 17.06262650725827,
+      "last": 93
+     },
+     "stilbite": {
+      "n": 4,
+      "max_um": 655.9922748729809,
+      "last": 159
+     },
+     "heulandite": {
+      "n": 5,
+      "max_um": 3252.1929692502927,
+      "last": 159
+     },
+     "apophyllite": {
+      "n": 1,
+      "max_um": 1601.5598927627257,
+      "last": 159
+     },
+     "feldspar": {
+      "n": 1,
+      "max_um": 0,
+      "last": 0
+     },
+     "prehnite": {
+      "n": 1,
+      "max_um": 276.9132578600133,
+      "last": 159
+     },
+     "goethite": {
+      "n": 1,
+      "max_um": 2189.5684990905047,
+      "last": 200
+     }
+    },
+    "bulkPb": 0,
+    "voxPb": 0,
+    "trace": null
+   },
+   "B": {
+    "cap=8": {
+     "fill": 0.002399899612979816,
+     "full": null,
+     "lastGrowth": 200,
+     "species": {
+      "chalcedony": {
+       "n": 4,
+       "max_um": 1621.7959648373717,
+       "last": 200
+      },
+      "hematite": {
+       "n": 1,
+       "max_um": 3666.728429647549,
+       "last": 200
+      },
+      "quartz": {
+       "n": 3,
+       "max_um": 8082.536959946644,
+       "last": 159
+      },
+      "calcite": {
+       "n": 1,
+       "max_um": 1679.526417807665,
+       "last": 200
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 4230.419612802651,
+       "last": 159
+      },
+      "pectolite": {
+       "n": 4,
+       "max_um": 1301.3193310296047,
+       "last": 159
+      },
+      "scolecite": {
+       "n": 3,
+       "max_um": 74.27239762538173,
+       "last": 113
+      },
+      "mesolite": {
+       "n": 1,
+       "max_um": 17.06262650725827,
+       "last": 93
+      },
+      "stilbite": {
+       "n": 4,
+       "max_um": 655.9922748729809,
+       "last": 159
+      },
+      "heulandite": {
+       "n": 5,
+       "max_um": 3252.1929692502927,
+       "last": 159
+      },
+      "apophyllite": {
+       "n": 1,
+       "max_um": 1601.5598927627257,
+       "last": 159
+      },
+      "feldspar": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "prehnite": {
+       "n": 1,
+       "max_um": 276.9132578600133,
+       "last": 159
+      },
+      "goethite": {
+       "n": 1,
+       "max_um": 2189.5684990905047,
+       "last": 200
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 14,
+     "gained": [],
+     "lost": [],
+     "moved": []
+    },
+    "fcap=2": {
+     "fill": 0.0020471062467889226,
+     "full": null,
+     "lastGrowth": 200,
+     "species": {
+      "chalcedony": {
+       "n": 4,
+       "max_um": 1635.1418853952446,
+       "last": 200
+      },
+      "hematite": {
+       "n": 1,
+       "max_um": 3707.464822950301,
+       "last": 200
+      },
+      "quartz": {
+       "n": 3,
+       "max_um": 7817.24172135778,
+       "last": 159
+      },
+      "calcite": {
+       "n": 1,
+       "max_um": 1672.6313469563584,
+       "last": 200
+      },
+      "pectolite": {
+       "n": 4,
+       "max_um": 1308.4835410511173,
+       "last": 159
+      },
+      "scolecite": {
+       "n": 3,
+       "max_um": 75.19042091045968,
+       "last": 113
+      },
+      "mesolite": {
+       "n": 1,
+       "max_um": 17.578552888221356,
+       "last": 93
+      },
+      "albite": {
+       "n": 4,
+       "max_um": 384.1156639774597,
+       "last": 159
+      },
+      "stilbite": {
+       "n": 4,
+       "max_um": 685.7540090054083,
+       "last": 159
+      },
+      "heulandite": {
+       "n": 5,
+       "max_um": 3291.0712486993566,
+       "last": 159
+      },
+      "apophyllite": {
+       "n": 1,
+       "max_um": 1721.192913033388,
+       "last": 159
+      },
+      "prehnite": {
+       "n": 1,
+       "max_um": 274.5002437920025,
+       "last": 159
+      },
+      "goethite": {
+       "n": 1,
+       "max_um": 2123.599949814979,
+       "last": 200
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 14,
+     "gained": [],
+     "lost": [
+      "feldspar"
+     ],
+     "moved": [
+      "albite"
+     ]
+    },
+    "root=3": {
+     "fill": 0.0021772885777309563,
+     "full": null,
+     "lastGrowth": 200,
+     "species": {
+      "chalcedony": {
+       "n": 4,
+       "max_um": 1654.6887850125486,
+       "last": 200
+      },
+      "hematite": {
+       "n": 1,
+       "max_um": 3732.7315813009177,
+       "last": 200
+      },
+      "quartz": {
+       "n": 3,
+       "max_um": 8091.1044560789,
+       "last": 159
+      },
+      "calcite": {
+       "n": 1,
+       "max_um": 1695.4893247741575,
+       "last": 200
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 830.2307152551657,
+       "last": 159
+      },
+      "pectolite": {
+       "n": 4,
+       "max_um": 1311.9272950363888,
+       "last": 159
+      },
+      "scolecite": {
+       "n": 3,
+       "max_um": 76.35540347225708,
+       "last": 113
+      },
+      "mesolite": {
+       "n": 1,
+       "max_um": 16.492967376914045,
+       "last": 93
+      },
+      "stilbite": {
+       "n": 4,
+       "max_um": 707.1306026798827,
+       "last": 159
+      },
+      "heulandite": {
+       "n": 5,
+       "max_um": 3324.8120726132975,
+       "last": 159
+      },
+      "apophyllite": {
+       "n": 1,
+       "max_um": 1603.646869894234,
+       "last": 159
+      },
+      "feldspar": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "prehnite": {
+       "n": 1,
+       "max_um": 262.8736632351761,
+       "last": 159
+      },
+      "goethite": {
+       "n": 1,
+       "max_um": 2162.5537475971323,
+       "last": 200
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 14,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite"
+     ]
+    }
+   }
+  },
+  {
    "scenario": "epithermal_telluride",
    "seed": 42,
    "shippedReproducesBaseline": true,
@@ -1419,6 +3722,495 @@
    }
   },
   {
+   "scenario": "epithermal_telluride",
+   "seed": 1,
+   "shippedReproducesBaseline": null,
+   "A": {
+    "fill": 0.09885057548833898,
+    "full": null,
+    "lastGrowth": 180,
+    "species": {
+     "native_silver": {
+      "n": 4,
+      "max_um": 7128.9618237339455,
+      "last": 180
+     },
+     "feldspar": {
+      "n": 2,
+      "max_um": 7200.6112444934915,
+      "last": 180
+     },
+     "albite": {
+      "n": 4,
+      "max_um": 144.15911049685275,
+      "last": 66
+     },
+     "hessite": {
+      "n": 3,
+      "max_um": 17345.67478687753,
+      "last": 68
+     },
+     "native_tellurium": {
+      "n": 3,
+      "max_um": 29.816501486832653,
+      "last": 29
+     },
+     "sylvanite": {
+      "n": 2,
+      "max_um": 10097.348014718094,
+      "last": 80
+     },
+     "calaverite": {
+      "n": 2,
+      "max_um": 10029.422558532808,
+      "last": 80
+     },
+     "quartz": {
+      "n": 3,
+      "max_um": 4681.6057802018195,
+      "last": 180
+     },
+     "native_gold": {
+      "n": 4,
+      "max_um": 3096.6098043533734,
+      "last": 180
+     }
+    },
+    "bulkPb": 5,
+    "voxPb": 5,
+    "trace": null
+   },
+   "B": {
+    "cap=8": {
+     "fill": 0.09885057548833898,
+     "full": null,
+     "lastGrowth": 180,
+     "species": {
+      "native_silver": {
+       "n": 4,
+       "max_um": 7128.9618237339455,
+       "last": 180
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 7200.6112444934915,
+       "last": 180
+      },
+      "albite": {
+       "n": 4,
+       "max_um": 144.15911049685275,
+       "last": 66
+      },
+      "hessite": {
+       "n": 3,
+       "max_um": 17345.67478687753,
+       "last": 68
+      },
+      "native_tellurium": {
+       "n": 3,
+       "max_um": 29.816501486832653,
+       "last": 29
+      },
+      "sylvanite": {
+       "n": 2,
+       "max_um": 10097.348014718094,
+       "last": 80
+      },
+      "calaverite": {
+       "n": 2,
+       "max_um": 10029.422558532808,
+       "last": 80
+      },
+      "quartz": {
+       "n": 3,
+       "max_um": 4681.6057802018195,
+       "last": 180
+      },
+      "native_gold": {
+       "n": 4,
+       "max_um": 3096.6098043533734,
+       "last": 180
+      }
+     },
+     "bulkPb": 5,
+     "voxPb": 5,
+     "trace": null,
+     "speciesCount": 9,
+     "gained": [],
+     "lost": [],
+     "moved": []
+    },
+    "fcap=2": {
+     "fill": 0.09679390789652555,
+     "full": null,
+     "lastGrowth": 180,
+     "species": {
+      "native_silver": {
+       "n": 4,
+       "max_um": 7134.5613520104,
+       "last": 180
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 988.0359346635615,
+       "last": 180
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 695.2466945687898,
+       "last": 180
+      },
+      "hessite": {
+       "n": 3,
+       "max_um": 17222.813496361345,
+       "last": 68
+      },
+      "native_tellurium": {
+       "n": 3,
+       "max_um": 31.030552075941813,
+       "last": 29
+      },
+      "sylvanite": {
+       "n": 2,
+       "max_um": 10097.45365999372,
+       "last": 80
+      },
+      "calaverite": {
+       "n": 2,
+       "max_um": 10029.461105361432,
+       "last": 80
+      },
+      "quartz": {
+       "n": 3,
+       "max_um": 4591.487799338693,
+       "last": 180
+      },
+      "native_gold": {
+       "n": 4,
+       "max_um": 2890.0439991729613,
+       "last": 180
+      }
+     },
+     "bulkPb": 5,
+     "voxPb": 5,
+     "trace": null,
+     "speciesCount": 9,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "feldspar"
+     ]
+    },
+    "root=3": {
+     "fill": 0.09633108839651486,
+     "full": null,
+     "lastGrowth": 180,
+     "species": {
+      "native_silver": {
+       "n": 4,
+       "max_um": 7119.622278395661,
+       "last": 180
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 1517.521869762898,
+       "last": 180
+      },
+      "albite": {
+       "n": 4,
+       "max_um": 46.527353932875215,
+       "last": 41
+      },
+      "hessite": {
+       "n": 3,
+       "max_um": 17238.319418389354,
+       "last": 68
+      },
+      "native_tellurium": {
+       "n": 3,
+       "max_um": 31.139361222999113,
+       "last": 29
+      },
+      "sylvanite": {
+       "n": 2,
+       "max_um": 10097.448866197648,
+       "last": 80
+      },
+      "calaverite": {
+       "n": 2,
+       "max_um": 10029.500507347124,
+       "last": 80
+      },
+      "quartz": {
+       "n": 3,
+       "max_um": 4577.419557356248,
+       "last": 180
+      },
+      "native_gold": {
+       "n": 4,
+       "max_um": 3098.8743209690347,
+       "last": 180
+      }
+     },
+     "bulkPb": 5,
+     "voxPb": 5,
+     "trace": null,
+     "speciesCount": 9,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "feldspar"
+     ]
+    }
+   }
+  },
+  {
+   "scenario": "epithermal_telluride",
+   "seed": 2,
+   "shippedReproducesBaseline": null,
+   "A": {
+    "fill": 0.09463568482015594,
+    "full": null,
+    "lastGrowth": 180,
+    "species": {
+     "feldspar": {
+      "n": 2,
+      "max_um": 8527.562174216959,
+      "last": 180
+     },
+     "albite": {
+      "n": 2,
+      "max_um": 1299.8297981958297,
+      "last": 180
+     },
+     "hessite": {
+      "n": 3,
+      "max_um": 17341.14628730557,
+      "last": 125
+     },
+     "native_tellurium": {
+      "n": 4,
+      "max_um": 35.5055865219621,
+      "last": 29
+     },
+     "native_silver": {
+      "n": 4,
+      "max_um": 6160.582429363252,
+      "last": 180
+     },
+     "calaverite": {
+      "n": 2,
+      "max_um": 10111.373990008218,
+      "last": 168
+     },
+     "sylvanite": {
+      "n": 2,
+      "max_um": 10060.469351433381,
+      "last": 180
+     },
+     "quartz": {
+      "n": 4,
+      "max_um": 3070.3370582095977,
+      "last": 180
+     },
+     "native_gold": {
+      "n": 4,
+      "max_um": 3125.5225577159736,
+      "last": 180
+     }
+    },
+    "bulkPb": 5,
+    "voxPb": 5,
+    "trace": null
+   },
+   "B": {
+    "cap=8": {
+     "fill": 0.09463568482015594,
+     "full": null,
+     "lastGrowth": 180,
+     "species": {
+      "feldspar": {
+       "n": 2,
+       "max_um": 8527.562174216959,
+       "last": 180
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 1299.8297981958297,
+       "last": 180
+      },
+      "hessite": {
+       "n": 3,
+       "max_um": 17341.14628730557,
+       "last": 125
+      },
+      "native_tellurium": {
+       "n": 4,
+       "max_um": 35.5055865219621,
+       "last": 29
+      },
+      "native_silver": {
+       "n": 4,
+       "max_um": 6160.582429363252,
+       "last": 180
+      },
+      "calaverite": {
+       "n": 2,
+       "max_um": 10111.373990008218,
+       "last": 168
+      },
+      "sylvanite": {
+       "n": 2,
+       "max_um": 10060.469351433381,
+       "last": 180
+      },
+      "quartz": {
+       "n": 4,
+       "max_um": 3070.3370582095977,
+       "last": 180
+      },
+      "native_gold": {
+       "n": 4,
+       "max_um": 3125.5225577159736,
+       "last": 180
+      }
+     },
+     "bulkPb": 5,
+     "voxPb": 5,
+     "trace": null,
+     "speciesCount": 9,
+     "gained": [],
+     "lost": [],
+     "moved": []
+    },
+    "fcap=2": {
+     "fill": 0.0883472020787251,
+     "full": null,
+     "lastGrowth": 180,
+     "species": {
+      "feldspar": {
+       "n": 3,
+       "max_um": 1057.021885791007,
+       "last": 180
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 1118.7278671495528,
+       "last": 180
+      },
+      "hessite": {
+       "n": 3,
+       "max_um": 17134.21006423994,
+       "last": 124
+      },
+      "native_tellurium": {
+       "n": 4,
+       "max_um": 36.629405666081425,
+       "last": 29
+      },
+      "native_silver": {
+       "n": 4,
+       "max_um": 6256.094668501278,
+       "last": 180
+      },
+      "calaverite": {
+       "n": 2,
+       "max_um": 10111.295255079505,
+       "last": 168
+      },
+      "sylvanite": {
+       "n": 2,
+       "max_um": 10060.163923576129,
+       "last": 180
+      },
+      "quartz": {
+       "n": 4,
+       "max_um": 2988.344707534047,
+       "last": 180
+      },
+      "native_gold": {
+       "n": 4,
+       "max_um": 3055.8318100850165,
+       "last": 180
+      }
+     },
+     "bulkPb": 5,
+     "voxPb": 5,
+     "trace": null,
+     "speciesCount": 9,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "feldspar"
+     ]
+    },
+    "root=3": {
+     "fill": 0.08994980209006591,
+     "full": null,
+     "lastGrowth": 180,
+     "species": {
+      "feldspar": {
+       "n": 2,
+       "max_um": 1695.1673846477804,
+       "last": 180
+      },
+      "albite": {
+       "n": 1,
+       "max_um": 375.8683667634312,
+       "last": 180
+      },
+      "hessite": {
+       "n": 3,
+       "max_um": 17244.933046112215,
+       "last": 68
+      },
+      "native_tellurium": {
+       "n": 4,
+       "max_um": 36.388830885774844,
+       "last": 29
+      },
+      "native_silver": {
+       "n": 4,
+       "max_um": 6236.123031203328,
+       "last": 180
+      },
+      "calaverite": {
+       "n": 2,
+       "max_um": 10111.303534062556,
+       "last": 168
+      },
+      "sylvanite": {
+       "n": 2,
+       "max_um": 10060.12413227707,
+       "last": 180
+      },
+      "quartz": {
+       "n": 4,
+       "max_um": 2977.4390932097126,
+       "last": 180
+      },
+      "native_gold": {
+       "n": 4,
+       "max_um": 3081.4035064848345,
+       "last": 180
+      }
+     },
+     "bulkPb": 5,
+     "voxPb": 5,
+     "trace": null,
+     "speciesCount": 9,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "feldspar"
+     ]
+    }
+   }
+  },
+  {
    "scenario": "gem_pegmatite",
    "seed": 42,
    "shippedReproducesBaseline": true,
@@ -1638,6 +4430,493 @@
       "topaz": {
        "n": 6,
        "max_um": 2481.8442182043614,
+       "last": 215
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 8,
+     "gained": [
+      "topaz"
+     ],
+     "lost": [],
+     "moved": [
+      "albite",
+      "cassiterite",
+      "feldspar",
+      "lepidolite",
+      "quartz",
+      "spodumene",
+      "tourmaline"
+     ]
+    }
+   }
+  },
+  {
+   "scenario": "gem_pegmatite",
+   "seed": 1,
+   "shippedReproducesBaseline": null,
+   "A": {
+    "fill": 1,
+    "full": 10,
+    "lastGrowth": 10,
+    "species": {
+     "cassiterite": {
+      "n": 4,
+      "max_um": 41.03860320176952,
+      "last": 10
+     },
+     "quartz": {
+      "n": 3,
+      "max_um": 1533.6970639029164,
+      "last": 10
+     },
+     "feldspar": {
+      "n": 2,
+      "max_um": 33385.92958979443,
+      "last": 10
+     },
+     "albite": {
+      "n": 2,
+      "max_um": 24161.645498202295,
+      "last": 10
+     },
+     "spodumene": {
+      "n": 1,
+      "max_um": 196.62824928550552,
+      "last": 9
+     },
+     "tourmaline": {
+      "n": 3,
+      "max_um": 367.65121504347553,
+      "last": 9
+     },
+     "lepidolite": {
+      "n": 4,
+      "max_um": 16.08940354978703,
+      "last": 9
+     }
+    },
+    "bulkPb": 0,
+    "voxPb": 0,
+    "trace": null
+   },
+   "B": {
+    "cap=8": {
+     "fill": 0.4143979815652113,
+     "full": null,
+     "lastGrowth": 230,
+     "species": {
+      "cassiterite": {
+       "n": 8,
+       "max_um": 1462.7974044525395,
+       "last": 230
+      },
+      "quartz": {
+       "n": 3,
+       "max_um": 36656.347058571526,
+       "last": 230
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 24673.6064926337,
+       "last": 230
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 32168.510328173637,
+       "last": 230
+      },
+      "spodumene": {
+       "n": 5,
+       "max_um": 2173.6881857910985,
+       "last": 158
+      },
+      "tourmaline": {
+       "n": 8,
+       "max_um": 11949.988512238122,
+       "last": 197
+      },
+      "lepidolite": {
+       "n": 3,
+       "max_um": 4038.9164883163235,
+       "last": 159
+      },
+      "topaz": {
+       "n": 6,
+       "max_um": 2512.763812175913,
+       "last": 215
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 8,
+     "gained": [
+      "topaz"
+     ],
+     "lost": [],
+     "moved": [
+      "albite",
+      "cassiterite",
+      "feldspar",
+      "lepidolite",
+      "quartz",
+      "spodumene",
+      "tourmaline"
+     ]
+    },
+    "fcap=2": {
+     "fill": 0.2701946351270309,
+     "full": null,
+     "lastGrowth": 230,
+     "species": {
+      "cassiterite": {
+       "n": 8,
+       "max_um": 1466.7908749161875,
+       "last": 230
+      },
+      "quartz": {
+       "n": 3,
+       "max_um": 36958.864498991024,
+       "last": 230
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 14445.603167877898,
+       "last": 230
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 25097.248068924386,
+       "last": 230
+      },
+      "spodumene": {
+       "n": 5,
+       "max_um": 2173.39461292475,
+       "last": 158
+      },
+      "tourmaline": {
+       "n": 8,
+       "max_um": 11948.892354174191,
+       "last": 197
+      },
+      "lepidolite": {
+       "n": 3,
+       "max_um": 4038.9165816948016,
+       "last": 159
+      },
+      "topaz": {
+       "n": 6,
+       "max_um": 2511.3411286102346,
+       "last": 215
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 8,
+     "gained": [
+      "topaz"
+     ],
+     "lost": [],
+     "moved": [
+      "cassiterite",
+      "feldspar",
+      "lepidolite",
+      "quartz",
+      "spodumene",
+      "tourmaline"
+     ]
+    },
+    "root=3": {
+     "fill": 0.3849748122798707,
+     "full": null,
+     "lastGrowth": 230,
+     "species": {
+      "cassiterite": {
+       "n": 8,
+       "max_um": 1466.5901559537983,
+       "last": 230
+      },
+      "quartz": {
+       "n": 3,
+       "max_um": 37214.89048862126,
+       "last": 230
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 21750.978970225722,
+       "last": 230
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 32353.257362004682,
+       "last": 230
+      },
+      "spodumene": {
+       "n": 5,
+       "max_um": 2173.6077735187678,
+       "last": 158
+      },
+      "tourmaline": {
+       "n": 8,
+       "max_um": 11955.018804631669,
+       "last": 197
+      },
+      "lepidolite": {
+       "n": 3,
+       "max_um": 4038.916472735777,
+       "last": 159
+      },
+      "topaz": {
+       "n": 6,
+       "max_um": 2521.8508396679213,
+       "last": 215
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 8,
+     "gained": [
+      "topaz"
+     ],
+     "lost": [],
+     "moved": [
+      "albite",
+      "cassiterite",
+      "feldspar",
+      "lepidolite",
+      "quartz",
+      "spodumene",
+      "tourmaline"
+     ]
+    }
+   }
+  },
+  {
+   "scenario": "gem_pegmatite",
+   "seed": 2,
+   "shippedReproducesBaseline": null,
+   "A": {
+    "fill": 1,
+    "full": 10,
+    "lastGrowth": 10,
+    "species": {
+     "quartz": {
+      "n": 3,
+      "max_um": 1604.1276907141564,
+      "last": 10
+     },
+     "feldspar": {
+      "n": 2,
+      "max_um": 36754.77692231875,
+      "last": 10
+     },
+     "albite": {
+      "n": 1,
+      "max_um": 29596.494245657956,
+      "last": 10
+     },
+     "spodumene": {
+      "n": 4,
+      "max_um": 129.72327957742417,
+      "last": 9
+     },
+     "tourmaline": {
+      "n": 3,
+      "max_um": 389.5778446999372,
+      "last": 9
+     },
+     "lepidolite": {
+      "n": 4,
+      "max_um": 12.206375047832328,
+      "last": 9
+     },
+     "cassiterite": {
+      "n": 4,
+      "max_um": 14.378489871262197,
+      "last": 9
+     }
+    },
+    "bulkPb": 0,
+    "voxPb": 0,
+    "trace": null
+   },
+   "B": {
+    "cap=8": {
+     "fill": 0.40984019186216397,
+     "full": null,
+     "lastGrowth": 230,
+     "species": {
+      "quartz": {
+       "n": 3,
+       "max_um": 37298.644377114215,
+       "last": 230
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 24659.59603874758,
+       "last": 230
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 32538.800029469654,
+       "last": 230
+      },
+      "spodumene": {
+       "n": 4,
+       "max_um": 5087.242540120094,
+       "last": 159
+      },
+      "tourmaline": {
+       "n": 8,
+       "max_um": 11975.231092249433,
+       "last": 197
+      },
+      "lepidolite": {
+       "n": 4,
+       "max_um": 3366.6411767583822,
+       "last": 159
+      },
+      "cassiterite": {
+       "n": 5,
+       "max_um": 1444.3280976628096,
+       "last": 230
+      },
+      "topaz": {
+       "n": 6,
+       "max_um": 2479.9839491120415,
+       "last": 215
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 8,
+     "gained": [
+      "topaz"
+     ],
+     "lost": [],
+     "moved": [
+      "albite",
+      "cassiterite",
+      "feldspar",
+      "lepidolite",
+      "quartz",
+      "spodumene",
+      "tourmaline"
+     ]
+    },
+    "fcap=2": {
+     "fill": 0.25946465606944225,
+     "full": null,
+     "lastGrowth": 230,
+     "species": {
+      "quartz": {
+       "n": 3,
+       "max_um": 36429.43945138995,
+       "last": 230
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 14643.985282701673,
+       "last": 230
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 25508.18912357332,
+       "last": 230
+      },
+      "spodumene": {
+       "n": 4,
+       "max_um": 5086.975715493324,
+       "last": 159
+      },
+      "tourmaline": {
+       "n": 8,
+       "max_um": 12012.371405519702,
+       "last": 197
+      },
+      "lepidolite": {
+       "n": 4,
+       "max_um": 3426.829590044859,
+       "last": 159
+      },
+      "cassiterite": {
+       "n": 5,
+       "max_um": 1441.1863185087086,
+       "last": 230
+      },
+      "topaz": {
+       "n": 6,
+       "max_um": 2458.2650758119275,
+       "last": 215
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 8,
+     "gained": [
+      "topaz"
+     ],
+     "lost": [],
+     "moved": [
+      "albite",
+      "cassiterite",
+      "feldspar",
+      "lepidolite",
+      "quartz",
+      "spodumene",
+      "tourmaline"
+     ]
+    },
+    "root=3": {
+     "fill": 0.3718947644014048,
+     "full": null,
+     "lastGrowth": 230,
+     "species": {
+      "quartz": {
+       "n": 3,
+       "max_um": 37303.135154579635,
+       "last": 230
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 21707.686932862147,
+       "last": 230
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 33187.89092785465,
+       "last": 230
+      },
+      "spodumene": {
+       "n": 4,
+       "max_um": 5087.2425051770415,
+       "last": 159
+      },
+      "tourmaline": {
+       "n": 8,
+       "max_um": 11975.007247165006,
+       "last": 197
+      },
+      "lepidolite": {
+       "n": 4,
+       "max_um": 3383.8710514000045,
+       "last": 159
+      },
+      "cassiterite": {
+       "n": 5,
+       "max_um": 1444.3280976625133,
+       "last": 230
+      },
+      "topaz": {
+       "n": 6,
+       "max_um": 2479.9827952415553,
        "last": 215
       }
      },
@@ -1920,6 +5199,527 @@
       "epidote",
       "feldspar",
       "hematite",
+      "titanite"
+     ]
+    }
+   }
+  },
+  {
+   "scenario": "grimsel_alpine_cleft",
+   "seed": 1,
+   "shippedReproducesBaseline": null,
+   "A": {
+    "fill": 0.0007344538061317031,
+    "full": null,
+    "lastGrowth": 200,
+    "species": {
+     "feldspar": {
+      "n": 2,
+      "max_um": 5194.743768518101,
+      "last": 114
+     },
+     "albite": {
+      "n": 2,
+      "max_um": 6609.956970723387,
+      "last": 114
+     },
+     "titanite": {
+      "n": 3,
+      "max_um": 1112.9740005623225,
+      "last": 200
+     },
+     "apatite": {
+      "n": 6,
+      "max_um": 1625.0910700934037,
+      "last": 200
+     },
+     "quartz": {
+      "n": 4,
+      "max_um": 6722.124016653189,
+      "last": 200
+     },
+     "epidote": {
+      "n": 6,
+      "max_um": 1013.9823346755401,
+      "last": 171
+     },
+     "hematite": {
+      "n": 1,
+      "max_um": 1281.1056024583902,
+      "last": 200
+     },
+     "apophyllite": {
+      "n": 1,
+      "max_um": 2241.869537841712,
+      "last": 200
+     },
+     "fluorite": {
+      "n": 1,
+      "max_um": 511.5424948194188,
+      "last": 200
+     },
+     "calcite": {
+      "n": 1,
+      "max_um": 12688.25762154406,
+      "last": 200
+     }
+    },
+    "bulkPb": 0,
+    "voxPb": 0,
+    "trace": null
+   },
+   "B": {
+    "cap=8": {
+     "fill": 0.0007344538061317031,
+     "full": null,
+     "lastGrowth": 200,
+     "species": {
+      "feldspar": {
+       "n": 2,
+       "max_um": 5194.743768518101,
+       "last": 114
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 6609.956970723387,
+       "last": 114
+      },
+      "titanite": {
+       "n": 3,
+       "max_um": 1112.9740005623225,
+       "last": 200
+      },
+      "apatite": {
+       "n": 6,
+       "max_um": 1625.0910700934037,
+       "last": 200
+      },
+      "quartz": {
+       "n": 4,
+       "max_um": 6722.124016653189,
+       "last": 200
+      },
+      "epidote": {
+       "n": 6,
+       "max_um": 1013.9823346755401,
+       "last": 171
+      },
+      "hematite": {
+       "n": 1,
+       "max_um": 1281.1056024583902,
+       "last": 200
+      },
+      "apophyllite": {
+       "n": 1,
+       "max_um": 2241.869537841712,
+       "last": 200
+      },
+      "fluorite": {
+       "n": 1,
+       "max_um": 511.5424948194188,
+       "last": 200
+      },
+      "calcite": {
+       "n": 1,
+       "max_um": 12688.25762154406,
+       "last": 200
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 10,
+     "gained": [],
+     "lost": [],
+     "moved": []
+    },
+    "fcap=2": {
+     "fill": 0.0005948214939134595,
+     "full": null,
+     "lastGrowth": 200,
+     "species": {
+      "titanite": {
+       "n": 3,
+       "max_um": 1111.3988813801116,
+       "last": 200
+      },
+      "apatite": {
+       "n": 6,
+       "max_um": 1623.5780400527226,
+       "last": 200
+      },
+      "quartz": {
+       "n": 4,
+       "max_um": 6617.8465366471555,
+       "last": 200
+      },
+      "epidote": {
+       "n": 5,
+       "max_um": 1043.7175659784511,
+       "last": 170
+      },
+      "hematite": {
+       "n": 2,
+       "max_um": 1210.3346483487255,
+       "last": 200
+      },
+      "apophyllite": {
+       "n": 1,
+       "max_um": 2267.3690308214186,
+       "last": 200
+      },
+      "fluorite": {
+       "n": 1,
+       "max_um": 508.7859380050064,
+       "last": 200
+      },
+      "calcite": {
+       "n": 1,
+       "max_um": 12858.408525530154,
+       "last": 200
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 10,
+     "gained": [],
+     "lost": [
+      "albite",
+      "feldspar"
+     ],
+     "moved": [
+      "epidote",
+      "hematite"
+     ]
+    },
+    "root=3": {
+     "fill": 0.0007153796303684036,
+     "full": null,
+     "lastGrowth": 200,
+     "species": {
+      "feldspar": {
+       "n": 1,
+       "max_um": 1049.7568264801887,
+       "last": 114
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 1308.4439321976142,
+       "last": 114
+      },
+      "titanite": {
+       "n": 3,
+       "max_um": 1118.8743415898418,
+       "last": 200
+      },
+      "apatite": {
+       "n": 6,
+       "max_um": 1632.4747560005098,
+       "last": 200
+      },
+      "quartz": {
+       "n": 3,
+       "max_um": 6901.932154726053,
+       "last": 200
+      },
+      "epidote": {
+       "n": 6,
+       "max_um": 1017.0855211348853,
+       "last": 171
+      },
+      "hematite": {
+       "n": 2,
+       "max_um": 1243.8566407337817,
+       "last": 200
+      },
+      "apophyllite": {
+       "n": 1,
+       "max_um": 2246.8911618403295,
+       "last": 200
+      },
+      "fluorite": {
+       "n": 1,
+       "max_um": 514.2081200109715,
+       "last": 200
+      },
+      "calcite": {
+       "n": 1,
+       "max_um": 13420.083479262687,
+       "last": 200
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 10,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "feldspar",
+      "hematite",
+      "quartz"
+     ]
+    }
+   }
+  },
+  {
+   "scenario": "grimsel_alpine_cleft",
+   "seed": 2,
+   "shippedReproducesBaseline": null,
+   "A": {
+    "fill": 0.0008039216679607147,
+    "full": null,
+    "lastGrowth": 200,
+    "species": {
+     "feldspar": {
+      "n": 2,
+      "max_um": 5275.144288564581,
+      "last": 114
+     },
+     "albite": {
+      "n": 2,
+      "max_um": 6532.2690469898125,
+      "last": 114
+     },
+     "titanite": {
+      "n": 4,
+      "max_um": 1083.4076345650487,
+      "last": 200
+     },
+     "apatite": {
+      "n": 6,
+      "max_um": 1669.2802911237816,
+      "last": 200
+     },
+     "quartz": {
+      "n": 3,
+      "max_um": 6831.371800162268,
+      "last": 200
+     },
+     "epidote": {
+      "n": 6,
+      "max_um": 1012.5491565981006,
+      "last": 170
+     },
+     "hematite": {
+      "n": 1,
+      "max_um": 1261.3847894317887,
+      "last": 200
+     },
+     "apophyllite": {
+      "n": 1,
+      "max_um": 2167.090339218013,
+      "last": 200
+     },
+     "fluorite": {
+      "n": 1,
+      "max_um": 492.7876442120131,
+      "last": 200
+     },
+     "calcite": {
+      "n": 1,
+      "max_um": 13259.45617971856,
+      "last": 200
+     }
+    },
+    "bulkPb": 0,
+    "voxPb": 0,
+    "trace": null
+   },
+   "B": {
+    "cap=8": {
+     "fill": 0.0008039216679607147,
+     "full": null,
+     "lastGrowth": 200,
+     "species": {
+      "feldspar": {
+       "n": 2,
+       "max_um": 5275.144288564581,
+       "last": 114
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 6532.2690469898125,
+       "last": 114
+      },
+      "titanite": {
+       "n": 4,
+       "max_um": 1083.4076345650487,
+       "last": 200
+      },
+      "apatite": {
+       "n": 6,
+       "max_um": 1669.2802911237816,
+       "last": 200
+      },
+      "quartz": {
+       "n": 3,
+       "max_um": 6831.371800162268,
+       "last": 200
+      },
+      "epidote": {
+       "n": 6,
+       "max_um": 1012.5491565981006,
+       "last": 170
+      },
+      "hematite": {
+       "n": 1,
+       "max_um": 1261.3847894317887,
+       "last": 200
+      },
+      "apophyllite": {
+       "n": 1,
+       "max_um": 2167.090339218013,
+       "last": 200
+      },
+      "fluorite": {
+       "n": 1,
+       "max_um": 492.7876442120131,
+       "last": 200
+      },
+      "calcite": {
+       "n": 1,
+       "max_um": 13259.45617971856,
+       "last": 200
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 10,
+     "gained": [],
+     "lost": [],
+     "moved": []
+    },
+    "fcap=2": {
+     "fill": 0.0006636755183008773,
+     "full": null,
+     "lastGrowth": 200,
+     "species": {
+      "titanite": {
+       "n": 3,
+       "max_um": 1126.4513431210403,
+       "last": 200
+      },
+      "apatite": {
+       "n": 6,
+       "max_um": 1631.1218930386008,
+       "last": 200
+      },
+      "quartz": {
+       "n": 3,
+       "max_um": 6629.848454889962,
+       "last": 200
+      },
+      "epidote": {
+       "n": 5,
+       "max_um": 1049.3896349232743,
+       "last": 171
+      },
+      "hematite": {
+       "n": 1,
+       "max_um": 1257.8327351342693,
+       "last": 200
+      },
+      "apophyllite": {
+       "n": 1,
+       "max_um": 2264.622234625811,
+       "last": 200
+      },
+      "fluorite": {
+       "n": 1,
+       "max_um": 520.6593396478228,
+       "last": 200
+      },
+      "calcite": {
+       "n": 1,
+       "max_um": 12927.42721418639,
+       "last": 200
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 10,
+     "gained": [],
+     "lost": [
+      "albite",
+      "feldspar"
+     ],
+     "moved": [
+      "epidote",
+      "titanite"
+     ]
+    },
+    "root=3": {
+     "fill": 0.0006295769364664718,
+     "full": null,
+     "lastGrowth": 200,
+     "species": {
+      "feldspar": {
+       "n": 1,
+       "max_um": 1080.8810333372621,
+       "last": 114
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 1275.2534361061278,
+       "last": 114
+      },
+      "titanite": {
+       "n": 6,
+       "max_um": 1046.5255915329938,
+       "last": 200
+      },
+      "apatite": {
+       "n": 6,
+       "max_um": 1688.7893569804903,
+       "last": 200
+      },
+      "quartz": {
+       "n": 4,
+       "max_um": 6935.772300471297,
+       "last": 200
+      },
+      "epidote": {
+       "n": 5,
+       "max_um": 1041.5258081164868,
+       "last": 171
+      },
+      "hematite": {
+       "n": 1,
+       "max_um": 1253.2260508974389,
+       "last": 200
+      },
+      "apophyllite": {
+       "n": 1,
+       "max_um": 2292.7122969154498,
+       "last": 200
+      },
+      "fluorite": {
+       "n": 1,
+       "max_um": 499.28686372430235,
+       "last": 200
+      },
+      "calcite": {
+       "n": 1,
+       "max_um": 12589.339996049785,
+       "last": 200
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 10,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "epidote",
+      "feldspar",
+      "quartz",
       "titanite"
      ]
     }
@@ -2251,6 +6051,658 @@
    }
   },
   {
+   "scenario": "jeffrey_mine",
+   "seed": 1,
+   "shippedReproducesBaseline": null,
+   "A": {
+    "fill": 0.010680912506792414,
+    "full": null,
+    "lastGrowth": 200,
+    "species": {
+     "awaruite": {
+      "n": 3,
+      "max_um": 3565.642709934858,
+      "last": 200
+     },
+     "vesuvianite": {
+      "n": 4,
+      "max_um": 12501.227054609179,
+      "last": 200
+     },
+     "diopside": {
+      "n": 4,
+      "max_um": 8948.793168412705,
+      "last": 200
+     },
+     "actinolite": {
+      "n": 4,
+      "max_um": 4465.998700161523,
+      "last": 200
+     },
+     "calcite": {
+      "n": 1,
+      "max_um": 2020.5214120162973,
+      "last": 155
+     },
+     "brucite": {
+      "n": 4,
+      "max_um": 1159.3794646667725,
+      "last": 190
+     },
+     "grossular": {
+      "n": 5,
+      "max_um": 4702.347894179616,
+      "last": 200
+     },
+     "chrysotile": {
+      "n": 1,
+      "max_um": 1915.1453744257049,
+      "last": 200
+     },
+     "prehnite": {
+      "n": 5,
+      "max_um": 3050.745235753588,
+      "last": 200
+     },
+     "wollastonite": {
+      "n": 2,
+      "max_um": 343.2614633971894,
+      "last": 200
+     },
+     "albite": {
+      "n": 2,
+      "max_um": 10366.005861455145,
+      "last": 200
+     },
+     "pectolite": {
+      "n": 4,
+      "max_um": 303.3121210193092,
+      "last": 190
+     },
+     "datolite": {
+      "n": 3,
+      "max_um": 543.947644295986,
+      "last": 200
+     }
+    },
+    "bulkPb": 0,
+    "voxPb": 0,
+    "trace": null
+   },
+   "B": {
+    "cap=8": {
+     "fill": 0.010391223100338437,
+     "full": null,
+     "lastGrowth": 200,
+     "species": {
+      "awaruite": {
+       "n": 3,
+       "max_um": 3565.642699570038,
+       "last": 200
+      },
+      "vesuvianite": {
+       "n": 4,
+       "max_um": 12501.374782032619,
+       "last": 200
+      },
+      "diopside": {
+       "n": 4,
+       "max_um": 8948.797398746225,
+       "last": 200
+      },
+      "actinolite": {
+       "n": 4,
+       "max_um": 4465.998700419169,
+       "last": 200
+      },
+      "calcite": {
+       "n": 1,
+       "max_um": 2020.5214120162973,
+       "last": 155
+      },
+      "brucite": {
+       "n": 4,
+       "max_um": 1159.3794646667725,
+       "last": 190
+      },
+      "grossular": {
+       "n": 5,
+       "max_um": 4702.347894179616,
+       "last": 200
+      },
+      "chrysotile": {
+       "n": 1,
+       "max_um": 1915.1453744257049,
+       "last": 200
+      },
+      "prehnite": {
+       "n": 5,
+       "max_um": 3050.745235753588,
+       "last": 200
+      },
+      "wollastonite": {
+       "n": 2,
+       "max_um": 343.2614633971894,
+       "last": 200
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 8179.897903253755,
+       "last": 200
+      },
+      "pectolite": {
+       "n": 4,
+       "max_um": 303.33404551451065,
+       "last": 190
+      },
+      "datolite": {
+       "n": 3,
+       "max_um": 543.9475262247897,
+       "last": 200
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 13,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite"
+     ]
+    },
+    "fcap=2": {
+     "fill": 0.010142012689094414,
+     "full": null,
+     "lastGrowth": 200,
+     "species": {
+      "awaruite": {
+       "n": 3,
+       "max_um": 3492.3254690982203,
+       "last": 200
+      },
+      "vesuvianite": {
+       "n": 4,
+       "max_um": 12482.479021606074,
+       "last": 200
+      },
+      "diopside": {
+       "n": 4,
+       "max_um": 9034.680929092123,
+       "last": 200
+      },
+      "actinolite": {
+       "n": 4,
+       "max_um": 4459.743471427299,
+       "last": 200
+      },
+      "calcite": {
+       "n": 1,
+       "max_um": 2020.5214120162973,
+       "last": 155
+      },
+      "brucite": {
+       "n": 4,
+       "max_um": 1159.0943605234181,
+       "last": 190
+      },
+      "grossular": {
+       "n": 5,
+       "max_um": 4756.211683950606,
+       "last": 200
+      },
+      "chrysotile": {
+       "n": 1,
+       "max_um": 1909.0238810999865,
+       "last": 200
+      },
+      "prehnite": {
+       "n": 4,
+       "max_um": 3062.724921554933,
+       "last": 200
+      },
+      "wollastonite": {
+       "n": 2,
+       "max_um": 340.2062460543405,
+       "last": 200
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 2366.538545281133,
+       "last": 200
+      },
+      "pectolite": {
+       "n": 4,
+       "max_um": 306.5456144736499,
+       "last": 190
+      },
+      "datolite": {
+       "n": 3,
+       "max_um": 545.3787425073144,
+       "last": 200
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 13,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "prehnite"
+     ]
+    },
+    "root=3": {
+     "fill": 0.010134838688442588,
+     "full": null,
+     "lastGrowth": 200,
+     "species": {
+      "awaruite": {
+       "n": 3,
+       "max_um": 3489.6342522692967,
+       "last": 200
+      },
+      "vesuvianite": {
+       "n": 4,
+       "max_um": 12469.351608862109,
+       "last": 200
+      },
+      "diopside": {
+       "n": 4,
+       "max_um": 9028.975331114076,
+       "last": 200
+      },
+      "actinolite": {
+       "n": 4,
+       "max_um": 4462.880635053748,
+       "last": 200
+      },
+      "calcite": {
+       "n": 1,
+       "max_um": 2020.292372520294,
+       "last": 155
+      },
+      "brucite": {
+       "n": 4,
+       "max_um": 1158.671300276914,
+       "last": 190
+      },
+      "grossular": {
+       "n": 5,
+       "max_um": 4755.26048549345,
+       "last": 200
+      },
+      "chrysotile": {
+       "n": 1,
+       "max_um": 1907.9166607482332,
+       "last": 200
+      },
+      "prehnite": {
+       "n": 4,
+       "max_um": 3071.9021411650674,
+       "last": 200
+      },
+      "wollastonite": {
+       "n": 2,
+       "max_um": 339.0784571921048,
+       "last": 200
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 1430.7531415966544,
+       "last": 200
+      },
+      "pectolite": {
+       "n": 4,
+       "max_um": 309.0484822026723,
+       "last": 190
+      },
+      "datolite": {
+       "n": 3,
+       "max_um": 545.3783647945129,
+       "last": 200
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 13,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "prehnite"
+     ]
+    }
+   }
+  },
+  {
+   "scenario": "jeffrey_mine",
+   "seed": 2,
+   "shippedReproducesBaseline": null,
+   "A": {
+    "fill": 0.013783682028660755,
+    "full": null,
+    "lastGrowth": 200,
+    "species": {
+     "awaruite": {
+      "n": 3,
+      "max_um": 3443.386583641,
+      "last": 200
+     },
+     "vesuvianite": {
+      "n": 4,
+      "max_um": 12688.408956142644,
+      "last": 200
+     },
+     "diopside": {
+      "n": 4,
+      "max_um": 9135.9913377767,
+      "last": 200
+     },
+     "actinolite": {
+      "n": 4,
+      "max_um": 4316.759075643462,
+      "last": 200
+     },
+     "calcite": {
+      "n": 1,
+      "max_um": 2084.135339398725,
+      "last": 139
+     },
+     "brucite": {
+      "n": 4,
+      "max_um": 1045.2138125822157,
+      "last": 189
+     },
+     "grossular": {
+      "n": 4,
+      "max_um": 6214.587956014396,
+      "last": 200
+     },
+     "chrysotile": {
+      "n": 1,
+      "max_um": 1893.4273244731005,
+      "last": 200
+     },
+     "prehnite": {
+      "n": 4,
+      "max_um": 3272.2511342019698,
+      "last": 200
+     },
+     "wollastonite": {
+      "n": 1,
+      "max_um": 454.59275484623697,
+      "last": 200
+     },
+     "albite": {
+      "n": 2,
+      "max_um": 11201.673930571429,
+      "last": 200
+     },
+     "pectolite": {
+      "n": 5,
+      "max_um": 439.989695195609,
+      "last": 189
+     },
+     "datolite": {
+      "n": 3,
+      "max_um": 584.7386156144422,
+      "last": 200
+     }
+    },
+    "bulkPb": 0,
+    "voxPb": 0,
+    "trace": null
+   },
+   "B": {
+    "cap=8": {
+     "fill": 0.013480148567979675,
+     "full": null,
+     "lastGrowth": 200,
+     "species": {
+      "awaruite": {
+       "n": 3,
+       "max_um": 3443.386583641,
+       "last": 200
+      },
+      "vesuvianite": {
+       "n": 4,
+       "max_um": 12688.408956142644,
+       "last": 200
+      },
+      "diopside": {
+       "n": 4,
+       "max_um": 9135.9913377767,
+       "last": 200
+      },
+      "actinolite": {
+       "n": 4,
+       "max_um": 4316.759075643462,
+       "last": 200
+      },
+      "calcite": {
+       "n": 1,
+       "max_um": 2084.135339398725,
+       "last": 139
+      },
+      "brucite": {
+       "n": 4,
+       "max_um": 1045.213715013974,
+       "last": 189
+      },
+      "grossular": {
+       "n": 4,
+       "max_um": 6214.587956014396,
+       "last": 200
+      },
+      "chrysotile": {
+       "n": 1,
+       "max_um": 1893.4273244731005,
+       "last": 200
+      },
+      "prehnite": {
+       "n": 4,
+       "max_um": 3272.2511342019698,
+       "last": 200
+      },
+      "wollastonite": {
+       "n": 1,
+       "max_um": 454.59275484623697,
+       "last": 200
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 8628.766737429425,
+       "last": 200
+      },
+      "pectolite": {
+       "n": 5,
+       "max_um": 439.98969519560904,
+       "last": 189
+      },
+      "datolite": {
+       "n": 3,
+       "max_um": 584.7386156144422,
+       "last": 200
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 13,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite"
+     ]
+    },
+    "fcap=2": {
+     "fill": 0.013235926251540492,
+     "full": null,
+     "lastGrowth": 200,
+     "species": {
+      "awaruite": {
+       "n": 3,
+       "max_um": 3443.386583641,
+       "last": 200
+      },
+      "vesuvianite": {
+       "n": 4,
+       "max_um": 12688.408956142644,
+       "last": 200
+      },
+      "diopside": {
+       "n": 4,
+       "max_um": 9135.9913377767,
+       "last": 200
+      },
+      "actinolite": {
+       "n": 4,
+       "max_um": 4316.759075643462,
+       "last": 200
+      },
+      "calcite": {
+       "n": 1,
+       "max_um": 2084.135339398725,
+       "last": 139
+      },
+      "brucite": {
+       "n": 4,
+       "max_um": 1045.2134663618745,
+       "last": 189
+      },
+      "grossular": {
+       "n": 4,
+       "max_um": 6214.587956014396,
+       "last": 200
+      },
+      "chrysotile": {
+       "n": 1,
+       "max_um": 1893.4273244731019,
+       "last": 200
+      },
+      "prehnite": {
+       "n": 4,
+       "max_um": 3272.2511342019698,
+       "last": 200
+      },
+      "wollastonite": {
+       "n": 1,
+       "max_um": 454.59275484623697,
+       "last": 200
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 2542.3435829274595,
+       "last": 200
+      },
+      "pectolite": {
+       "n": 5,
+       "max_um": 439.98969519560916,
+       "last": 189
+      },
+      "datolite": {
+       "n": 3,
+       "max_um": 584.7386156144422,
+       "last": 200
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 13,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite"
+     ]
+    },
+    "root=3": {
+     "fill": 0.013230704733806038,
+     "full": null,
+     "lastGrowth": 200,
+     "species": {
+      "awaruite": {
+       "n": 3,
+       "max_um": 3443.386583641,
+       "last": 200
+      },
+      "vesuvianite": {
+       "n": 4,
+       "max_um": 12688.408956142644,
+       "last": 200
+      },
+      "diopside": {
+       "n": 4,
+       "max_um": 9135.9913377767,
+       "last": 200
+      },
+      "actinolite": {
+       "n": 4,
+       "max_um": 4316.759075643462,
+       "last": 200
+      },
+      "calcite": {
+       "n": 1,
+       "max_um": 2084.135339398725,
+       "last": 139
+      },
+      "brucite": {
+       "n": 4,
+       "max_um": 1045.2134268996806,
+       "last": 189
+      },
+      "grossular": {
+       "n": 4,
+       "max_um": 6214.587956014396,
+       "last": 200
+      },
+      "chrysotile": {
+       "n": 1,
+       "max_um": 1893.427324473102,
+       "last": 200
+      },
+      "prehnite": {
+       "n": 4,
+       "max_um": 3272.2511342019698,
+       "last": 200
+      },
+      "wollastonite": {
+       "n": 1,
+       "max_um": 454.59275484623697,
+       "last": 200
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 1484.7228486560389,
+       "last": 200
+      },
+      "pectolite": {
+       "n": 5,
+       "max_um": 439.98969519560916,
+       "last": 189
+      },
+      "datolite": {
+       "n": 3,
+       "max_um": 584.7386156144422,
+       "last": 200
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 13,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite"
+     ]
+    }
+   }
+  },
+  {
    "scenario": "ouro_preto",
    "seed": 42,
    "shippedReproducesBaseline": true,
@@ -2383,6 +6835,304 @@
       "quartz": {
        "n": 3,
        "max_um": 5276.01860300667,
+       "last": 260
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 4,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "feldspar",
+      "quartz"
+     ]
+    }
+   }
+  },
+  {
+   "scenario": "ouro_preto",
+   "seed": 1,
+   "shippedReproducesBaseline": null,
+   "A": {
+    "fill": 0.3229010441872504,
+    "full": null,
+    "lastGrowth": 260,
+    "species": {
+     "feldspar": {
+      "n": 2,
+      "max_um": 17374.123522418195,
+      "last": 260
+     },
+     "albite": {
+      "n": 2,
+      "max_um": 41341.41243789808,
+      "last": 260
+     },
+     "topaz": {
+      "n": 6,
+      "max_um": 5532.982972957666,
+      "last": 260
+     },
+     "quartz": {
+      "n": 6,
+      "max_um": 4310.223404991694,
+      "last": 247
+     }
+    },
+    "bulkPb": 0,
+    "voxPb": 0,
+    "trace": null
+   },
+   "B": {
+    "cap=8": {
+     "fill": 0.24327718841681084,
+     "full": null,
+     "lastGrowth": 260,
+     "species": {
+      "feldspar": {
+       "n": 2,
+       "max_um": 17422.579478543106,
+       "last": 260
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 31783.670013586427,
+       "last": 260
+      },
+      "topaz": {
+       "n": 6,
+       "max_um": 5509.723798985147,
+       "last": 260
+      },
+      "quartz": {
+       "n": 6,
+       "max_um": 4098.3278266298785,
+       "last": 247
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 4,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite"
+     ]
+    },
+    "fcap=2": {
+     "fill": 0.04522220849086676,
+     "full": null,
+     "lastGrowth": 260,
+     "species": {
+      "feldspar": {
+       "n": 2,
+       "max_um": 8046.11681834149,
+       "last": 260
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 22062.334830010193,
+       "last": 260
+      },
+      "topaz": {
+       "n": 6,
+       "max_um": 5609.650688160956,
+       "last": 260
+      },
+      "quartz": {
+       "n": 6,
+       "max_um": 4080.9626870764896,
+       "last": 247
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 4,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "feldspar"
+     ]
+    },
+    "root=3": {
+     "fill": 0.002983454358803111,
+     "full": null,
+     "lastGrowth": 260,
+     "species": {
+      "feldspar": {
+       "n": 2,
+       "max_um": 2968.1016923069856,
+       "last": 260
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 5755.316666596168,
+       "last": 260
+      },
+      "topaz": {
+       "n": 6,
+       "max_um": 5551.813367152382,
+       "last": 260
+      },
+      "quartz": {
+       "n": 4,
+       "max_um": 4320.213806691783,
+       "last": 247
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 4,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "feldspar",
+      "quartz"
+     ]
+    }
+   }
+  },
+  {
+   "scenario": "ouro_preto",
+   "seed": 2,
+   "shippedReproducesBaseline": null,
+   "A": {
+    "fill": 0.22799774716379972,
+    "full": null,
+    "lastGrowth": 260,
+    "species": {
+     "feldspar": {
+      "n": 2,
+      "max_um": 15792.274833792326,
+      "last": 260
+     },
+     "albite": {
+      "n": 2,
+      "max_um": 36824.87220415243,
+      "last": 260
+     },
+     "topaz": {
+      "n": 6,
+      "max_um": 5010.361134937157,
+      "last": 179
+     },
+     "quartz": {
+      "n": 6,
+      "max_um": 3005.909561343603,
+      "last": 260
+     }
+    },
+    "bulkPb": 0,
+    "voxPb": 0,
+    "trace": null
+   },
+   "B": {
+    "cap=8": {
+     "fill": 0.17024880611829754,
+     "full": null,
+     "lastGrowth": 260,
+     "species": {
+      "feldspar": {
+       "n": 2,
+       "max_um": 15500.351785061739,
+       "last": 260
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 27904.386556887293,
+       "last": 260
+      },
+      "topaz": {
+       "n": 6,
+       "max_um": 5042.006769980719,
+       "last": 179
+      },
+      "quartz": {
+       "n": 5,
+       "max_um": 2973.450156343291,
+       "last": 260
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 4,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "quartz"
+     ]
+    },
+    "fcap=2": {
+     "fill": 0.032777486515080036,
+     "full": null,
+     "lastGrowth": 260,
+     "species": {
+      "feldspar": {
+       "n": 2,
+       "max_um": 7367.191469738102,
+       "last": 199
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 19755.285153820794,
+       "last": 257
+      },
+      "topaz": {
+       "n": 6,
+       "max_um": 5056.134459027639,
+       "last": 179
+      },
+      "quartz": {
+       "n": 5,
+       "max_um": 2878.457314015499,
+       "last": 260
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 4,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "feldspar",
+      "quartz"
+     ]
+    },
+    "root=3": {
+     "fill": 0.0019635022122548463,
+     "full": null,
+     "lastGrowth": 260,
+     "species": {
+      "feldspar": {
+       "n": 2,
+       "max_um": 2576.244604047667,
+       "last": 260
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 5085.26876269552,
+       "last": 260
+      },
+      "topaz": {
+       "n": 6,
+       "max_um": 4960.629133866131,
+       "last": 179
+      },
+      "quartz": {
+       "n": 5,
+       "max_um": 2930.036599687095,
        "last": 260
       }
      },
@@ -2848,6 +7598,903 @@
    }
   },
   {
+   "scenario": "porphyry",
+   "seed": 1,
+   "shippedReproducesBaseline": null,
+   "A": {
+    "fill": 0.13801155648357344,
+    "full": null,
+    "lastGrowth": 120,
+    "species": {
+     "feldspar": {
+      "n": 2,
+      "max_um": 2589.6577424256043,
+      "last": 84
+     },
+     "albite": {
+      "n": 2,
+      "max_um": 1943.3483608227189,
+      "last": 84
+     },
+     "bismuthinite": {
+      "n": 4,
+      "max_um": 1125.6028495639932,
+      "last": 84
+     },
+     "acanthite": {
+      "n": 4,
+      "max_um": 3244.169387345248,
+      "last": 84
+     },
+     "arsenopyrite": {
+      "n": 4,
+      "max_um": 9415.435771346221,
+      "last": 84
+     },
+     "stibnite": {
+      "n": 2,
+      "max_um": 2.7095279695663974,
+      "last": 84
+     },
+     "pyrite": {
+      "n": 1,
+      "max_um": 2471.264525434608,
+      "last": 84
+     },
+     "chalcopyrite": {
+      "n": 1,
+      "max_um": 2924.571609014233,
+      "last": 84
+     },
+     "tetrahedrite": {
+      "n": 1,
+      "max_um": 0,
+      "last": 0
+     },
+     "tennantite": {
+      "n": 1,
+      "max_um": 0,
+      "last": 0
+     },
+     "galena": {
+      "n": 4,
+      "max_um": 11118.770150132365,
+      "last": 84
+     },
+     "molybdenite": {
+      "n": 3,
+      "max_um": 30939.941412474785,
+      "last": 84
+     },
+     "magnetite": {
+      "n": 1,
+      "max_um": 0,
+      "last": 84
+     },
+     "malachite": {
+      "n": 1,
+      "max_um": 215.93571639589422,
+      "last": 120
+     },
+     "goethite": {
+      "n": 2,
+      "max_um": 1221.5609549044545,
+      "last": 120
+     },
+     "ferrimolybdite": {
+      "n": 6,
+      "max_um": 18508.924486393127,
+      "last": 120
+     },
+     "hematite": {
+      "n": 1,
+      "max_um": 440.82537643229614,
+      "last": 120
+     },
+     "anglesite": {
+      "n": 4,
+      "max_um": 747.799986850801,
+      "last": 120
+     },
+     "brochantite": {
+      "n": 4,
+      "max_um": 4268.734430892625,
+      "last": 120
+     }
+    },
+    "bulkPb": 55,
+    "voxPb": 54.9385337043564,
+    "trace": null
+   },
+   "B": {
+    "cap=8": {
+     "fill": 0.13801155648357344,
+     "full": null,
+     "lastGrowth": 120,
+     "species": {
+      "feldspar": {
+       "n": 2,
+       "max_um": 2589.6577424256043,
+       "last": 84
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 1943.3483608227189,
+       "last": 84
+      },
+      "bismuthinite": {
+       "n": 4,
+       "max_um": 1125.6028495639932,
+       "last": 84
+      },
+      "acanthite": {
+       "n": 4,
+       "max_um": 3244.169387345248,
+       "last": 84
+      },
+      "arsenopyrite": {
+       "n": 4,
+       "max_um": 9415.435771346221,
+       "last": 84
+      },
+      "stibnite": {
+       "n": 2,
+       "max_um": 2.7095279695663974,
+       "last": 84
+      },
+      "pyrite": {
+       "n": 1,
+       "max_um": 2471.264525434608,
+       "last": 84
+      },
+      "chalcopyrite": {
+       "n": 1,
+       "max_um": 2924.571609014233,
+       "last": 84
+      },
+      "tetrahedrite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "tennantite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "galena": {
+       "n": 4,
+       "max_um": 11118.770150132365,
+       "last": 84
+      },
+      "molybdenite": {
+       "n": 3,
+       "max_um": 30939.941412474785,
+       "last": 84
+      },
+      "magnetite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 84
+      },
+      "malachite": {
+       "n": 1,
+       "max_um": 215.93571639589422,
+       "last": 120
+      },
+      "goethite": {
+       "n": 2,
+       "max_um": 1221.5609549044545,
+       "last": 120
+      },
+      "ferrimolybdite": {
+       "n": 6,
+       "max_um": 18508.924486393127,
+       "last": 120
+      },
+      "hematite": {
+       "n": 1,
+       "max_um": 440.82537643229614,
+       "last": 120
+      },
+      "anglesite": {
+       "n": 4,
+       "max_um": 747.799986850801,
+       "last": 120
+      },
+      "brochantite": {
+       "n": 4,
+       "max_um": 4268.734430892625,
+       "last": 120
+      }
+     },
+     "bulkPb": 55,
+     "voxPb": 54.9385337043564,
+     "trace": null,
+     "speciesCount": 19,
+     "gained": [],
+     "lost": [],
+     "moved": []
+    },
+    "fcap=2": {
+     "fill": 0.13973617722684994,
+     "full": null,
+     "lastGrowth": 120,
+     "species": {
+      "feldspar": {
+       "n": 2,
+       "max_um": 1962.802046793446,
+       "last": 84
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 1412.8212056595287,
+       "last": 84
+      },
+      "bismuthinite": {
+       "n": 4,
+       "max_um": 1171.8466319802649,
+       "last": 84
+      },
+      "acanthite": {
+       "n": 4,
+       "max_um": 3253.152685995784,
+       "last": 84
+      },
+      "arsenopyrite": {
+       "n": 4,
+       "max_um": 9491.912392852071,
+       "last": 84
+      },
+      "stibnite": {
+       "n": 2,
+       "max_um": 2.737123473376537,
+       "last": 84
+      },
+      "pyrite": {
+       "n": 1,
+       "max_um": 2541.0771280021377,
+       "last": 84
+      },
+      "chalcopyrite": {
+       "n": 1,
+       "max_um": 2993.7722442600225,
+       "last": 84
+      },
+      "tetrahedrite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "tennantite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "galena": {
+       "n": 4,
+       "max_um": 11135.386494879705,
+       "last": 84
+      },
+      "molybdenite": {
+       "n": 3,
+       "max_um": 31149.010582770916,
+       "last": 84
+      },
+      "magnetite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 84
+      },
+      "malachite": {
+       "n": 1,
+       "max_um": 228.17981025308828,
+       "last": 120
+      },
+      "goethite": {
+       "n": 2,
+       "max_um": 1185.24474512238,
+       "last": 120
+      },
+      "ferrimolybdite": {
+       "n": 6,
+       "max_um": 18480.00519477004,
+       "last": 120
+      },
+      "hematite": {
+       "n": 1,
+       "max_um": 447.04977123230043,
+       "last": 120
+      },
+      "anglesite": {
+       "n": 4,
+       "max_um": 737.4168242756048,
+       "last": 120
+      },
+      "brochantite": {
+       "n": 4,
+       "max_um": 4356.05688597593,
+       "last": 120
+      }
+     },
+     "bulkPb": 55,
+     "voxPb": 54.93857549160767,
+     "trace": null,
+     "speciesCount": 19,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "feldspar"
+     ]
+    },
+    "root=3": {
+     "fill": 0.13988815941311986,
+     "full": null,
+     "lastGrowth": 120,
+     "species": {
+      "feldspar": {
+       "n": 1,
+       "max_um": 572.5502460786319,
+       "last": 84
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 445.17895336204094,
+       "last": 84
+      },
+      "bismuthinite": {
+       "n": 4,
+       "max_um": 1171.9935689401823,
+       "last": 84
+      },
+      "acanthite": {
+       "n": 4,
+       "max_um": 3254.5988990738165,
+       "last": 84
+      },
+      "arsenopyrite": {
+       "n": 4,
+       "max_um": 9692.217316420396,
+       "last": 84
+      },
+      "stibnite": {
+       "n": 2,
+       "max_um": 2.744198695648506,
+       "last": 84
+      },
+      "pyrite": {
+       "n": 1,
+       "max_um": 2481.317423796004,
+       "last": 84
+      },
+      "chalcopyrite": {
+       "n": 1,
+       "max_um": 9222.944240888633,
+       "last": 84
+      },
+      "tetrahedrite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "tennantite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "galena": {
+       "n": 4,
+       "max_um": 11143.41872744091,
+       "last": 84
+      },
+      "molybdenite": {
+       "n": 3,
+       "max_um": 31613.500938279652,
+       "last": 84
+      },
+      "magnetite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 84
+      },
+      "malachite": {
+       "n": 1,
+       "max_um": 874.0937323499595,
+       "last": 120
+      },
+      "goethite": {
+       "n": 2,
+       "max_um": 1144.4121416724329,
+       "last": 120
+      },
+      "ferrimolybdite": {
+       "n": 6,
+       "max_um": 18242.707926420906,
+       "last": 120
+      },
+      "hematite": {
+       "n": 1,
+       "max_um": 434.1339715511697,
+       "last": 120
+      },
+      "anglesite": {
+       "n": 4,
+       "max_um": 768.6964723271744,
+       "last": 120
+      },
+      "brochantite": {
+       "n": 4,
+       "max_um": 4234.59533886376,
+       "last": 120
+      }
+     },
+     "bulkPb": 55,
+     "voxPb": 54.93791726496757,
+     "trace": null,
+     "speciesCount": 19,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "chalcopyrite",
+      "feldspar",
+      "malachite"
+     ]
+    }
+   }
+  },
+  {
+   "scenario": "porphyry",
+   "seed": 2,
+   "shippedReproducesBaseline": null,
+   "A": {
+    "fill": 0.12291071624529666,
+    "full": null,
+    "lastGrowth": 120,
+    "species": {
+     "feldspar": {
+      "n": 2,
+      "max_um": 2529.230411595764,
+      "last": 84
+     },
+     "albite": {
+      "n": 2,
+      "max_um": 1959.0938947171742,
+      "last": 84
+     },
+     "arsenopyrite": {
+      "n": 4,
+      "max_um": 9681.422463042445,
+      "last": 84
+     },
+     "bismuthinite": {
+      "n": 4,
+      "max_um": 1155.2972889875487,
+      "last": 84
+     },
+     "acanthite": {
+      "n": 4,
+      "max_um": 3451.256747182649,
+      "last": 84
+     },
+     "stibnite": {
+      "n": 1,
+      "max_um": 2.750589678059561,
+      "last": 84
+     },
+     "pyrite": {
+      "n": 1,
+      "max_um": 127.78532200714523,
+      "last": 84
+     },
+     "chalcopyrite": {
+      "n": 1,
+      "max_um": 3031.293791659334,
+      "last": 84
+     },
+     "tetrahedrite": {
+      "n": 1,
+      "max_um": 0,
+      "last": 0
+     },
+     "tennantite": {
+      "n": 1,
+      "max_um": 0,
+      "last": 0
+     },
+     "galena": {
+      "n": 4,
+      "max_um": 11042.579726367187,
+      "last": 84
+     },
+     "molybdenite": {
+      "n": 3,
+      "max_um": 32853.70047728123,
+      "last": 84
+     },
+     "magnetite": {
+      "n": 1,
+      "max_um": 0,
+      "last": 84
+     },
+     "malachite": {
+      "n": 1,
+      "max_um": 940.4353841937838,
+      "last": 120
+     },
+     "goethite": {
+      "n": 2,
+      "max_um": 1150.8135633130835,
+      "last": 120
+     },
+     "hematite": {
+      "n": 1,
+      "max_um": 429.60141820467743,
+      "last": 120
+     },
+     "anglesite": {
+      "n": 4,
+      "max_um": 711.873726438715,
+      "last": 120
+     },
+     "brochantite": {
+      "n": 5,
+      "max_um": 4248.002681952899,
+      "last": 120
+     },
+     "ferrimolybdite": {
+      "n": 3,
+      "max_um": 14128.925159625975,
+      "last": 120
+     }
+    },
+    "bulkPb": 55,
+    "voxPb": 54.93630936248225,
+    "trace": null
+   },
+   "B": {
+    "cap=8": {
+     "fill": 0.12291071624529666,
+     "full": null,
+     "lastGrowth": 120,
+     "species": {
+      "feldspar": {
+       "n": 2,
+       "max_um": 2529.230411595764,
+       "last": 84
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 1959.0938947171742,
+       "last": 84
+      },
+      "arsenopyrite": {
+       "n": 4,
+       "max_um": 9681.422463042445,
+       "last": 84
+      },
+      "bismuthinite": {
+       "n": 4,
+       "max_um": 1155.2972889875487,
+       "last": 84
+      },
+      "acanthite": {
+       "n": 4,
+       "max_um": 3451.256747182649,
+       "last": 84
+      },
+      "stibnite": {
+       "n": 1,
+       "max_um": 2.750589678059561,
+       "last": 84
+      },
+      "pyrite": {
+       "n": 1,
+       "max_um": 127.78532200714523,
+       "last": 84
+      },
+      "chalcopyrite": {
+       "n": 1,
+       "max_um": 3031.293791659334,
+       "last": 84
+      },
+      "tetrahedrite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "tennantite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "galena": {
+       "n": 4,
+       "max_um": 11042.579726367187,
+       "last": 84
+      },
+      "molybdenite": {
+       "n": 3,
+       "max_um": 32853.70047728123,
+       "last": 84
+      },
+      "magnetite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 84
+      },
+      "malachite": {
+       "n": 1,
+       "max_um": 940.4353841937838,
+       "last": 120
+      },
+      "goethite": {
+       "n": 2,
+       "max_um": 1150.8135633130835,
+       "last": 120
+      },
+      "hematite": {
+       "n": 1,
+       "max_um": 429.60141820467743,
+       "last": 120
+      },
+      "anglesite": {
+       "n": 4,
+       "max_um": 711.873726438715,
+       "last": 120
+      },
+      "brochantite": {
+       "n": 5,
+       "max_um": 4248.002681952899,
+       "last": 120
+      },
+      "ferrimolybdite": {
+       "n": 3,
+       "max_um": 14128.925159625975,
+       "last": 120
+      }
+     },
+     "bulkPb": 55,
+     "voxPb": 54.93630936248225,
+     "trace": null,
+     "speciesCount": 19,
+     "gained": [],
+     "lost": [],
+     "moved": []
+    },
+    "fcap=2": {
+     "fill": 0.12067332520291633,
+     "full": null,
+     "lastGrowth": 120,
+     "species": {
+      "feldspar": {
+       "n": 2,
+       "max_um": 1945.4379194771877,
+       "last": 84
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 1480.449921755464,
+       "last": 84
+      },
+      "arsenopyrite": {
+       "n": 4,
+       "max_um": 9759.0107549241,
+       "last": 84
+      },
+      "bismuthinite": {
+       "n": 4,
+       "max_um": 1170.689921191509,
+       "last": 84
+      },
+      "acanthite": {
+       "n": 4,
+       "max_um": 3426.03872894976,
+       "last": 84
+      },
+      "stibnite": {
+       "n": 1,
+       "max_um": 2.9321913845980108,
+       "last": 84
+      },
+      "pyrite": {
+       "n": 1,
+       "max_um": 116.84672742531217,
+       "last": 84
+      },
+      "chalcopyrite": {
+       "n": 1,
+       "max_um": 3300.8739432483685,
+       "last": 84
+      },
+      "tetrahedrite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "tennantite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "galena": {
+       "n": 4,
+       "max_um": 11055.579561508173,
+       "last": 84
+      },
+      "molybdenite": {
+       "n": 3,
+       "max_um": 32489.6949173064,
+       "last": 84
+      },
+      "magnetite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 84
+      },
+      "malachite": {
+       "n": 1,
+       "max_um": 901.2062103737993,
+       "last": 120
+      },
+      "goethite": {
+       "n": 2,
+       "max_um": 1207.9904719332876,
+       "last": 120
+      },
+      "hematite": {
+       "n": 1,
+       "max_um": 110.45980458688031,
+       "last": 120
+      },
+      "anglesite": {
+       "n": 4,
+       "max_um": 693.6036927764967,
+       "last": 120
+      },
+      "brochantite": {
+       "n": 5,
+       "max_um": 4355.122289066709,
+       "last": 120
+      },
+      "ferrimolybdite": {
+       "n": 3,
+       "max_um": 14160.50772704777,
+       "last": 120
+      }
+     },
+     "bulkPb": 55,
+     "voxPb": 54.93576833855122,
+     "trace": null,
+     "speciesCount": 19,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "feldspar",
+      "hematite"
+     ]
+    },
+    "root=3": {
+     "fill": 0.11669923675660028,
+     "full": null,
+     "lastGrowth": 120,
+     "species": {
+      "feldspar": {
+       "n": 1,
+       "max_um": 553.0235707866212,
+       "last": 84
+      },
+      "albite": {
+       "n": 1,
+       "max_um": 516.6018800771533,
+       "last": 84
+      },
+      "arsenopyrite": {
+       "n": 4,
+       "max_um": 9737.133584862866,
+       "last": 84
+      },
+      "bismuthinite": {
+       "n": 4,
+       "max_um": 1149.3692656830258,
+       "last": 84
+      },
+      "acanthite": {
+       "n": 4,
+       "max_um": 3418.7627116906206,
+       "last": 84
+      },
+      "stibnite": {
+       "n": 1,
+       "max_um": 2.43564365420018,
+       "last": 84
+      },
+      "pyrite": {
+       "n": 1,
+       "max_um": 88.58074128552198,
+       "last": 84
+      },
+      "chalcopyrite": {
+       "n": 1,
+       "max_um": 2452.5228089764014,
+       "last": 84
+      },
+      "tetrahedrite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "tennantite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "galena": {
+       "n": 4,
+       "max_um": 10984.99200205085,
+       "last": 84
+      },
+      "molybdenite": {
+       "n": 3,
+       "max_um": 31922.567927113778,
+       "last": 84
+      },
+      "magnetite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 84
+      },
+      "malachite": {
+       "n": 1,
+       "max_um": 930.8698868296369,
+       "last": 120
+      },
+      "goethite": {
+       "n": 2,
+       "max_um": 1208.755231267309,
+       "last": 120
+      },
+      "hematite": {
+       "n": 1,
+       "max_um": 106.93744965555406,
+       "last": 120
+      },
+      "anglesite": {
+       "n": 4,
+       "max_um": 297.70661552642275,
+       "last": 120
+      },
+      "brochantite": {
+       "n": 5,
+       "max_um": 4330.07907784716,
+       "last": 120
+      },
+      "ferrimolybdite": {
+       "n": 3,
+       "max_um": 9717.723287768076,
+       "last": 120
+      }
+     },
+     "bulkPb": 55,
+     "voxPb": 54.93772946747802,
+     "trace": null,
+     "speciesCount": 19,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "anglesite",
+      "feldspar",
+      "ferrimolybdite",
+      "hematite",
+      "pyrite"
+     ]
+    }
+   }
+  },
+  {
    "scenario": "radioactive_pegmatite",
    "seed": 42,
    "shippedReproducesBaseline": true,
@@ -3163,6 +8810,676 @@
      "lost": [],
      "moved": [
       "albite",
+      "feldspar",
+      "lepidolite",
+      "morganite",
+      "opal",
+      "plumbogummite",
+      "quartz",
+      "topaz",
+      "uraninite"
+     ]
+    }
+   }
+  },
+  {
+   "scenario": "radioactive_pegmatite",
+   "seed": 1,
+   "shippedReproducesBaseline": null,
+   "A": {
+    "fill": 1.0000000000000002,
+    "full": 55,
+    "lastGrowth": 82,
+    "species": {
+     "uraninite": {
+      "n": 3,
+      "max_um": 5725.665543116442,
+      "last": 55
+     },
+     "cassiterite": {
+      "n": 6,
+      "max_um": 145.2166675897439,
+      "last": 43
+     },
+     "quartz": {
+      "n": 3,
+      "max_um": 9753.26808866036,
+      "last": 82
+     },
+     "feldspar": {
+      "n": 2,
+      "max_um": 51163.692182946026,
+      "last": 82
+     },
+     "albite": {
+      "n": 2,
+      "max_um": 49516.64971017263,
+      "last": 82
+     },
+     "spodumene": {
+      "n": 4,
+      "max_um": 1549.3317192919758,
+      "last": 49
+     },
+     "morganite": {
+      "n": 4,
+      "max_um": 16836.928818028464,
+      "last": 55
+     },
+     "tourmaline": {
+      "n": 9,
+      "max_um": 2206.5032158069434,
+      "last": 49
+     },
+     "lepidolite": {
+      "n": 4,
+      "max_um": 537.3954999045197,
+      "last": 49
+     },
+     "topaz": {
+      "n": 1,
+      "max_um": 76.58764070030703,
+      "last": 39
+     },
+     "opal": {
+      "n": 5,
+      "max_um": 0,
+      "last": 0
+     },
+     "plumbogummite": {
+      "n": 3,
+      "max_um": 0,
+      "last": 0
+     }
+    },
+    "bulkPb": 127.72937197789254,
+    "voxPb": 30,
+    "trace": null
+   },
+   "B": {
+    "cap=8": {
+     "fill": 0.9864368523312144,
+     "full": null,
+     "lastGrowth": 120,
+     "species": {
+      "uraninite": {
+       "n": 3,
+       "max_um": 11836.122338415244,
+       "last": 79
+      },
+      "cassiterite": {
+       "n": 6,
+       "max_um": 182.21138909761382,
+       "last": 49
+      },
+      "quartz": {
+       "n": 3,
+       "max_um": 53632.40761233674,
+       "last": 93
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 9542.593757691406,
+       "last": 120
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 12583.658308300117,
+       "last": 120
+      },
+      "spodumene": {
+       "n": 4,
+       "max_um": 2242.3277971807584,
+       "last": 49
+      },
+      "morganite": {
+       "n": 4,
+       "max_um": 26498.451920654665,
+       "last": 79
+      },
+      "tourmaline": {
+       "n": 8,
+       "max_um": 2777.5183296384257,
+       "last": 49
+      },
+      "lepidolite": {
+       "n": 4,
+       "max_um": 921.032081155587,
+       "last": 49
+      },
+      "topaz": {
+       "n": 3,
+       "max_um": 291.0101957959209,
+       "last": 49
+      },
+      "opal": {
+       "n": 5,
+       "max_um": 112.81913310534131,
+       "last": 120
+      },
+      "plumbogummite": {
+       "n": 3,
+       "max_um": 0.28634236803399227,
+       "last": 111
+      }
+     },
+     "bulkPb": 173.84022301965865,
+     "voxPb": 29.999998446219593,
+     "trace": null,
+     "speciesCount": 12,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "cassiterite",
+      "feldspar",
+      "lepidolite",
+      "morganite",
+      "opal",
+      "plumbogummite",
+      "quartz",
+      "spodumene",
+      "topaz",
+      "tourmaline",
+      "uraninite"
+     ]
+    },
+    "fcap=2": {
+     "fill": 0.986940680891588,
+     "full": null,
+     "lastGrowth": 120,
+     "species": {
+      "uraninite": {
+       "n": 3,
+       "max_um": 11835.259207667357,
+       "last": 79
+      },
+      "cassiterite": {
+       "n": 6,
+       "max_um": 182.21138909761382,
+       "last": 49
+      },
+      "quartz": {
+       "n": 3,
+       "max_um": 53262.16229813414,
+       "last": 93
+      },
+      "feldspar": {
+       "n": 3,
+       "max_um": 6861.3443661859965,
+       "last": 91
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 6127.192573787868,
+       "last": 79
+      },
+      "spodumene": {
+       "n": 4,
+       "max_um": 2241.7587468275015,
+       "last": 49
+      },
+      "morganite": {
+       "n": 4,
+       "max_um": 26498.432293966496,
+       "last": 79
+      },
+      "tourmaline": {
+       "n": 8,
+       "max_um": 2777.5183296384257,
+       "last": 49
+      },
+      "lepidolite": {
+       "n": 4,
+       "max_um": 957.5034592100303,
+       "last": 49
+      },
+      "topaz": {
+       "n": 3,
+       "max_um": 291.056874953376,
+       "last": 49
+      },
+      "opal": {
+       "n": 5,
+       "max_um": 110.21596508125124,
+       "last": 120
+      },
+      "plumbogummite": {
+       "n": 3,
+       "max_um": 0.31170219213909856,
+       "last": 111
+      }
+     },
+     "bulkPb": 173.8377245808519,
+     "voxPb": 29.999998232913956,
+     "trace": null,
+     "speciesCount": 12,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "cassiterite",
+      "feldspar",
+      "lepidolite",
+      "morganite",
+      "opal",
+      "plumbogummite",
+      "quartz",
+      "spodumene",
+      "topaz",
+      "tourmaline",
+      "uraninite"
+     ]
+    },
+    "root=3": {
+     "fill": 0.9865159844119092,
+     "full": null,
+     "lastGrowth": 120,
+     "species": {
+      "uraninite": {
+       "n": 3,
+       "max_um": 11835.08168643403,
+       "last": 79
+      },
+      "cassiterite": {
+       "n": 6,
+       "max_um": 182.21138909761382,
+       "last": 49
+      },
+      "quartz": {
+       "n": 3,
+       "max_um": 53666.80019449356,
+       "last": 93
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 5740.582603454578,
+       "last": 120
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 6566.4729664279075,
+       "last": 120
+      },
+      "spodumene": {
+       "n": 4,
+       "max_um": 2241.4992822146173,
+       "last": 49
+      },
+      "morganite": {
+       "n": 4,
+       "max_um": 26498.376966831343,
+       "last": 79
+      },
+      "tourmaline": {
+       "n": 8,
+       "max_um": 2777.5183296384257,
+       "last": 49
+      },
+      "lepidolite": {
+       "n": 4,
+       "max_um": 971.2774551002736,
+       "last": 49
+      },
+      "topaz": {
+       "n": 3,
+       "max_um": 291.1821849958975,
+       "last": 49
+      },
+      "opal": {
+       "n": 5,
+       "max_um": 111.85935074525317,
+       "last": 120
+      },
+      "plumbogummite": {
+       "n": 3,
+       "max_um": 0.30859587825200996,
+       "last": 111
+      }
+     },
+     "bulkPb": 173.83686441815806,
+     "voxPb": 29.999998263579993,
+     "trace": null,
+     "speciesCount": 12,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "cassiterite",
+      "feldspar",
+      "lepidolite",
+      "morganite",
+      "opal",
+      "plumbogummite",
+      "quartz",
+      "spodumene",
+      "topaz",
+      "tourmaline",
+      "uraninite"
+     ]
+    }
+   }
+  },
+  {
+   "scenario": "radioactive_pegmatite",
+   "seed": 2,
+   "shippedReproducesBaseline": null,
+   "A": {
+    "fill": 1,
+    "full": 59,
+    "lastGrowth": 94,
+    "species": {
+     "uraninite": {
+      "n": 3,
+      "max_um": 6555.356974531266,
+      "last": 59
+     },
+     "quartz": {
+      "n": 3,
+      "max_um": 10982.164985967991,
+      "last": 93
+     },
+     "feldspar": {
+      "n": 2,
+      "max_um": 47207.89998926107,
+      "last": 94
+     },
+     "albite": {
+      "n": 2,
+      "max_um": 59859.356165103534,
+      "last": 94
+     },
+     "spodumene": {
+      "n": 4,
+      "max_um": 1977.1291024256745,
+      "last": 49
+     },
+     "morganite": {
+      "n": 4,
+      "max_um": 19489.4412590423,
+      "last": 59
+     },
+     "tourmaline": {
+      "n": 8,
+      "max_um": 2022.916000861341,
+      "last": 49
+     },
+     "lepidolite": {
+      "n": 6,
+      "max_um": 798.2992695977317,
+      "last": 49
+     },
+     "cassiterite": {
+      "n": 5,
+      "max_um": 138.8555975700451,
+      "last": 49
+     },
+     "topaz": {
+      "n": 4,
+      "max_um": 388.445232659896,
+      "last": 50
+     },
+     "opal": {
+      "n": 5,
+      "max_um": 0,
+      "last": 0
+     },
+     "plumbogummite": {
+      "n": 3,
+      "max_um": 0,
+      "last": 0
+     }
+    },
+    "bulkPb": 147.15031471932483,
+    "voxPb": 30,
+    "trace": null
+   },
+   "B": {
+    "cap=8": {
+     "fill": 0.9865771096447947,
+     "full": null,
+     "lastGrowth": 120,
+     "species": {
+      "uraninite": {
+       "n": 3,
+       "max_um": 11947.51624901024,
+       "last": 79
+      },
+      "quartz": {
+       "n": 3,
+       "max_um": 54581.887525611535,
+       "last": 93
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 8994.973922140001,
+       "last": 120
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 12357.09593126328,
+       "last": 120
+      },
+      "spodumene": {
+       "n": 4,
+       "max_um": 2150.3342219974975,
+       "last": 49
+      },
+      "morganite": {
+       "n": 4,
+       "max_um": 27462.84394447886,
+       "last": 79
+      },
+      "tourmaline": {
+       "n": 8,
+       "max_um": 2387.5445218915884,
+       "last": 49
+      },
+      "lepidolite": {
+       "n": 4,
+       "max_um": 1042.0337927421006,
+       "last": 49
+      },
+      "cassiterite": {
+       "n": 4,
+       "max_um": 161.55107396524713,
+       "last": 49
+      },
+      "topaz": {
+       "n": 4,
+       "max_um": 532.171337087597,
+       "last": 50
+      },
+      "opal": {
+       "n": 5,
+       "max_um": 112.213990108518,
+       "last": 120
+      },
+      "plumbogummite": {
+       "n": 3,
+       "max_um": 0.2908613653788278,
+       "last": 112
+      }
+     },
+     "bulkPb": 167.0912662310804,
+     "voxPb": 29.999998175462814,
+     "trace": null,
+     "speciesCount": 12,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "cassiterite",
+      "feldspar",
+      "lepidolite",
+      "morganite",
+      "opal",
+      "plumbogummite",
+      "quartz",
+      "topaz",
+      "uraninite"
+     ]
+    },
+    "fcap=2": {
+     "fill": 0.9832186092188828,
+     "full": null,
+     "lastGrowth": 120,
+     "species": {
+      "uraninite": {
+       "n": 3,
+       "max_um": 11947.516249001035,
+       "last": 79
+      },
+      "quartz": {
+       "n": 3,
+       "max_um": 53477.38643612862,
+       "last": 93
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 6469.39021870382,
+       "last": 88
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 6096.884292966345,
+       "last": 79
+      },
+      "spodumene": {
+       "n": 4,
+       "max_um": 2150.0786516242943,
+       "last": 49
+      },
+      "morganite": {
+       "n": 4,
+       "max_um": 27462.84393837283,
+       "last": 79
+      },
+      "tourmaline": {
+       "n": 8,
+       "max_um": 2387.5445218915884,
+       "last": 49
+      },
+      "lepidolite": {
+       "n": 4,
+       "max_um": 1042.0337927421006,
+       "last": 49
+      },
+      "cassiterite": {
+       "n": 4,
+       "max_um": 161.55107396524713,
+       "last": 49
+      },
+      "topaz": {
+       "n": 4,
+       "max_um": 532.1713255385848,
+       "last": 50
+      },
+      "opal": {
+       "n": 5,
+       "max_um": 118.29193262686422,
+       "last": 120
+      },
+      "plumbogummite": {
+       "n": 3,
+       "max_um": 0.30117919103168367,
+       "last": 112
+      }
+     },
+     "bulkPb": 167.0912662310701,
+     "voxPb": 29.999998087908992,
+     "trace": null,
+     "speciesCount": 12,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "cassiterite",
+      "feldspar",
+      "lepidolite",
+      "morganite",
+      "opal",
+      "plumbogummite",
+      "quartz",
+      "topaz",
+      "uraninite"
+     ]
+    },
+    "root=3": {
+     "fill": 0.9856504919846094,
+     "full": null,
+     "lastGrowth": 120,
+     "species": {
+      "uraninite": {
+       "n": 3,
+       "max_um": 11947.516248968255,
+       "last": 79
+      },
+      "quartz": {
+       "n": 3,
+       "max_um": 54745.95594964123,
+       "last": 93
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 4944.637948057301,
+       "last": 120
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 6648.084930256786,
+       "last": 120
+      },
+      "spodumene": {
+       "n": 4,
+       "max_um": 2149.2507999346403,
+       "last": 49
+      },
+      "morganite": {
+       "n": 4,
+       "max_um": 27462.84393758497,
+       "last": 79
+      },
+      "tourmaline": {
+       "n": 8,
+       "max_um": 2387.5445218915884,
+       "last": 49
+      },
+      "lepidolite": {
+       "n": 4,
+       "max_um": 1042.0337927421006,
+       "last": 49
+      },
+      "cassiterite": {
+       "n": 4,
+       "max_um": 161.55107396524713,
+       "last": 49
+      },
+      "topaz": {
+       "n": 4,
+       "max_um": 532.1712844462149,
+       "last": 50
+      },
+      "opal": {
+       "n": 5,
+       "max_um": 113.19339266277576,
+       "last": 120
+      },
+      "plumbogummite": {
+       "n": 3,
+       "max_um": 0.2673071300022207,
+       "last": 112
+      }
+     },
+     "bulkPb": 167.09126623103327,
+     "voxPb": 29.99999845021302,
+     "trace": null,
+     "speciesCount": 12,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "cassiterite",
       "feldspar",
       "lepidolite",
       "morganite",
@@ -3871,6 +10188,1357 @@
    }
   },
   {
+   "scenario": "schneeberg",
+   "seed": 1,
+   "shippedReproducesBaseline": null,
+   "A": {
+    "fill": 0.10975151048936564,
+    "full": null,
+    "lastGrowth": 160,
+    "species": {
+     "uraninite": {
+      "n": 3,
+      "max_um": 7843.685378271066,
+      "last": 87
+     },
+     "cassiterite": {
+      "n": 4,
+      "max_um": 46.17127519242876,
+      "last": 19
+     },
+     "quartz": {
+      "n": 3,
+      "max_um": 24850.68784274505,
+      "last": 84
+     },
+     "feldspar": {
+      "n": 2,
+      "max_um": 26632.047657525858,
+      "last": 160
+     },
+     "spodumene": {
+      "n": 1,
+      "max_um": 111.3042677626513,
+      "last": 19
+     },
+     "morganite": {
+      "n": 1,
+      "max_um": 138.15219779910475,
+      "last": 1
+     },
+     "acanthite": {
+      "n": 4,
+      "max_um": 90.61804597818173,
+      "last": 84
+     },
+     "topaz": {
+      "n": 5,
+      "max_um": 21.607330259978035,
+      "last": 21
+     },
+     "arsenopyrite": {
+      "n": 4,
+      "max_um": 2614.524202766569,
+      "last": 69
+     },
+     "nickeline": {
+      "n": 4,
+      "max_um": 551.4095143349782,
+      "last": 69
+     },
+     "cobaltite": {
+      "n": 4,
+      "max_um": 186.9909075921639,
+      "last": 39
+     },
+     "tennantite": {
+      "n": 1,
+      "max_um": 0,
+      "last": 0
+     },
+     "proustite": {
+      "n": 2,
+      "max_um": 12.42050996368746,
+      "last": 84
+     },
+     "native_arsenic": {
+      "n": 4,
+      "max_um": 245.8655575546088,
+      "last": 84
+     },
+     "naumannite": {
+      "n": 1,
+      "max_um": 0,
+      "last": 84
+     },
+     "native_bismuth": {
+      "n": 1,
+      "max_um": 66.13051410947384,
+      "last": 84
+     },
+     "native_silver": {
+      "n": 2,
+      "max_um": 21.65378244360082,
+      "last": 84
+     },
+     "chrysocolla": {
+      "n": 5,
+      "max_um": 3475.277402884167,
+      "last": 124
+     },
+     "cuprite": {
+      "n": 1,
+      "max_um": 4.347787894559064,
+      "last": 90
+     },
+     "metatorbernite": {
+      "n": 4,
+      "max_um": 791.329643460497,
+      "last": 104
+     },
+     "brochantite": {
+      "n": 2,
+      "max_um": 421.0193776877575,
+      "last": 124
+     },
+     "erythrite": {
+      "n": 1,
+      "max_um": 740.3479859709245,
+      "last": 160
+     },
+     "annabergite": {
+      "n": 2,
+      "max_um": 137.18202341629217,
+      "last": 160
+     },
+     "uranophane": {
+      "n": 3,
+      "max_um": 1586.6890990997813,
+      "last": 160
+     },
+     "goethite": {
+      "n": 1,
+      "max_um": 0,
+      "last": 0
+     },
+     "metazeunerite": {
+      "n": 3,
+      "max_um": 543.7758815739593,
+      "last": 124
+     },
+     "zeunerite": {
+      "n": 1,
+      "max_um": 145.28520044245278,
+      "last": 124
+     },
+     "autunite": {
+      "n": 5,
+      "max_um": 1173.7994446104292,
+      "last": 144
+     },
+     "pharmacolite": {
+      "n": 3,
+      "max_um": 462.33710349019907,
+      "last": 160
+     },
+     "uranospinite": {
+      "n": 2,
+      "max_um": 458.2223208977449,
+      "last": 160
+     }
+    },
+    "bulkPb": 221.75913658726714,
+    "voxPb": 5,
+    "trace": null
+   },
+   "B": {
+    "cap=8": {
+     "fill": 0.07130025075763788,
+     "full": null,
+     "lastGrowth": 160,
+     "species": {
+      "uraninite": {
+       "n": 3,
+       "max_um": 7139.981570779912,
+       "last": 87
+      },
+      "cassiterite": {
+       "n": 4,
+       "max_um": 46.17127519242876,
+       "last": 19
+      },
+      "quartz": {
+       "n": 3,
+       "max_um": 24749.246742251136,
+       "last": 84
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 9827.186625302178,
+       "last": 160
+      },
+      "spodumene": {
+       "n": 1,
+       "max_um": 111.16959884532497,
+       "last": 19
+      },
+      "morganite": {
+       "n": 1,
+       "max_um": 138.15219779910475,
+       "last": 1
+      },
+      "acanthite": {
+       "n": 4,
+       "max_um": 93.70534459495411,
+       "last": 84
+      },
+      "topaz": {
+       "n": 5,
+       "max_um": 21.60717793554614,
+       "last": 21
+      },
+      "arsenopyrite": {
+       "n": 4,
+       "max_um": 2600.721799508544,
+       "last": 69
+      },
+      "nickeline": {
+       "n": 4,
+       "max_um": 547.5765054159037,
+       "last": 69
+      },
+      "cobaltite": {
+       "n": 4,
+       "max_um": 0,
+       "last": 39
+      },
+      "tennantite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "proustite": {
+       "n": 2,
+       "max_um": 10.696617404241607,
+       "last": 84
+      },
+      "native_arsenic": {
+       "n": 4,
+       "max_um": 0,
+       "last": 84
+      },
+      "naumannite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 84
+      },
+      "native_bismuth": {
+       "n": 1,
+       "max_um": 0,
+       "last": 84
+      },
+      "native_silver": {
+       "n": 2,
+       "max_um": 21.65368861797411,
+       "last": 84
+      },
+      "chrysocolla": {
+       "n": 5,
+       "max_um": 3403.7201014660786,
+       "last": 124
+      },
+      "cuprite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 90
+      },
+      "metatorbernite": {
+       "n": 4,
+       "max_um": 755.4324840913445,
+       "last": 104
+      },
+      "brochantite": {
+       "n": 2,
+       "max_um": 433.23324463251583,
+       "last": 124
+      },
+      "erythrite": {
+       "n": 1,
+       "max_um": 715.2542190696425,
+       "last": 160
+      },
+      "annabergite": {
+       "n": 2,
+       "max_um": 221.70718954258163,
+       "last": 160
+      },
+      "uranophane": {
+       "n": 3,
+       "max_um": 1556.3919894766786,
+       "last": 160
+      },
+      "goethite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "metazeunerite": {
+       "n": 3,
+       "max_um": 598.0744413603257,
+       "last": 124
+      },
+      "zeunerite": {
+       "n": 1,
+       "max_um": 133.4350058375084,
+       "last": 124
+      },
+      "autunite": {
+       "n": 5,
+       "max_um": 1152.0394159965585,
+       "last": 144
+      },
+      "pharmacolite": {
+       "n": 3,
+       "max_um": 474.83122533170393,
+       "last": 160
+      },
+      "uranospinite": {
+       "n": 2,
+       "max_um": 457.6981557853485,
+       "last": 160
+      }
+     },
+     "bulkPb": 272.7949315790619,
+     "voxPb": 5,
+     "trace": null,
+     "speciesCount": 30,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "annabergite",
+      "cobaltite",
+      "cuprite",
+      "feldspar",
+      "native_arsenic",
+      "native_bismuth"
+     ]
+    },
+    "fcap=2": {
+     "fill": 0.06615479196679547,
+     "full": null,
+     "lastGrowth": 160,
+     "species": {
+      "uraninite": {
+       "n": 3,
+       "max_um": 6940.498013487018,
+       "last": 87
+      },
+      "cassiterite": {
+       "n": 4,
+       "max_um": 44.789016688479485,
+       "last": 19
+      },
+      "quartz": {
+       "n": 3,
+       "max_um": 24200.360263743034,
+       "last": 84
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 1707.8984193617819,
+       "last": 69
+      },
+      "spodumene": {
+       "n": 1,
+       "max_um": 112.08346926236834,
+       "last": 19
+      },
+      "morganite": {
+       "n": 1,
+       "max_um": 138.15219779910475,
+       "last": 1
+      },
+      "acanthite": {
+       "n": 4,
+       "max_um": 1007.3266190889611,
+       "last": 84
+      },
+      "topaz": {
+       "n": 5,
+       "max_um": 21.73383002129988,
+       "last": 21
+      },
+      "arsenopyrite": {
+       "n": 4,
+       "max_um": 2651.9819009454054,
+       "last": 69
+      },
+      "nickeline": {
+       "n": 4,
+       "max_um": 563.5320868218123,
+       "last": 69
+      },
+      "cobaltite": {
+       "n": 4,
+       "max_um": 0,
+       "last": 39
+      },
+      "tennantite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "proustite": {
+       "n": 2,
+       "max_um": 7.040714767263399,
+       "last": 84
+      },
+      "native_arsenic": {
+       "n": 4,
+       "max_um": 0,
+       "last": 84
+      },
+      "naumannite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 84
+      },
+      "native_bismuth": {
+       "n": 1,
+       "max_um": 0,
+       "last": 84
+      },
+      "native_silver": {
+       "n": 2,
+       "max_um": 0,
+       "last": 84
+      },
+      "chrysocolla": {
+       "n": 5,
+       "max_um": 3423.223579208117,
+       "last": 124
+      },
+      "cuprite": {
+       "n": 1,
+       "max_um": 4.338696730117465,
+       "last": 90
+      },
+      "metatorbernite": {
+       "n": 4,
+       "max_um": 819.7362481312558,
+       "last": 104
+      },
+      "brochantite": {
+       "n": 2,
+       "max_um": 423.14613157941466,
+       "last": 124
+      },
+      "erythrite": {
+       "n": 1,
+       "max_um": 716.789008651347,
+       "last": 160
+      },
+      "annabergite": {
+       "n": 2,
+       "max_um": 170.86325098848323,
+       "last": 160
+      },
+      "uranophane": {
+       "n": 3,
+       "max_um": 1548.4293511338838,
+       "last": 160
+      },
+      "goethite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "metazeunerite": {
+       "n": 3,
+       "max_um": 566.2325546022835,
+       "last": 124
+      },
+      "zeunerite": {
+       "n": 1,
+       "max_um": 117.9604255791379,
+       "last": 124
+      },
+      "autunite": {
+       "n": 5,
+       "max_um": 1187.9358738569708,
+       "last": 144
+      },
+      "pharmacolite": {
+       "n": 3,
+       "max_um": 472.2486924825495,
+       "last": 160
+      },
+      "uranospinite": {
+       "n": 2,
+       "max_um": 482.07391880580076,
+       "last": 160
+      }
+     },
+     "bulkPb": 272.6387838356422,
+     "voxPb": 5,
+     "trace": null,
+     "speciesCount": 30,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "acanthite",
+      "cobaltite",
+      "feldspar",
+      "native_arsenic",
+      "native_bismuth",
+      "native_silver",
+      "proustite"
+     ]
+    },
+    "root=3": {
+     "fill": 0.07118737018146963,
+     "full": null,
+     "lastGrowth": 160,
+     "species": {
+      "uraninite": {
+       "n": 3,
+       "max_um": 7117.204790508422,
+       "last": 87
+      },
+      "cassiterite": {
+       "n": 4,
+       "max_um": 46.17127519242876,
+       "last": 19
+      },
+      "quartz": {
+       "n": 3,
+       "max_um": 25006.61664977795,
+       "last": 84
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 2753.8152471520666,
+       "last": 160
+      },
+      "spodumene": {
+       "n": 1,
+       "max_um": 111.13086888002043,
+       "last": 19
+      },
+      "morganite": {
+       "n": 1,
+       "max_um": 138.15219779910475,
+       "last": 1
+      },
+      "acanthite": {
+       "n": 4,
+       "max_um": 1034.1840225775054,
+       "last": 84
+      },
+      "topaz": {
+       "n": 5,
+       "max_um": 21.607144798901516,
+       "last": 21
+      },
+      "arsenopyrite": {
+       "n": 4,
+       "max_um": 2600.721799508544,
+       "last": 69
+      },
+      "nickeline": {
+       "n": 4,
+       "max_um": 547.5765054159037,
+       "last": 69
+      },
+      "cobaltite": {
+       "n": 4,
+       "max_um": 0,
+       "last": 39
+      },
+      "tennantite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "proustite": {
+       "n": 2,
+       "max_um": 6.8437011506130565,
+       "last": 84
+      },
+      "native_arsenic": {
+       "n": 4,
+       "max_um": 0,
+       "last": 84
+      },
+      "naumannite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 84
+      },
+      "native_bismuth": {
+       "n": 1,
+       "max_um": 0,
+       "last": 84
+      },
+      "native_silver": {
+       "n": 2,
+       "max_um": 0,
+       "last": 84
+      },
+      "chrysocolla": {
+       "n": 5,
+       "max_um": 3447.831551821171,
+       "last": 124
+      },
+      "cuprite": {
+       "n": 1,
+       "max_um": 4.449109544337566,
+       "last": 90
+      },
+      "metatorbernite": {
+       "n": 4,
+       "max_um": 785.0412163344276,
+       "last": 104
+      },
+      "brochantite": {
+       "n": 2,
+       "max_um": 422.69879093656067,
+       "last": 124
+      },
+      "erythrite": {
+       "n": 1,
+       "max_um": 722.2702120691758,
+       "last": 160
+      },
+      "annabergite": {
+       "n": 2,
+       "max_um": 125.52516768372399,
+       "last": 160
+      },
+      "uranophane": {
+       "n": 3,
+       "max_um": 1612.545973689317,
+       "last": 160
+      },
+      "goethite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "metazeunerite": {
+       "n": 3,
+       "max_um": 574.8007209814672,
+       "last": 124
+      },
+      "zeunerite": {
+       "n": 1,
+       "max_um": 117.45757973783772,
+       "last": 124
+      },
+      "autunite": {
+       "n": 5,
+       "max_um": 1138.8083232158356,
+       "last": 144
+      },
+      "pharmacolite": {
+       "n": 3,
+       "max_um": 436.13296753191565,
+       "last": 160
+      },
+      "uranospinite": {
+       "n": 2,
+       "max_um": 495.3817804355349,
+       "last": 160
+      }
+     },
+     "bulkPb": 274.121647369746,
+     "voxPb": 5,
+     "trace": null,
+     "speciesCount": 30,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "acanthite",
+      "cobaltite",
+      "feldspar",
+      "native_arsenic",
+      "native_bismuth",
+      "native_silver",
+      "proustite"
+     ]
+    }
+   }
+  },
+  {
+   "scenario": "schneeberg",
+   "seed": 2,
+   "shippedReproducesBaseline": null,
+   "A": {
+    "fill": 0.10621615373266169,
+    "full": null,
+    "lastGrowth": 160,
+    "species": {
+     "uraninite": {
+      "n": 3,
+      "max_um": 7818.360404481537,
+      "last": 87
+     },
+     "quartz": {
+      "n": 3,
+      "max_um": 24375.828412447012,
+      "last": 84
+     },
+     "feldspar": {
+      "n": 2,
+      "max_um": 26702.57259030663,
+      "last": 160
+     },
+     "spodumene": {
+      "n": 1,
+      "max_um": 115.04497048434914,
+      "last": 19
+     },
+     "morganite": {
+      "n": 1,
+      "max_um": 126.90289830167896,
+      "last": 1
+     },
+     "arsenopyrite": {
+      "n": 4,
+      "max_um": 3206.918014409945,
+      "last": 69
+     },
+     "acanthite": {
+      "n": 4,
+      "max_um": 1060.9070588860773,
+      "last": 84
+     },
+     "cobaltite": {
+      "n": 5,
+      "max_um": 230.4152053645894,
+      "last": 38
+     },
+     "nickeline": {
+      "n": 4,
+      "max_um": 1615.7443766412891,
+      "last": 69
+     },
+     "cassiterite": {
+      "n": 4,
+      "max_um": 33.942980906060555,
+      "last": 19
+     },
+     "topaz": {
+      "n": 6,
+      "max_um": 16.92205520010013,
+      "last": 25
+     },
+     "tennantite": {
+      "n": 1,
+      "max_um": 0,
+      "last": 0
+     },
+     "proustite": {
+      "n": 2,
+      "max_um": 715.5180562439518,
+      "last": 84
+     },
+     "native_arsenic": {
+      "n": 5,
+      "max_um": 170.6071995928597,
+      "last": 84
+     },
+     "native_bismuth": {
+      "n": 1,
+      "max_um": 63.29576006711058,
+      "last": 84
+     },
+     "native_silver": {
+      "n": 4,
+      "max_um": 0,
+      "last": 84
+     },
+     "naumannite": {
+      "n": 2,
+      "max_um": 66.11317852622513,
+      "last": 84
+     },
+     "chrysocolla": {
+      "n": 5,
+      "max_um": 3359.651572423288,
+      "last": 124
+     },
+     "cuprite": {
+      "n": 1,
+      "max_um": 0,
+      "last": 90
+     },
+     "turquoise": {
+      "n": 1,
+      "max_um": 253.272578412511,
+      "last": 104
+     },
+     "metatorbernite": {
+      "n": 2,
+      "max_um": 754.6253009997556,
+      "last": 104
+     },
+     "brochantite": {
+      "n": 5,
+      "max_um": 433.1163903992261,
+      "last": 124
+     },
+     "erythrite": {
+      "n": 1,
+      "max_um": 728.8219162138059,
+      "last": 160
+     },
+     "annabergite": {
+      "n": 2,
+      "max_um": 214.02640357922684,
+      "last": 160
+     },
+     "metazeunerite": {
+      "n": 4,
+      "max_um": 859.079146056097,
+      "last": 124
+     },
+     "uranophane": {
+      "n": 3,
+      "max_um": 1659.2282158558305,
+      "last": 160
+     },
+     "goethite": {
+      "n": 3,
+      "max_um": 25.493301834725983,
+      "last": 148
+     },
+     "autunite": {
+      "n": 2,
+      "max_um": 1079.600803070134,
+      "last": 144
+     },
+     "uranospinite": {
+      "n": 3,
+      "max_um": 671.0292852482224,
+      "last": 160
+     }
+    },
+    "bulkPb": 217.48936058357472,
+    "voxPb": 5,
+    "trace": null
+   },
+   "B": {
+    "cap=8": {
+     "fill": 0.07209689342893673,
+     "full": null,
+     "lastGrowth": 160,
+     "species": {
+      "uraninite": {
+       "n": 3,
+       "max_um": 6886.6841163643585,
+       "last": 87
+      },
+      "quartz": {
+       "n": 3,
+       "max_um": 25021.59182513806,
+       "last": 84
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 9831.347963639553,
+       "last": 160
+      },
+      "spodumene": {
+       "n": 1,
+       "max_um": 114.93251395441715,
+       "last": 19
+      },
+      "morganite": {
+       "n": 1,
+       "max_um": 126.90289830167896,
+       "last": 1
+      },
+      "arsenopyrite": {
+       "n": 4,
+       "max_um": 3089.683122113349,
+       "last": 69
+      },
+      "acanthite": {
+       "n": 4,
+       "max_um": 148.44289401823517,
+       "last": 84
+      },
+      "cobaltite": {
+       "n": 5,
+       "max_um": 230.4152053645894,
+       "last": 38
+      },
+      "nickeline": {
+       "n": 4,
+       "max_um": 1637.0850174880436,
+       "last": 69
+      },
+      "cassiterite": {
+       "n": 4,
+       "max_um": 33.942980906060555,
+       "last": 19
+      },
+      "topaz": {
+       "n": 6,
+       "max_um": 16.92205520010013,
+       "last": 25
+      },
+      "tennantite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "proustite": {
+       "n": 2,
+       "max_um": 6.520895333020002,
+       "last": 84
+      },
+      "native_arsenic": {
+       "n": 4,
+       "max_um": 0,
+       "last": 84
+      },
+      "native_bismuth": {
+       "n": 1,
+       "max_um": 0,
+       "last": 84
+      },
+      "native_silver": {
+       "n": 4,
+       "max_um": 0,
+       "last": 84
+      },
+      "naumannite": {
+       "n": 2,
+       "max_um": 0,
+       "last": 84
+      },
+      "chrysocolla": {
+       "n": 5,
+       "max_um": 3425.123740210876,
+       "last": 124
+      },
+      "cuprite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 90
+      },
+      "turquoise": {
+       "n": 1,
+       "max_um": 254.01808042457037,
+       "last": 104
+      },
+      "metatorbernite": {
+       "n": 2,
+       "max_um": 706.2149340313838,
+       "last": 104
+      },
+      "brochantite": {
+       "n": 5,
+       "max_um": 444.131316085559,
+       "last": 124
+      },
+      "erythrite": {
+       "n": 1,
+       "max_um": 673.9460942455852,
+       "last": 160
+      },
+      "annabergite": {
+       "n": 1,
+       "max_um": 288.5825994244028,
+       "last": 160
+      },
+      "metazeunerite": {
+       "n": 4,
+       "max_um": 883.876888265307,
+       "last": 124
+      },
+      "uranophane": {
+       "n": 3,
+       "max_um": 1687.0136734642351,
+       "last": 160
+      },
+      "goethite": {
+       "n": 1,
+       "max_um": 55.389137815155806,
+       "last": 160
+      },
+      "autunite": {
+       "n": 2,
+       "max_um": 1079.7007669639313,
+       "last": 144
+      },
+      "uranospinite": {
+       "n": 3,
+       "max_um": 676.9621163195898,
+       "last": 160
+      }
+     },
+     "bulkPb": 266.60691623428,
+     "voxPb": 5,
+     "trace": null,
+     "speciesCount": 29,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "acanthite",
+      "annabergite",
+      "feldspar",
+      "goethite",
+      "native_arsenic",
+      "native_bismuth",
+      "naumannite",
+      "proustite"
+     ]
+    },
+    "fcap=2": {
+     "fill": 0.06531932799084957,
+     "full": null,
+     "lastGrowth": 160,
+     "species": {
+      "uraninite": {
+       "n": 3,
+       "max_um": 7062.204451428019,
+       "last": 87
+      },
+      "quartz": {
+       "n": 3,
+       "max_um": 24352.848212791218,
+       "last": 84
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 1672.345344702727,
+       "last": 69
+      },
+      "spodumene": {
+       "n": 1,
+       "max_um": 111.73236651880023,
+       "last": 19
+      },
+      "morganite": {
+       "n": 1,
+       "max_um": 126.90289830167896,
+       "last": 1
+      },
+      "arsenopyrite": {
+       "n": 4,
+       "max_um": 3197.4522609860323,
+       "last": 69
+      },
+      "acanthite": {
+       "n": 4,
+       "max_um": 656.0419212621543,
+       "last": 84
+      },
+      "cobaltite": {
+       "n": 5,
+       "max_um": 235.31926566077337,
+       "last": 38
+      },
+      "nickeline": {
+       "n": 4,
+       "max_um": 823.5059889746271,
+       "last": 69
+      },
+      "cassiterite": {
+       "n": 4,
+       "max_um": 34.11406634586846,
+       "last": 19
+      },
+      "topaz": {
+       "n": 6,
+       "max_um": 21.78225370593762,
+       "last": 25
+      },
+      "tennantite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "proustite": {
+       "n": 2,
+       "max_um": 5.511843253708426,
+       "last": 84
+      },
+      "native_arsenic": {
+       "n": 4,
+       "max_um": 0,
+       "last": 84
+      },
+      "native_bismuth": {
+       "n": 1,
+       "max_um": 0,
+       "last": 84
+      },
+      "native_silver": {
+       "n": 4,
+       "max_um": 0,
+       "last": 84
+      },
+      "naumannite": {
+       "n": 2,
+       "max_um": 0,
+       "last": 84
+      },
+      "chrysocolla": {
+       "n": 5,
+       "max_um": 3336.5352570433165,
+       "last": 124
+      },
+      "cuprite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 90
+      },
+      "turquoise": {
+       "n": 1,
+       "max_um": 266.9357969491475,
+       "last": 104
+      },
+      "metatorbernite": {
+       "n": 2,
+       "max_um": 730.1479696189784,
+       "last": 104
+      },
+      "brochantite": {
+       "n": 5,
+       "max_um": 433.1925842317104,
+       "last": 124
+      },
+      "erythrite": {
+       "n": 1,
+       "max_um": 698.8570826800865,
+       "last": 160
+      },
+      "annabergite": {
+       "n": 1,
+       "max_um": 276.5428260142899,
+       "last": 160
+      },
+      "metazeunerite": {
+       "n": 4,
+       "max_um": 875.1359250414898,
+       "last": 124
+      },
+      "uranophane": {
+       "n": 3,
+       "max_um": 1707.6704926680306,
+       "last": 160
+      },
+      "goethite": {
+       "n": 1,
+       "max_um": 56.956863597665105,
+       "last": 160
+      },
+      "autunite": {
+       "n": 2,
+       "max_um": 1066.8856122793013,
+       "last": 144
+      },
+      "uranospinite": {
+       "n": 3,
+       "max_um": 652.2692882518834,
+       "last": 160
+      }
+     },
+     "bulkPb": 269.4528647635827,
+     "voxPb": 5,
+     "trace": null,
+     "speciesCount": 29,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "acanthite",
+      "annabergite",
+      "feldspar",
+      "goethite",
+      "native_arsenic",
+      "native_bismuth",
+      "naumannite",
+      "nickeline",
+      "proustite",
+      "topaz"
+     ]
+    },
+    "root=3": {
+     "fill": 0.06870938155279736,
+     "full": null,
+     "lastGrowth": 160,
+     "species": {
+      "uraninite": {
+       "n": 3,
+       "max_um": 6903.431898162666,
+       "last": 87
+      },
+      "quartz": {
+       "n": 3,
+       "max_um": 24856.531793578375,
+       "last": 84
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 2772.8220655530117,
+       "last": 160
+      },
+      "spodumene": {
+       "n": 1,
+       "max_um": 114.90720750839908,
+       "last": 19
+      },
+      "morganite": {
+       "n": 1,
+       "max_um": 126.90289830167896,
+       "last": 1
+      },
+      "arsenopyrite": {
+       "n": 4,
+       "max_um": 3089.683122113349,
+       "last": 69
+      },
+      "acanthite": {
+       "n": 4,
+       "max_um": 690.6167577408955,
+       "last": 84
+      },
+      "cobaltite": {
+       "n": 5,
+       "max_um": 230.4152053645894,
+       "last": 38
+      },
+      "nickeline": {
+       "n": 4,
+       "max_um": 911.9468407570157,
+       "last": 69
+      },
+      "cassiterite": {
+       "n": 4,
+       "max_um": 33.942980906060555,
+       "last": 19
+      },
+      "topaz": {
+       "n": 6,
+       "max_um": 16.92205520010013,
+       "last": 25
+      },
+      "tennantite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 0
+      },
+      "proustite": {
+       "n": 2,
+       "max_um": 6.51956332331583,
+       "last": 84
+      },
+      "native_arsenic": {
+       "n": 4,
+       "max_um": 0,
+       "last": 84
+      },
+      "native_bismuth": {
+       "n": 1,
+       "max_um": 0,
+       "last": 84
+      },
+      "native_silver": {
+       "n": 4,
+       "max_um": 0,
+       "last": 84
+      },
+      "naumannite": {
+       "n": 2,
+       "max_um": 0,
+       "last": 84
+      },
+      "chrysocolla": {
+       "n": 5,
+       "max_um": 3318.0557565786653,
+       "last": 124
+      },
+      "cuprite": {
+       "n": 1,
+       "max_um": 0,
+       "last": 90
+      },
+      "turquoise": {
+       "n": 1,
+       "max_um": 259.2180929209806,
+       "last": 104
+      },
+      "metatorbernite": {
+       "n": 2,
+       "max_um": 715.7864594223851,
+       "last": 104
+      },
+      "brochantite": {
+       "n": 5,
+       "max_um": 451.377096809928,
+       "last": 124
+      },
+      "erythrite": {
+       "n": 1,
+       "max_um": 733.6248235777125,
+       "last": 160
+      },
+      "annabergite": {
+       "n": 1,
+       "max_um": 258.361537043418,
+       "last": 160
+      },
+      "metazeunerite": {
+       "n": 4,
+       "max_um": 860.6113816038737,
+       "last": 124
+      },
+      "uranophane": {
+       "n": 3,
+       "max_um": 1659.8671925520557,
+       "last": 160
+      },
+      "goethite": {
+       "n": 1,
+       "max_um": 57.97571326314113,
+       "last": 160
+      },
+      "autunite": {
+       "n": 2,
+       "max_um": 1065.6175133329407,
+       "last": 144
+      },
+      "uranospinite": {
+       "n": 3,
+       "max_um": 679.6080951192442,
+       "last": 160
+      }
+     },
+     "bulkPb": 266.09133469212605,
+     "voxPb": 5,
+     "trace": null,
+     "speciesCount": 29,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "acanthite",
+      "annabergite",
+      "feldspar",
+      "goethite",
+      "native_arsenic",
+      "native_bismuth",
+      "naumannite",
+      "nickeline",
+      "proustite"
+     ]
+    }
+   }
+  },
+  {
    "scenario": "shigar_pegmatite",
    "seed": 42,
    "shippedReproducesBaseline": true,
@@ -4037,6 +11705,345 @@
       "albite",
       "feldspar",
       "topaz"
+     ]
+    }
+   }
+  },
+  {
+   "scenario": "shigar_pegmatite",
+   "seed": 1,
+   "shippedReproducesBaseline": null,
+   "A": {
+    "fill": 0.9156072580051425,
+    "full": null,
+    "lastGrowth": 70,
+    "species": {
+     "quartz": {
+      "n": 3,
+      "max_um": 11040.788164354579,
+      "last": 70
+     },
+     "feldspar": {
+      "n": 2,
+      "max_um": 115041.07758489958,
+      "last": 70
+     },
+     "albite": {
+      "n": 2,
+      "max_um": 267935.9106422501,
+      "last": 70
+     },
+     "tourmaline": {
+      "n": 8,
+      "max_um": 1767.765073331503,
+      "last": 57
+     },
+     "topaz": {
+      "n": 2,
+      "max_um": 640.9556190526878,
+      "last": 64
+     }
+    },
+    "bulkPb": 0,
+    "voxPb": 0,
+    "trace": null
+   },
+   "B": {
+    "cap=8": {
+     "fill": 0.0001620612189137511,
+     "full": null,
+     "lastGrowth": 70,
+     "species": {
+      "quartz": {
+       "n": 3,
+       "max_um": 12792.18528631927,
+       "last": 70
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 7338.668423014227,
+       "last": 70
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 9655.08403037861,
+       "last": 70
+      },
+      "tourmaline": {
+       "n": 8,
+       "max_um": 1792.0769908564537,
+       "last": 57
+      },
+      "topaz": {
+       "n": 4,
+       "max_um": 709.0563487359357,
+       "last": 64
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 5,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "feldspar",
+      "topaz"
+     ]
+    },
+    "fcap=2": {
+     "fill": 0.00010220990383050149,
+     "full": null,
+     "lastGrowth": 70,
+     "species": {
+      "quartz": {
+       "n": 3,
+       "max_um": 12918.298012925816,
+       "last": 70
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 3045.7778247509996,
+       "last": 70
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 7298.899249390097,
+       "last": 70
+      },
+      "tourmaline": {
+       "n": 8,
+       "max_um": 1803.884907658792,
+       "last": 57
+      },
+      "topaz": {
+       "n": 4,
+       "max_um": 677.638594458137,
+       "last": 64
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 5,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "feldspar",
+      "topaz"
+     ]
+    },
+    "root=3": {
+     "fill": 0.00013787352993269636,
+     "full": null,
+     "lastGrowth": 70,
+     "species": {
+      "quartz": {
+       "n": 3,
+       "max_um": 12792.221858260911,
+       "last": 70
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 5648.910493513367,
+       "last": 70
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 9616.912756752685,
+       "last": 70
+      },
+      "tourmaline": {
+       "n": 8,
+       "max_um": 1792.0036654569672,
+       "last": 57
+      },
+      "topaz": {
+       "n": 4,
+       "max_um": 709.0563487359357,
+       "last": 64
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 5,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "feldspar",
+      "topaz"
+     ]
+    }
+   }
+  },
+  {
+   "scenario": "shigar_pegmatite",
+   "seed": 2,
+   "shippedReproducesBaseline": null,
+   "A": {
+    "fill": 0.9037260097767852,
+    "full": null,
+    "lastGrowth": 70,
+    "species": {
+     "quartz": {
+      "n": 3,
+      "max_um": 11268.207469311857,
+      "last": 70
+     },
+     "feldspar": {
+      "n": 2,
+      "max_um": 112235.70389745892,
+      "last": 70
+     },
+     "albite": {
+      "n": 2,
+      "max_um": 276761.1195568812,
+      "last": 70
+     },
+     "tourmaline": {
+      "n": 8,
+      "max_um": 1879.0206853740028,
+      "last": 57
+     },
+     "topaz": {
+      "n": 6,
+      "max_um": 629.0991579013582,
+      "last": 64
+     }
+    },
+    "bulkPb": 0,
+    "voxPb": 0,
+    "trace": null
+   },
+   "B": {
+    "cap=8": {
+     "fill": 0.00014432355253580036,
+     "full": null,
+     "lastGrowth": 70,
+     "species": {
+      "quartz": {
+       "n": 3,
+       "max_um": 12785.567432937332,
+       "last": 70
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 7252.553434824105,
+       "last": 70
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 9850.97516384162,
+       "last": 70
+      },
+      "tourmaline": {
+       "n": 8,
+       "max_um": 1796.4679140182307,
+       "last": 57
+      },
+      "topaz": {
+       "n": 6,
+       "max_um": 681.9951419330591,
+       "last": 64
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 5,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "feldspar"
+     ]
+    },
+    "fcap=2": {
+     "fill": 0.00008836386145327255,
+     "full": null,
+     "lastGrowth": 70,
+     "species": {
+      "quartz": {
+       "n": 3,
+       "max_um": 12942.908884786533,
+       "last": 70
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 3110.8846112761253,
+       "last": 70
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 7194.414795269516,
+       "last": 70
+      },
+      "tourmaline": {
+       "n": 8,
+       "max_um": 1854.027921627531,
+       "last": 57
+      },
+      "topaz": {
+       "n": 6,
+       "max_um": 680.9903577606289,
+       "last": 64
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 5,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "feldspar"
+     ]
+    },
+    "root=3": {
+     "fill": 0.00012061152715272342,
+     "full": null,
+     "lastGrowth": 70,
+     "species": {
+      "quartz": {
+       "n": 3,
+       "max_um": 12787.965732538012,
+       "last": 70
+      },
+      "feldspar": {
+       "n": 2,
+       "max_um": 5619.772584197212,
+       "last": 70
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 9887.736961548128,
+       "last": 70
+      },
+      "tourmaline": {
+       "n": 8,
+       "max_um": 1796.467913044221,
+       "last": 57
+      },
+      "topaz": {
+       "n": 6,
+       "max_um": 681.9951419326574,
+       "last": 64
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 5,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "feldspar"
      ]
     }
    }
@@ -4214,6 +12221,384 @@
        "n": 1,
        "max_um": 8.814876660111992,
        "last": 153
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 6,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "feldspar"
+     ]
+    }
+   }
+  },
+  {
+   "scenario": "tormiq_alpine_cleft",
+   "seed": 1,
+   "shippedReproducesBaseline": null,
+   "A": {
+    "fill": 0.08283078368521804,
+    "full": null,
+    "lastGrowth": 200,
+    "species": {
+     "feldspar": {
+      "n": 2,
+      "max_um": 37180.352465021824,
+      "last": 200
+     },
+     "albite": {
+      "n": 2,
+      "max_um": 66521.0609492913,
+      "last": 200
+     },
+     "epidote": {
+      "n": 5,
+      "max_um": 24030.78226840156,
+      "last": 200
+     },
+     "titanite": {
+      "n": 3,
+      "max_um": 5270.452272219148,
+      "last": 200
+     },
+     "actinolite": {
+      "n": 4,
+      "max_um": 1414.683867928637,
+      "last": 200
+     },
+     "quartz": {
+      "n": 2,
+      "max_um": 52.58315538043448,
+      "last": 155
+     }
+    },
+    "bulkPb": 0,
+    "voxPb": 0,
+    "trace": null
+   },
+   "B": {
+    "cap=8": {
+     "fill": 0.019777937154911763,
+     "full": null,
+     "lastGrowth": 200,
+     "species": {
+      "feldspar": {
+       "n": 2,
+       "max_um": 18753.463134952835,
+       "last": 200
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 26483.3645678429,
+       "last": 200
+      },
+      "epidote": {
+       "n": 5,
+       "max_um": 23904.449489841514,
+       "last": 200
+      },
+      "titanite": {
+       "n": 3,
+       "max_um": 5278.088725275831,
+       "last": 200
+      },
+      "actinolite": {
+       "n": 4,
+       "max_um": 1409.821023097298,
+       "last": 200
+      },
+      "quartz": {
+       "n": 2,
+       "max_um": 41.879957774747226,
+       "last": 155
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 6,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "feldspar"
+     ]
+    },
+    "fcap=2": {
+     "fill": 0.014293049705916027,
+     "full": null,
+     "lastGrowth": 200,
+     "species": {
+      "feldspar": {
+       "n": 2,
+       "max_um": 11176.383586982642,
+       "last": 200
+      },
+      "albite": {
+       "n": 3,
+       "max_um": 14799.925235331943,
+       "last": 200
+      },
+      "epidote": {
+       "n": 5,
+       "max_um": 23870.640479542704,
+       "last": 200
+      },
+      "titanite": {
+       "n": 3,
+       "max_um": 5224.68277195299,
+       "last": 200
+      },
+      "actinolite": {
+       "n": 4,
+       "max_um": 1444.4556507102263,
+       "last": 200
+      },
+      "quartz": {
+       "n": 2,
+       "max_um": 32.06638919185356,
+       "last": 155
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 6,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "feldspar",
+      "quartz"
+     ]
+    },
+    "root=3": {
+     "fill": 0.013245767342930603,
+     "full": null,
+     "lastGrowth": 200,
+     "species": {
+      "feldspar": {
+       "n": 2,
+       "max_um": 4189.070557578536,
+       "last": 200
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 7231.649403363878,
+       "last": 200
+      },
+      "epidote": {
+       "n": 5,
+       "max_um": 23846.9681579936,
+       "last": 200
+      },
+      "titanite": {
+       "n": 3,
+       "max_um": 5241.206002980737,
+       "last": 200
+      },
+      "actinolite": {
+       "n": 4,
+       "max_um": 1434.8493113722589,
+       "last": 200
+      },
+      "quartz": {
+       "n": 1,
+       "max_um": 59.20617524316512,
+       "last": 155
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 6,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "feldspar",
+      "quartz"
+     ]
+    }
+   }
+  },
+  {
+   "scenario": "tormiq_alpine_cleft",
+   "seed": 2,
+   "shippedReproducesBaseline": null,
+   "A": {
+    "fill": 0.06301447842245453,
+    "full": null,
+    "lastGrowth": 200,
+    "species": {
+     "feldspar": {
+      "n": 2,
+      "max_um": 37410.86109160569,
+      "last": 200
+     },
+     "albite": {
+      "n": 2,
+      "max_um": 66524.40198679891,
+      "last": 200
+     },
+     "epidote": {
+      "n": 5,
+      "max_um": 24115.39675860478,
+      "last": 200
+     },
+     "titanite": {
+      "n": 3,
+      "max_um": 5089.420822119481,
+      "last": 200
+     },
+     "actinolite": {
+      "n": 4,
+      "max_um": 1447.7285741556248,
+      "last": 200
+     },
+     "quartz": {
+      "n": 3,
+      "max_um": 102.93967912562272,
+      "last": 188
+     }
+    },
+    "bulkPb": 0,
+    "voxPb": 0,
+    "trace": null
+   },
+   "B": {
+    "cap=8": {
+     "fill": 0.011287893116876517,
+     "full": null,
+     "lastGrowth": 200,
+     "species": {
+      "feldspar": {
+       "n": 2,
+       "max_um": 18944.423285069417,
+       "last": 200
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 26301.814119757568,
+       "last": 200
+      },
+      "epidote": {
+       "n": 5,
+       "max_um": 24115.39675860478,
+       "last": 200
+      },
+      "titanite": {
+       "n": 3,
+       "max_um": 5089.420822119481,
+       "last": 200
+      },
+      "actinolite": {
+       "n": 4,
+       "max_um": 1447.7285733846686,
+       "last": 200
+      },
+      "quartz": {
+       "n": 3,
+       "max_um": 102.94849607399371,
+       "last": 188
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 6,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "feldspar"
+     ]
+    },
+    "fcap=2": {
+     "fill": 0.007161063373339246,
+     "full": null,
+     "lastGrowth": 200,
+     "species": {
+      "feldspar": {
+       "n": 2,
+       "max_um": 11082.476644160266,
+       "last": 200
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 14515.349126492976,
+       "last": 200
+      },
+      "epidote": {
+       "n": 5,
+       "max_um": 24061.756260477006,
+       "last": 200
+      },
+      "titanite": {
+       "n": 3,
+       "max_um": 5094.9595004588855,
+       "last": 200
+      },
+      "actinolite": {
+       "n": 4,
+       "max_um": 1430.9509734059611,
+       "last": 200
+      },
+      "quartz": {
+       "n": 3,
+       "max_um": 120.45546468943309,
+       "last": 188
+      }
+     },
+     "bulkPb": 0,
+     "voxPb": 0,
+     "trace": null,
+     "speciesCount": 6,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "albite",
+      "feldspar"
+     ]
+    },
+    "root=3": {
+     "fill": 0.00651579217985481,
+     "full": null,
+     "lastGrowth": 200,
+     "species": {
+      "feldspar": {
+       "n": 2,
+       "max_um": 4160.863446322915,
+       "last": 200
+      },
+      "albite": {
+       "n": 2,
+       "max_um": 7394.319988201404,
+       "last": 200
+      },
+      "epidote": {
+       "n": 5,
+       "max_um": 23846.31972458955,
+       "last": 200
+      },
+      "titanite": {
+       "n": 3,
+       "max_um": 5119.058596106296,
+       "last": 200
+      },
+      "actinolite": {
+       "n": 4,
+       "max_um": 1445.2662646007093,
+       "last": 200
+      },
+      "quartz": {
+       "n": 3,
+       "max_um": 98.94582400414748,
+       "last": 188
       }
      },
      "bulkPb": 0,

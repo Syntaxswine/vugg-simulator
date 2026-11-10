@@ -13,17 +13,25 @@ Living list of open work items, captured from session conversations so context s
 > side of things." A review at SIM 286 (`e86ba58a`) with five passive instruments
 > (`tools/sim-side-census.mjs` and its `-mutations` check, `sim-side-ab.mjs`,
 > `rate-at-saturation-census.mjs`, `seed-variety-census.mjs`) and their outputs in
-> `proposals/evidence/sim-side-2026-11-09/`; nothing in `js/`, `data/` or a baseline changes. **The reading:** the
-> fluid's supply shapes almost no growth, so a crystal stops only when the run ends, the pocket is
-> full, or an event moves the chemistry. **Three defects, each with an A/B:** F1 the pegmatite pocket
-> plugs (`gem_pegmatite` is full at step 9–10 of 230; with feldspar and albite bounded, tourmaline
-> reaches 12 mm and topaz appears; ten times the boron changes nothing — read this before testing
-> story-pocket WP8(b)); F2 galena, molybdenite and uraninite propose growth at saturation (k·σ where
-> 171 other engines vanish at σ = 1); F3 radiogenic Pb is written to the bulk handle only
-> (`js/85-simulator.ts:1276`). `flow_rate` is authored 103 times and read by no growth code.
-> **Awaits the boss:** the five decisions in the doc's §6 (R1's shape — a clamp, NOT factor caps,
-> which delete both feldspars from the Grimsel cleft; R2's constant; R3's mechanism; whether to pilot
-> a supply that can run short; the order against the open ladders).
+> `proposals/evidence/sim-side-2026-11-09/`; nothing in `js/`, `data/` or a baseline changes. **The reading:**
+> supply binds at the crystal's own cell and nowhere above it. A crystal debits the one voxel it
+> sits on and diffusion refills it: about a tenth of the crystals ≥ 1 mm put on most of their growth
+> on a cell drawn down to under half the bulk fluid's excess, and returning every debit moves 27 of
+> the 41 scenarios (Shigar's pocket plugs at step 23). Above the cell nothing binds: the cavity's
+> inventory is never dented, the bulk handle is never debited, and `flow_rate` (authored 103 times)
+> feeds nothing. So a slowed crystal is seldom stopped; it ends with the run, the cavity, an event
+> or burial. **Three defects, each with an A/B:** F1 the pegmatite pocket plugs (`gem_pegmatite` is
+> full at step 9–10 of 230; with feldspar and albite bounded, tourmaline reaches 12 mm and topaz
+> appears; boron is NOT the lever — tourmaline's boron factor is at its cap, so do not test
+> story-pocket WP8(b) on it); F2 galena, molybdenite and uraninite propose growth at saturation
+> (k·σ where 171 other engines vanish at σ = 1); F3 radiogenic Pb is written to the bulk handle
+> only (`js/85-simulator.ts:1276`), and `radioactive_pegmatite` does not license the galena its
+> description promises. **The first version of this review said supply does not bind; its first
+> review round found that wrong and four other statements with it (the doc's §0 lists them).**
+> **Awaits the boss:** the six decisions in the doc's §6 (C1's shape — a clamp, NOT factor caps,
+> which delete both feldspars from the Grimsel cleft; C2's constant; C3's mechanism and the galena
+> license; whether to pilot a supply with a scale above the cell, C4; whether the census joins the
+> SIM-bump routine, C5; the order against the open ladders).
 
 > ## 📷 HOSTILE REVIEW — VISUAL REALISM (2026-09-04) — **`PROPOSAL-HOSTILE-REVIEW-VISUAL-REALISM-2026-09-04.md`**
 >

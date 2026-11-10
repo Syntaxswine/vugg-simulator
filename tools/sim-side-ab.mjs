@@ -28,6 +28,13 @@
  *                  the first call after that block; the increment is recomputed from the same crystals.
  *   mul=<F>:<x>    The scenario's initial fluid field <F> is multiplied by <x> before the simulator is
  *                  built (every voxel is cloned from it).
+ *   refund=<f>     Every positive zone's debit is returned, times <f>, to the cell it was taken from as
+ *                  soon as it is booked: the fields and amounts the ledger recorded for that zone
+ *                  (js/19, zone._budget_inventory_per_um × its thickness), through the path a dissolution
+ *                  zone's return takes. refund=1 is growth that never draws its own cell down, an
+ *                  unlimited local source: the solid keeps its booked inventory, so the arm is not a
+ *                  closed system. refund=0 is the neutral setting. It applies to every mineral and
+ *                  ignores --minerals.
  *
  * Each B arm is `--arm <intervention>[,<intervention>…]`; several --arm flags give several B arms.
  * --minerals defaults to feldspar,albite.
@@ -46,8 +53,9 @@
  * Integrity and self-check:
  *   - at seed 42 arm A is compared with tests-js/baselines/seed42_v<SIM>.json (the summary of
  *     tools/gen-js-baseline.mjs, copied);
- *   - the NEUTRAL knobs rind=Infinity, cap=Infinity, fcap=Infinity, root=1 and mul=Ca:1 must each
- *     reproduce arm A exactly: a wrapper that only passes through may not move a run. Run on
+ *   - the NEUTRAL knobs rind=Infinity, cap=Infinity, root=1, mul=Ca:1 and refund=0 must each
+ *     reproduce arm A exactly: a wrapper that only passes through may not move a run. fcap=Infinity
+ *     joins them when --minerals is feldspar and albite only, the two minerals fcap knows. Run on
  *     --selfcheck-scenario (default schneeberg, which grows feldspar) before anything else;
  *     --no-selfcheck skips it. (`excess` and `pb` have no neutral setting.)
  *   The engine table is restored in a finally block after every run.
@@ -65,6 +73,7 @@
  *   node tools/sim-side-ab.mjs --arm pb --seeds 42,1,2 radioactive_pegmatite schneeberg
  *   node tools/sim-side-ab.mjs --arm excess=1 --arm excess=3 --minerals galena,molybdenite,uraninite mvt
  *   node tools/sim-side-ab.mjs --arm mul=B:10 gem_pegmatite
+ *   node tools/sim-side-ab.mjs --arm refund=1 mvt reactive_wall
  */
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -81,13 +90,17 @@ const FACTORS = { feldspar: [['K', 40], ['Al', 10], ['SiO2', 400]], albite: [['N
 // ---- arguments ----
 const opts = { arms: [], seeds: [42], minerals: ['feldspar', 'albite'], scenarios: [], selfcheck: true, selfcheckScenario: 'schneeberg', trace: null };
 function parseArm(text) {
-  const arm = { label: text, rind: null, cap: null, fcap: null, root: null, excess: null, pb: false, mul: [] };
+  const arm = { label: text, rind: null, cap: null, fcap: null, root: null, excess: null, refund: null, pb: false, mul: [] };
   for (const part of text.split(',')) {
     const [k, v] = part.split('=');
     if (['rind', 'cap', 'fcap', 'root', 'excess'].includes(k)) {
       const n = v === 'Infinity' ? Infinity : Number(v);
       if (!(n > 0)) throw new Error(`bad ${k} in --arm ${text}`);
       arm[k] = n;
+    } else if (k === 'refund') {
+      const n = Number(v);
+      if (v === undefined || !(n >= 0)) throw new Error(`bad refund in --arm ${text}`);
+      arm.refund = n;
     } else if (k === 'pb' && v === undefined) arm.pb = true;
     else if (k === 'mul') {
       const [field, x] = String(v).split(':');
@@ -108,7 +121,7 @@ function parseArm(text) {
     else if (a === '--selfcheck-scenario') opts.selfcheckScenario = argv[++i];
     else if (a === '--trace') opts.trace = argv[++i];
     else if (a === '--help' || a === '-h') {
-      console.log('node tools/sim-side-ab.mjs --arm <rind=µm|cap=σ|fcap=c|root=n|excess=m|pb|mul=Field:x>[,…] [--arm …] [--seeds 42,1,2] [--minerals feldspar,albite] [--trace <mineral>] [--no-selfcheck] [scenario …]');
+      console.log('node tools/sim-side-ab.mjs --arm <rind=µm|cap=σ|fcap=c|root=n|excess=m|refund=f|pb|mul=Field:x>[,…] [--arm …] [--seeds 42,1,2] [--minerals feldspar,albite] [--trace <mineral>] [--no-selfcheck] [scenario …]');
       process.exit(0);
     } else if (a.startsWith('--')) throw new Error(`unknown option ${a}`);
     else opts.scenarios.push(a);
@@ -119,8 +132,8 @@ function parseArm(text) {
 }
 
 const harness = await import(pathToFileURL(path.join(ROOT, 'tools', '_harness.mjs')).href);
-const { SCENARIOS, VugSimulator, setSeed, SIM_VERSION, MINERAL_ENGINES, temperatureAtMeshVertex } = await harness.loadSimBundle({
-  toolName: 'sim-side-ab', extraExports: ['MINERAL_ENGINES', 'temperatureAtMeshVertex'],
+const { SCENARIOS, VugSimulator, setSeed, SIM_VERSION, MINERAL_ENGINES, temperatureAtMeshVertex, syncExplicitSulfurTotal } = await harness.loadSimBundle({
+  toolName: 'sim-side-ab', extraExports: ['MINERAL_ENGINES', 'temperatureAtMeshVertex', 'syncExplicitSulfurTotal'],
 });
 for (const n of [...opts.scenarios, ...(opts.selfcheck ? [opts.selfcheckScenario] : [])]) if (!SCENARIOS[n]) throw new Error(`unknown scenario ${n}`);
 for (const m of opts.minerals) if (typeof MINERAL_ENGINES[m] !== 'function') throw new Error(`no growth engine named ${m}`);
@@ -199,10 +212,34 @@ function run(name, seed, arm) {
         return orig.call(this);
       };
     }
+    const mesh = sim.wall_state.meshFor(sim);
+    if (arm && arm.refund != null) {
+      const orig = sim._applyZoneGrowthBudget;
+      sim._applyZoneGrowthBudget = function (crystal, zone) {
+        const out = orig.call(this, crystal, zone);
+        const inv = zone && zone.thickness_um > 0 ? zone._budget_inventory_per_um : null;
+        if (!inv) return out;
+        // The fluid the ledger just debited: the crystal's own cell, with the fallbacks of js/85b.
+        const chem = this.wall_state.chemistryAddressForCrystal(crystal);
+        const ringIdx = chem ? chem.ringIdx : null;
+        let fluid = this.conditions.fluid;
+        if (ringIdx != null && ringIdx >= 0 && ringIdx < this.ring_fluids.length) {
+          const cell = mesh.cellOf(crystal, this.wall_state);
+          fluid = (cell && cell.fluid) ? cell.fluid : this.ring_fluids[ringIdx];
+        }
+        for (const sp in inv) {
+          const amount = arm.refund * zone.thickness_um * inv[sp];
+          if (!(amount > 0) || typeof fluid[sp] !== 'number') continue;
+          if (sp === 'SiO2' && typeof fluid.addReactiveSilica === 'function') fluid.addReactiveSilica(amount);
+          else fluid[sp] += amount;
+        }
+        if (fluid.sulfurPoolsExplicit) syncExplicitSulfurTotal(fluid);
+        return out;
+      };
+    }
     const steps = defaultSteps ?? 100;
     let full = null;
     const traced = { bulk: [], cell: [] };
-    const mesh = sim.wall_state.meshFor(sim);
     const traceStep = () => {
       // The oldest crystal of the traced mineral: its sigma on the bulk handle and on its own cell
       // (the swap _runEngineForCrystal makes), read at the end of the step.
@@ -263,7 +300,7 @@ const J = { sim_version: SIM_VERSION, arms: opts.arms.map(a => a.label), mineral
 
 if (opts.selfcheck) {
   const A = run(opts.selfcheckScenario, 42, null);
-  const neutral = ['rind=Infinity', 'cap=Infinity', 'root=1', 'mul=Ca:1'];
+  const neutral = ['rind=Infinity', 'cap=Infinity', 'root=1', 'mul=Ca:1', 'refund=0'];
   if (opts.minerals.every(m => FACTORS[m])) neutral.push('fcap=Infinity');
   const checks = neutral.map(label => [label, JSON.stringify(run(opts.selfcheckScenario, 42, parseArm(label)).summary) === JSON.stringify(A.summary)]);
   const base = BASELINE ? JSON.stringify(A.summary) === JSON.stringify(BASELINE[opts.selfcheckScenario]) : null;

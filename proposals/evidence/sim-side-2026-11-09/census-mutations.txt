@@ -1,12 +1,20 @@
-sim-side census mutations — 8 mutants; the census as committed runs once on bisbee, epithermal_telluride, gem_pegmatite, mvt, porphyry, radioactive_pegmatite, schneeberg (seed 42)
+sim-side census mutations — 19 mutants of tools/sim-side-census.mjs (sha256 6b63cc216f64); the census as committed runs once on bisbee, colorado_plateau, epithermal_telluride, gem_pegmatite, mvt, porphyry, radioactive_pegmatite, schneeberg, shigar_pegmatite, sunnyside_american_tunnel, tn457_barite_pulses (seed 42)
 
-the census as committed (7 of 7 runs reproduce the baseline):
+the census as committed (11 of 11 runs reproduce the baseline):
   [PASS] positive competition-log — 64/64/60/60/65 = 313
   [PASS] positive supply — 268 zones on Au; scenario-wide 268 rationed, 45 budget-cut
+  [PASS] positive supply-share — 1.68 %
   [PASS] positive two-fluids — 116.8 / 174.0 ppm
   [PASS] negative two-fluids — 0.006 %
   [PASS] positive space+end — full at step 9, last growth at step 9 of 230, "pocket full" 100 %
   [PASS] negative space+end — first step at fill >= 0.7: never; fill at end 8.7 %, last growth at step 120 of 120, "pocket full" 0 %
+  [PASS] positive time — calcite 34.6 mm: still growing on the final step
+  [PASS] negative time — 0 crystal(s)
+  [PASS] positive draw-down — 83.1 % of 782 mm stored; through albite:Na 455 mm, feldspar:K 182 mm
+  [PASS] negative draw-down — 0.00 % of 31.2 mm stored
+  [PASS] positive pause — 175 pauses on a cell run short (galena ×156, tetrahedrite ×11, argentite ×4); 0 on a cell that reads saturated
+  [PASS] positive count — 33 steps past sigma_crit, 33 not licensed
+  [PASS] negative count — 101 steps past sigma_crit, 0 not licensed
 
 mutant                    control it should fail      committed  mutant   what was broken
 log-read-once             positive competition-log    PASS       FAIL     the step log is scanned on the final step only (run_step resets it every step)
@@ -33,5 +41,38 @@ stop-never-recorded       positive space+end          PASS       FAIL     the EN
 pocket-full-never-read    positive space+end          PASS       FAIL     the END reading never tests the cavity fill, so a full pocket is filed under whatever comes next
                                                       committed: full at step 9, last growth at step 9 of 230, "pocket full" 100 %
                                                       mutant:    full at step 9, last growth at step 9 of 230, "pocket full" 0 %
+last-growth-never-noted   negative space+end          PASS       FAIL     the last step on which anything grew is never updated
+                                                      committed: first step at fill >= 0.7: never; fill at end 8.7 %, last growth at step 120 of 120, "pocket full" 0 %
+                                                      mutant:    first step at fill >= 0.7: never; fill at end 8.7 %, last growth at step 0 of 120, "pocket full" 0 %
+budget-cut-ignored        positive supply             PASS       FAIL     the formula-budget receipt on a zone is not read
+                                                      committed: 268 zones on Au; scenario-wide 268 rationed, 45 budget-cut
+                                                      mutant:    268 zones on Au; scenario-wide 268 rationed, 0 budget-cut
+solids-not-summed         positive supply-share       PASS       FAIL     the inventory booked in the solids is never summed
+                                                      committed: 1.68 %
+                                                      mutant:    0.00 %
+final-step-off-by-one     positive time               PASS       FAIL     a crystal counts as still growing only if it grew one step after the run ended
+                                                      committed: calcite 34.6 mm: still growing on the final step
+                                                      mutant:    calcite 34.6 mm: unclassified
+any-growth-is-final       negative time               PASS       FAIL     a crystal counts as still growing if it ever grew
+                                                      committed: 0 crystal(s)
+                                                      mutant:    12 crystal(s)
+cell-reads-bulk           positive draw-down          PASS       FAIL     the crystal's own cell is read from the bulk handle
+                                                      committed: 83.1 % of 782 mm stored; through albite:Na 455 mm, feldspar:K 182 mm
+                                                      mutant:    0.0 % of 782 mm stored; through nothing
+ingredients-not-restored  positive draw-down          PASS       FAIL     the attribution never sets the ingredient fields to the bulk handle's values
+                                                      committed: 83.1 % of 782 mm stored; through albite:Na 455 mm, feldspar:K 182 mm
+                                                      mutant:    0.0 % of 782 mm stored; through nothing
+share-reads-zero          negative draw-down          PASS       FAIL     the cell's excess as a share of the reference's is read as 0
+                                                      committed: 0.00 % of 31.2 mm stored
+                                                      mutant:    100.00 % of 31.2 mm stored
+engine-read-after-diffusion positive pause              PASS       FAIL     the engine's view is read after the step's diffusion has refilled the cell, not at the dry run (what census v3 did)
+                                                      committed: 175 pauses on a cell run short (galena ×156, tetrahedrite ×11, argentite ×4); 0 on a cell that reads saturated
+                                                      mutant:    24 pauses on a cell run short (tetrahedrite ×8, galena ×8, argentite ×4); 151 on a cell that reads saturated
+license-not-asked         positive count              PASS       FAIL     the scenario's license is not asked
+                                                      committed: 33 steps past sigma_crit, 33 not licensed
+                                                      mutant:    33 steps past sigma_crit, 0 not licensed
+license-always-refuses    negative count              PASS       FAIL     every species is read as not licensed
+                                                      committed: 101 steps past sigma_crit, 0 not licensed
+                                                      mutant:    101 steps past sigma_crit, 101 not licensed
 
-all 8 mutants: the control passes on the census as committed and fails on the mutant
+all 19 mutants: the control passes on the census as committed and fails on the mutant

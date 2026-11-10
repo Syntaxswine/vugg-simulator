@@ -18,6 +18,10 @@
  *   not driven      the engine proposed nothing at sigma = 2 in any context tried, or its thickness did
  *                   not change with the forced sigma (it reads its driving force some other way).
  *
+ * "Vanishes" tests one point. The SHAPE is printed beside it: thickness(1.1) / thickness(2) and
+ * thickness(1.5) / thickness(2). A law linear in sigma − 1 gives 0.10 and 0.50; k·sigma gives 0.55
+ * and 0.75; a law with a threshold a little above 1 would pass "vanishes" and show here.
+ *
  * Contexts tried, in order, until one proposes a positive zone at sigma = 2: the constructor state of
  * each scenario whose seed-42 baseline holds the mineral, then of every other scenario; each at the
  * scenario's own temperature, then at the mineral's T_optimum_C / T_range_C midpoints
@@ -49,6 +53,7 @@ const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const OUT = path.join(ROOT, '.local-evidence', 'rate-at-saturation-census');
 const SIGMAS = [1.0005, 1.01, 1.1, 1.5, 2, 3];
 const PROBE_SEED = 7;
+const LINEAR_TOLERANCE = 0.005;   // on thickness(1.1) / thickness(2) and thickness(1.5) / thickness(2)
 let part = 0;
 {
   const argv = process.argv.slice(2);
@@ -122,9 +127,18 @@ if (part !== 2) {
     if (!p.driven) { by['not driven'].push(m); J.engines[m] = { verdict: 'not driven', why: p.why, context: p.context }; continue; }
     const c = classify(p.curve);
     by[c.verdict].push(m);
-    J.engines[m] = { verdict: c.verdict, share_at_saturation: c.share, context: p.context, proposed_um: p.curve };
+    const t2 = p.curve[SIGMAS.indexOf(2)];
+    const shape = [p.curve[SIGMAS.indexOf(1.1)] / t2, p.curve[SIGMAS.indexOf(1.5)] / t2];
+    J.engines[m] = { verdict: c.verdict, share_at_saturation: c.share, context: p.context, proposed_um: p.curve, shape,
+      linear_in_excess: Math.abs(shape[0] - 0.1) <= LINEAR_TOLERANCE && Math.abs(shape[1] - 0.5) <= LINEAR_TOLERANCE };
   }
   say(`engines ${minerals.length}: rate vanishes at saturation ${by.vanishes.length}; FINITE at saturation ${by.FINITE.length}; other ${by.other.length}; not driven by the probe ${by['not driven'].length}`);
+  const driven = minerals.filter(m => J.engines[m].shape);
+  const linear = driven.filter(m => J.engines[m].linear_in_excess);
+  J.shape = { driven: driven.length, linearInExcess: linear.length, tolerance: LINEAR_TOLERANCE };
+  say(`shape — thickness(1.1) / thickness(2) and thickness(1.5) / thickness(2); a law linear in sigma − 1 gives 0.10 and 0.50, k·sigma gives 0.55 and 0.75`);
+  say(`  linear in sigma − 1 (both within ${LINEAR_TOLERANCE} of 0.10 and 0.50): ${linear.length} of the ${driven.length} driven engines`);
+  say(`  the others: ${driven.filter(m => !J.engines[m].linear_in_excess).map(m => `${m} ${J.engines[m].shape.map(x => x.toFixed(2)).join('/')}`).join(', ') || 'none'}`);
   const row = (m) => `  ${m.padEnd(16)} ${J.engines[m].proposed_um.map(x => x.toPrecision(3).padStart(9)).join('')}   ${(J.engines[m].share_at_saturation * 100).toFixed(1).padStart(5)} %   (${J.engines[m].context})`;
   say(`\nFINITE at saturation — proposed µm at sigma ${SIGMAS.join(' / ')}, then thickness(1.0005) / thickness(2):`);
   for (const m of by.FINITE) say(row(m));

@@ -1,5 +1,5 @@
 sim-side A/B — SIM 286; arms pb | cap=8,pb; minerals feldspar, albite; seeds 42, 1, 2
-self-check on schneeberg, seed 42: shipped arm reproduces the baseline; neutral knobs — rind=Infinity ok; cap=Infinity ok; root=1 ok; mul=Ca:1 ok; fcap=Infinity ok
+self-check on schneeberg, seed 42: shipped arm reproduces the baseline; neutral knobs — rind=Infinity ok; cap=Infinity ok; root=1 ok; mul=Ca:1 ok; refund=0 ok; fcap=Infinity ok
 
 ### radioactive_pegmatite — 120 steps — events: 20 Pegmatite Crystallization | 50 Deep Time | 80 Oxidizing Fluids | 100 Final Cooling
 seed 42 (shipped arm reproduces the baseline)

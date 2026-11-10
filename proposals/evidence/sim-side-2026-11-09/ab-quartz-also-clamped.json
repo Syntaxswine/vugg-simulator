@@ -19,7 +19,8 @@
    "rind=Infinity": true,
    "cap=Infinity": true,
    "root=1": true,
-   "mul=Ca:1": true
+   "mul=Ca:1": true,
+   "refund=0": true
   },
   "shippedReproducesBaseline": true
  },

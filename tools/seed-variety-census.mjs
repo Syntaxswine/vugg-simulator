@@ -77,7 +77,12 @@ for (const s of scenarios) {
   rows.push({ scenario: s, seeds: f.n_seeds, species: sp.length, inEverySeed: every.length, oneSpeciesSet: single, sizeSpread: spread, sameCount: same, largestSpecies: stars });
   say(`${s.padEnd(38)} ${String(f.n_seeds).padStart(5)} ${String(sp.length).padStart(8)} ${String(every.length).padStart(14)} ${(single ? 'yes' : 'no').padStart(16)} ${(spread == null ? '—' : (spread * 100).toFixed(0) + ' %').padStart(12)}  | ${String(same ?? '—').padStart(24)} ${String(stars ?? '—').padStart(26)}`);
 }
-say(`\nscenarios with one species set in every seed: ${oneSet} of ${scenarios.length}`);
+const empty = rows.filter(r => r.species === 0).length;
+say(`\nscenarios with one species set in every seed: ${oneSet} of ${scenarios.length}${empty ? ` (${empty} of them grow${empty === 1 ? 's' : ''} nothing in any seed)` : ''}`);
+const spreadsAll = rows.map(r => r.sizeSpread).filter(x => x != null).sort((a, b) => a - b);
+const spreadMedian = spreadsAll.length ? spreadsAll[Math.floor(spreadsAll.length / 2)] : null;
+const spreadWide = spreadsAll.filter(x => x >= 0.5).length;
+if (spreadsAll.length) say(`size spread (species present in every seed whose median largest crystal is >= 1 mm; per scenario the median over those species of (max − min) / median): a value in ${spreadsAll.length} scenarios; its median ${(spreadMedian * 100).toFixed(0)} %; 50 % or more in ${spreadWide}`);
 say(`(scenario, species) pairs: ${pairs}; present in every seed: ${always} (${(always / Math.max(1, pairs) * 100).toFixed(0)} %)`);
 if (constOf) say(`from seeds.json: of the ${constOf} always-present pairs, ${constCount} (${(constCount / constOf * 100).toFixed(0)} %) have the same crystal count in every seed; the same species is the largest crystal of every seed in ${oneStar} of ${starOf} scenarios with crystals`);
 else say('seeds.json is not on this machine (it is a local, regenerable tier of the canary): the count and largest-species readings were skipped');
@@ -85,6 +90,7 @@ else say('seeds.json is not on this machine (it is a local, regenerable tier of 
 fs.mkdirSync(OUT, { recursive: true });
 fs.writeFileSync(path.join(OUT, 'report.txt'), T.join('\n') + '\n');
 fs.writeFileSync(path.join(OUT, 'report.json'), JSON.stringify({ stratum: `${path.basename(path.dirname(stratum))}/${path.basename(stratum)}`, meta: { sha: meta.sha, sim_version: meta.sim_version, n_seeds: meta.n_seeds },
-  scenarios: scenarios.length, oneSpeciesSet: oneSet, pairs, inEverySeed: always, sameCount: constOf ? constCount : null, sameCountOf: constOf || null,
+  scenarios: scenarios.length, oneSpeciesSet: oneSet, growNothing: empty,
+  sizeSpread: { scenarios: spreadsAll.length, median: spreadMedian, atLeastHalf: spreadWide }, pairs, inEverySeed: always, sameCount: constOf ? constCount : null, sameCountOf: constOf || null,
   oneLargestSpecies: starOf ? oneStar : null, oneLargestSpeciesOf: starOf || null, rows }, null, 1) + '\n');
 console.log(`\nwrote ${path.relative(ROOT, OUT).replaceAll('\\', '/')}/report.{txt,json}`);

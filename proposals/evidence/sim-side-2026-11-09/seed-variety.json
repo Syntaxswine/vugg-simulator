@@ -7,6 +7,12 @@
  },
  "scenarios": 41,
  "oneSpeciesSet": 30,
+ "growNothing": 1,
+ "sizeSpread": {
+  "scenarios": 35,
+  "median": 0.38070915246184,
+  "atLeastHalf": 15
+ },
  "pairs": 356,
  "inEverySeed": 334,
  "sameCount": 174,

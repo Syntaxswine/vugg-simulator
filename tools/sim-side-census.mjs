@@ -3,22 +3,40 @@
  * tools/sim-side-census.mjs — what ends a crystal's growth, and what decides how many there are
  * (proposals/REVIEW-SIMULATION-SIDE-2026-11-09.md).
  *
- * One pass per scenario at one seed. It reads eight things the baselines do not carry:
+ * One pass per scenario at one seed. It reads nine things the baselines do not carry:
  *
  *   SPACE     the cavity fill each step (sim.get_vug_fill, recorded to four decimals), the first step
  *             whose recorded fill is >= 0.7 and >= 0.999, and the last step on which any crystal
  *             stored a positive zone.
  *   TIME      for each surviving crystal, whether it stored a positive zone on the FINAL step: a
  *             crystal still growing when the step counter stops owes its size to the run length.
+ *   DRAW-     what the engine saw. Growth debits the crystal's own cell and diffusion refills it, so a
+ *   DOWN      crystal can be throttled by its own consumption without one zone being rationed or cut.
+ *             Read WHEN THE ENGINE RUNS (a wrapper on _computeGraduatedZones, the dry run of every
+ *             active crystal against its own cell, js/85b): the crystal's supersaturation on its own
+ *             cell (the fluid and temperature swap _runEngineForCrystal makes) against a REFERENCE,
+ *             the bulk handle's fluid at that cell's temperature. Every positive zone stored that step
+ *             is filed, by its thickness, under the cell's excess (sigma - 1) as a share of the
+ *             reference's: at least 0.9, 0.5 to 0.9, or under 0.5; or under "reference at or under
+ *             saturation". For the under-0.5 class one more evaluation attributes it: the cell's fluid
+ *             with the mineral's INGREDIENT fields (the formula species js/19 debits, each mapped to
+ *             its reservoir field) set to the bulk handle's values. If that restores at least 0.9 of
+ *             the reference's excess the draw-down is through the ingredients, and the ingredient
+ *             lowest against the bulk is named; otherwise the cell differs from the bulk handle in
+ *             something else (Eh, pH, a field written to one fluid only). Also counted: STARVED
+ *             crystal-steps, on which an active crystal's engine proposed nothing with its cell below
+ *             saturation, the bulk handle at or above it, and its ingredients enough to restore it.
  *   END       for each surviving crystal that was NOT growing on the final step, the state on the first
- *             step it stored no positive zone after its last one, read at the end of that step, in
- *             this order: it took a negative zone or is marked dissolved; the pocket was full
- *             (fill >= 0.999, closed cavities only); it was enclosed (enclosed_by or
- *             currentEnclosureAuthority); it was inactive; it had reached its authored size cap; else
- *             its own supersaturation method, evaluated on its own cell (the fluid and temperature
- *             swap _runEngineForCrystal makes) and on the bulk handle — below 1 on both, below 1 on
- *             its cell only, or still at or above 1 with no zone stored. A crystal that resumes clears
- *             the record; one that never stored a positive zone is "never grew".
+ *             step it stored no positive zone after its last one, in this order: it took a negative
+ *             zone or is marked dissolved; the pocket was full at the end of that step (fill >= 0.999,
+ *             closed cavities only); it was enclosed (enclosed_by or currentEnclosureAuthority); it
+ *             was inactive; it had reached its authored size cap; else what the dry run of THAT STEP
+ *             read (above): rationed to zero; a zone proposed and not stored; at or above saturation
+ *             on its cell with nothing proposed; below 1 on its cell and on the bulk handle; below 1
+ *             on its cell only and restored by its ingredients (its cell ran short); below 1 on its
+ *             cell only and not restored by them. A crystal that resumes clears the record; one that
+ *             never stored a positive zone is "never grew". Every such stop, final or not, is also
+ *             counted as a PAUSE under the same reason.
  *   SUPPLY    (a) per fluid species, what the surviving solids hold of it (each stored zone's
  *             _budget_inventory_per_um x _remaining_solid_um, the ledger js/19 books) as a fraction of
  *             the MOST the voxel field ever held of it (the largest sum over all voxels at the end of
@@ -31,17 +49,28 @@
  *             rationed to ZERO, which are never stored — read from the "edge-of-gate skip" log lines
  *             after every step (run_step resets the log).
  *   TWO       the bulk handle (conditions.fluid) against the voxel field (mean over all voxels, mean and
- *   FLUIDS    minimum over the wall slab) for every numeric fluid field, every step. Events write the
- *             bulk handle and _propagateGlobalDelta carries the change to the voxels; growth debits the
- *             crystal's own cell. A field whose bulk value leaves the voxel mean was written outside
- *             that pair, or is spatially authored (zone_chemistry), or was drawn down locally.
+ *   FLUIDS    minimum over the wall slab), every step, for every numeric fluid field the simulator
+ *             diffuses and propagates (sim._fluidFieldNames) and for `concentration`, the one numeric
+ *             field it leaves out of both. Events write the bulk handle and _propagateGlobalDelta
+ *             carries the change to the voxels; growth debits the crystal's own cell. A field whose
+ *             bulk value leaves the voxel mean was written to one fluid only, or is spatially authored
+ *             (zone_chemistry), or differs by ring (the vadose override), or was drawn down locally.
+ *             The vadose override (js/85c) is followed too: the rings it dries on each step, the bulk
+ *             handle's O2 and concentration before and after, and each ring's voxel-mean O2 at run end.
  *   COUNT     per (scenario, species): crystals born against the species' max_nucleation_count; and,
- *             on every step, for every species with a nucleation function and a registry sigma_crit,
- *             whether the bulk fluid was past sigma_crit and — if so — whether the spec cap was
- *             binding (the test _atNucleationCap applies: exposed crystals >= cap), or the species
- *             already had an active crystal and its nucleation function carries a one-at-a-time gate
- *             (`!existing.length`, read from the js/8x–91 sources: a STATIC reading, and some of those
- *             functions keep a probabilistic side door), or neither.
+ *             on every step WHEN THE NUCLEATION PASS STARTS (a wrapper on check_nucleation), for every
+ *             species with a nucleation function and a registry sigma_crit whose bulk sigma is past
+ *             sigma_crit, the first of these that applies, in the order the simulator tests them:
+ *             the scenario excludes the species, does not license it, has it outside its authored
+ *             nucleation window, or lacks its prerequisite event (the four tests _runNuc makes before
+ *             the species' function runs, js/85j — called here, not copied); the spec cap is binding
+ *             (the count test of _atNucleationCap: exposed crystals >= max_nucleation_count); the
+ *             function's own count gate is binding (as many active crystals, or crystals ever, of its
+ *             species as it tolerates — a STATIC reading of the js/8x–91 sources, see staticReadings);
+ *             or none of them. Also the verdicts of _wallStrangledFor (js/85b), which refuses a birth
+ *             the bulk sigma admits when no wall cell clears sigma_crit. Species that have no
+ *             `_nuc_<species>` function of their own (the beryl and corundum families, which share a
+ *             nucleator, and the transformation products) are not in this reading.
  *   BORN      crystals that never stored a positive zone; births whose landing-cell sigma
  *             (crystal.nucleation_sigma) was below 0.9x the sigma that admitted them.
  *   THROUGH-  ORDER OF MAGNITUDE. The moles of each element locked in the surviving solids (booked
@@ -53,25 +82,45 @@
  *             several broths are deliberately abstracted, so this is not an error count: it restates
  *             what is grown in the unit a water/rock ratio is quoted in.
  *
- * It also prints three STATIC readings of the source: which nucleation functions carry a one-at-a-time
- * gate; what every `rng.random()` comparison in the nucleation files is compared with (a numeric
- * literal, or something else); and every non-comment line that mentions `flow_rate`, split into the
- * event files that assign it and everything else. Each run also records the flow_rate it started
- * with, ended with, and its range.
+ * It also prints three STATIC readings of the source: the count gate each nucleation function keeps
+ * on its own species (below); what every `rng.random()` comparison in the nucleation files is compared
+ * with (a numeric literal, or something else); and every non-comment line that mentions `flow_rate`,
+ * split into the event files that assign it and everything else. Each run also records the flow_rate
+ * it started with, ended with, and its range.
+ *
+ * The count gate is read from the text of each `_nuc_<species>` function. A list of the function's own
+ * species is recognized in one form, `const X = sim.crystals.filter(c => c.mineral === '<species>' …`,
+ * active (the filter names c.active) or of every crystal ever, a list or its `.length`. On it:
+ * `!X.length`, `if (X.length) return`, `if (X.length || …` and `if (X.length && !(…` are a gate at 1;
+ * `X.length < N` is a gate at N; `X.length >= N` at N; `X.length > N` at N + 1; the smallest wins. A
+ * side door is a roll on the same line as a gate at 1 (`!X.length || (… rng.random() < p)`). A function
+ * that counts its own species another way is read as having no gate.
  *
  * Controls (CONTROLS below), each evaluated when its scenarios are in the run and printed with the
  * report. A positive control shows the reading can see the thing; a negative one that it does not see
  * it everywhere:
  *   + competition log   the five R9 fahlores (mineral-recipe review R9) each show skip lines.
  *   + supply            epithermal_telluride's gold tellurides are rationed on Au.
+ *   + supply share      colorado_plateau's solids hold more than 1 % of the uranium its field held.
  *   + two fluids        radiogenic Pb (js/85-simulator.ts, the uraninite block) stays on the bulk handle.
  *   - two fluids        mvt's Ca does not leave the voxel mean.
  *   + space, end        gem_pegmatite is full early, nothing grows afterwards, and the crystals that
  *                       grew read "pocket full".
  *   - space, end        mvt never reaches fill 0.7, is still growing on its final step, and no crystal
  *                       reads "pocket full".
- * The positive controls on Pb and gem_pegmatite are today's defects: the commit that fixes either one
- * turns its control around, and must say so.
+ *   + time              mvt's largest crystal is still growing on the final step.
+ *   - time              no crystal of gem_pegmatite is.
+ *   + draw-down         shigar_pegmatite grows mostly on cells drawn down through their ingredients.
+ *   - draw-down         tn457_barite_pulses grows nothing that way.
+ *   + pause             sunnyside_american_tunnel's crystals pause because their cell ran short, not on
+ *                       a cell that reads saturated — which is what a reading taken after the step's
+ *                       diffusion reports.
+ *   + count             radioactive_pegmatite's galena is past sigma_crit and not licensed.
+ *   - count             mvt's galena is licensed, and never reads otherwise.
+ * Four controls sit on today's defects — two fluids (+) on the radiogenic Pb, space/end (+) and
+ * time (−) on gem_pegmatite's plug, count (+) on the galena radioactive_pegmatite does not license.
+ * The commit that changes one of those turns its control around, and must say so. THROUGHPUT, BORN
+ * and the static readings have no control.
  *
  * Integrity: at seed 42 every run is compared with tests-js/baselines/seed42_v<SIM>.json through the
  * per-species summary of tools/gen-js-baseline.mjs (copied, not imported: that file is an evidence
@@ -80,13 +129,14 @@
  * PASSIVE instrument: reads, reports, exits 0 whatever it finds. Imports only tools/_harness.mjs and
  * node builtins and writes only under .local-evidence/ (default .local-evidence/sim-side-census/seed-<N>/:
  * rows/<scenario>.json, report.txt, report.json, report.md). A row is reused unless --fresh when
- * CENSUS_VERSION and the input digest match: runtime formation, dist, data, the harness, the js/
- * sources the static readings parse, the dependency lock and the seed-42 reference. This file is NOT
- * in the digest, so the report half can change without a re-run: BUMP CENSUS_VERSION WHENEVER
- * runScenario OR staticReadings CHANGES.
+ * the input digest matches: runtime formation, dist, data, the harness, the js/ sources the static
+ * readings parse, the dependency lock, the seed-42 reference, and the TEXT of the code that produces
+ * a row (runScenario, the static readings, summarize) with the constants it reads. So a change to
+ * how a row is made re-runs it, and the report half can change without a re-run. Every report names
+ * the sha256 of this file as it ran.
  *
  * Usage:
- *   node tools/sim-side-census.mjs                 # every scenario, seed 42 (about 20 min)
+ *   node tools/sim-side-census.mjs                 # every scenario, seed 42 (about 25 min)
  *   node tools/sim-side-census.mjs mvt bisbee      # a subset
  *   node tools/sim-side-census.mjs --seed 1        # another seed (no baseline to compare with)
  *   node tools/sim-side-census.mjs --fresh         # ignore the rows on disk
@@ -98,12 +148,17 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
-const CENSUS_VERSION = 3;
+const CENSUS_VERSION = 4;
 const RUNTIME = Object.freeze({ node: process.version, v8: process.versions.v8, icu: process.versions.icu,
   platform: process.platform, arch: process.arch });
 const FULL_FILL = 0.999;
 const HIGH_FILL = 0.7;          // _fillDampenerFor (js/85d) starts to bite here
 const MM = 1000;                // µm per mm
+const DRAW_HALF = 0.5;          // DRAW-DOWN: the cell's excess as a share of the reference's
+const DRAW_NEAR = 0.9;
+// The method whose return is the dry run of every active crystal's engine (js/85b). The engine's view
+// has to be read here: later in the step growth has debited the cell and diffusion has refilled it.
+const DRY_RUN_METHOD = '_computeGraduatedZones';
 
 // ---- arguments ----
 const opts = { seed: 42, fresh: false, scenarios: [], out: null };
@@ -178,9 +233,10 @@ const formulaMass = (comp) => Object.entries(comp).reduce((s, [el, n]) => {
   return s + ATOM[el] * n;
 }, 0);
 
-const END_REASONS = ['still growing on the final step', 'pocket full', 'undersaturated, bulk too',
-  'undersaturated at its cell only', 'at or above saturation, no zone stored', 'enclosed', 'dissolving',
-  'inactive', 'size cap', 'never grew', 'no sigma method', 'unclassified'];
+const END_REASONS = ['still growing on the final step', 'pocket full', 'undersaturated on its cell and on the bulk handle',
+  'its cell ran short of an ingredient', 'undersaturated on its cell only, not through its ingredients',
+  'at or above saturation on its cell, nothing proposed', 'a zone proposed and not stored', 'rationed to zero',
+  'enclosed', 'dissolving', 'inactive', 'size cap', 'never grew', 'no sigma method', 'no dry run on record', 'unclassified'];
 // A crystal that stored a positive zone, was not growing on the final step, and has no stop on
 // record would be a failure of the tracking, not a class: it is reported as 'unclassified', never
 // folded into 'never grew'.
@@ -205,6 +261,13 @@ const CONTROLS = [
       const z = R.epithermal_telluride.zones;
       const n = Object.entries(z.limBy).filter(([k]) => /^(sylvanite|calaverite):Au$/.test(k)).reduce((s, [, v]) => s + v, 0);
       return { pass: n >= 100 && z.rationed >= 100 && z.capped >= 1, detail: `${n} zones on Au; scenario-wide ${z.rationed} rationed, ${z.capped} budget-cut` };
+    } },
+  { id: 'supply-share', kind: 'positive', needs: ['colorado_plateau'],
+    label: "colorado_plateau's surviving solids hold more than 1 % of the most uranium its voxel field ever held",
+    test: (R) => {
+      const r = R.colorado_plateau, f = r.fields.U;
+      const share = f && f.voxSumMax > 0 ? (r.solids.U || 0) / f.voxSumMax : 0;
+      return { pass: share > 0.01, detail: `${(share * 100).toFixed(2)} %` };
     } },
   { id: 'two-fluids', kind: 'positive', needs: ['radioactive_pegmatite', 'schneeberg'],
     label: 'radiogenic Pb stays on the bulk handle (bulk − voxel mean >= 50 ppm at run end); FLIPS when that write reaches the voxels',
@@ -232,6 +295,53 @@ const CONTROLS = [
       return { pass: r.first70 == null && r.lastGrowthStep === r.steps && share === 0,
         detail: `first step at fill >= 0.7: ${r.first70 ?? 'never'}; fill at end ${(r.fillEnd * 100).toFixed(1)} %, last growth at step ${r.lastGrowthStep} of ${r.steps}, "pocket full" ${(share * 100).toFixed(0)} %` };
     } },
+  { id: 'time', kind: 'positive', needs: ['mvt'],
+    label: "mvt's largest surviving crystal reads \"still growing on the final step\"",
+    test: (R) => {
+      const top = R.mvt.crystals.filter(c => !c.dissolved).sort((a, b) => b.g - a.g)[0];
+      return { pass: !!top && endOf(top) === END_REASONS[0], detail: top ? `${top.m} ${(top.g / MM).toFixed(1)} mm: ${endOf(top)}` : 'no crystal' };
+    } },
+  { id: 'time', kind: 'negative', needs: ['gem_pegmatite'],
+    label: 'no crystal of gem_pegmatite reads "still growing on the final step"',
+    test: (R) => {
+      const n = R.gem_pegmatite.crystals.filter(c => !c.dissolved && endOf(c) === END_REASONS[0]).length;
+      return { pass: n === 0, detail: `${n} crystal(s)` };
+    } },
+  { id: 'draw-down', kind: 'positive', needs: ['shigar_pegmatite'],
+    label: "shigar_pegmatite stores more than half its growth on a cell under half the reference's excess, drawn down through its ingredients",
+    test: (R) => {
+      const r = R.shigar_pegmatite, d = r.draw, all = d.t + d.unread;
+      const through = Object.entries(d.lowBy).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([k, um]) => `${k} ${(um / MM).toFixed(0)} mm`);
+      return { pass: all > 0 && d.halfIng / all > 0.5,
+        detail: `${(d.halfIng / Math.max(1e-9, all) * 100).toFixed(1)} % of ${(all / MM).toFixed(0)} mm stored; through ${through.join(', ') || 'nothing'}` };
+    } },
+  { id: 'draw-down', kind: 'negative', needs: ['tn457_barite_pulses'],
+    label: "tn457_barite_pulses stores under 1 % of its growth on a cell under half the reference's excess",
+    test: (R) => {
+      const d = R.tn457_barite_pulses.draw;
+      return { pass: d.t > 0 && d.half / d.t < 0.01, detail: `${(d.half / Math.max(1e-9, d.t) * 100).toFixed(2)} % of ${(d.t / MM).toFixed(1)} mm stored` };
+    } },
+  { id: 'pause', kind: 'positive', needs: ['sunnyside_american_tunnel'],
+    label: "sunnyside_american_tunnel's crystals pause at least 5 times because their cell ran short of an ingredient, and more often than they pause on a cell that reads saturated (a cell read after the step's diffusion has been refilled, and reads saturated)",
+    test: (R) => {
+      const short = 'its cell ran short of an ingredient', sat = 'at or above saturation on its cell, nothing proposed';
+      const sum = (why) => Object.values(R.sunnyside_american_tunnel.pauses).reduce((a, p) => a + (p[why] || 0), 0);
+      const by = Object.entries(R.sunnyside_american_tunnel.pauses).map(([m, p]) => [m, p[short] || 0]).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]);
+      const n = sum(short), k = sum(sat);
+      return { pass: n >= 5 && n > k, detail: `${n} pauses on a cell run short${by.length ? ' (' + by.slice(0, 3).map(([m, c]) => `${m} ×${c}`).join(', ') + ')' : ''}; ${k} on a cell that reads saturated` };
+    } },
+  { id: 'count', kind: 'positive', needs: ['radioactive_pegmatite'],
+    label: "radioactive_pegmatite's galena is past sigma_crit on the bulk handle on at least 10 steps, and every one of them reads \"not licensed\"",
+    test: (R) => {
+      const g = R.radioactive_pegmatite.rule.galena;
+      return { pass: !!g && g.unlicensed >= 10 && g.unlicensed === g.want, detail: g ? `${g.want} steps past sigma_crit, ${g.unlicensed} not licensed` : 'never past sigma_crit' };
+    } },
+  { id: 'count', kind: 'negative', needs: ['mvt'],
+    label: "mvt's galena is past sigma_crit on the bulk handle and never reads \"not licensed\"",
+    test: (R) => {
+      const g = R.mvt.rule.galena;
+      return { pass: !!g && g.want > 0 && g.unlicensed === 0, detail: g ? `${g.want} steps past sigma_crit, ${g.unlicensed} not licensed` : 'never past sigma_crit' };
+    } },
 ];
 
 // ---- static readings of the source ----
@@ -243,10 +353,10 @@ function codeLines(file) {
 function staticReadings() {
   const dir = path.join(ROOT, 'js');
   const all = fs.readdirSync(dir).filter(f => f.endsWith('.ts')).sort();
-  // (1) one-at-a-time gates
+  // (1) the count gate each nucleation function keeps on its own species (the header gives the forms)
   const nucFiles = all.filter(f => /^(8\d[a-z]?|9[01])-nucleation-.*\.ts$/.test(f));
-  const LIST = /const (\w+) = sim\.crystals\.filter\(c => c\.mineral === '([A-Za-z0-9_]+)'/g;
   const fns = [];
+  const least = (cur, n) => (cur == null || n < cur ? n : cur);
   for (const f of nucFiles) {
     const src = fs.readFileSync(path.join(dir, f), 'utf8').replace(/\r\n/g, '\n');
     const re = /^function _nuc_([A-Za-z0-9_]+)\(sim\) \{/gm;
@@ -256,11 +366,25 @@ function staticReadings() {
     for (let i = 0; i < starts.length; i++) {
       const body = src.slice(starts[i].idx, i + 1 < starts.length ? starts[i + 1].idx : src.length);
       const code = body.split('\n').filter(t => !/^\s*\/\//.test(t)).join('\n');
-      let serial = false;
-      LIST.lastIndex = 0;
-      let s;
-      while ((s = LIST.exec(code))) if (s[2] === starts[i].name && code.includes('!' + s[1] + '.length')) serial = true;
-      fns.push({ name: starts[i].name, file: f, serial, usesCap: code.includes('_atNucleationCap(') });
+      let actN = null, totN = null, sideDoor = false;
+      for (const d of code.matchAll(/const (\w+) = sim\.crystals\.filter\(c => c\.mineral === '([A-Za-z0-9_]+)'([^\n]*)/g)) {
+        if (d[2] !== starts[i].name) continue;
+        const isCount = /\)\.length;/.test(d[3]);
+        const V = isCount ? `\\b${d[1]}\\b` : `\\b${d[1]}\\.length\\b`;
+        let n = null;
+        if (!isCount) {
+          if (new RegExp(`!${d[1]}\\.length\\b`).test(code)) n = least(n, 1);
+          if (new RegExp(`if \\(${d[1]}\\.length(\\) return|\\s*\\|\\||\\s*&&\\s*!\\()`).test(code)) n = least(n, 1);
+          if (new RegExp(`!${d[1]}\\.length\\s*\\|\\|[^\\n]*rng\\.random\\(\\)`).test(code)
+            || new RegExp(`if \\(${d[1]}\\.length\\s*&&\\s*!\\([^\\n]*rng\\.random\\(\\)`).test(code)) sideDoor = true;
+        }
+        for (const t of code.matchAll(new RegExp(`${V}\\s*(<=|<|>=|>)\\s*(\\d+)`, 'g'))) {
+          n = least(n, Number(t[2]) + (t[1] === '>' || t[1] === '<=' ? 1 : 0));
+        }
+        if (n == null) continue;
+        if (/c\.active/.test(d[3])) actN = least(actN, n); else totN = least(totN, n);
+      }
+      fns.push({ name: starts[i].name, file: f, actN, totN, sideDoor, usesCap: code.includes('_atNucleationCap(') });
     }
   }
   // (2) flow_rate
@@ -307,6 +431,7 @@ function inputDigest(simVersion) {
   if (fs.existsSync(baselineFile)) files.push(baselineFile);
   const h = crypto.createHash('sha256');
   h.update(`census-${CENSUS_VERSION}\0`).update(JSON.stringify(RUNTIME)).update('\0');
+  h.update(ROW_SOURCE).update('\0');
   for (const f of files) {
     h.update(path.relative(ROOT, f).replaceAll('\\', '/')).update('\0');
     h.update(fs.readFileSync(f, 'utf8').replace(/\r\n/g, '\n')).update('\0');
@@ -316,15 +441,25 @@ function inputDigest(simVersion) {
 
 // ---- bundle ----
 const harness = await import(pathToFileURL(path.join(ROOT, 'tools', '_harness.mjs')).href);
-const { SCENARIOS, VugSimulator, setSeed, SIM_VERSION, MINERAL_SPEC, MINERAL_GATES_REGISTRY,
-  SPECIES_PROPERTIES, currentEnclosureAuthority, temperatureAtMeshVertex } = await harness.loadSimBundle({
+const { SCENARIOS, VugSimulator, setSeed, SIM_VERSION, MINERAL_SPEC, MINERAL_GATES_REGISTRY, MINERAL_STOICHIOMETRY,
+  SPECIES_PROPERTIES, currentEnclosureAuthority, temperatureAtMeshVertex, stoichiometricReservoirSpecies,
+  _scenarioSpeciesExclusion, _scenarioPositiveLicenseBlock, _scenarioNucleationWindowBlock,
+  _scenarioNucleationPrerequisiteBlock } = await harness.loadSimBundle({
   toolName: 'sim-side-census',
-  extraExports: ['MINERAL_SPEC', 'MINERAL_GATES_REGISTRY', 'SPECIES_PROPERTIES', 'currentEnclosureAuthority', 'temperatureAtMeshVertex'],
+  extraExports: ['MINERAL_SPEC', 'MINERAL_GATES_REGISTRY', 'MINERAL_STOICHIOMETRY', 'SPECIES_PROPERTIES',
+    'currentEnclosureAuthority', 'temperatureAtMeshVertex', 'stoichiometricReservoirSpecies',
+    '_scenarioSpeciesExclusion', '_scenarioPositiveLicenseBlock', '_scenarioNucleationWindowBlock',
+    '_scenarioNucleationPrerequisiteBlock'],
 });
 const STATIC = staticReadings();
-const SERIAL = new Set(STATIC.fns.filter(f => f.serial).map(f => f.name));
+const GATE = Object.fromEntries(STATIC.fns.map(f => [f.name, f]));
 const NUC_MINERALS = STATIC.fns.map(f => f.name);
+// The code that produces a row, as text: part of the digest, so a row cannot outlive a change to it.
+const ROW_SOURCE = [runScenario, staticReadings, codeLines, summarize].map(fn => fn.toString()).join('\n')
+  + JSON.stringify({ FULL_FILL, HIGH_FILL, DRAW_HALF, DRAW_NEAR, DRY_RUN_METHOD });
 const INPUTS = inputDigest(SIM_VERSION);
+const SELF_SHA256 = crypto.createHash('sha256')
+  .update(fs.readFileSync(fileURLToPath(import.meta.url), 'utf8').replace(/\r\n/g, '\n')).digest('hex');
 const baselineFile = path.join(ROOT, 'tests-js', 'baselines', `seed42_v${SIM_VERSION}.json`);
 const BASELINE = opts.seed === 42 && fs.existsSync(baselineFile) ? JSON.parse(fs.readFileSync(baselineFile, 'utf8')) : null;
 
@@ -349,7 +484,9 @@ function runScenario(name, seed) {
   const steps = defaultSteps ?? 100;
   const grid = sim.wall_state.voxelGridFor(sim);
   const mesh = sim.wall_state.meshFor(sim);
-  const F = sim._fluidFieldNames.slice();
+  // The fields the simulator diffuses and propagates, and `concentration`, which it leaves out of both
+  // (js/85-simulator.ts, where _fluidFieldNames is built).
+  const F = [...sim._fluidFieldNames, 'concentration'];
   const D = grid.depth_count;
   const nVox = grid.voxels.length, nWall = nVox / D;
   const openSystem = !!(conditions.wall && conditions.wall.open_system);
@@ -399,54 +536,172 @@ function runScenario(name, seed) {
     if (typeof fn !== 'function') return null;
     try { const v = fn.call(sim.conditions); return Number.isFinite(v) ? v : 0; } catch { return 0; }
   };
-  // The crystal's own cell, with the swap _runEngineForCrystal makes.
-  const sigmaAtCell = (c) => {
-    const chem = sim.wall_state.chemistryAddressForCrystal(c);
-    const cell = mesh.cellOf(c, sim.wall_state);
+  // A mineral's sigma on a given fluid at a given temperature: the swap _runEngineForCrystal makes.
+  const sigmaWith = (mineral, fluid, temperature) => {
     const sf = sim.conditions.fluid, stT = sim.conditions.temperature;
     try {
-      if (cell?.fluid) sim.conditions.fluid = cell.fluid;
-      if (chem) sim.conditions.temperature = temperatureAtMeshVertex(sim, mesh, chem.vertexIndex);
-      return sigmaOf(c.mineral);
+      sim.conditions.fluid = fluid;
+      sim.conditions.temperature = temperature;
+      return sigmaOf(mineral);
     } finally { sim.conditions.fluid = sf; sim.conditions.temperature = stT; }
+  };
+  // The crystal's own cell: the fluid and the temperature its engine reads.
+  const cellOf = (c) => {
+    const chem = sim.wall_state.chemistryAddressForCrystal(c);
+    const cell = mesh.cellOf(c, sim.wall_state);
+    return {
+      fluid: cell?.fluid || sim.conditions.fluid,
+      temperature: chem ? temperatureAtMeshVertex(sim, mesh, chem.vertexIndex) : sim.conditions.temperature,
+    };
+  };
+  // The fluid fields the ledger debits for a crystal's formula (js/19): the zone's own formula for a
+  // solid solution, else MINERAL_STOICHIOMETRY, each species mapped to its reservoir field.
+  const ingredientsOf = (c, zone, fluid) => {
+    const own = zone && zone.formula_stoichiometry;
+    const st = (own && typeof own === 'object' && Object.keys(own).length ? own : MINERAL_STOICHIOMETRY[c.mineral]) || null;
+    return st ? [...new Set(Object.keys(st).map(sp => stoichiometricReservoirSpecies(c.mineral, sp, fluid)))] : [];
+  };
+  // A copy of the cell's fluid with those fields set to the bulk handle's values. The sulfur pools
+  // move together with their total, and silica with its reactive fraction.
+  const restored = (cellFluid, bulk, keys) => {
+    const h = Object.assign(Object.create(Object.getPrototypeOf(cellFluid)), cellFluid);
+    const set = new Set(keys);
+    if (keys.some(k => k === 'S' || k.startsWith('S_'))) for (const k of ['S', 'S_sulfide', 'S_sulfate', 'S_elemental']) set.add(k);
+    if (set.has('SiO2')) set.add('reactiveSilicaFraction');
+    for (const k of set) if (typeof bulk[k] === 'number' && typeof h[k] === 'number') h[k] = bulk[k];
+    return h;
+  };
+  const lowestIngredient = (cellFluid, bulk, keys) => {
+    let field = null, ratio = Infinity;
+    for (const k of keys) {
+      const b = Number(bulk[k]), v = Number(cellFluid[k]);
+      if (b > 0 && Number.isFinite(v) && v / b < ratio) { ratio = v / b; field = k; }
+    }
+    return field;
+  };
+
+  // DRAW-DOWN and END: what each active crystal's engine saw, read when the dry run is taken.
+  const dry = new Map();             // crystal -> this step's reading
+  let dryRuns = 0;
+  const starved = {};                // mineral -> crystal-steps starved on its own cell
+  let starvedOther = 0;              // … below 1 on its cell only, and not restored by its ingredients
+  const origDryRun = sim[DRY_RUN_METHOD];
+  sim[DRY_RUN_METHOD] = function (...args) {
+    const logFrom = this.log.length;
+    const returned = origDryRun.apply(this, args);
+    const out = returned instanceof Map ? returned : new Map();   // crystal_id -> the zone its engine proposed
+    dryRuns++;
+    dry.clear();
+    const rationedToZero = new Set();
+    for (let i = logFrom; i < this.log.length; i++) {
+      const m = /◌ \S+ #(\d+): edge-of-gate skip/.exec(this.log[i]);
+      if (m) rationedToZero.add(Number(m[1]));
+    }
+    withDirect(() => {
+      const bulk = sim.conditions.fluid, bulkT = sim.conditions.temperature;
+      const onBulk = new Map();      // mineral -> sigma on the bulk handle
+      for (const c of this.crystals) {
+        if (!c.active) continue;
+        const z = out.get(c.crystal_id);
+        const kind = rationedToZero.has(c.crystal_id) ? 'rationed' : z && z.thickness_um > 0 ? 'positive' : 'none';
+        if (!onBulk.has(c.mineral)) onBulk.set(c.mineral, sigmaOf(c.mineral));
+        const sb = onBulk.get(c.mineral);
+        if (sb == null) { dry.set(c, { kind, noSigma: true }); continue; }
+        const at = cellOf(c);
+        const d = { kind, bulk: sb, cell: sigmaWith(c.mineral, at.fluid, at.temperature),
+          ref: at.temperature === bulkT ? sb : sigmaWith(c.mineral, bulk, at.temperature), ing: null, low: null };
+        const drawnDown = kind === 'positive' && d.ref > 1 && d.cell - 1 < DRAW_HALF * (d.ref - 1);
+        const cellOnly = kind === 'none' && d.cell < 1 && d.bulk >= 1;
+        if (drawnDown || cellOnly) {
+          const keys = ingredientsOf(c, z, at.fluid);
+          if (keys.length) {
+            d.ing = sigmaWith(c.mineral, restored(at.fluid, bulk, keys), at.temperature);
+            d.low = lowestIngredient(at.fluid, bulk, keys);
+          }
+          if (cellOnly) {
+            if (d.ing != null && d.ing >= 1) starved[c.mineral] = (starved[c.mineral] || 0) + 1;
+            else starvedOther++;
+          }
+        }
+        dry.set(c, d);
+      }
+    });
+    return returned;
   };
 
   // END: what the crystal's state was on the first step it stored no positive zone
   const track = new Map();           // crystal -> { grewPrev, stop }
-  const grewThisStep = (c) => {
-    for (let i = c.zones.length - 1; i >= 0 && c.zones[i].step === sim.step; i--) if (c.zones[i].thickness_um > 0) return true;
-    return false;
+  const storedThisStep = (c) => {
+    let t = 0;
+    for (let i = c.zones.length - 1; i >= 0 && c.zones[i].step === sim.step; i--) if (c.zones[i].thickness_um > 0) t += c.zones[i].thickness_um;
+    return t;
   };
   const tookNegativeThisStep = (c) => {
     for (let i = c.zones.length - 1; i >= 0 && c.zones[i].step === sim.step; i--) if (c.zones[i].thickness_um < 0) return true;
     return false;
   };
-  const whyStopped = (c) => withDirect(() => {
-    if (tookNegativeThisStep(c) || c.dissolved) return 'dissolving';
-    if (!openSystem && sim.get_vug_fill() >= FULL_FILL) return 'pocket full';
-    if (c.enclosed_by != null || currentEnclosureAuthority(sim, c)) return 'enclosed';
-    if (!c.active) return 'inactive';
-    if (c._size_capped) return 'size cap';
-    const bulk = sigmaOf(c.mineral);
-    if (bulk == null) return 'no sigma method';
-    const cell = sigmaAtCell(c);
-    if (cell >= 1) return 'at or above saturation, no zone stored';
-    return bulk >= 1 ? 'undersaturated at its cell only' : 'undersaturated, bulk too';
-  });
+  const whyStopped = (c) => {
+    if (tookNegativeThisStep(c) || c.dissolved) return { why: 'dissolving' };
+    if (!openSystem && sim.get_vug_fill() >= FULL_FILL) return { why: 'pocket full' };
+    if (c.enclosed_by != null || currentEnclosureAuthority(sim, c)) return { why: 'enclosed' };
+    if (!c.active) return { why: 'inactive' };
+    if (c._size_capped) return { why: 'size cap' };
+    const d = dry.get(c);
+    if (!d) return { why: 'no dry run on record' };
+    if (d.noSigma) return { why: 'no sigma method' };
+    if (d.kind === 'rationed') return { why: 'rationed to zero' };
+    if (d.kind === 'positive') return { why: 'a zone proposed and not stored' };
+    if (d.cell >= 1) return { why: 'at or above saturation on its cell, nothing proposed' };
+    if (d.bulk < 1) return { why: 'undersaturated on its cell and on the bulk handle' };
+    if (d.ing != null && d.ing >= 1) return { why: 'its cell ran short of an ingredient', low: d.low };
+    return { why: 'undersaturated on its cell only, not through its ingredients' };
+  };
+  // DRAW-DOWN: every positive zone stored this step, filed by what its dry run read
+  const draw = { t: 0, near: 0, mid: 0, half: 0, halfIng: 0, halfOther: 0, refUnder: 0, unread: 0 };
+  const lowBy = {};                  // 'mineral:field' -> µm stored on a cell drawn down through its ingredients
+  const perCrystal = new Map();      // crystal -> { t, half }
+  const pauses = {};                 // mineral -> { reason: times a growing crystal stopped for it }
   const endCensus = () => {
     for (const c of sim.crystals) {
       let t = track.get(c);
       if (!t) { t = { grewPrev: false, stop: null }; track.set(c, t); }
-      if (grewThisStep(c)) { t.grewPrev = true; t.stop = null; }
-      else if (t.grewPrev) { t.grewPrev = false; t.stop = { step: sim.step, why: whyStopped(c) }; }
+      const stored = storedThisStep(c);
+      if (stored > 0) { t.grewPrev = true; t.stop = null; }
+      else if (t.grewPrev) {
+        t.grewPrev = false;
+        t.stop = { step: sim.step, ...whyStopped(c) };
+        const p = (pauses[c.mineral] ||= {});
+        p[t.stop.why] = (p[t.stop.why] || 0) + 1;
+      }
+      if (!(stored > 0)) continue;
+      const pc = perCrystal.get(c) || { t: 0, half: 0 };
+      perCrystal.set(c, pc);
+      pc.t += stored;
+      const d = dry.get(c);
+      if (!d || d.noSigma || d.kind !== 'positive') { draw.unread += stored; continue; }
+      draw.t += stored;
+      if (!(d.ref > 1)) { draw.refUnder += stored; continue; }
+      const share = (d.cell - 1) / (d.ref - 1);
+      if (share >= DRAW_NEAR) draw.near += stored;
+      else if (share >= DRAW_HALF) draw.mid += stored;
+      else {
+        draw.half += stored;
+        pc.half += stored;
+        if (d.ing != null && d.ing - 1 >= DRAW_NEAR * (d.ref - 1)) {
+          draw.halfIng += stored;
+          const k = `${c.mineral}:${d.low || '?'}`;
+          lowBy[k] = (lowBy[k] || 0) + stored;
+        } else draw.halfOther += stored;
+      }
     }
   };
 
-  // COUNT: read at the end of each step on the bulk fluid
+  // COUNT: read when the nucleation pass starts, on the bulk fluid it is about to read
   const rule = {};
   const ruleCensus = () => withDirect(() => {
-    const exposed = {}, active = {};
+    const exposed = {}, active = {}, ever = {};
     for (const c of sim.crystals) {
+      ever[c.mineral] = (ever[c.mineral] || 0) + 1;
       if (c.active) active[c.mineral] = (active[c.mineral] || 0) + 1;
       if (c.dissolved || currentEnclosureAuthority(sim, c)) continue;
       exposed[c.mineral] = (exposed[c.mineral] || 0) + 1;
@@ -457,15 +712,50 @@ function runScenario(name, seed) {
       if (!gate || typeof gate.sigma_crit !== 'number') continue;
       const s = sigmaOf(m);
       if (s == null || !(s > gate.sigma_crit)) continue;
-      const r = (rule[m] ||= { want: 0, cap: 0, serial: 0, open: 0, maxSigma: 0, sigmaCrit: gate.sigma_crit });
+      const r = (rule[m] ||= { want: 0, excluded: 0, unlicensed: 0, window: 0, prerequisite: 0, cap: 0, gate: 0, open: 0, maxSigma: 0, sigmaCrit: gate.sigma_crit });
       r.want++;
       if (s > r.maxSigma) r.maxSigma = s;
-      const cap = MINERAL_SPEC[m]?.max_nucleation_count;
-      if (cap != null && (exposed[m] || 0) >= cap) r.cap++;
-      else if (SERIAL.has(m) && (active[m] || 0) >= 1) r.serial++;
+      const cap = MINERAL_SPEC[m]?.max_nucleation_count, g = GATE[m];
+      if (_scenarioSpeciesExclusion(sim, m)) r.excluded++;
+      else if (_scenarioPositiveLicenseBlock(sim, m)) r.unlicensed++;
+      else if (_scenarioNucleationWindowBlock(sim, m)) r.window++;
+      else if (_scenarioNucleationPrerequisiteBlock(sim, m)) r.prerequisite++;
+      else if (cap != null && (exposed[m] || 0) >= cap) r.cap++;
+      else if ((g.actN != null && (active[m] || 0) >= g.actN) || (g.totN != null && (ever[m] || 0) >= g.totN)) r.gate++;
       else r.open++;
     }
   });
+  let nucleationPasses = 0;
+  const origCheckNucleation = sim.check_nucleation;
+  sim.check_nucleation = function (...args) {
+    nucleationPasses++;
+    ruleCensus();
+    return origCheckNucleation.apply(this, args);
+  };
+  // _wallStrangledFor: the verdict only
+  const strangled = {};
+  const origStrangled = sim._wallStrangledFor;
+  sim._wallStrangledFor = function (mineral) {
+    const verdict = origStrangled.call(this, mineral);
+    const o = (strangled[mineral] ||= { calls: 0, blocked: 0 });
+    o.calls++;
+    if (verdict) o.blocked++;
+    return verdict;
+  };
+  // The vadose override (js/85c): the rings it dries, and what it does to the bulk handle, which is
+  // the equator ring's fluid (ring_fluids[equator] === conditions.fluid).
+  const equator = Math.floor(sim.wall_state.ring_count / 2);
+  const vadose = [];
+  const origVadose = sim._applyVadoseOxidationOverride;
+  sim._applyVadoseOxidationOverride = function (...args) {
+    const b = this.conditions.fluid, o2 = Number(b.O2), conc = Number(b.concentration);
+    const rings = origVadose.apply(this, args);
+    if (Array.isArray(rings) && rings.length) {
+      vadose.push({ step: this.step, rings: rings.length, lowest: Math.min(...rings), equator: rings.includes(equator),
+        bulkO2: [o2, Number(b.O2)], bulkConcentration: [conc, Number(b.concentration)] });
+    }
+    return rings;
+  };
 
   const fill = [], skips = {};
   const flow = { start: Number(sim.conditions.flow_rate), min: Number(sim.conditions.flow_rate), max: Number(sim.conditions.flow_rate), end: null };
@@ -484,7 +774,6 @@ function runScenario(name, seed) {
     fill.push(Math.round(sim.get_vug_fill() * 1e4) / 1e4);
     sample(sim.step);
     endCensus();
-    ruleCensus();
   }
   const ms = Date.now() - t0;
 
@@ -492,6 +781,7 @@ function runScenario(name, seed) {
   const solids = {}, limBy = {}, volBy = {};
   const zones = { pos: 0, neg: 0, zero: 0, rationed: 0, capped: 0, shaped: 0 };
   let lastGrowthStep = 0;
+  const byId = new Map(sim.crystals.map(c => [c.crystal_id, c]));
   const crystals = sim.crystals.map(c => {
     let nPos = 0, lastPos = null;
     for (const z of c.zones || []) {
@@ -518,10 +808,14 @@ function runScenario(name, seed) {
     }
     if (lastPos != null && lastPos > lastGrowthStep) lastGrowthStep = lastPos;
     if (!c.dissolved && c._volume_mm3 > 0) volBy[c.mineral] = (volBy[c.mineral] || 0) + c._volume_mm3;
-    const t = track.get(c);
+    const t = track.get(c), pc = perCrystal.get(c);
     const end = nPos === 0 ? 'never grew' : lastPos === steps ? 'still growing on the final step' : (t && t.stop ? t.stop.why : 'never grew');
     return { m: c.mineral, born: c.nucleation_step, g: c.total_growth_um, v: c._volume_mm3 || 0, nPos, lastPos,
-      dissolved: !!c.dissolved, enclosed: c.enclosed_by != null, end, endStep: t && t.stop ? t.stop.step : null };
+      dissolved: !!c.dissolved, enclosed: c.enclosed_by != null, end, endStep: t && t.stop ? t.stop.step : null,
+      endLow: t && t.stop && t.stop.low ? t.stop.low : null,
+      enclosedBy: c.enclosed_by != null ? (byId.get(c.enclosed_by)?.mineral ?? '?') : null,
+      // the share of this crystal's stored growth put on at a cell under half the reference's excess
+      half: pc && pc.t > 0 ? Math.round(pc.half / pc.t * 1e4) / 1e4 : 0 };
   });
   const fields = {};
   for (let k = 0; k < F.length; k++) {
@@ -530,12 +824,31 @@ function runScenario(name, seed) {
       wallEnd: sumWall[k] / nWall, wallMinEnd: minWall[k], ...st[k] };
   }
   const i70 = fill.findIndex(x => x >= HIGH_FILL), i100 = fill.findIndex(x => x >= FULL_FILL);
+  // mean of a field over each ring's voxels, floor ring first
+  const ringMeans = (field) => {
+    const sum = {}, n = {};
+    for (const v of grid.voxels) {
+      const r = v.ringIdx;
+      sum[r] = (sum[r] || 0) + (Number(v.fluid[field]) || 0);
+      n[r] = (n[r] || 0) + 1;
+    }
+    return Object.keys(sum).map(Number).sort((a, b) => a - b).map(r => Math.round(sum[r] / n[r] * 1e4) / 1e4);
+  };
   const row = {
     name, seed, steps, ms, nVox, openSystem,
     wall: { composition: conditions.wall.composition, diam_mm: conditions.wall.vug_diameter_mm, vol_mm3: conditions.wall.cavity_capacity_volume_mm3 },
     events: events.map(e => ({ step: e.step, name: e.name })),
     fill, fillEnd: sim.get_vug_fill(), first70: i70 < 0 ? null : i70 + 1, firstFull: i100 < 0 ? null : i100 + 1, lastGrowthStep, flow,
     fields, solids, zones: { ...zones, limBy }, skips, births, rule, crystals, volBy,
+    draw: { ...draw, lowBy, dryRuns, starved, starvedOther }, pauses, strangled, nucleationPasses,
+    vadose: { equator, events: vadose, ringO2End: vadose.length ? ringMeans('O2') : null, ringConcentrationEnd: vadose.length ? ringMeans('concentration') : null },
+    // what the scenario lets nucleate at all: the simulator's own tests, asked of every mineral
+    license: {
+      licensed: Object.keys(MINERAL_SPEC).filter(m => !_scenarioPositiveLicenseBlock(sim, m)).sort(),
+      excluded: Object.keys(MINERAL_SPEC).filter(m => _scenarioSpeciesExclusion(sim, m)).sort(),
+      windows: Object.keys(sim.conditions._scenario?.nucleation_windows || {}).sort(),
+      prerequisites: Object.keys(sim.conditions._scenario?.nucleation_prerequisites || {}).sort(),
+    },
     summary: summarize(sim),
   };
   if (BASELINE) row.matchesBaseline = JSON.stringify(row.summary) === JSON.stringify(BASELINE[name]);
@@ -564,12 +877,12 @@ const pct = (x, d = 1) => (x * 100).toFixed(d) + ' %';
 const q = (arr, p) => { if (!arr.length) return NaN; const s = arr.slice().sort((a, b) => a - b); return s[Math.min(s.length - 1, Math.floor(p * s.length))]; };
 const sig = (x) => !Number.isFinite(x) ? 'inf' : x >= 100 ? x.toFixed(0) : x >= 10 ? x.toFixed(1) : x >= 1 ? x.toFixed(2) : x.toPrecision(2);
 const rows = names.map(n => R[n]);
-const J = { census_version: CENSUS_VERSION, sim_version: SIM_VERSION, seed: opts.seed, inputs: INPUTS, scenarios: names.length };
+const J = { census_version: CENSUS_VERSION, sim_version: SIM_VERSION, seed: opts.seed, inputs: INPUTS, tool_sha256: SELF_SHA256, scenarios: names.length };
 const T = [];   // text lines
 const M = [];   // markdown fragment
 const say = (s = '') => T.push(s);
 
-say(`sim-side census v${CENSUS_VERSION} — SIM ${SIM_VERSION}, seed ${opts.seed}, ${names.length} scenario(s); inputs ${INPUTS.slice(0, 12)}`);
+say(`sim-side census v${CENSUS_VERSION} — SIM ${SIM_VERSION}, seed ${opts.seed}, ${names.length} scenario(s); inputs ${INPUTS.slice(0, 12)}; tools/sim-side-census.mjs sha256 ${SELF_SHA256.slice(0, 12)}`);
 if (BASELINE) {
   const bad = rows.filter(r => !r.matchesBaseline).map(r => r.name);
   J.baseline = { reproduced: rows.length - bad.length, of: rows.length, mismatches: bad };
@@ -625,14 +938,82 @@ for (const k of END_REASONS) {
 say(`  surviving crystals ${surviving}; >= 1 mm ${big}; the largest crystal is still growing on the final step in ${topGrowing} of ${withCrystals} scenarios with crystals`);
 M.push(`| all | ${surviving} | ${big} |`);
 const listEnd = (reason) => rows.flatMap(r => r.crystals.filter(c => !c.dissolved && c.g >= MM && endOf(c) === reason)
-  .map(c => `${r.name}/${c.m} ${(c.g / MM).toFixed(1)} mm (step ${c.endStep})`));
-J.end.cellOnlyGe1mm = listEnd('undersaturated at its cell only');
-J.end.sizeCapGe1mm = listEnd('size cap');
-say(`  >= 1 mm and undersaturated at its cell only: ${J.end.cellOnlyGe1mm.join('; ') || 'none'}`);
-say(`  >= 1 mm and stopped by the authored size cap: ${J.end.sizeCapGe1mm.join('; ') || 'none'}`);
+  .map(c => `${r.name}/${c.m} ${(c.g / MM).toFixed(1)} mm (step ${c.endStep}${c.endLow ? ', ' + c.endLow : ''})`));
+J.end.ge1mmLists = {};
+for (const [key, reason, label] of [
+  ['ranShort', 'its cell ran short of an ingredient', 'its cell ran short of an ingredient'],
+  ['cellOnlyOther', 'undersaturated on its cell only, not through its ingredients', 'undersaturated on its cell only, not through its ingredients'],
+  ['nothingProposed', 'at or above saturation on its cell, nothing proposed', 'at or above saturation on its cell with nothing proposed'],
+  ['notStored', 'a zone proposed and not stored', 'a zone proposed and not stored'],
+  ['sizeCap', 'size cap', 'stopped by the authored size cap'],
+  ['noSigmaMethod', 'no sigma method', 'with no sigma method'],
+]) {
+  J.end.ge1mmLists[key] = listEnd(reason);
+  say(`  >= 1 mm and ${label}: ${J.end.ge1mmLists[key].join('; ') || 'none'}`);
+}
+// The `dissolved` flag means no solid left (js/27): the most any flagged crystal still holds.
+const flagged = rows.flatMap(r => r.crystals.filter(c => c.dissolved));
+J.end.dissolvedFlag = { crystals: flagged.length, largestRemaining_um: flagged.reduce((mx, c) => Math.max(mx, c.g), 0) };
+say(`  crystals carrying the dissolved flag: ${flagged.length}; the most any of them still holds: ${J.end.dissolvedFlag.largestRemaining_um.toFixed(3)} µm`);
+const pauseAll = {}, shortPauses = {};
+for (const r of rows) for (const [m, p] of Object.entries(r.pauses || {})) for (const [why, n] of Object.entries(p)) {
+  pauseAll[why] = (pauseAll[why] || 0) + n;
+  if (why === 'its cell ran short of an ingredient') shortPauses[`${r.name}/${m}`] = n;
+}
+const nPauses = Object.values(pauseAll).reduce((a, b) => a + b, 0);
+J.end.pauses = { all: nPauses, byReason: pauseAll, ranShortBy: shortPauses };
+say(`PAUSES — every time a crystal that grew on one step stored no positive zone on the next (final stops included): ${nPauses}`);
+for (const k of END_REASONS) if (pauseAll[k]) say(`  ${k.padEnd(62)} ${String(pauseAll[k]).padStart(6)} (${pct(pauseAll[k] / Math.max(1, nPauses)).padStart(6)})`);
+say(`  "its cell ran short of an ingredient", by scenario and mineral: ${Object.entries(shortPauses).sort((a, b) => b[1] - a[1]).slice(0, 30).map(([k, n]) => `${k} ×${n}`).join('; ') || 'none'}`);
+const encBy = {};
+for (const r of rows) for (const c of r.crystals) if (!c.dissolved && endOf(c) === 'enclosed') encBy[c.enclosedBy || 'no encloser on record'] = (encBy[c.enclosedBy || 'no encloser on record'] || 0) + 1;
+J.end.enclosedBy = encBy;
+say(`  enclosed, by the mineral that enclosed them: ${Object.entries(encBy).sort((a, b) => b[1] - a[1]).slice(0, 16).map(([m, n]) => `${m} ×${n}`).join(', ') || 'none'}`);
 const flowMoved = rows.filter(r => r.flow && (r.flow.min !== r.flow.max));
 J.end.flowAuthored = flowMoved.map(r => `${r.name} ${r.flow.start}→${r.flow.end} (range ${r.flow.min}–${r.flow.max})`);
 say(`  scenarios whose flow_rate changed during the run: ${flowMoved.length} of ${rows.length}`);
+
+// DRAW-DOWN
+say('\nDRAW-DOWN — every stored positive zone, by thickness, under what its crystal\'s engine read at the dry run: the cell\'s excess (sigma − 1) as a share of the reference\'s (the bulk handle\'s fluid at the cell\'s temperature)');
+say('scenario                               stored mm   >= 0.9   0.5–0.9   under 0.5 (through its ingredients / otherwise)   reference at or under saturation   not read   starved crystal-steps   crystals >= 1 mm mostly grown under 0.5');
+M.push('', '### Draw-down', '', '| scenario | stored, mm | cell excess ≥ 0.9 of the reference\'s | 0.5–0.9 | under 0.5 | … through its ingredients | … otherwise | reference at or under saturation | starved crystal-steps | crystals ≥ 1 mm mostly grown under 0.5 |', '|---|---:|---:|---:|---:|---:|---:|---:|---:|---|');
+const drawRows = [];
+let bigGrown = 0, bigHalf = 0, starvedAll = 0, starvedOtherAll = 0;
+const lowAll = {}, starvedBy = {};
+for (const r of rows) {
+  const d = r.draw, all = d.t + d.unread;
+  const big = r.crystals.filter(c => !c.dissolved && c.g >= MM && c.nPos > 0);
+  const mostly = big.filter(c => c.half > 0.5);
+  bigGrown += big.length; bigHalf += mostly.length;
+  const nStarved = Object.values(d.starved).reduce((a, b) => a + b, 0);
+  starvedAll += nStarved; starvedOtherAll += d.starvedOther;
+  for (const [k, um] of Object.entries(d.lowBy)) lowAll[`${r.name}/${k}`] = um;
+  for (const [m, n] of Object.entries(d.starved)) starvedBy[`${r.name}/${m}`] = n;
+  const sh = (x) => (all > 0 ? x / all : 0);
+  const mostlyText = mostly.length ? `${mostly.length} of ${big.length}: ` + Object.entries(mostly.reduce((o, c) => (o[c.m] = (o[c.m] || 0) + 1, o), {})).map(([m, n]) => `${m} ×${n}`).join(', ') : `0 of ${big.length}`;
+  drawRows.push({ scenario: r.name, stored_mm: all / MM, near: sh(d.near), mid: sh(d.mid), half: sh(d.half), halfIngredients: sh(d.halfIng), halfOtherwise: sh(d.halfOther),
+    referenceUnder: sh(d.refUnder), notRead: sh(d.unread), starved: nStarved, starvedOtherwise: d.starvedOther, ge1mm: big.length, ge1mmMostlyHalf: mostly.length, dryRuns: d.dryRuns });
+  if (!(all > 0)) continue;
+  say(`${r.name.padEnd(38)} ${(all / MM).toFixed(1).padStart(9)} ${pct(sh(d.near)).padStart(8)} ${pct(sh(d.mid)).padStart(9)} ${pct(sh(d.half)).padStart(9)} (${pct(sh(d.halfIng))} / ${pct(sh(d.halfOther))})`.padEnd(108)
+    + `${pct(sh(d.refUnder)).padStart(8)} ${pct(sh(d.unread)).padStart(24)} ${String(nStarved).padStart(10)}             ${mostlyText}`);
+  M.push(`| ${r.name} | ${(all / MM).toFixed(1)} | ${pct(sh(d.near))} | ${pct(sh(d.mid))} | ${pct(sh(d.half))} | ${pct(sh(d.halfIng))} | ${pct(sh(d.halfOther))} | ${pct(sh(d.refUnder))} | ${nStarved} | ${mostlyText} |`);
+}
+const grew = drawRows.filter(x => x.stored_mm > 0);
+J.draw = { scenariosWithGrowth: grew.length, halfOver10pct: grew.filter(x => x.half > 0.1).length, halfOver50pct: grew.filter(x => x.half > 0.5).length,
+  halfUnder1pct: grew.filter(x => x.half < 0.01).length,
+  ge1mm: bigGrown, ge1mmMostlyHalf: bigHalf, starvedCrystalSteps: starvedAll, starvedBy, cellOnlyNotThroughIngredients: starvedOtherAll,
+  drawnDownThrough_um: lowAll, scenarios: drawRows };
+say(`scenarios that stored growth: ${grew.length}; stored on a cell under half the reference's excess: more than 10 % of the thickness in ${J.draw.halfOver10pct}, more than half of it in ${J.draw.halfOver50pct}, under 1 % in ${J.draw.halfUnder1pct}`);
+say(`surviving crystals >= 1 mm: ${bigGrown}; more than half their growth stored that way: ${bigHalf} (${pct(bigHalf / Math.max(1, bigGrown))})`);
+say(`  drawn down through (mm stored): ${Object.entries(lowAll).sort((a, b) => b[1] - a[1]).slice(0, 24).map(([k, um]) => `${k} ${(um / MM).toFixed(2)}`).join('; ') || 'nothing'}`);
+say(`starved crystal-steps (nothing proposed, the cell below saturation, the bulk handle at or above it, the ingredients enough to restore it): ${starvedAll}${starvedAll ? ' — ' + Object.entries(starvedBy).sort((a, b) => b[1] - a[1]).slice(0, 24).map(([k, n]) => `${k} ×${n}`).join('; ') : ''}`);
+say(`  below saturation on the cell only and NOT restored by the ingredients: ${starvedOtherAll} crystal-steps`);
+const noDry = rows.filter(r => r.zones.pos > 0 && !(r.draw.dryRuns > 0)).map(r => r.name);
+if (noDry.length) say(`  NOT READ — no dry run was observed in: ${noDry.join(', ')}`);
+const offDry = rows.filter(r => r.draw.dryRuns > 0 && r.draw.dryRuns !== r.steps).map(r => `${r.name} ${r.draw.dryRuns}/${r.steps}`);
+J.draw.dryRunsPerStep = offDry.length ? offDry : (noDry.length ? 'not read everywhere' : 'one in every step of every run');
+if (offDry.length) say(`  NOTE — dry runs differ from steps in: ${offDry.join(', ')}`);
+else if (!noDry.length) say('  the dry run was read once in every step of every run');
 
 // SUPPLY
 say('\nSUPPLY');
@@ -649,16 +1030,20 @@ for (const r of rows) {
     // What the surviving solids hold, as a fraction of the most the voxel field held at the end of
     // any one step. Above 1 the field was refilled (events, dissolution) and the solids kept more
     // than it ever held at once.
-    shares.push({ s: r.name, sp, share: sol / f.voxSumMax });
+    // The same solids in the unit a crystal draws on: one voxel's share of that peak.
+    shares.push({ s: r.name, sp, share: sol / f.voxSumMax, voxels: sol / (f.voxSumMax / r.nVox), wallMinEnd: f.wallMinEnd, bulkEnd: f.bulkEnd });
   }
 }
-const sv = shares.map(x => x.share);
+const sv = shares.map(x => x.share), vx = shares.map(x => x.voxels);
 const overShare = shares.filter(x => x.share > 0.01).sort((a, b) => b.share - a.share);
 J.supply = { pairs: shares.length, median: q(sv, 0.5), p90: q(sv, 0.9), max: sv.length ? Math.max(...sv) : null,
   over1pct: overShare.map(x => `${x.s}/${x.sp} ${pct(x.share, 1)}`), over10pct: overShare.filter(x => x.share > 0.1).length,
-  positiveZones: zp, rationed: zr, budgetCapped: zc, shapedBySupply: zs, limitedBy: limAll, rationedToZero: zskip, rationedToZeroBy: skipAll };
+  inVoxels: { median: q(vx, 0.5), p90: q(vx, 0.9), max: vx.length ? Math.max(...vx) : null, overOne: vx.filter(v => v > 1).length },
+  positiveZones: zp, rationed: zr, budgetCapped: zc, shapedBySupply: zs, limitedBy: limAll, rationedToZero: zskip, rationedToZeroBy: skipAll,
+  shares: shares.slice().sort((a, b) => b.share - a.share).map(x => ({ scenario: x.s, species: x.sp, share: x.share, voxels: x.voxels, wallMinEnd: x.wallMinEnd, bulkEnd: x.bulkEnd })) };
 say(`(scenario, species) pairs with booked solids: ${shares.length}; solids / the most the voxel field ever held: median ${(J.supply.median * 100).toPrecision(2)} %, 90th percentile ${(J.supply.p90 * 100).toPrecision(2)} %`);
 say(`  above 1 % (${overShare.length}; above 10 %: ${J.supply.over10pct}): ${J.supply.over1pct.join('; ') || 'none'}`);
+say(`  the same solids in voxels' worth of that peak (the field is ${[...new Set(rows.map(r => r.nVox))].join(' / ')} voxels; a crystal debits one): median ${sig(J.supply.inVoxels.median)}, 90th percentile ${sig(J.supply.inVoxels.p90)}, largest ${sig(J.supply.inVoxels.max)}; more than one voxel's worth in ${J.supply.inVoxels.overOne} of ${shares.length} pairs`);
 say(`stored positive zones ${zp}; scaled below 1 by competition ${zr}; cut by the formula budget ${zc}; either ${zs} (${pct(zs / Math.max(1, zp), 2)})`);
 say(`  limited by: ${Object.entries(limAll).map(([k, v]) => `${k} ×${v}`).join('; ') || 'nothing'}`);
 say(`zones rationed to zero (never stored; "edge-of-gate skip" lines): ${zskip}${zskip ? ' — ' + Object.entries(skipAll).map(([k, v]) => `${k} ×${v}`).join('; ') : ''}`);
@@ -677,23 +1062,61 @@ for (const h of hits) {
   M.push(`| ${h.s} | ${h.f} | ${sig(h.maxDiv)} (${pct(h.maxDiv / h.scale)}) | ${h.maxDivStep} | ${sig(h.bulkEnd)} | ${sig(h.voxEnd)} | ${sig(h.wallMinEnd)} |`);
 }
 if (!hits.length) say('  none');
+const dried = rows.filter(r => r.vadose && r.vadose.events.length);
+J.vadose = dried.map(r => ({ scenario: r.name, equatorRing: r.vadose.equator, events: r.vadose.events, ringO2End: r.vadose.ringO2End, ringConcentrationEnd: r.vadose.ringConcentrationEnd }));
+say(`the vadose override dried rings in ${dried.length} scenario(s); the equator ring, whose fluid is the bulk handle, among them in ${dried.filter(r => r.vadose.events.some(e => e.equator)).length}`);
+for (const r of dried) {
+  for (const e of r.vadose.events.slice(0, 4)) {
+    say(`  ${r.name.padEnd(34)} step ${String(e.step).padStart(3)}: ${e.rings} ring(s) from ring ${e.lowest} up${e.equator ? ', the equator ring among them' : ''}; bulk O2 ${sig(e.bulkO2[0])} → ${sig(e.bulkO2[1])}, bulk concentration ${sig(e.bulkConcentration[0])} → ${sig(e.bulkConcentration[1])}`);
+  }
+  if (r.vadose.events.length > 4) say(`  ${''.padEnd(34)} … and ${r.vadose.events.length - 4} more step(s)`);
+  say(`  ${''.padEnd(34)} voxel-mean O2 by ring at run end, floor first: ${r.vadose.ringO2End.map(x => x.toFixed(2)).join(' ')}`);
+}
 
 // COUNT
 say('\nCOUNT');
-let pairs = 0, single = 0, atCap = 0, want = 0, capS = 0, serS = 0, openS = 0;
-for (const r of rows) for (const [m, v] of Object.entries(r.summary)) {
-  pairs++;
-  if (v.total === 1) single++;
-  const cap = MINERAL_SPEC[m]?.max_nucleation_count;
-  if (cap != null && v.total >= cap) atCap++;
-  const ru = r.rule[m];
-  if (ru) { want += ru.want; capS += ru.cap; serS += ru.serial; openS += ru.open; }
+let pairs = 0, single = 0, atCap = 0;
+const RULES = ['excluded', 'unlicensed', 'window', 'prerequisite', 'cap', 'gate', 'open'];
+const tot = Object.fromEntries(['want', ...RULES].map(k => [k, 0]));
+const unlicensedBy = {}, windowBy = {};
+for (const r of rows) {
+  for (const [m, v] of Object.entries(r.summary)) {
+    pairs++;
+    if (v.total === 1) single++;
+    const cap = MINERAL_SPEC[m]?.max_nucleation_count;
+    if (cap != null && v.total >= cap) atCap++;
+  }
+  for (const [m, ru] of Object.entries(r.rule)) {
+    for (const k of ['want', ...RULES]) tot[k] += ru[k];
+    if (ru.unlicensed) unlicensedBy[`${r.name}/${m}`] = ru.unlicensed;
+    if (ru.window) windowBy[`${r.name}/${m}`] = ru.window;
+  }
 }
-J.count = { pairs, single, atOrOverCap: atCap, speciesStepsPastSigmaCrit: want, capBinding: capS, oneAtATime: serS, neither: openS,
-  nucleationFunctions: STATIC.fns.length, withOneAtATimeGate: SERIAL.size };
+const barred = tot.excluded + tot.unlicensed + tot.window + tot.prerequisite, reach = tot.cap + tot.gate + tot.open;
+const gates = { atOne: STATIC.fns.filter(f => f.actN === 1).length, atOneWithSideDoor: STATIC.fns.filter(f => f.actN === 1 && f.sideDoor).length,
+  atMore: STATIC.fns.filter(f => f.actN != null && f.actN > 1).length, everLimit: STATIC.fns.filter(f => f.totN != null).length,
+  none: STATIC.fns.filter(f => f.actN == null && f.totN == null).length };
+let stCalls = 0, stBlocked = 0;
+const strangledBy = {};
+for (const r of rows) for (const [m, o] of Object.entries(r.strangled || {})) {
+  stCalls += o.calls; stBlocked += o.blocked;
+  if (o.blocked) strangledBy[`${r.name}/${m}`] = `${o.blocked} of ${o.calls}`;
+}
+J.count = { pairs, single, atOrOverCap: atCap, speciesStepsPastSigmaCrit: tot.want, ...Object.fromEntries(RULES.map(k => [k, tot[k]])),
+  neverReachTheirFunction: barred, reachTheirFunction: reach, unlicensedBy, outsideWindowBy: windowBy,
+  nucleationFunctions: STATIC.fns.length, ownCountGate: gates, callAtNucleationCap: STATIC.fns.filter(f => f.usesCap).length,
+  wallStrangled: { calls: stCalls, refused: stBlocked, by: strangledBy } };
+J.license = Object.fromEntries(rows.map(r => [r.name, r.license]));
 say(`(scenario, species) pairs ${pairs}: exactly one crystal ${single} (${pct(single / Math.max(1, pairs))}); crystals born >= max_nucleation_count ${atCap} (${pct(atCap / Math.max(1, pairs))})`);
-say(`species-steps with the bulk fluid past sigma_crit, for species with a crystal in that scenario: ${want}; the spec cap was binding on ${capS} (${pct(capS / Math.max(1, want))}); the species had an active crystal and a one-at-a-time gate on ${serS} (${pct(serS / Math.max(1, want))}); neither on ${openS} (${pct(openS / Math.max(1, want))})`);
-say(`static: ${STATIC.fns.length} nucleation functions; ${SERIAL.size} carry a one-at-a-time gate on their own species; ${STATIC.fns.filter(f => f.usesCap).length} call _atNucleationCap`);
+say(`species-steps with the bulk fluid past sigma_crit when the nucleation pass starts: ${tot.want}`);
+say(`  never reach the species' function (the four tests of _runNuc): ${barred} (${pct(barred / Math.max(1, tot.want))}) — excluded by the scenario ${tot.excluded}, not licensed ${tot.unlicensed}, outside its nucleation window ${tot.window}, prerequisite event missing ${tot.prerequisite}`);
+say(`  reach it: ${reach}; the spec cap was binding on ${tot.cap} (${pct(tot.cap / Math.max(1, reach))}); the function's own count gate on ${tot.gate} (${pct(tot.gate / Math.max(1, reach))}); neither on ${tot.open} (${pct(tot.open / Math.max(1, reach))})`);
+say(`  scenarios with authored nucleation windows: ${rows.filter(r => r.license.windows.length).map(r => `${r.name} (${r.license.windows.join(', ')})`).join('; ') || 'none'}; with prerequisites: ${rows.filter(r => r.license.prerequisites.length).map(r => `${r.name} (${r.license.prerequisites.join(', ')})`).join('; ') || 'none'}`);
+say(`  licensed species per scenario: ${rows.map(r => r.license.licensed.length).sort((a, b) => a - b).join(' ')}`);
+say(`_wallStrangledFor refused ${stBlocked} births the bulk sigma admitted (${stCalls} calls)${stBlocked ? ': ' + Object.entries(strangledBy).map(([k, v]) => `${k} ${v}`).join('; ') : ''}`);
+const offPass = rows.filter(r => r.nucleationPasses !== r.steps).map(r => `${r.name} ${r.nucleationPasses}/${r.steps}`);
+if (offPass.length) say(`  NOTE — nucleation passes differ from steps in: ${offPass.join(', ')}`);
+say(`static: ${STATIC.fns.length} nucleation functions; own count gate at one active crystal ${gates.atOne} (${gates.atOneWithSideDoor} with a side door on the same line), at two or more ${gates.atMore}, a limit on crystals ever ${gates.everLimit}, none recognized ${gates.none}; ${J.count.callAtNucleationCap} call _atNucleationCap`);
 J.count.rolls = STATIC.rolls;
 say(`static: ${STATIC.rolls.total} rng.random() comparisons in the nucleation files; ${STATIC.rolls.literal} against a numeric literal; the rest: ${Object.entries(STATIC.rolls.other).map(([k, v]) => `${k} ×${v}`).join(', ') || 'none'}`);
 
@@ -743,7 +1166,8 @@ for (const r of rows) {
     per.push({ f, pv: mol / perVolume, ppm: x.bulkMax, top });
   }
   per.sort((a, b) => b.pv - a.pv);
-  thr.push({ s: r.name, cav: r.wall.vol_mm3 / 1000, solid: vAll / 1000, priced: vAll > 0 ? vPriced / vAll : 1, per });
+  thr.push({ s: r.name, cav: r.wall.vol_mm3 / 1000, solid: vAll / 1000, priced: vAll > 0 ? vPriced / vAll : 1, per,
+    byMineral: Object.fromEntries(Object.entries(r.volBy).sort((a, b) => b[1] - a[1]).map(([m, v]) => [m, v / 1000])) });
 }
 thr.sort((a, b) => (b.per[0]?.pv ?? -1) - (a.per[0]?.pv ?? -1));
 const cellT = (p) => p ? `${p.f} ${sig(p.pv)} (${sig(p.ppm)} ppm; ${p.top})` : '—';
@@ -754,7 +1178,7 @@ for (const x of thr) {
 const tops = thr.map(x => x.per[0]?.pv).filter(v => Number.isFinite(v));
 const over = (t) => tops.filter(v => v > t).length;
 J.throughput = { over1: over(1), over10: over(10), over100: over(100), over1000: over(1000), under0_01: tops.filter(v => v < 0.01).length,
-  rows: thr.map(x => ({ scenario: x.s, cavity_cm3: x.cav, solids_cm3: x.solid, priced: x.priced, binding: x.per[0] || null, next: x.per[1] || null, elements: x.per })) };
+  rows: thr.map(x => ({ scenario: x.s, cavity_cm3: x.cav, solids_cm3: x.solid, priced: x.priced, binding: x.per[0] || null, next: x.per[1] || null, elements: x.per, solids_cm3_by_mineral: x.byMineral })) };
 say(`scenarios whose solids hold more of some element than one cavity-volume of their richest broth: ${over(1)} of ${thr.length}; more than 10: ${over(10)}; more than 100: ${over(100)}; more than 1,000: ${over(1000)}; less than a hundredth: ${J.throughput.under0_01}`);
 
 // STATIC

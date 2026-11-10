@@ -7,7 +7,9 @@
   "galena"
  ],
  "seeds": [
-  42
+  42,
+  1,
+  2
  ],
  "selfcheck": {
   "scenario": "schneeberg",
@@ -15,7 +17,8 @@
    "rind=Infinity": true,
    "cap=Infinity": true,
    "root=1": true,
-   "mul=Ca:1": true
+   "mul=Ca:1": true,
+   "refund=0": true
   },
   "shippedReproducesBaseline": true
  },
@@ -103,6 +106,193 @@
       "steps": 81,
       "sigmaBulkMedian": 1.1189169093404558,
       "sigmaCellMedian": 1.0939725169688486
+     },
+     "speciesCount": 5,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "galena"
+     ]
+    }
+   }
+  },
+  {
+   "scenario": "reactive_wall",
+   "seed": 1,
+   "shippedReproducesBaseline": null,
+   "A": {
+    "fill": 0.0009648784209469138,
+    "full": null,
+    "lastGrowth": 120,
+    "species": {
+     "sphalerite": {
+      "n": 1,
+      "max_um": 6514.090530745432,
+      "last": 120
+     },
+     "marcasite": {
+      "n": 2,
+      "max_um": 2.1084788304022366,
+      "last": 70
+     },
+     "galena": {
+      "n": 1,
+      "max_um": 1076.0177823200333,
+      "last": 120
+     },
+     "pyrite": {
+      "n": 2,
+      "max_um": 458.26348077934824,
+      "last": 120
+     },
+     "anhydrite": {
+      "n": 6,
+      "max_um": 128.66828371907235,
+      "last": 92
+     }
+    },
+    "bulkPb": 30,
+    "voxPb": 29.99767759495329,
+    "trace": {
+     "mineral": "galena",
+     "steps": 81,
+     "sigmaBulkMedian": 1.1189053035206953,
+     "sigmaCellMedian": 1.0797311373827692
+    }
+   },
+   "B": {
+    "excess=1": {
+     "fill": 0.00088663654665572,
+     "full": null,
+     "lastGrowth": 120,
+     "species": {
+      "sphalerite": {
+       "n": 1,
+       "max_um": 6339.312775596258,
+       "last": 120
+      },
+      "marcasite": {
+       "n": 2,
+       "max_um": 3.108524044071061,
+       "last": 70
+      },
+      "galena": {
+       "n": 2,
+       "max_um": 720.4870227703018,
+       "last": 120
+      },
+      "pyrite": {
+       "n": 2,
+       "max_um": 461.06744125810485,
+       "last": 120
+      },
+      "anhydrite": {
+       "n": 6,
+       "max_um": 128.98416619825315,
+       "last": 92
+      }
+     },
+     "bulkPb": 30,
+     "voxPb": 29.998355153032378,
+     "trace": {
+      "mineral": "galena",
+      "steps": 81,
+      "sigmaBulkMedian": 1.1189054819166337,
+      "sigmaCellMedian": 1.1114501132190473
+     },
+     "speciesCount": 5,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "galena",
+      "marcasite"
+     ]
+    }
+   }
+  },
+  {
+   "scenario": "reactive_wall",
+   "seed": 2,
+   "shippedReproducesBaseline": null,
+   "A": {
+    "fill": 0.0010014215585635257,
+    "full": null,
+    "lastGrowth": 120,
+    "species": {
+     "sphalerite": {
+      "n": 1,
+      "max_um": 6417.5641588047865,
+      "last": 120
+     },
+     "marcasite": {
+      "n": 2,
+      "max_um": 6.530025219813098,
+      "last": 70
+     },
+     "galena": {
+      "n": 1,
+      "max_um": 1135.9233747433834,
+      "last": 120
+     },
+     "pyrite": {
+      "n": 1,
+      "max_um": 2823.8771970025605,
+      "last": 120
+     },
+     "anhydrite": {
+      "n": 6,
+      "max_um": 114.68302998092831,
+      "last": 92
+     }
+    },
+    "bulkPb": 30,
+    "voxPb": 29.997548298716275,
+    "trace": {
+     "mineral": "galena",
+     "steps": 81,
+     "sigmaBulkMedian": 1.118905668465704,
+     "sigmaCellMedian": 1.0779436618730946
+    }
+   },
+   "B": {
+    "excess=1": {
+     "fill": 0.0010067806434957817,
+     "full": null,
+     "lastGrowth": 120,
+     "species": {
+      "sphalerite": {
+       "n": 1,
+       "max_um": 6425.5256583730925,
+       "last": 120
+      },
+      "marcasite": {
+       "n": 2,
+       "max_um": 6.530025219813098,
+       "last": 70
+      },
+      "galena": {
+       "n": 2,
+       "max_um": 692.9819157764654,
+       "last": 120
+      },
+      "pyrite": {
+       "n": 1,
+       "max_um": 2892.801994090928,
+       "last": 120
+      },
+      "anhydrite": {
+       "n": 6,
+       "max_um": 118.63114378974971,
+       "last": 92
+      }
+     },
+     "bulkPb": 30,
+     "voxPb": 29.99841445468451,
+     "trace": {
+      "mineral": "galena",
+      "steps": 81,
+      "sigmaBulkMedian": 1.1189057176646633,
+      "sigmaCellMedian": 1.1115203515321577
      },
      "speciesCount": 5,
      "gained": [],

@@ -1,5 +1,6 @@
 {
  "seed": 42,
+ "census_sha256": "6b63cc216f64b6066a2f47aea30cc4144d79b0f29652e48ca626f1d4a8574897",
  "ok": true,
  "results": [
   {
@@ -73,6 +74,105 @@
    "committedDetail": "full at step 9, last growth at step 9 of 230, \"pocket full\" 100 %",
    "mutant_verdict": "FAIL",
    "mutantDetail": "full at step 9, last growth at step 9 of 230, \"pocket full\" 0 %"
+  },
+  {
+   "mutant": "last-growth-never-noted",
+   "what": "the last step on which anything grew is never updated",
+   "control": "space+end negative",
+   "committed": "PASS",
+   "committedDetail": "first step at fill >= 0.7: never; fill at end 8.7 %, last growth at step 120 of 120, \"pocket full\" 0 %",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "first step at fill >= 0.7: never; fill at end 8.7 %, last growth at step 0 of 120, \"pocket full\" 0 %"
+  },
+  {
+   "mutant": "budget-cut-ignored",
+   "what": "the formula-budget receipt on a zone is not read",
+   "control": "supply positive",
+   "committed": "PASS",
+   "committedDetail": "268 zones on Au; scenario-wide 268 rationed, 45 budget-cut",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "268 zones on Au; scenario-wide 268 rationed, 0 budget-cut"
+  },
+  {
+   "mutant": "solids-not-summed",
+   "what": "the inventory booked in the solids is never summed",
+   "control": "supply-share positive",
+   "committed": "PASS",
+   "committedDetail": "1.68 %",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "0.00 %"
+  },
+  {
+   "mutant": "final-step-off-by-one",
+   "what": "a crystal counts as still growing only if it grew one step after the run ended",
+   "control": "time positive",
+   "committed": "PASS",
+   "committedDetail": "calcite 34.6 mm: still growing on the final step",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "calcite 34.6 mm: unclassified"
+  },
+  {
+   "mutant": "any-growth-is-final",
+   "what": "a crystal counts as still growing if it ever grew",
+   "control": "time negative",
+   "committed": "PASS",
+   "committedDetail": "0 crystal(s)",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "12 crystal(s)"
+  },
+  {
+   "mutant": "cell-reads-bulk",
+   "what": "the crystal's own cell is read from the bulk handle",
+   "control": "draw-down positive",
+   "committed": "PASS",
+   "committedDetail": "83.1 % of 782 mm stored; through albite:Na 455 mm, feldspar:K 182 mm",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "0.0 % of 782 mm stored; through nothing"
+  },
+  {
+   "mutant": "ingredients-not-restored",
+   "what": "the attribution never sets the ingredient fields to the bulk handle's values",
+   "control": "draw-down positive",
+   "committed": "PASS",
+   "committedDetail": "83.1 % of 782 mm stored; through albite:Na 455 mm, feldspar:K 182 mm",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "0.0 % of 782 mm stored; through nothing"
+  },
+  {
+   "mutant": "share-reads-zero",
+   "what": "the cell's excess as a share of the reference's is read as 0",
+   "control": "draw-down negative",
+   "committed": "PASS",
+   "committedDetail": "0.00 % of 31.2 mm stored",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "100.00 % of 31.2 mm stored"
+  },
+  {
+   "mutant": "engine-read-after-diffusion",
+   "what": "the engine's view is read after the step's diffusion has refilled the cell, not at the dry run (what census v3 did)",
+   "control": "pause positive",
+   "committed": "PASS",
+   "committedDetail": "175 pauses on a cell run short (galena ×156, tetrahedrite ×11, argentite ×4); 0 on a cell that reads saturated",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "24 pauses on a cell run short (tetrahedrite ×8, galena ×8, argentite ×4); 151 on a cell that reads saturated"
+  },
+  {
+   "mutant": "license-not-asked",
+   "what": "the scenario's license is not asked",
+   "control": "count positive",
+   "committed": "PASS",
+   "committedDetail": "33 steps past sigma_crit, 33 not licensed",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "33 steps past sigma_crit, 0 not licensed"
+  },
+  {
+   "mutant": "license-always-refuses",
+   "what": "every species is read as not licensed",
+   "control": "count negative",
+   "committed": "PASS",
+   "committedDetail": "101 steps past sigma_crit, 0 not licensed",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "101 steps past sigma_crit, 101 not licensed"
   }
  ]
 }

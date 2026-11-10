@@ -42,6 +42,7 @@ ultramafic_supergene                      55        4              4            
 wittichen                                 55       13             12               no         35 %  |                        6                          1
 zoned_dripstone_cave                      55        3              3              yes         38 %  |                        1                          1
 
-scenarios with one species set in every seed: 30 of 41
+scenarios with one species set in every seed: 30 of 41 (1 of them grows nothing in any seed)
+size spread (species present in every seed whose median largest crystal is >= 1 mm; per scenario the median over those species of (max − min) / median): a value in 35 scenarios; its median 38 %; 50 % or more in 15
 (scenario, species) pairs: 356; present in every seed: 334 (94 %)
 from seeds.json: of the 334 always-present pairs, 174 (52 %) have the same crystal count in every seed; the same species is the largest crystal of every seed in 31 of 40 scenarios with crystals
