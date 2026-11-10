@@ -72,14 +72,17 @@
  * run with its step, the first steps at fill >= 0.7 and >= 0.999, the last step on which any crystal
  * stored a positive zone, and each species' crystals. A species is PRESENT in a run when at least
  * one of its crystals has solid left at run end (total_growth_um > 0). A crystal that dissolved away,
- * or was born and never grew, is a record with no solid: it is listed ("×n records") and is not
- * presence. For each present species: the number of crystals with solid left, the largest, and the
- * last step it grew. Against A: species LOST (present in A, not in B, whether or not records
+ * or was born and never grew, is a record with no solid: its mineral is listed apart ("no solid
+ * left: <mineral> (n records)") and is not presence. For each present species: the number of
+ * crystals with solid left, the largest, and the last step it grew.
+ * Against A: species LOST (present in A, not in B, whether or not records
  * remain), GAINED (the reverse), and MOVED (present in both, and the number of crystals with solid
  * changed or the largest changed by a factor of more than 1.25 either way, so a shrink of a fifth
  * counts; the factor is taken on the sizes plus one micrometre, so that two specks do not count).
- * A scenario's run is also marked IDENTICAL or not: whether every species has the same crystals
- * with solid and the same largest size to 0.1 µm, which is what the committed baseline records.
+ * Each arm's line also says whether "the baseline summary" is unchanged or differs: the per-species
+ * summary that tests-js/baselines stores (active, dissolved and total counts, and the largest size
+ * to 0.1 µm; summarize() below), compared whole with arm A's. That is the stricter question. An
+ * arm can move no species by the test above and still change it.
  * With `pb` or `nopb`, bulk and voxel-mean Pb at run end and the uraninites' negative zones.
  *
  * AUDIT. An intervention may trip one of the simulator's own audits, and an audit that fails can

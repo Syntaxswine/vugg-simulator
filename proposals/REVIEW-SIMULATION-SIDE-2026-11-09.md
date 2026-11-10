@@ -1446,7 +1446,9 @@ committed file's. A census row is cached under a digest that includes the seed a
 the code that produces the row, so a row cannot outlive a change to that code or be handed to
 another seed. The digest does not cover the rest of the file: the controls and the report are
 recomputed from the rows on every run. The A/B outputs carry no such digest. Every one of them
-was produced by `tools/sim-side-ab.mjs` as committed, in one re-run after its last change.
+was produced by `tools/sim-side-ab.mjs` as it stands at commit `0b243e32`, in one re-run after the
+last change to what the tool does. The commit after that one corrects two sentences of the
+tool's header comment and changes no line of code.
 
 The six gates pass on this tree. **The full suite** (`npm run ci`, about 2.5 hours cold) is not part
 of this commit's evidence, and it has not been run on this tip. It is to be run on the final tip
