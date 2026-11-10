@@ -27,6 +27,9 @@
  * with the clamp at 0, under which every positive zone of the pair is rescaled to nothing, to see
  * whether any bound on the pair could hold a cavity of that class. The select's own labels are
  * printed beside the range each class is drawn from.
+ * The eight seeds draw pockets of 34 mm and more, and the pocket class is drawn from 25 mm up. So
+ * every seed from 1 to 400 whose pocket is under 40 mm is run as well, shipped and with the clamp
+ * at 7, and the mineral that holds the largest share of each at the end is printed.
  *
  * Part 3. Three other ways the game starts a run on a pegmatite's fluid, at seeds 42, 1 and 2,
  * each through the game's own constructor, shipped and with the same clamp in process.
@@ -79,6 +82,19 @@
  *                 the vug built that way has to be the run the command runtime builds, and the
  *                 change to the broth in the scenario's own cavity has to reach the largest
  *                 fill of the committed A/B run (ab-gem-broth.json in this folder is read).
+ *   Pairs of those changes in the vug: the change to the broth with the pair's rate clamped as
+ *                 well, at 7, 3, 2, 1.5, 1 and 0; the fill switch with the clamp at 7; the rind
+ *                 with the clamp at 7. And the one pair that keeps the vug under 0.7 full, run
+ *                 again in the scenario's own cavity. The clamp wrapper rescales the zone an
+ *                 engine returns, after the engine has made its own tests on the rate it
+ *                 proposed. Feldspar's rate is 3·(σ − 1)·u with u between 0.7 and 1.3, and it
+ *                 rolls for an inclusion above a rate of 4 (js/59-engines-silicate.ts); albite's
+ *                 is 4·(σ − 1)·u with u between 0.8 and 1.2, and it rolls for a platy habit
+ *                 below a rate of 3 at under 350 °C. A clamp inside the engine at 2 leaves both
+ *                 tests where the wrapper leaves them (feldspar 4.2 to 7.8, albite 6.4 to 9.6).
+ *                 At 1.5 feldspar's clamped rate would be 3.15 to 5.85 and at 1 it would be 2.1
+ *                 to 3.9, so the engine would make the inclusion roll sometimes or never, where
+ *                 under the wrapper it always makes it. Those arms are not a preview of a value.
  * The runs are stepped with run_step, as every run of this probe is. Simulation mode steps through
  * applySimulationCommand, one step to a command; a control makes the seed-42 run that way and
  * compares it with the baseline and with the run stepped by run_step.
@@ -302,6 +318,29 @@ for (const [label, runs] of [['shipped', rShipped], ['rate clamp at 7', rClamp]]
   }
 }
 
+// The small end of the pocket class. The eight seeds above draw pockets of 34 mm and more, and the
+// class is drawn from 25 mm up. Every seed from 1 to SMALL_UP_TO whose pocket is under SMALL_MM is
+// run, shipped and with the clamp.
+{
+  const SMALL_MM = 40, SMALL_UP_TO = 400;
+  const small = [];
+  for (let seed = 1; seed <= SMALL_UP_TO; seed++) {
+    setSeed(seed);
+    if (Number(buildRandomScenario('pegmatite', 'pocket').conditions.wall.vug_diameter_mm) < SMALL_MM) small.push(seed);
+  }
+  const s = small.map(seed => run(seed, random)), c = small.map(seed => run(seed, random, { clamp: 7 }));
+  const top = (r) => (r.share.length ? `${r.share[0][0]} ${(r.share[0][1] * 100).toFixed(0)} %` : 'nothing');
+  console.log(`\n  the small end of the pocket class: of seeds 1 to ${SMALL_UP_TO}, ${small.length} draw a pocket under ${SMALL_MM} mm (seeds ${small.join(', ')}); cavities ${Math.min(...s.map(r => r.start.diameter)).toFixed(1)} to ${Math.max(...s.map(r => r.start.diameter)).toFixed(1)} mm`);
+  console.log(`    shipped: reaches fill >= 0.999 at ${s.filter(r => r.full != null).length} of ${s.length}; passes 0.7 at ${s.filter(r => r.first70 != null).length}`);
+  console.log(`    rate clamp at 7: reaches fill >= 0.999 at ${c.filter(r => r.full != null).length} of ${c.length}; passes 0.7 at ${c.filter(r => r.first70 != null).length}`);
+  for (let i = 0; i < small.length; i++) {
+    console.log(`      seed ${String(small[i]).padStart(3)}: ${c[i].start.diameter.toFixed(1)} mm, ${c[i].steps} steps; shipped full at step ${s[i].full ?? '—'}; under the clamp fill at run end ${(c[i].fill * 100).toFixed(0)} %, past 0.7 at step ${c[i].first70 ?? '—'}, full at step ${c[i].full ?? '—'}; largest share at the end: ${top(c[i])}`);
+  }
+  const fillers = {};
+  for (const r of c) if (r.full != null && r.share.length) fillers[r.share[0][0]] = (fillers[r.share[0][0]] || 0) + 1;
+  console.log(`    the mineral with the largest share of the pockets that fill under the clamp: ${Object.entries(fillers).sort((a, b) => b[1] - a[1]).map(([m, n]) => `${m} in ${n}`).join(', ') || 'none fills'}`);
+}
+
 // ---- part 3 ----
 const OTHER_SEEDS = [42, 1, 2];
 const ZEN_STEPS = 400;
@@ -477,6 +516,30 @@ console.log(`\nPART 4 — Simulation mode's own form: the Cavity Size select and
       show(label, runs);
       console.log(`      ${''.padEnd(16)} share of the cavity's volume at run end, %, the three largest: ${shares(runs)}`);
       console.log(`      ${''.padEnd(16)} fill at run end ${runs.map(r => (r.fill * 100).toFixed(1)).join(' / ')} %; SC1's first acceptance line holds at ${runs.filter((r, i) => firstLine(r, s[i])).length} of ${runs.length}`);
+    }
+
+    // Pairs of those changes, made together in the same vug.
+    console.log(`\n  Pairs of courses in the vug, seeds ${OTHER_SEEDS.join(' / ')}: the change to the broth with the pair's rate clamped as well, at six values; the fill switch with the clamp at 7; the rind with the clamp at 7. The wrapper is what a clamp in the engine would be at 2 and above, and not at 1.5, 1 or 0 (see the header).`);
+    const PAIRS_OF_COURSES = [
+      ['broth, clamp 7', { mul: BROTH, clamp: 7 }], ['broth, clamp 3', { mul: BROTH, clamp: 3 }], ['broth, clamp 2', { mul: BROTH, clamp: 2 }],
+      ['broth, clamp 1.5', { mul: BROTH, clamp: 1.5 }], ['broth, clamp 1', { mul: BROTH, clamp: 1 }], ['broth, clamp 0', { mul: BROTH, clamp: 0 }],
+      ['switch, clamp 7', { localFill: true, clamp: 7 }], ['rind, clamp 7', { rind: 5000, clamp: 7 }],
+    ];
+    const quartzSolid = (r) => r.species.quartz ? `${r.species.quartz.n} of ${mm(r.species.quartz.max_um)} mm` : 'none';
+    for (const [label, options] of PAIRS_OF_COURSES) {
+      const runs = OTHER_SEEDS.map(seed => run(seed, viaFactory(overrides), options));
+      show(label, runs);
+      console.log(`      ${''.padEnd(16)} share of the cavity's volume at run end, %, the three largest: ${shares(runs)}`);
+      console.log(`      ${''.padEnd(16)} fill at run end ${runs.map(r => (r.fill * 100).toFixed(1)).join(' / ')} %; quartz crystals with solid: ${runs.map(quartzSolid).join(' / ')}; SC1's first acceptance line holds at ${runs.filter((r, i) => firstLine(r, s[i])).length} of ${runs.length}`);
+    }
+    // What the pair that keeps the vug under 0.7 does in the scenario's own cavity.
+    console.log(`\n  The same two changes in the scenario's own cavity (the change to the broth with the pair's rate clamped at 1), seeds ${OTHER_SEEDS.join(' / ')}`);
+    {
+      const base = OTHER_SEEDS.map(seed => run(seed, viaFactory({})));
+      const runs = OTHER_SEEDS.map(seed => run(seed, viaFactory({}), { mul: BROTH, clamp: 1 }));
+      show('broth, clamp 1', runs);
+      console.log(`      ${''.padEnd(16)} share of the cavity's volume at run end, %, the three largest: ${shares(runs)}`);
+      console.log(`      ${''.padEnd(16)} fill at run end ${runs.map(r => (r.fill * 100).toFixed(1)).join(' / ')} %; quartz crystals with solid: ${runs.map(quartzSolid).join(' / ')}; SC1's first acceptance line holds at ${runs.filter((r, i) => firstLine(r, base[i])).length} of ${runs.length}; control: the factory's run with no change ${JSON.stringify(base[0].summary) === JSON.stringify(BASELINE.gem_pegmatite) ? 'reproduces the baseline at seed 42' : 'DOES NOT REPRODUCE THE BASELINE'}`);
     }
   }
 }

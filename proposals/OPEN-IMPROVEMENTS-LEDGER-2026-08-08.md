@@ -118,15 +118,19 @@ single execution ledger for the science-first AAA completion branch.
     own 230 steps and 27–29 more; a run that goes on seals at step 304–306, on quartz, and
     Creative mode, where the Scenarios menu opens a scenario, has no last step. How many
     steps it buys depends on the cavity: at the 15 mm vug setting of Simulation mode's Cavity
-    Size select the bounded pocket is full at step 97–99, and no value mends that (with the
-    pair holding no solid, quartz and tourmaline seal the vug at step 174–176), so that size
-    is to be accepted, left to SC4 or treated as a matter for the form. It does not
+    Size select the bounded pocket is full at step 97–99, and no value alone mends that
+    (with the pair holding no solid, quartz and tourmaline seal the vug at step 174–176),
+    nor does any other single course of the doc's §4; one pair of changes of the eight run
+    does, at the price of the pocket's quartz. That setting fills 16–17 of the 41 scenarios
+    as shipped (3 in their own cavities), so the size is a question for the form as much as
+    for this bound, and the recommendation does not hold it. It does not
     reach Zen mode, which drops the scenario object and runs at a fifth of the time scale
     (its `gem_pegmatite` plugs at step 32–33), or Random Vugg's pegmatite archetype, where
     the plug was first reported, which has no scenario (3 of 8 cavities of its pocket size
     class fill, all 8 of its vug class, 4 of 8 at the setting its page opens on). The same
     clamp in the engines for every scenario reaches those too (in Random Vugg it keeps the
-    pocket class from filling completely, and six vugs of eight still fill); it changes eight
+    eight pockets run from filling completely, while ten of the 23 smallest pockets and six
+    of eight vugs still fill); it changes eight
     baselines, empties Shigar's pocket, and leaves `schneeberg` without solid of three of the
     species it expects at seed 1 and two at seed 2. The tree's own `per_cell_local_fill` switch
     keeps the pocket open at 5 seeds of 11. Factor caps at one uniform ceiling delete both
@@ -151,9 +155,10 @@ single execution ledger for the science-first AAA completion branch.
     commissioned and adds one field to the simulator (saves replay a run and need no new
     field); the continuous one moves the gate's share by 62 times the tolerance. Where the
     game starts that fluid without the scenario's events (Creative mode's starter fluid, a
-    Zen run; neither has a license) nothing alters the uraninite: the held release releases
-    nothing there, and the continuous one grows a galena of 8–10 mm in the starter fluid and
-    half a millimetre in Zen. Under either
+    Zen run; neither has a license) a run left to itself does not alter its uraninite: the
+    held release releases nothing there (one Drain by the player in Creative mode does
+    release it), and the continuous one grows a galena of 8–10 mm in the starter fluid and
+    half a millimetre in a Zen pocket that is full by step 200. Under either
     timing `schneeberg`'s two largest crystals are named amazonite on their cards where they
     are named microcline today; the cavity view draws them as before; and where the game
     shows them zone by zone (the step log, the zone-history bar) the held release puts the
@@ -170,9 +175,10 @@ single execution ledger for the science-first AAA completion branch.
     proposed.
   - [ ] Rule on Zen mode as the review met it (the doc's §6, decision 8): a Zen run of a
     scenario has no scenario object, so no license, exclusions, windows or movements (an
-    emerald is on record in its `gem_pegmatite`); and Zen's drift is written to the bulk
-    handle alone, the fluid that births read and not the one that crystals grow from. No
-    change is proposed.
+    emerald is on record in its `gem_pegmatite`); and the species and pH writes of Zen's
+    drift stay on the bulk handle, the fluid that births read and not the one that crystals
+    grow from (its temperature write is undone by the next step; its pressure write does
+    reach the crystals). No change is proposed.
 
 ## P2 — scenario and content science
 

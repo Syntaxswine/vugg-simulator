@@ -1,0 +1,54 @@
+[scenarios] loaded 41 from ./data/scenarios.json5
+[spec] loaded 184 minerals from ./data/minerals.json
+[thermo] loaded 15 carbonate entries from ./data/thermo-carbonates.json
+[thermo] loaded 4 sulfate entries from ./data/thermo-sulfates.json
+[narratives] loaded 94 species
+probe-zen-drift — SIM 286; seeds 42 / 1 / 2; 60 steps of run_step before the readings
+control at the start: gem_pegmatite's shipped run at seed 42 reproduces the baseline; time scale 5
+
+PART 1 — one write at a time, no step run; time scale 1
+
+  mvt: scenario object absent at every seed; active crystals 4 / 4 / 4 of 4 / 4 / 4 minerals; conditions at 150 / 163 / 91 °C and 0.3 / 0.3 / 0.3 kbar
+    nine species × 4     sigma on the crystal's own cell changes for 0 / 0 / 0 crystals; on the bulk handle for 4 / 4 / 3 minerals
+    pH − 0.75            sigma on the crystal's own cell changes for 0 / 0 / 0 crystals; on the bulk handle for 3 / 3 / 3 minerals
+    temperature − 50 °C  sigma on the crystal's own cell changes for 0 / 0 / 0 crystals; on the bulk handle for 3 / 4 / 3 minerals
+    pressure − 0.5 kbar  sigma on the crystal's own cell changes for 1 / 1 / 1 crystals; on the bulk handle for 1 / 1 / 1 minerals; pressure then 0.001 / 0.001 / 0.001 kbar; at seed 42, calcite 2.540 → 4.742
+    control: read again with nothing applied, every sigma is the same at every seed
+
+  gem_pegmatite: scenario object absent at every seed; active crystals 15 / 20 / 19 of 7 / 7 / 8 minerals; conditions at 560 / 561 / 561 °C and 3 / 3 / 3 kbar
+    nine species × 4     sigma on the crystal's own cell changes for 0 / 0 / 0 crystals; on the bulk handle for 7 / 7 / 8 minerals
+    pH − 0.75            sigma on the crystal's own cell changes for 0 / 0 / 0 crystals; on the bulk handle for 0 / 0 / 0 minerals
+    temperature − 50 °C  sigma on the crystal's own cell changes for 0 / 0 / 0 crystals; on the bulk handle for 3 / 3 / 3 minerals
+    pressure − 0.5 kbar  sigma on the crystal's own cell changes for 0 / 0 / 0 crystals; on the bulk handle for 0 / 0 / 0 minerals; pressure then 2.5 / 2.5 / 2.5 kbar
+    control: read again with nothing applied, every sigma is the same at every seed
+
+  radioactive_pegmatite: scenario object absent at every seed; active crystals 30 / 33 / 33 of 9 / 9 / 9 minerals; conditions at 510 / 511 / 511 °C and 2 / 2 / 2 kbar
+    nine species × 4     sigma on the crystal's own cell changes for 0 / 0 / 0 crystals; on the bulk handle for 9 / 9 / 9 minerals
+    pH − 0.75            sigma on the crystal's own cell changes for 0 / 0 / 0 crystals; on the bulk handle for 1 / 1 / 1 minerals
+    temperature − 50 °C  sigma on the crystal's own cell changes for 0 / 0 / 0 crystals; on the bulk handle for 2 / 2 / 2 minerals
+    pressure − 0.5 kbar  sigma on the crystal's own cell changes for 0 / 0 / 0 crystals; on the bulk handle for 0 / 0 / 0 minerals; pressure then 1.5 / 1.5 / 1.5 kbar
+    control: read again with nothing applied, every sigma is the same at every seed
+
+PART 2 — one step after the write, seed 42; each line gives the value before the write → after it → after one run_step, and in brackets the value after the same step on a simulator with no write
+
+  mvt
+    SiO2 × 4             SiO2 on the bulk handle 100.0 → 400.0 → 400.0 [100.0]; mean SiO2 over the voxels 100.000 → 100.000 → 100.000 [100.000]
+    pH − 0.75            pH on the bulk handle 7.200 → 6.450 → 6.450 [7.200]; mean pH over the voxels 7.200 → 7.200 → 7.200 [7.200]
+    temperature − 50 °C  the conditions' temperature 150.0 → 99.963 → 148.4 [148.4]; mean of the rings' temperatures 150.0 → 150.0 → 148.4 [148.4]
+    pressure − 0.5 kbar  the conditions' pressure 0.300 → 0.001 → 0.001 [0.300]
+
+  gem_pegmatite
+    SiO2 × 4             SiO2 on the bulk handle 8000.0 → 32000.0 → 32000.0 [8000.0]; mean SiO2 over the voxels 7999.8 → 7999.8 → 7999.8 [7999.8]
+    pH − 0.75            pH on the bulk handle 6.800 → 6.050 → 6.050 [6.800]; mean pH over the voxels 6.800 → 6.800 → 6.800 [6.800]
+    temperature − 50 °C  the conditions' temperature 559.9 → 509.9 → 558.5 [558.5]; mean of the rings' temperatures 559.9 → 559.9 → 558.5 [558.5]
+    pressure − 0.5 kbar  the conditions' pressure 3.000 → 2.500 → 2.500 [3.000]
+
+  radioactive_pegmatite
+    SiO2 × 4             SiO2 on the bulk handle 12000.0 → 48000.0 → 48000.0 [12000.0]; mean SiO2 over the voxels 11999.7 → 11999.7 → 11999.7 [11999.7]
+    pH − 0.75            pH on the bulk handle 6.500 → 5.750 → 5.750 [6.500]; mean pH over the voxels 6.500 → 6.500 → 6.500 [6.500]
+    temperature − 50 °C  the conditions' temperature 509.9 → 459.9 → 508.5 [508.5]; mean of the rings' temperatures 509.9 → 509.9 → 508.5 [508.5]
+    pressure − 0.5 kbar  the conditions' pressure 2.000 → 1.500 → 1.500 [2.000]
+
+  control: every simulator of Part 2 is the one Part 1 read at that seed
+
+control at the end: the time scale reads 5; gem_pegmatite's shipped run at seed 42 still reproduces the baseline

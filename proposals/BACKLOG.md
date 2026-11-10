@@ -37,10 +37,10 @@ Living list of open work items, captured from session conversations so context s
 > galena was on record, with no growth, in every baseline from v70 to v159; v160's
 > strangulation gate removed it and its note put that down to depleted walls. The walls were
 > never supplied. `schneeberg`'s galena, anglesite, duftite and plumbogummite have the same
-> history. The write is the same wherever a uraninite grows: in Creative mode's "Radioactive
-> Pegmatite" starter fluid and in a Zen run, bulk Pb climbs to 268–286 and 621–682 ppm with
-> every voxel at 30.00.)
-> **This review has been corrected nine times by its own review rounds (the doc's §9 lists each
+> history. The write is in the simulator's step, so it is not confined to the scenarios: in
+> Creative mode's "Radioactive Pegmatite" starter fluid and in a Zen run, bulk Pb climbs to
+> 268–286 and 621–682 ppm with every voxel at 30.00.)
+> **This review has been corrected ten times by its own review rounds (the doc's §9 lists each
 > set): the first version said supply does not bind; the second costed the recommended fixes
 > too lightly; the third said the feldspar clamp loses no species, having counted a
 > dissolved-away crystal's record as presence, and recommended a lead mechanism that cannot
@@ -55,9 +55,12 @@ Living list of open work items, captured from session conversations so context s
 > counted step-log lines that Simulation mode prints only in part; the ninth called the bound
 > too loose for the form's smallest cavity and left the owner another value to choose, when no
 > bound on the pair keeps that cavity open, and counted Random Vugg's plugs in one of its
-> three size classes. In the last six rounds
-> the measured numbers and source references held; the errors were in what it says its own
-> proposals cost and reach.**
+> three size classes; the tenth said no course holds that cavity either, having run each
+> alone, when two together do at a price, said of a size class what it had run on eight
+> cavities, and read all of Zen's drift as a write to the bulk handle when its pressure
+> write is not. In the last seven rounds
+> the measured numbers held and the source lines cited were the lines; the errors were in
+> what it says its own proposals cost and reach, and in that one reading.**
 > **Awaits the boss:** the eight decisions in the doc's §6. SC1: a clamp on the feldspar pair's
 > rate authored on `gem_pegmatite` ALONE (recommended; one baseline changes), which makes topaz
 > appear at all three locality-gate seeds, so the bump must also PROMOTE TOPAZ out of the
@@ -68,17 +71,20 @@ Living list of open work items, captured from session conversations so context s
 > the Scenarios menu opens a scenario and there is no last step) SEALS at step 304–306, on
 > quartz, and a bound seven times tighter seals 4–5 steps later. How many steps it buys depends
 > on the cavity: Simulation mode's form has a CAVITY SIZE select, and in its 15 mm vug
-> the bounded pocket is full at step 97–99 (its two larger cavities stay open). NO VALUE MENDS
-> THE VUG: with the pair holding no solid at all, quartz and tourmaline seal it at step
-> 174–176, so for that size the choice is to accept it, leave it to SC4, or treat it as a
-> matter for the form. It does not
+> the bounded pocket is full at step 97–99 (its two larger cavities stay open). NO VALUE ALONE
+> MENDS THE VUG: with the pair holding no solid at all, quartz and tourmaline seal it at step
+> 174–176, and no other course of the doc's §4 keeps it open alone. Of eight pairs of changes
+> run there, one does (the changed broth with the pair clamped at 1, a clamp the preview does
+> not stand for), at the price of the pocket's quartz. AND THE VUG SETTING IS HARD ON THE
+> FLEET: as shipped, 16–17 of the 41 scenarios fill in it, where 3 do in their own cavities.
+> The recommendation does not hold that size. It does not
 > reach Zen mode,
 > which drops the scenario object and runs at a fifth of the time scale (its `gem_pegmatite`
 > plugs at step 32–33), or Random Vugg's pegmatite archetype, where the boss first reported
 > the plug, which has no scenario at all. Against it: the same
 > clamp in the engines for every scenario, which reaches those too, though in Random Vugg it
-> keeps the pocket class from filling completely and six vugs of eight still fill (eight
-> baselines change; it
+> keeps the eight pockets run from filling completely while ten of the 23 smallest pockets
+> and six of eight vugs still fill (eight baselines change; it
 > empties Shigar's pocket and leaves `schneeberg` without solid native arsenic and native
 > bismuth at seeds 1 and 2, and cobaltite at seed 1, all three of them species it expects); the
 > tree's own `per_cell_local_fill` switch, which keeps the pocket open at 5 seeds of 11 where
@@ -99,8 +105,10 @@ Living list of open work items, captured from session conversations so context s
 > adds one field to the simulator (saves replay a run and need no new field); the continuous
 > one moves the gate's share. THE TIMINGS ALSO PART WHERE THE GAME STARTS THAT FLUID WITHOUT
 > THE SCENARIO'S EVENTS (Creative mode's starter fluid, a Zen run; no license in either):
-> nothing alters the uraninite there, so the held release releases nothing, and the
-> continuous one grows a galena of 8–10 mm in the starter fluid and half a millimetre in Zen.
+> left to itself such a run does not alter its uraninite, so the held release releases
+> nothing (one Drain by the player in Creative mode does release it), and the continuous
+> one grows a galena of 8–10 mm in the starter fluid and half a millimetre in a Zen pocket
+> that is full by step 200.
 > UNDER EITHER TIMING `schneeberg`'s two largest crystals are
 > NAMED amazonite on their cards where they are named microcline today; the cavity view draws
 > them as before; and wherever the game shows them zone by zone the timings differ: their
@@ -113,8 +121,9 @@ Living list of open work items, captured from session conversations so context s
 > against the open ladders. Three authored values that sit exactly on a σ threshold, one of
 > which starts four of `supergene_oxidation`'s azurites dissolving at its last event. And Zen
 > mode as the review met it: no scenario object (an emerald in its `gem_pegmatite`), and a
-> drift written to the bulk handle alone, the fluid that births read and not the one that
-> crystals grow from.
+> drift whose species and pH writes stay on the bulk handle, the fluid that births read and
+> not the one that crystals grow from (its temperature write is undone by the next step; its
+> pressure write does reach the crystals).
 
 > ## 📷 HOSTILE REVIEW — VISUAL REALISM (2026-09-04) — **`PROPOSAL-HOSTILE-REVIEW-VISUAL-REALISM-2026-09-04.md`**
 >

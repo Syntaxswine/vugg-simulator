@@ -70,22 +70,33 @@
  * galena, molybdenite and uraninite: every positive zone rescaled by (σ − 1)/σ), to see what SC3
  * delivers if SC2 lands first.
  *
- * Fourth part. The same three timings where the game starts radioactive_pegmatite's fluid without
- * the scenario's events, each through the game's own code:
+ * Fourth part. The same three timings in three places where the game runs a fluid that grows
+ * uraninite without the scenario's events, each through the game's own code:
  *   Creative, a starter    fortressBeginFromStarterFluid('radioactive', seed) (js/94-ui-menu.ts):
- *                the fluid at 200 °C in a limestone cavity, no events, no scenario object. 120
- *                steps of run_step alone, at the time scale of 5 that Creative mode sets.
- *   Zen mode     by the game's own loop, as probe-clamp-horizon.mjs Part C drives it: a real
- *                <select id="idle-scenario"> holding the scenario is put on the page;
- *                switchMode('idle'), which sets the time scale to 1; idleTogglePlay() with the
- *                clock held at the seed, which builds the simulator; idleTogglePause(); and
- *                idleDoStep() 600 times (Zen's drift, then run_step, then the page's drawing).
+ *                radioactive_pegmatite's fluid at 200 °C in a limestone cavity, no events, no
+ *                scenario object. 120 steps of run_step alone, at the time scale of 5 that
+ *                Creative mode sets. Run twice: left to itself, and with one Drain after step
+ *                60, made by the page's own fortressStep('drain') (js/97-ui-fortress.ts), which
+ *                lowers the water level, sets O2 on the bulk handle to at least 0.6 and advances
+ *                no step. Drain is one of the actions a player has there.
+ *   Random Vugg  buildRandomScenario('pegmatite', 'pocket') (js/96-ui-random.ts), which draws
+ *                uranium into about a third of its fluids and builds no scenario object. The
+ *                eight seeds of probe-pegmatite-reach.mjs; those whose shipped run puts a
+ *                uraninite on record are run under the other two timings, for the length the
+ *                builder drew.
+ *   Zen mode     radioactive_pegmatite by the game's own loop, as probe-clamp-horizon.mjs Part C
+ *                drives it: a real <select id="idle-scenario"> holding the scenario is put on
+ *                the page; switchMode('idle'), which sets the time scale to 1; idleTogglePlay()
+ *                with the clock held at the seed, which builds the simulator; idleTogglePause();
+ *                and idleDoStep() 600 times (Zen's drift, then run_step, then the page's drawing).
  * The held timing releases its store on a step on which a uraninite takes a negative zone, and
  * grow_uraninite takes one only below saturation with O2 above 0.3 (js/57-engines-oxide.ts). In
  * the scenario's own run an event brings that about. This part reads whether anything does where
- * there are no events: per run, the uraninites' negative zones, the bulk handle's Pb beside the
- * lowest and highest voxel, O2 the same way, what `held` kept back and what it released, and the
- * galena and plumbogummite on record. Neither run has a scenario object, so neither has a license.
+ * there are no events: per run, the first steps at which the fill passes 0.7 and reaches 0.999,
+ * the uraninites' negative zones, the bulk handle's Pb beside the lowest and highest voxel, O2
+ * the same way, what `held` kept back and what it released, the galena and plumbogummite on
+ * record with the step of the galena's last zone, and whether the baseline-style summary is the
+ * shipped run's. None of these runs has a scenario object, so none has a license.
  *
  * The values are restored, never subtracted (the bulk handle's Pb before the block is read at the
  * _sealVugIfFilled call that precedes it and put back at _check_enclosure, the first call after it).
@@ -109,12 +120,12 @@ const harness = await import(pathToFileURL(path.join(ROOT, 'tools', '_harness.mj
 const {
   SCENARIOS, VugSimulator, setSeed, SIM_VERSION, MINERAL_GATES_REGISTRY, MINERAL_ENGINES, crystalDisplayName, crystalColor,
   groupZonesByChemistry, resolveBodyColour, _bodyFieldVal, MINERAL_SPEC,
-  fortressBeginFromStarterFluid, setSimulationTimeScale, getSimulationTimeScale, switchMode,
+  fortressBeginFromStarterFluid, fortressStep, buildRandomScenario, setSimulationTimeScale, getSimulationTimeScale, switchMode,
   idleTogglePlay, idleTogglePause, idleDoStep, idleStop, idlePickScenario,
 } = await harness.loadSimBundle({
   toolName: 'probe-lead-choices',
   extraExports: ['MINERAL_GATES_REGISTRY', 'MINERAL_ENGINES', 'crystalDisplayName', 'crystalColor', 'groupZonesByChemistry', 'resolveBodyColour', '_bodyFieldVal', 'MINERAL_SPEC',
-    'fortressBeginFromStarterFluid', 'setSimulationTimeScale', 'getSimulationTimeScale', 'switchMode',
+    'fortressBeginFromStarterFluid', 'fortressStep', 'buildRandomScenario', 'setSimulationTimeScale', 'getSimulationTimeScale', 'switchMode',
     'idleTogglePlay', 'idleTogglePause', 'idleDoStep', 'idleStop', 'idlePickScenario'],
 });
 // tools/sim-side-ab.mjs REFUSAL, copied: a CO2 or carbonate event of js/70l that says it was paused or refused.
@@ -173,7 +184,7 @@ function run(name, seed, options = {}) {
 // handle and to every voxel, on a step on which a uraninite takes a negative zone. Returns the
 // counts, which the wrappers keep up to date.
 function leadTiming(sim, grid, timing) {
-  const lead = { store: 0, releases: 0, released: 0 };
+  const lead = { store: 0, releases: 0, released: 0, first: null };
   let before = null;
   if (timing !== 'shipped') {
     const origSeal = sim._sealVugIfFilled;
@@ -191,6 +202,7 @@ function leadTiming(sim, grid, timing) {
           if (altered && lead.store > 0) {
             this.conditions.fluid.Pb = before + lead.store;
             for (const v of grid.voxels) v.fluid.Pb += lead.store;
+            if (lead.first == null) lead.first = { step: this.step, ppm: lead.store };
             lead.releases++; lead.released += lead.store; lead.store = 0;
           }
         }
@@ -358,10 +370,21 @@ for (const sc2 of [false, true]) {
 }
 
 // ---- fourth part ----
-const STARTER_STEPS = 120, ZEN_STEPS = 600;
-// What one run left, read the same way for both entries. `start` is read before the first step.
-function readElsewhere(sim, grid, lead, start) {
+const STARTER_STEPS = 120, ACTION_AFTER = 60, ZEN_STEPS = 600;
+// Advance a simulator and note the first steps at which the fill passes 0.7 and reaches 0.999.
+function advance(sim, steps, step, track) {
+  for (let i = 0; i < steps; i++) {
+    step();
+    const fill = sim.get_vug_fill();
+    if (track.first70 == null && fill >= 0.7) track.first70 = sim.step;
+    if (track.full == null && fill >= 0.999) track.full = sim.step;
+  }
+}
+// What one run left, read the same way for every entry. `start` is read before the first step.
+function readElsewhere(sim, grid, lead, start, track) {
   const uraninite = sim.crystals.filter(c => c.mineral === 'uraninite');
+  const negative = uraninite.flatMap(c => c.zones.filter(z => z.thickness_um < 0).map(z => z.step));
+  const galenaGrowth = sim.crystals.filter(c => c.mineral === 'galena').flatMap(c => c.zones.filter(z => z.thickness_um > 0).map(z => z.step));
   let pbLow = Infinity, pbHigh = -Infinity, o2High = -Infinity;
   for (const v of grid.voxels) {
     const p = Number(v.fluid.Pb), o = Number(v.fluid.O2);
@@ -370,27 +393,30 @@ function readElsewhere(sim, grid, lead, start) {
     if (o > o2High) o2High = o;
   }
   return {
-    ...start, steps: sim.step - start.step, fill: sim.get_vug_fill(),
+    ...start, steps: sim.step - start.step, fill: sim.get_vug_fill(), first70: track.first70, full: track.full,
     uraninites: uraninite.length, uraniniteMm: uraninite.length ? Math.max(...uraninite.map(c => c.total_growth_um)) / 1000 : 0,
-    negative: uraninite.reduce((n, c) => n + c.zones.filter(z => z.thickness_um < 0).length, 0),
+    negative: negative.length, negativeFrom: negative.length ? Math.min(...negative) : null,
     bulkPb: Number(sim.conditions.fluid.Pb), pbLow, pbHigh, bulkO2: Number(sim.conditions.fluid.O2), o2High,
-    store: lead.store, releases: lead.releases, released: lead.released,
-    galena: left(sim, 'galena'), plumbogummite: left(sim, 'plumbogummite'),
+    store: lead.store, releases: lead.releases, released: lead.released, firstRelease: lead.first,
+    galena: left(sim, 'galena'), galenaLast: galenaGrowth.length ? Math.max(...galenaGrowth) : null,
+    plumbogummite: left(sim, 'plumbogummite'),
     records: [...new Set(sim.crystals.map(c => c.mineral))].sort(), summary: summarize(sim),
   };
 }
 const startOf = (sim) => ({ step: sim.step, pb0: Number(sim.conditions.fluid.Pb), scenario: sim.conditions._scenario != null, events: (sim.events || []).length });
 function printElsewhere(timing, runs, asShipped) {
   const each = (f) => runs.map(f).join(' / ');
-  console.log(`    ${timing.padEnd(8)} fill ${each(r => (r.fill * 100).toFixed(0))} %; uraninites on record ${each(r => r.uraninites)}, largest ${each(r => r.uraniniteMm.toFixed(1))} mm, their negative zones ${each(r => r.negative)}; O2 on the bulk handle at the end ${each(r => r.bulkO2.toFixed(2))}, highest voxel ${each(r => r.o2High.toFixed(2))}`);
-  console.log(`    ${''.padEnd(8)} Pb on the bulk handle, start → end: ${each(r => `${r.pb0.toFixed(1)} → ${r.bulkPb.toFixed(1)}`)}; lowest..highest voxel at the end: ${each(r => `${r.pbLow.toFixed(2)}..${r.pbHigh.toFixed(2)}`)}${timing === 'held' ? `; kept back and never released ${each(r => r.store.toFixed(1))} ppm; released ${each(r => r.released.toFixed(1))} ppm in ${each(r => r.releases)} release(s)` : ''}`);
-  console.log(`    ${''.padEnd(8)} galena: ${each(r => r.galena)}; plumbogummite: ${each(r => r.plumbogummite)}${timing === 'shipped' ? '' : `; minerals on record under the arm and not as shipped ${runs.map((r, i) => r.records.filter(m => !asShipped[i].records.includes(m)).join('+') || 'none').join(' / ')}, and the reverse ${runs.map((r, i) => asShipped[i].records.filter(m => !r.records.includes(m)).join('+') || 'none').join(' / ')}`}`);
+  console.log(`    ${timing.padEnd(8)} fill ${each(r => (r.fill * 100).toFixed(0))} % (past 0.7 at step ${each(r => r.first70 ?? '—')}, full at step ${each(r => r.full ?? '—')}); uraninites on record ${each(r => r.uraninites)}, largest ${each(r => r.uraniniteMm.toFixed(1))} mm, their negative zones ${each(r => r.negative)}${runs.some(r => r.negativeFrom != null) ? ` (from step ${each(r => r.negativeFrom ?? '—')})` : ''}; O2 on the bulk handle at the end ${each(r => r.bulkO2.toFixed(2))}, highest voxel ${each(r => r.o2High.toFixed(2))}`);
+  console.log(`    ${''.padEnd(8)} Pb on the bulk handle, start → end: ${each(r => `${r.pb0.toFixed(1)} → ${r.bulkPb.toFixed(1)}`)}; lowest..highest voxel at the end: ${each(r => `${r.pbLow.toFixed(2)}..${r.pbHigh.toFixed(2)}`)}${timing === 'held' ? `; kept back and not released ${each(r => r.store.toFixed(1))} ppm; released ${each(r => r.released.toFixed(1))} ppm in ${each(r => r.releases)} release(s)${runs.some(r => r.firstRelease) ? `, the first at step ${each(r => (r.firstRelease ? `${r.firstRelease.step} (${r.firstRelease.ppm.toFixed(1)} ppm)` : '—'))}` : ''}` : ''}`);
+  console.log(`    ${''.padEnd(8)} galena: ${each(r => r.galena)}${runs.some(r => r.galenaLast != null) ? `, its last zone at step ${each(r => r.galenaLast ?? '—')}` : ''}; plumbogummite: ${each(r => r.plumbogummite)}${timing === 'shipped' ? '' : `; minerals on record under the arm and not as shipped ${runs.map((r, i) => r.records.filter(m => !asShipped[i].records.includes(m)).join('+') || 'none').join(' / ')}, and the reverse ${runs.map((r, i) => asShipped[i].records.filter(m => !r.records.includes(m)).join('+') || 'none').join(' / ')}; the baseline-style summary ${runs.map((r, i) => (JSON.stringify(r.summary) === JSON.stringify(asShipped[i].summary) ? 'as shipped' : 'differs')).join(' / ')}`}`);
 }
 
-console.log('\nwhere the game starts this fluid without the scenario\'s events: the three timings; no scenario object, and so no license');
+console.log('\nwhere the game runs a fluid that grows uraninite without the scenario\'s events: the three timings; no scenario object in any of these runs, and so no license');
 console.log(`\n  Creative mode, starter fluid "Radioactive Pegmatite": fortressBeginFromStarterFluid('radioactive', seed) itself (js/94-ui-menu.ts); ${STARTER_STEPS} steps of run_step alone; time scale ${getSimulationTimeScale()}`);
 {
-  const starter = (seed, timing) => {
+  // action: null for a run left to itself, or one of the page's own Creative actions, made once
+  // after ACTION_AFTER steps through fortressStep (js/97-ui-fortress.ts), which advances no step.
+  const starter = (seed, timing, action = null) => {
     setSeed(seed);
     fortressBeginFromStarterFluid('radioactive', seed);
     const sim = globalThis.window?.vugg?.fortressSim;
@@ -398,8 +424,24 @@ console.log(`\n  Creative mode, starter fluid "Radioactive Pegmatite": fortressB
     const grid = sim.wall_state.voxelGridFor(sim);
     const start = startOf(sim);
     const lead = leadTiming(sim, grid, timing);
-    for (let i = 0; i < STARTER_STEPS; i++) sim.run_step();
-    return readElsewhere(sim, grid, lead, start);
+    const track = { first70: null, full: null };
+    advance(sim, ACTION_AFTER, () => sim.run_step(), track);
+    // the run as it stands before the action, to compare a drained run with the one left to itself
+    const before = JSON.stringify(summarize(sim)) + ' ' + Number(sim.conditions.fluid.Pb) + ' ' + lead.store;
+    let act = null;
+    if (action != null) {
+      const o2Before = Number(sim.conditions.fluid.O2);
+      fortressStep(action);
+      if (sim.step !== start.step + ACTION_AFTER) throw new Error(`fortressStep('${action}') moved the simulator to step ${sim.step}`);
+      let voxelHigh = -Infinity;
+      for (const v of grid.voxels) if (Number(v.fluid.O2) > voxelHigh) voxelHigh = Number(v.fluid.O2);
+      act = { o2Before, o2After: Number(sim.conditions.fluid.O2), voxelHigh };
+    }
+    advance(sim, STARTER_STEPS - ACTION_AFTER, () => sim.run_step(), track);
+    const out = readElsewhere(sim, grid, lead, start, track);
+    out.act = act;
+    out.before = before;
+    return out;
   };
   const all = {};
   for (const timing of ['shipped', 'pb', 'held']) {
@@ -408,6 +450,49 @@ console.log(`\n  Creative mode, starter fluid "Radioactive Pegmatite": fortressB
   }
   const every = Object.values(all).flat();
   console.log(`    controls over the ${every.length} starter runs: scenario object ${every.some(r => r.scenario) ? 'PRESENT at some seed' : 'absent in every run'}; events ${every.every(r => r.events === 0) ? 'none in every run' : 'SOME'}; steps run: ${every.every(r => r.steps === STARTER_STEPS) ? `${STARTER_STEPS} in every run` : 'NOT THE NUMBER ASKED FOR'}`);
+
+  // A player can alter the uraninite. Creative mode's Drain action lowers the water level and sets
+  // O2 on the bulk handle to at least 0.6 (js/97-ui-fortress.ts, case 'drain').
+  console.log(`\n  the same starter fluid with one Drain after step ${ACTION_AFTER}: the page's own fortressStep('drain') (js/97-ui-fortress.ts), called once between two steps`);
+  const drained = {};
+  for (const timing of ['shipped', 'pb', 'held']) {
+    drained[timing] = SEEDS.map(seed => starter(seed, timing, 'drain'));
+    if (timing === 'shipped') console.log(`    the action: O2 on the bulk handle ${drained.shipped.map(r => `${r.act.o2Before.toFixed(2)} → ${r.act.o2After.toFixed(2)}`).join(' / ')}; highest voxel right after it ${drained.shipped.map(r => r.act.voxelHigh.toFixed(2)).join(' / ')}`);
+    printElsewhere(timing, drained[timing], drained.shipped);
+  }
+  const everyDrained = Object.values(drained).flat();
+  const sameBefore = ['shipped', 'pb', 'held'].every(timing => drained[timing].every((r, i) => r.before === all[timing][i].before));
+  console.log(`    controls over the ${everyDrained.length} drained runs: steps run: ${everyDrained.every(r => r.steps === STARTER_STEPS) ? `${STARTER_STEPS} in every run` : 'NOT THE NUMBER ASKED FOR'}; the action raised O2 on the bulk handle ${everyDrained.every(r => r.act.o2After > r.act.o2Before) ? 'in every run' : 'IN NOT EVERY RUN'}; before the action each drained run ${sameBefore ? 'is the run left to itself, at every seed and timing' : 'IS A DIFFERENT RUN'}`);
+}
+
+// Random Vugg's pegmatite archetype draws uranium in some runs (js/96-ui-random.ts) and builds no
+// scenario object. The seeds are the eight of probe-pegmatite-reach.mjs; those whose shipped run
+// puts a uraninite on record are run under the other two timings.
+{
+  const RV_SEEDS = [42, 1, 2, 3, 4, 5, 6, 7];
+  const rv = (seed, timing) => {
+    setSeed(seed);
+    const { conditions, events, defaultSteps } = buildRandomScenario('pegmatite', 'pocket');
+    const draw = { U: Number(conditions.fluid.U) || 0, Pb: Number(conditions.fluid.Pb) || 0, S: Number(conditions.fluid.S) || 0, P: Number(conditions.fluid.P) || 0, mm: Number(conditions.wall.vug_diameter_mm), steps: defaultSteps };
+    const sim = new VugSimulator(conditions, events);
+    const grid = sim.wall_state.voxelGridFor(sim);
+    const start = startOf(sim);
+    const lead = leadTiming(sim, grid, timing);
+    const track = { first70: null, full: null };
+    advance(sim, defaultSteps, () => sim.run_step(), track);
+    const out = readElsewhere(sim, grid, lead, start, track);
+    out.draw = draw;
+    return out;
+  };
+  const shippedRv = RV_SEEDS.map(seed => rv(seed, 'shipped'));
+  const kept = RV_SEEDS.filter((seed, i) => shippedRv[i].uraninites > 0);
+  console.log(`\n  Random Vugg, archetype pegmatite, size class pocket (buildRandomScenario, js/96-ui-random.ts), seeds ${RV_SEEDS.join(' / ')}: uranium in the draw, ppm ${shippedRv.map(r => r.draw.U.toFixed(0)).join(' / ')}; a uraninite on record at seeds ${kept.join(', ') || 'none'}; scenario object ${shippedRv.some(r => r.scenario) ? 'PRESENT at some seed' : 'absent at every seed'}`);
+  if (kept.length) {
+    const keptShipped = kept.map(seed => shippedRv[RV_SEEDS.indexOf(seed)]);
+    console.log(`    those seeds (${kept.join(' / ')}): cavity ${keptShipped.map(r => r.draw.mm.toFixed(0)).join(' / ')} mm; ${keptShipped.map(r => r.draw.steps).join(' / ')} steps; in the draw Pb ${keptShipped.map(r => r.draw.Pb.toFixed(0)).join(' / ')}, S ${keptShipped.map(r => r.draw.S.toFixed(0)).join(' / ')}, P ${keptShipped.map(r => r.draw.P.toFixed(0)).join(' / ')} ppm`);
+    printElsewhere('shipped', keptShipped, keptShipped);
+    for (const timing of ['pb', 'held']) printElsewhere(timing, kept.map(seed => rv(seed, timing)), keptShipped);
+  }
 }
 
 console.log(`\n  Zen mode by the game's own loop: switchMode('idle'), idleTogglePlay(), idleTogglePause(), then idleDoStep() ${ZEN_STEPS} times (Zen's drift, then run_step, then the page's drawing)`);
@@ -436,12 +521,13 @@ console.log(`\n  Zen mode by the game's own loop: switchMode('idle'), idleToggle
     const start = startOf(sim);
     const lead = leadTiming(sim, grid, timing);
     let drawingThrew = 0;
-    for (let i = 0; i < ZEN_STEPS; i++) {
+    const track = { first70: null, full: null };
+    advance(sim, ZEN_STEPS, () => {
       const before = sim.step;
       try { idleDoStep(); } catch (e) { if (sim.step === before) throw e; drawingThrew++; }   // the physics ran; the page's drawing threw
       if (sim.step !== before + 1) throw new Error(`one idleDoStep moved the simulator from step ${before} to step ${sim.step}`);
-    }
-    const out = readElsewhere(sim, grid, lead, start);
+    }, track);
+    const out = readElsewhere(sim, grid, lead, start, track);
     Object.assign(out, { scaleAtStart, scaleAtEnd: getSimulationTimeScale(), drawingThrew, switchThrew: threw });
     idleStop();
     try { idlePickScenario('radioactive_pegmatite'); } catch (e) { out.pickThrew = String(e && e.message).slice(0, 60); }

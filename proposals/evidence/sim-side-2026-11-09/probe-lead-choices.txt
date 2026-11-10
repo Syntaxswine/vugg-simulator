@@ -132,30 +132,55 @@ if SC2 lands first: radioactive_pegmatite, pocket held open, galena not licensed
   with SC2    held  uraninite largest 8.5 / 8.2 / 8.3 mm; bulk Pb at run end 243.3 / 233.2 / 224.6; released 213.3 / 203.2 / 194.6 ppm in 41 / 41 / 41 release(s); fill 12.2 / 10.8 / 17.4 %
                     plumbogummite: ×3 @ 0.710 mm, born at step 100 / ×3 @ 0.700 mm, born at step 100 / ×3 @ 0.687 mm, born at step 100
 
-where the game starts this fluid without the scenario's events: the three timings; no scenario object, and so no license
+where the game runs a fluid that grows uraninite without the scenario's events: the three timings; no scenario object in any of these runs, and so no license
 
   Creative mode, starter fluid "Radioactive Pegmatite": fortressBeginFromStarterFluid('radioactive', seed) itself (js/94-ui-menu.ts); 120 steps of run_step alone; time scale 5
-    shipped  fill 67 / 82 / 69 %; uraninites on record 3 / 3 / 3, largest 14.3 / 14.2 / 14.2 mm, their negative zones 0 / 0 / 0; O2 on the bulk handle at the end 0.00 / 0.00 / 0.00, highest voxel 0.00 / 0.00 / 0.00
+    shipped  fill 67 / 82 / 69 % (past 0.7 at step — / 113 / —, full at step — / — / —); uraninites on record 3 / 3 / 3, largest 14.3 / 14.2 / 14.2 mm, their negative zones 0 / 0 / 0; O2 on the bulk handle at the end 0.00 / 0.00 / 0.00, highest voxel 0.00 / 0.00 / 0.00
              Pb on the bulk handle, start → end: 30.0 → 286.2 / 30.0 → 275.1 / 30.0 → 268.0; lowest..highest voxel at the end: 30.00..30.00 / 30.00..30.00 / 30.00..30.00
              galena: none / none / none; plumbogummite: none / none / none
-    pb       fill 68 / 82 / 69 %; uraninites on record 3 / 3 / 3, largest 14.3 / 13.8 / 14.1 mm, their negative zones 0 / 0 / 0; O2 on the bulk handle at the end 0.00 / 0.00 / 0.00, highest voxel 0.00 / 0.00 / 0.00
+    pb       fill 68 / 82 / 69 % (past 0.7 at step — / 113 / —, full at step — / — / —); uraninites on record 3 / 3 / 3, largest 14.3 / 13.8 / 14.1 mm, their negative zones 0 / 0 / 0; O2 on the bulk handle at the end 0.00 / 0.00 / 0.00, highest voxel 0.00 / 0.00 / 0.00
              Pb on the bulk handle, start → end: 30.0 → 286.9 / 30.0 → 275.3 / 30.0 → 268.2; lowest..highest voxel at the end: 269.31..286.91 / 261.23..275.31 / 250.24..268.15
-             galena: ×4 @ 9.7 mm, born at step 53 / ×4 @ 8.9 mm, born at step 56 / ×4 @ 8.3 mm, born at step 66; plumbogummite: none / none / none; minerals on record under the arm and not as shipped galena / galena / galena, and the reverse none / none / none
-    held     fill 67 / 82 / 69 %; uraninites on record 3 / 3 / 3, largest 14.3 / 14.2 / 14.2 mm, their negative zones 0 / 0 / 0; O2 on the bulk handle at the end 0.00 / 0.00 / 0.00, highest voxel 0.00 / 0.00 / 0.00
-             Pb on the bulk handle, start → end: 30.0 → 30.0 / 30.0 → 30.0 / 30.0 → 30.0; lowest..highest voxel at the end: 30.00..30.00 / 30.00..30.00 / 30.00..30.00; kept back and never released 256.2 / 245.1 / 238.0 ppm; released 0.0 / 0.0 / 0.0 ppm in 0 / 0 / 0 release(s)
-             galena: none / none / none; plumbogummite: none / none / none; minerals on record under the arm and not as shipped none / none / none, and the reverse none / none / none
+             galena: ×4 @ 9.7 mm, born at step 53 / ×4 @ 8.9 mm, born at step 56 / ×4 @ 8.3 mm, born at step 66, its last zone at step 120 / 120 / 120; plumbogummite: none / none / none; minerals on record under the arm and not as shipped galena / galena / galena, and the reverse none / none / none; the baseline-style summary differs / differs / differs
+    held     fill 67 / 82 / 69 % (past 0.7 at step — / 113 / —, full at step — / — / —); uraninites on record 3 / 3 / 3, largest 14.3 / 14.2 / 14.2 mm, their negative zones 0 / 0 / 0; O2 on the bulk handle at the end 0.00 / 0.00 / 0.00, highest voxel 0.00 / 0.00 / 0.00
+             Pb on the bulk handle, start → end: 30.0 → 30.0 / 30.0 → 30.0 / 30.0 → 30.0; lowest..highest voxel at the end: 30.00..30.00 / 30.00..30.00 / 30.00..30.00; kept back and not released 256.2 / 245.1 / 238.0 ppm; released 0.0 / 0.0 / 0.0 ppm in 0 / 0 / 0 release(s)
+             galena: none / none / none; plumbogummite: none / none / none; minerals on record under the arm and not as shipped none / none / none, and the reverse none / none / none; the baseline-style summary as shipped / as shipped / as shipped
     controls over the 9 starter runs: scenario object absent in every run; events none in every run; steps run: 120 in every run
 
+  the same starter fluid with one Drain after step 60: the page's own fortressStep('drain') (js/97-ui-fortress.ts), called once between two steps
+    the action: O2 on the bulk handle 0.00 → 0.60 / 0.00 → 0.60 / 0.00 → 0.60; highest voxel right after it 0.60 / 0.60 / 0.60
+    shipped  fill 66 / 81 / 68 % (past 0.7 at step — / 114 / —, full at step — / — / —); uraninites on record 3 / 3 / 3, largest 14.4 / 13.9 / 14.6 mm, their negative zones 46 / 12 / 3 (from step 61 / 95 / 61); O2 on the bulk handle at the end 0.60 / 0.60 / 0.60, highest voxel 1.79 / 1.01 / 1.74
+             Pb on the bulk handle, start → end: 30.0 → 253.0 / 30.0 → 220.0 / 30.0 → 212.7; lowest..highest voxel at the end: 30.00..30.00 / 30.00..30.00 / 30.00..30.00
+             galena: none / none / none; plumbogummite: none / none / none
+    pb       fill 66 / 80 / 68 % (past 0.7 at step — / 114 / —, full at step — / — / —); uraninites on record 3 / 3 / 3, largest 14.3 / 14.1 / 14.6 mm, their negative zones 45 / 13 / 3 (from step 61 / 95 / 61); O2 on the bulk handle at the end 0.60 / 0.60 / 0.60, highest voxel 1.79 / 1.01 / 1.74
+             Pb on the bulk handle, start → end: 30.0 → 253.4 / 30.0 → 221.7 / 30.0 → 212.6; lowest..highest voxel at the end: 253.25..253.37 / 209.00..221.67 / 212.60..212.60
+             galena: ×1 @ 0.627 mm, born at step 53 / ×1 @ 8.6 mm, born at step 56 / none, its last zone at step 60 / 120 / —; plumbogummite: none / none / none; minerals on record under the arm and not as shipped galena / galena / none, and the reverse none / none / none; the baseline-style summary differs / differs / differs
+    held     fill 66 / 81 / 68 % (past 0.7 at step — / 114 / —, full at step — / — / —); uraninites on record 3 / 3 / 3, largest 14.4 / 13.9 / 14.6 mm, their negative zones 46 / 12 / 3 (from step 61 / 95 / 61); O2 on the bulk handle at the end 0.60 / 0.60 / 0.60, highest voxel 1.79 / 1.01 / 1.74
+             Pb on the bulk handle, start → end: 30.0 → 215.3 / 30.0 → 197.9 / 30.0 → 92.4; lowest..highest voxel at the end: 215.32..215.32 / 197.89..197.89 / 92.44..92.44; kept back and not released 37.6 / 22.1 / 120.2 ppm; released 185.3 / 167.9 / 62.4 ppm in 46 / 9 / 3 release(s), the first at step 61 (66.3 ppm) / 95 (149.1 ppm) / 61 (58.4 ppm)
+             galena: none / none / none; plumbogummite: none / none / none; minerals on record under the arm and not as shipped none / none / none, and the reverse none / none / none; the baseline-style summary differs / differs / differs
+    controls over the 9 drained runs: steps run: 120 in every run; the action raised O2 on the bulk handle in every run; before the action each drained run is the run left to itself, at every seed and timing
+
+  Random Vugg, archetype pegmatite, size class pocket (buildRandomScenario, js/96-ui-random.ts), seeds 42 / 1 / 2 / 3 / 4 / 5 / 6 / 7: uranium in the draw, ppm 142 / 0 / 0 / 0 / 0 / 129 / 33 / 0; a uraninite on record at seeds 42, 5; scenario object absent at every seed
+    those seeds (42 / 5): cavity 34 / 82 mm; 155 / 167 steps; in the draw Pb 0 / 0, S 0 / 0, P 0 / 0 ppm
+    shipped  fill 100 / 100 % (past 0.7 at step 24 / 35, full at step 32 / 47); uraninites on record 3 / 3, largest 3.3 / 4.7 mm, their negative zones 0 / 0; O2 on the bulk handle at the end 0.10 / 0.06, highest voxel 0.10 / 0.06
+             Pb on the bulk handle, start → end: 0.0 → 131.6 / 0.0 → 173.1; lowest..highest voxel at the end: 0.00..0.00 / 0.00..0.00
+             galena: none / none; plumbogummite: none / none
+    pb       fill 100 / 100 % (past 0.7 at step 24 / 35, full at step 32 / 47); uraninites on record 3 / 3, largest 3.3 / 4.7 mm, their negative zones 0 / 0; O2 on the bulk handle at the end 0.10 / 0.06, highest voxel 0.10 / 0.06
+             Pb on the bulk handle, start → end: 0.0 → 131.6 / 0.0 → 173.1; lowest..highest voxel at the end: 131.59..131.59 / 173.11..173.11
+             galena: none / none; plumbogummite: none / none; minerals on record under the arm and not as shipped none / none, and the reverse none / none; the baseline-style summary differs / differs
+    held     fill 100 / 100 % (past 0.7 at step 24 / 35, full at step 32 / 47); uraninites on record 3 / 3, largest 3.3 / 4.7 mm, their negative zones 0 / 0; O2 on the bulk handle at the end 0.10 / 0.06, highest voxel 0.10 / 0.06
+             Pb on the bulk handle, start → end: 0.0 → 0.0 / 0.0 → 0.0; lowest..highest voxel at the end: 0.00..0.00 / 0.00..0.00; kept back and not released 131.6 / 173.1 ppm; released 0.0 / 0.0 ppm in 0 / 0 release(s)
+             galena: none / none; plumbogummite: none / none; minerals on record under the arm and not as shipped none / none, and the reverse none / none; the baseline-style summary as shipped / as shipped
+
   Zen mode by the game's own loop: switchMode('idle'), idleTogglePlay(), idleTogglePause(), then idleDoStep() 600 times (Zen's drift, then run_step, then the page's drawing)
-    shipped  fill 100 / 100 / 100 %; uraninites on record 3 / 3 / 3, largest 4.1 / 3.8 / 4.1 mm, their negative zones 0 / 0 / 0; O2 on the bulk handle at the end 0.00 / 0.00 / 0.00, highest voxel 0.00 / 0.00 / 0.00
+    shipped  fill 100 / 100 / 100 % (past 0.7 at step 94 / 80 / 94, full at step 200 / 199 / 199); uraninites on record 3 / 3 / 3, largest 4.1 / 3.8 / 4.1 mm, their negative zones 0 / 0 / 0; O2 on the bulk handle at the end 0.00 / 0.00 / 0.00, highest voxel 0.00 / 0.00 / 0.00
              Pb on the bulk handle, start → end: 30.0 → 681.7 / 30.0 → 620.6 / 30.0 → 651.9; lowest..highest voxel at the end: 30.00..30.00 / 30.00..30.00 / 30.00..30.00
              galena: none / none / none; plumbogummite: none / none / none
-    pb       fill 100 / 100 / 100 %; uraninites on record 3 / 3 / 3, largest 4.1 / 3.7 / 4.1 mm, their negative zones 0 / 0 / 0; O2 on the bulk handle at the end 0.00 / 0.00 / 0.00, highest voxel 0.00 / 0.00 / 0.00
+    pb       fill 100 / 100 / 100 % (past 0.7 at step 94 / 80 / 94, full at step 201 / 198 / 198); uraninites on record 3 / 3 / 3, largest 4.1 / 3.7 / 4.1 mm, their negative zones 0 / 0 / 0; O2 on the bulk handle at the end 0.00 / 0.00 / 0.00, highest voxel 0.00 / 0.00 / 0.00
              Pb on the bulk handle, start → end: 30.0 → 683.5 / 30.0 → 620.2 / 30.0 → 653.2; lowest..highest voxel at the end: 683.45..683.47 / 620.22..620.24 / 653.17..653.19
-             galena: ×2 @ 0.613 mm, born at step 102 / ×4 @ 0.407 mm, born at step 105 / ×4 @ 0.546 mm, born at step 103; plumbogummite: none / none / none; minerals on record under the arm and not as shipped galena / galena / galena, and the reverse none / none / none
-    held     fill 100 / 100 / 100 %; uraninites on record 3 / 3 / 3, largest 4.1 / 3.8 / 4.1 mm, their negative zones 0 / 0 / 0; O2 on the bulk handle at the end 0.00 / 0.00 / 0.00, highest voxel 0.00 / 0.00 / 0.00
-             Pb on the bulk handle, start → end: 30.0 → 30.0 / 30.0 → 30.0 / 30.0 → 30.0; lowest..highest voxel at the end: 30.00..30.00 / 30.00..30.00 / 30.00..30.00; kept back and never released 651.7 / 590.6 / 621.9 ppm; released 0.0 / 0.0 / 0.0 ppm in 0 / 0 / 0 release(s)
-             galena: none / none / none; plumbogummite: none / none / none; minerals on record under the arm and not as shipped none / none / none, and the reverse none / none / none
+             galena: ×2 @ 0.613 mm, born at step 102 / ×4 @ 0.407 mm, born at step 105 / ×4 @ 0.546 mm, born at step 103, its last zone at step 202 / 199 / 198; plumbogummite: none / none / none; minerals on record under the arm and not as shipped galena / galena / galena, and the reverse none / none / none; the baseline-style summary differs / differs / differs
+    held     fill 100 / 100 / 100 % (past 0.7 at step 94 / 80 / 94, full at step 200 / 199 / 199); uraninites on record 3 / 3 / 3, largest 4.1 / 3.8 / 4.1 mm, their negative zones 0 / 0 / 0; O2 on the bulk handle at the end 0.00 / 0.00 / 0.00, highest voxel 0.00 / 0.00 / 0.00
+             Pb on the bulk handle, start → end: 30.0 → 30.0 / 30.0 → 30.0 / 30.0 → 30.0; lowest..highest voxel at the end: 30.00..30.00 / 30.00..30.00 / 30.00..30.00; kept back and not released 651.7 / 590.6 / 621.9 ppm; released 0.0 / 0.0 / 0.0 ppm in 0 / 0 / 0 release(s)
+             galena: none / none / none; plumbogummite: none / none / none; minerals on record under the arm and not as shipped none / none / none, and the reverse none / none / none; the baseline-style summary as shipped / as shipped / as shipped
     controls over the 9 Zen runs: the simulator's step before the first idleDoStep is 0 in every run; time scale after switchMode('idle') 1 in every run, and at the end of the run 1 in every run; scenario object absent in every run; events none in every run; switchMode threw in none; idleDoStep calls whose drawing threw after the physics had run: 0; Zen simulator left on the page after a run was ended: none; the first run, made again after the other eight, is the same run
 
 controls at the end: the time scale reads 5; radioactive_pegmatite's shipped run at seed 42 still reproduces the baseline
