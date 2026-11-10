@@ -106,9 +106,9 @@ sets out and §6 puts to the owner.
 - *SC1* comes with a choice of where the bound lives, and a ruling. Authored on `gem_pegmatite`
   it changes one baseline, and it makes topaz appear, which that scenario lists as aspirational,
   so the locality gate needs topaz's tier changed in the same bump. It cures the scenario
-  where Simulation mode and Creative mode start it, and nowhere else. A Zen run of the same
-  scenario leaves the scenario's entry behind and would plug as it does today, at step 31 to
-  33 on Zen's slower clock. Random Vugg's pegmatite archetype, where the owner first reported the
+  where Simulation mode and Creative mode start it, and not in Zen or Random Vugg. A Zen run
+  of the same scenario leaves the scenario's entry behind and would plug as it does today, at
+  step 31 to 33 on Zen's slower clock. Random Vugg's pegmatite archetype, where the owner first reported the
   plug, has no entry at all, and three of eight random pockets there fill completely. Written
   into the engines for every scenario the clamp reaches those too. It then changes eight
   baselines, empties Shigar's pocket, and leaves `schneeberg` without solid native arsenic and
@@ -952,10 +952,13 @@ carried to the voxels and was not.
   grows differently for it today: halite, mirabilite and thenardite each sit past σ_crit on the
   bulk handle for 131 steps and read "not licensed".
 
-Radiogenic Pb is the one write to the bulk handle alone that licensed minerals read. The bulk
+In the 41 scenario runs the census reads, radiogenic Pb is the one write to the bulk handle
+alone that licensed minerals read. The bulk
 handle is what the broth panel shows and what nucleation gates read, so the scenario looks
 lead-rich while no crystal can reach the lead. `_wallStrangledFor` then blocks births that the bulk
-σ admits, because no wall cell clears the threshold.
+σ admits, because no wall cell clears the threshold. (Outside the scenarios, the sixth review
+round reports that Zen mode's drift is a write of the same kind, made every step. That was not
+checked here.)
 
 **A/B.** Two arms send the lead somewhere else. `pb` also adds the same increment to every voxel,
 as a propagated event would. `nopb` puts the bulk handle's Pb back to what it was before the
@@ -994,7 +997,7 @@ minerals it names for this scenario are not licensed there. The same file's audi
 names galena for the scenario. The closing narration of any run has a sentence of its own,
 "The galena in this assemblage crystallized in part from lead produced by uraninite decay",
 printed when a galena and a uraninite are both on record (`js/85-simulator.ts:1602`). No
-scenario run prints it at these seeds: only the two uraninite scenarios hold a uraninite, and
+scenario's seed-42 baseline holds both: only the two uraninite scenarios hold a uraninite, and
 neither holds a galena. Where it did print, in this runtime, it would be untrue, since that
 lead reaches no cell.
 
@@ -1355,8 +1358,8 @@ other scenario exactly as they are.
 
 The owner may prefer one of five other courses.
 
-- *The general clamp*, for the sake of one rule in the engines, and because it is the only
-  course here that reaches every one of those constructors. Applied in process it holds the
+- *The general clamp*, for the sake of one rule in the engines, and because a rule in the
+  engines reaches every one of those constructors. Applied in process it holds the
   pair back in each mode that was run: a Zen run of `gem_pegmatite` is at most 26 % full after
   400 steps; the radioactive starter ends 2 to 3 % full; and no Random Vugg pocket of the
   eight fills completely, though one ends 98 % full on quartz (§3.1). Its cost is the E = 7
@@ -1580,7 +1583,7 @@ Five things follow.
    - *Per zone, by thickness.* The Zone History bar colours each zone as a crystal of that one
      zone (`groupZonesByChemistry`, `js/98c-ui-zone-bars.ts:81`). It draws 27.6 to 29.6 % of
      each feldspar's bar in that green under the continuous release and 3.8 to 4.3 % under the
-     held one. It is the one reader that tells the two timings apart.
+     held one. Of the three readers run, it is the one that tells the two timings apart.
    - *Not at all.* The body the cavity view draws starts from `resolveBodyColour`
      (`js/12a-colour-lexicon.ts:207`), which gives `#dcb59e` as shipped and under both timings.
      The feldspar's colour rule for amazonite names a variant that the colour lexicon has no
@@ -1622,8 +1625,8 @@ a seventh as much green on the feldspars' Zone History bars.
 
 It costs more than the continuous release in two ways.
 
-- *The scenario's texts have to change, and one of them is code.* In the page's own runtime
-  the scenario says it in three places: the description and the notes in
+- *The scenario's texts have to change, and one of them is code.* The scenario's own entry and
+  event file say it on three lines (§3.3): the description and the notes in
   `data/scenarios.json5`, and the narration of the step-100 event in
   `js/70d-pegmatite-radioactive.ts`. Under this timing no license can make those true. Other
   places name galena for this scenario as well and were not followed: the mineral data lists
@@ -1633,9 +1636,9 @@ It costs more than the continuous release in two ways.
 - *The held lead is one more field in the simulator.* The continuous release needs none. It is
   not a cost to saves: a save here is a recipe that is replayed from the seed, not a snapshot
   (`js/93a-ui-saves.ts:13`), so a field the simulator computes is rebuilt on load. Whether the
-  replay fingerprint should list it is a choice; it lists none of the uraninite block's other
-  state today (`js/85l-simulation-command-protocol.ts:170`). The sixth version of this document
-  said a save has to carry it, which was wrong.
+  replay fingerprint should list it is a choice; it does not list the same block's radiation
+  dose or damage today (`js/85l-simulation-command-protocol.ts:170`). The sixth version of
+  this document said a save has to carry it, which was wrong.
 
 The preview is coarser than the fix would be: it keeps one store for all the uraninites and
 releases it when any of them takes a negative zone, where the fix would book the lead crystal by
@@ -2425,7 +2428,7 @@ to that round's own findings.
   fifth version counted is drawn by the game, in one view. Three readers are now run
   (§4, SC3; trap 17).
 - "A save has to carry the held lead" was wrong. A save is a recipe that is replayed, and the
-  replay fingerprint is a check that lists none of the uraninite block's state today. The
+  replay fingerprint is a check, which does not list that block's radiation dose today. The
   acceptance line built on it could not have failed, and is removed (§4, SC3; §6).
 - A scenario opened in Creative mode was called the scenario's own run. That constructor adds
   a carbonate boundary the scenario does not author, and the run differs from the baseline's.
