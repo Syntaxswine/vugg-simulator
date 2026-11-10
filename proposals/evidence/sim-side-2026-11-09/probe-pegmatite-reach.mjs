@@ -20,6 +20,13 @@
  * pocket, at eight seeds, shipped and with the same rate clamp. That builder makes no scenario
  * object, so a bound carried on one cannot reach it. The clamp is applied here in process, to show
  * what a bound would do in that mode if it were authored there too.
+ * Random Vugg's page has a Cavity size select of its own (index.html, #random-size-class), whose
+ * value runRandomVugg hands to the builder (js/96-ui-random.ts). It opens on "Any size", for which
+ * the builder draws a class from vug, pocket, pocket, cave. So the same eight seeds are run again
+ * at the settings vug, cave and any, shipped and with the clamp; and the vug setting once more
+ * with the clamp at 0, under which every positive zone of the pair is rescaled to nothing, to see
+ * whether any bound on the pair could hold a cavity of that class. The select's own labels are
+ * printed beside the range each class is drawn from.
  *
  * Part 3. Three other ways the game starts a run on a pegmatite's fluid, at seeds 42, 1 and 2,
  * each through the game's own constructor, shipped and with the same clamp in process.
@@ -57,6 +64,21 @@
  *                 Shipped and with the rate clamp at 7, seeds 42, 1 and 2.
  *   Shape Seed    { wall: { shape_seed } }, which the form's Random button draws afresh for every
  *                 run. Ten shape seeds at growth seed 42, shipped and with the clamp.
+ *   The vug again, with the clamp at 3, at 1 and at 0. Under the clamp at 0 every positive zone
+ *                 of the pair is rescaled to nothing, so the pair holds no solid: what the vug
+ *                 does then is what no bound on the pair can change. Like the clamp at 1 of
+ *                 probe-clamp-horizon.mjs, the arms at 1 and 0 preview no value of the bound
+ *                 (the engine still draws its inclusion roll on the rate it proposed). Each run
+ *                 also gives every mineral's share of the cavity's volume at the end, summed
+ *                 the way get_vug_fill sums the fill.
+ *   SC1's other courses in the vug: the fill switch, the change to the broth that
+ *                 ab-gem-broth previews (SiO2 × 0.1 and Al × 0.15, with no bound) and the
+ *                 rind at 5 mm. Each is a change made between the scenario's factory and the
+ *                 simulator's constructor, so these runs are built through the factory with
+ *                 the form's overrides, which is what the command runtime calls. Two controls:
+ *                 the vug built that way has to be the run the command runtime builds, and the
+ *                 change to the broth in the scenario's own cavity has to reach the largest
+ *                 fill of the committed A/B run (ab-gem-broth.json in this folder is read).
  * The runs are stepped with run_step, as every run of this probe is. Simulation mode steps through
  * applySimulationCommand, one step to a command; a control makes the seed-42 run that way and
  * compares it with the baseline and with the run stepped by run_step.
@@ -86,13 +108,13 @@ const {
   idleCreateSim, fortressBeginFromScenario, fortressBeginFromStarterFluid,
   setSimulationTimeScale, getSimulationTimeScale, switchMode,
   startSimulationCommandRuntime, makeSimulationStartCommand, makeSimulationAdvanceCommand, applySimulationCommand,
-  resolveSizeClassToMm,
+  resolveSizeClassToMm, _crystalSolidVolumeMm3,
 } = await harness.loadSimBundle({
   toolName: 'probe-pegmatite-reach',
   extraExports: ['MINERAL_ENGINES', 'buildRandomScenario', 'idleCreateSim', 'fortressBeginFromScenario',
     'fortressBeginFromStarterFluid', 'setSimulationTimeScale', 'getSimulationTimeScale', 'switchMode',
     'startSimulationCommandRuntime', 'makeSimulationStartCommand', 'makeSimulationAdvanceCommand', 'applySimulationCommand',
-    'resolveSizeClassToMm'],
+    'resolveSizeClassToMm', '_crystalSolidVolumeMm3'],
 });
 const BASELINE = JSON.parse(fs.readFileSync(path.join(ROOT, 'tests-js', 'baselines', `seed42_v${SIM_VERSION}.json`), 'utf8'));
 const PAIR = ['feldspar', 'albite'];
@@ -116,17 +138,24 @@ function summarize(sim) {
 
 // One run. make(seed) is called after the seed is set and returns { conditions, events,
 // defaultSteps }, or { sim, defaultSteps } where the game's own constructor built the simulator.
-function run(seed, make, { localFill = null, clamp = null } = {}) {
+//   localFill   sets the wall's per_cell_local_fill
+//   clamp       the pair's rate becomes k·min(σ − 1, clamp)
+//   rind        the pair stores no positive zone once a crystal has reached this size, µm (the
+//               `rind` arm of tools/sim-side-ab.mjs, written the same way)
+//   mul         [[field, factor], …]: the scenario's initial fluid, multiplied before the simulator
+//               is built (the `mul` arm of that tool, written the same way)
+function run(seed, make, { localFill = null, clamp = null, rind = null, mul = null } = {}) {
   const saved = {};
   try {
-    if (clamp != null) {
+    if (clamp != null || rind != null) {
       for (const m of PAIR) {
         const orig = saved[m] = MINERAL_ENGINES[m];
         MINERAL_ENGINES[m] = (crystal, conditions, step) => {
           const s = conditions['supersaturation_' + m]();           // read before the engine runs; draws no random number
           const zone = orig(crystal, conditions, step);
           if (!zone || !(zone.thickness_um > 0)) return zone;
-          if (s - 1 > clamp) {
+          if (rind != null && crystal.total_growth_um >= rind) return null;
+          if (clamp != null && s - 1 > clamp) {
             const f = clamp / (s - 1);
             zone.thickness_um *= f;
             if (typeof zone.growth_rate === 'number') zone.growth_rate *= f;
@@ -139,6 +168,13 @@ function run(seed, make, { localFill = null, clamp = null } = {}) {
     const made = make(seed);
     const conditions = made.sim ? made.sim.conditions : made.conditions;
     if (localFill != null) conditions.wall.per_cell_local_fill = localFill;
+    if (mul) {
+      if (made.sim) throw new Error('a change to the broth has to be made before the simulator is built');
+      for (const [field, x] of mul) {
+        if (typeof conditions.fluid[field] !== 'number') throw new Error(`fluid has no numeric field ${field}`);
+        conditions.fluid[field] *= x;
+      }
+    }
     const start = {
       diameter: Number(conditions.wall.vug_diameter_mm), scenario: conditions._scenario != null,
       events: made.sim ? (made.sim.events || []).length : (made.events || []).length,
@@ -167,7 +203,16 @@ function run(seed, make, { localFill = null, clamp = null } = {}) {
       o.n++;
       if (c.total_growth_um > o.max_um) o.max_um = c.total_growth_um;
     }
-    return { start, steps, fill: sim.get_vug_fill(), maxFill, first70, full, lastGrowth, species, summary: summarize(sim), fills,
+    // each mineral's share of the cavity's volume, summed as get_vug_fill sums the fill
+    const capacityMm3 = Number(sim.conditions.wall.cavity_capacity_volume_mm3);
+    const volume = {};
+    for (const c of sim.crystals) {
+      if (c.dissolved === true) continue;
+      volume[c.mineral] = (volume[c.mineral] || 0) + _crystalSolidVolumeMm3(c);
+    }
+    const share = Object.entries(volume).map(([m, v]) => [m, v / capacityMm3]).sort((a, b) => b[1] - a[1]);
+    return { start, steps, fill: sim.get_vug_fill(), maxFill, first70, full, lastGrowth, species, summary: summarize(sim), fills, share,
+      sizeClass: made.sizeClass ?? null,                                         // the class Random Vugg's builder drew
       capacity: Number(sim.conditions.wall.cavity_capacity_volume_mm3),          // what get_vug_fill divides by, mm3
       shapeSeed: sim.conditions.wall.shape_seed ?? null,
       boundary: !!sim._carbonateBoundaryState,                                   // a carbonate boundary on the simulator
@@ -232,6 +277,29 @@ for (const [label, runs] of [['shipped', rShipped], ['rate clamp at 7', rClamp]]
     console.log(`    ${(m + ', mm').padEnd(30)} ${each(r => mm(r.species[m]?.max_um))}`);
   }
   console.log(`    reaches fill >= 0.999 at ${runs.filter(r => r.full != null).length} of ${runs.length} seeds; passes 0.7 at ${runs.filter(r => r.first70 != null).length}`);
+}
+
+// Random Vugg's own Cavity size select: the settings other than pocket.
+{
+  const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+  const select = /<select id="random-size-class"[^>]*>([\s\S]*?)<\/select>/.exec(html);
+  const options = select ? [...select[1].matchAll(/<option value="([^"]*)"([^>]*)>([^<]*)<\/option>/g)] : [];
+  console.log(`\n  Random Vugg's own Cavity size select (index.html, #random-size-class), its options in order: ${options.map(o => `${o[1]} "${o[3].trim()}"`).join(', ') || 'NOT FOUND'}; marked selected: ${options.filter(o => /\bselected\b/.test(o[2])).map(o => o[1]).join(', ') || 'none, so the page opens on the first'}`);
+  console.log(`  the range each class is drawn from (resolveSizeClassToMm at a draw of 0 and of 1): ${['vug', 'pocket', 'cave'].map(c => `${c} ${resolveSizeClassToMm(c, 0)} to ${resolveSizeClassToMm(c, 1)} mm`).join('; ')}`);
+  for (const size of ['vug', 'cave', 'any']) {
+    const make = () => buildRandomScenario('pegmatite', size);
+    const arms = [['shipped', RANDOM_SEEDS.map(seed => run(seed, make))], ['rate clamp at 7', RANDOM_SEEDS.map(seed => run(seed, make, { clamp: 7 }))]];
+    if (size === 'vug') arms.push(['rate clamp at 0 (the pair holds no solid)', RANDOM_SEEDS.map(seed => run(seed, make, { clamp: 0 }))]);
+    const first = arms[0][1];
+    console.log(`\n  size setting ${size}, seeds ${RANDOM_SEEDS.join(' / ')}: class drawn ${first.map(r => r.sizeClass).join(' / ')}; cavity, mm ${first.map(r => r.start.diameter.toFixed(0)).join(' / ')}; steps ${first.map(r => r.steps).join(' / ')}; SiO2 ${first.map(r => r.start.SiO2.toFixed(0)).join(' / ')}`);
+    for (const [label, runs] of arms) {
+      const each = (f) => runs.map(f).join(' / ');
+      console.log(`    ${label}`);
+      console.log(`      fill at run end, % ${each(r => (r.fill * 100).toFixed(0))}; first step at fill >= 0.7 ${each(r => r.first70 ?? '—')}; at >= 0.999 ${each(r => r.full ?? '—')}`);
+      console.log(`      feldspar ${each(r => mm(r.species.feldspar?.max_um))} mm; albite ${each(r => mm(r.species.albite?.max_um))}; quartz ${each(r => mm(r.species.quartz?.max_um))}; tourmaline ${each(r => mm(r.species.tourmaline?.max_um))}`);
+      console.log(`      reaches fill >= 0.999 at ${runs.filter(r => r.full != null).length} of ${runs.length} seeds; passes 0.7 at ${runs.filter(r => r.first70 != null).length}`);
+    }
+  }
 }
 
 // ---- part 3 ----
@@ -355,11 +423,13 @@ console.log(`\nPART 4 — Simulation mode's own form: the Cavity Size select and
   console.log(`  controls at seed 42, no override: the run built by startSimulationCommandRuntime and stepped with run_step ${JSON.stringify(plain.summary) === JSON.stringify(BASELINE.gem_pegmatite) ? 'reproduces the baseline' : 'DOES NOT REPRODUCE THE BASELINE'}; stepped through applySimulationCommand, one step to a command, it ${JSON.stringify(commanded) === JSON.stringify(plain.summary) ? 'is the same run' : 'IS A DIFFERENT RUN'}; scenario object on the conditions: ${plain.start.scenario ? 'present' : 'ABSENT at some seed'}; ${plain.steps} steps; the cavity holds ${cm3(plain)} cm3 (shape seed ${plain.shapeSeed})`);
 
   console.log(`\n  Cavity Size, seeds ${OTHER_SEEDS.join(' / ')}. The scenario's own cavity is in Part 1.`);
+  const kept = {};
   for (const size of ['vug', 'pocket', 'cave']) {
     const diameter = resolveSizeClassToMm(size);
     const overrides = { wall: { size_class: size, vug_diameter_mm: diameter } };      // what the form adds for a choice of size
     const s = OTHER_SEEDS.map(seed => run(seed, viaForm(overrides)));
     const c = OTHER_SEEDS.map(seed => run(seed, viaForm(overrides), { clamp: 7 }));
+    kept[size] = { overrides, s, c };
     console.log(`    ${size}: resolveSizeClassToMm gives ${diameter} mm; the cavity holds ${s.map(cm3).join(' / ')} cm3; scenario object ${s.every(r => r.start.scenario) ? 'present at every seed' : 'ABSENT at some seed'}`);
     show('shipped', s);
     show('rate clamp at 7', c);
@@ -375,6 +445,39 @@ console.log(`\nPART 4 — Simulation mode's own form: the Cavity Size select and
     show('shipped', s);
     show('rate clamp at 7', c);
     console.log(`      ${''.padEnd(16)} SC1's first acceptance line under the clamp holds at ${c.filter((r, i) => firstLine(r, s[i])).length} of ${c.length} shape seeds`);
+  }
+
+  // The vug again: is it the value of the bound that fails there, or is it the cavity?
+  console.log(`\n  The vug under tighter bounds, seeds ${OTHER_SEEDS.join(' / ')}. At 0 every positive zone of the pair is rescaled to nothing. The arms at 1 and 0 preview no value of the bound.`);
+  {
+    const { overrides, s, c } = kept.vug;
+    const shares = (runs) => runs.map(r => r.share.slice(0, 3).map(([m, x]) => `${m} ${(x * 100).toFixed(1)}`).join(', ')).join(' / ');
+    console.log(`      ${'shipped'.padEnd(16)} share of the cavity's volume at run end, %, the three largest: ${shares(s)}`);
+    for (const clamp of [7, 3, 1, 0]) {
+      const runs = clamp === 7 ? c : OTHER_SEEDS.map(seed => run(seed, viaForm(overrides), { clamp }));
+      show(`rate clamp at ${clamp}`, runs);
+      console.log(`      ${''.padEnd(16)} share of the cavity's volume at run end, %, the three largest: ${shares(runs)}`);
+      console.log(`      ${''.padEnd(16)} fill at run end ${runs.map(r => (r.fill * 100).toFixed(1)).join(' / ')} %; the pair holds solid at ${runs.filter(r => r.species.feldspar || r.species.albite).length} of ${runs.length} seeds; SC1's first acceptance line holds at ${runs.filter((r, i) => firstLine(r, s[i])).length} of ${runs.length}`);
+    }
+
+    // SC1's other courses in the same vug (§4, SC1): the fill switch, the change to the broth and
+    // the rind. Each is a change made between the scenario's factory and the simulator's
+    // constructor, so these runs are built through the factory, which is what the command runtime
+    // calls with the form's overrides (js/85l-simulation-command-protocol.ts).
+    const viaFactory = (o) => () => SCENARIOS.gem_pegmatite(JSON.parse(JSON.stringify(o)));
+    const BROTH = [['SiO2', 0.1], ['Al', 0.15]];                       // the first arm of ab-gem-broth
+    console.log(`\n  SC1's other courses in the vug, seeds ${OTHER_SEEDS.join(' / ')}: the fill switch (per_cell_local_fill: true), the change to the broth (SiO2 × 0.1 and Al × 0.15, no bound) and the rind (no thickness past 5 mm on the pair)`);
+    const again = OTHER_SEEDS.map(seed => run(seed, viaFactory(overrides)));
+    const ab = JSON.parse(fs.readFileSync(path.join(ROOT, 'proposals', 'evidence', 'sim-side-2026-11-09', 'ab-gem-broth.json'), 'utf8'));
+    const committed = OTHER_SEEDS.map(seed => ab.runs.find(r => r.scenario === 'gem_pegmatite' && r.seed === seed).B['mul=SiO2:0.1,mul=Al:0.15'].maxFill);
+    const own = OTHER_SEEDS.map(seed => run(seed, viaFactory({}), { mul: BROTH }));
+    console.log(`  controls: the vug built through the scenario's factory ${again.every((r, i) => JSON.stringify(r.summary) === JSON.stringify(s[i].summary)) ? 'is the run the command runtime builds, at every seed' : 'IS A DIFFERENT RUN'}; the change to the broth in the scenario's own cavity ends ${own.map(r => (r.fill * 100).toFixed(1)).join(' / ')} % full, and its largest fill ${own.every((r, i) => Math.abs(r.maxFill - committed[i]) < 1e-12) ? 'is that of the committed A/B run at every seed (ab-gem-broth.json)' : 'IS NOT THAT OF THE COMMITTED A/B RUN'}`);
+    for (const [label, options] of [['the fill switch', { localFill: true }], ['the broth change', { mul: BROTH }], ['the rind at 5 mm', { rind: 5000 }]]) {
+      const runs = OTHER_SEEDS.map(seed => run(seed, viaFactory(overrides), options));
+      show(label, runs);
+      console.log(`      ${''.padEnd(16)} share of the cavity's volume at run end, %, the three largest: ${shares(runs)}`);
+      console.log(`      ${''.padEnd(16)} fill at run end ${runs.map(r => (r.fill * 100).toFixed(1)).join(' / ')} %; SC1's first acceptance line holds at ${runs.filter((r, i) => firstLine(r, s[i])).length} of ${runs.length}`);
+    }
   }
 }
 console.log(`\ncontrols after Part 4: the time scale reads ${getSimulationTimeScale()}; gem_pegmatite's shipped run at seed 42 ${JSON.stringify(run(42, gem).summary) === JSON.stringify(BASELINE.gem_pegmatite) ? 'still reproduces the baseline' : 'NO LONGER REPRODUCES THE BASELINE'}`);

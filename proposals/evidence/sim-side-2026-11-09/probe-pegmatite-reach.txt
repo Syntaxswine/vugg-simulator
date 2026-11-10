@@ -82,6 +82,43 @@ PART 2 — Random Vugg, archetype pegmatite, size class pocket, seeds 42 / 1 / 2
     topaz, mm                      — / 0.17 / — / — / — / — / — / 2.7
     reaches fill >= 0.999 at 0 of 8 seeds; passes 0.7 at 1
 
+  Random Vugg's own Cavity size select (index.html, #random-size-class), its options in order: any "🎲 Any size", vug "vug (5–50mm)", pocket "pocket (50–500mm)", cave "cave (0.5–5m)"; marked selected: none, so the page opens on the first
+  the range each class is drawn from (resolveSizeClassToMm at a draw of 0 and of 1): vug 5 to 25 mm; pocket 25 to 300 mm; cave 300 to 3000 mm
+
+  size setting vug, seeds 42 / 1 / 2 / 3 / 4 / 5 / 6 / 7: class drawn vug / vug / vug / vug / vug / vug / vug / vug; cavity, mm 6 / 14 / 24 / 23 / 12 / 9 / 24 / 16; steps 155 / 122 / 120 / 120 / 148 / 167 / 136 / 137; SiO2 8483 / 4027 / 7250 / 4387 / 7330 / 11727 / 4023 / 4620
+    shipped
+      fill at run end, % 100 / 100 / 100 / 100 / 100 / 100 / 100 / 100; first step at fill >= 0.7 4 / 8 / 9 / 13 / 10 / 3 / 59 / 12; at >= 0.999 4 / 12 / 13 / 19 / 13 / 4 / 86 / 16
+      feldspar 4.2 / 9.9 / 15.5 / 15.0 / 8.0 / 5.9 / 27.2 / 10.9 mm; albite 5.0 / 5.9 / 12.1 / 13.9 / 9.9 / 10.8 / 16.4 / 12.0; quartz 1.0 / 0.71 / 0.14 / 0.78 / — / 1.1 / 6.8 / 1.2; tourmaline 0.07 / — / 0.01 / — / — / — / — / 0.92
+      reaches fill >= 0.999 at 8 of 8 seeds; passes 0.7 at 8
+    rate clamp at 7
+      fill at run end, % 100 / 100 / 98 / 100 / 100 / 100 / 87 / 100; first step at fill >= 0.7 22 / 66 / 87 / 81 / 59 / 27 / 126 / 24; at >= 0.999 33 / 97 / — / 100 / 83 / 36 / — / 34
+      feldspar 2.6 / 7.7 / 10.3 / 9.0 / 6.8 / 2.8 / 13.9 / 2.7 mm; albite 3.4 / 10.2 / 13.7 / 12.0 / 9.3 / 3.9 / 18.7 / 3.8; quartz 6.1 / 9.7 / 23.3 / 11.7 / 7.3 / 10.9 / 15.9 / 2.5; tourmaline 0.77 / — / 4.5 / — / — / — / — / 2.0
+      reaches fill >= 0.999 at 6 of 8 seeds; passes 0.7 at 8
+    rate clamp at 0 (the pair holds no solid)
+      fill at run end, % 100 / 94 / 92 / 100 / 100 / 100 / 16 / 100; first step at fill >= 0.7 25 / 106 / 100 / 85 / 85 / 28 / — / 24; at >= 0.999 38 / — / — / 106 / 106 / 38 / — / 34
+      feldspar — / — / — / — / — / — / — / — mm; albite — / — / — / — / — / — / — / —; quartz 7.1 / 16.3 / 27.1 / 12.4 / 14.6 / 11.5 / 16.7 / 2.5; tourmaline 0.98 / — / 5.6 / — / — / — / — / 2.0
+      reaches fill >= 0.999 at 5 of 8 seeds; passes 0.7 at 7
+
+  size setting cave, seeds 42 / 1 / 2 / 3 / 4 / 5 / 6 / 7: class drawn cave / cave / cave / cave / cave / cave / cave / cave; cavity, mm 385 / 1454 / 2838 / 2669 / 1239 / 862 / 2851 / 1779; steps 155 / 122 / 120 / 120 / 148 / 167 / 136 / 137; SiO2 8483 / 4027 / 7250 / 4387 / 7330 / 11727 / 4023 / 4620
+    shipped
+      fill at run end, % 10 / 0 / 0 / 0 / 0 / 5 / 0 / 0; first step at fill >= 0.7 — / — / — / — / — / — / — / —; at >= 0.999 — / — / — / — / — / — / — / —
+      feldspar 120.9 / 89.8 / 180.3 / 136.0 / 103.6 / 208.8 / 49.5 / 93.6 mm; albite 177.3 / 54.9 / 160.9 / 123.3 / 128.6 / 323.7 / 31.2 / 136.1; quartz 44.8 / 17.3 / 29.6 / 17.7 / 26.4 / 67.2 / 16.3 / 13.9; tourmaline 8.3 / — / 6.3 / — / — / — / — / 10.1
+      reaches fill >= 0.999 at 0 of 8 seeds; passes 0.7 at 0
+    rate clamp at 7
+      fill at run end, % 0 / 0 / 0 / 0 / 0 / 0 / 0 / 0; first step at fill >= 0.7 — / — / — / — / — / — / — / —; at >= 0.999 — / — / — / — / — / — / — / —
+      feldspar 16.5 / 12.7 / 12.5 / 12.7 / 15.6 / 17.6 / 14.2 / 14.3 mm; albite 21.6 / 17.2 / 17.0 / 16.8 / 20.9 / 23.3 / 19.1 / 19.1; quartz 45.7 / 17.4 / 29.6 / 17.7 / 26.4 / 69.4 / 16.3 / 14.0; tourmaline 8.3 / — / 6.3 / — / — / — / — / 10.1
+      reaches fill >= 0.999 at 0 of 8 seeds; passes 0.7 at 0
+
+  size setting any, seeds 42 / 1 / 2 / 3 / 4 / 5 / 6 / 7: class drawn pocket / pocket / pocket / pocket / cave / pocket / pocket / vug; cavity, mm 42 / 106 / 200 / 266 / 2428 / 59 / 260 / 16; steps 136 / 167 / 147 / 120 / 140 / 136 / 176 / 137; SiO2 12525 / 9274 / 6853 / 8562 / 6217 / 6198 / 10632 / 13769
+    shipped
+      fill at run end, % 100 / 100 / 40 / 1 / 0 / 100 / 91 / 100; first step at fill >= 0.7 13 / 87 / — / — / — / 30 / 128 / 6; at >= 0.999 18 / 117 / — / — / — / 41 / — / 8
+      feldspar 26.5 / 42.4 / 120.3 / 54.0 / 220.7 / 39.2 / 198.5 / 11.9 mm; albite 22.8 / 157.4 / 131.5 / 58.9 / 164.3 / 35.3 / 208.1 / 12.8; quartz 5.4 / 29.8 / 27.2 / 31.9 / 28.7 / 3.1 / 31.5 / 2.6; tourmaline — / 2.1 / 2.5 / — / — / — / 10.4 / 0.50
+      reaches fill >= 0.999 at 4 of 8 seeds; passes 0.7 at 5
+    rate clamp at 7
+      fill at run end, % 94 / 32 / 7 / 0 / 0 / 45 / 0 / 100; first step at fill >= 0.7 113 / — / — / — / — / — / — / 59; at >= 0.999 — / — / — / — / — / — / — / 82
+      feldspar 12.8 / 17.7 / 15.1 / 12.6 / 14.7 / 14.5 / 18.3 / 7.0 mm; albite 17.4 / 23.5 / 20.5 / 16.9 / 19.1 / 19.0 / 24.6 / 9.3; quartz 51.5 / 57.2 / 27.5 / 33.0 / 29.0 / 27.5 / 35.8 / 21.4; tourmaline — / 3.3 / 2.5 / — / — / — / 12.3 / 5.0
+      reaches fill >= 0.999 at 1 of 8 seeds; passes 0.7 at 2
+
 PART 3 — three other ways the game starts a run on a pegmatite's fluid, seeds 42 / 1 / 2
   time scale at load, which every run above uses: 5; after the game's own switchMode into each mode: Simulation 5, Creative 5, Random Vugg 5, Zen 1
 
@@ -144,5 +181,39 @@ PART 4 — Simulation mode's own form: the Cavity Size select and the Shape Seed
       rate clamp at 7  largest fill of the run 45.4 / 40.2 / 42.6 / 45.9 / 43.1 / 36.8 / 43.4 / 39.5 / 39.9 / 41.1 %; first step at fill >= 0.7 — / — / — / — / — / — / — / — / — / —; at >= 0.999 — / — / — / — / — / — / — / — / — / —; last step anything grew 230 / 230 / 230 / 230 / 230 / 230 / 230 / 230 / 230 / 230
                        feldspar 24.2 / 24.2 / 24.4 / 24.1 / 24.4 / 24.1 / 24.4 / 24.4 / 24.1 / 24.2 mm; albite 32.1 / 32.4 / 32.2 / 32.2 / 32.2 / 32.5 / 32.1 / 32.2 / 32.2 / 32.1; quartz 36.9 / 37.9 / 37.5 / 36.8 / 37.5 / 37.0 / 37.7 / 37.5 / 36.8 / 36.9; tourmaline 12.1 / 12.0 / 12.0 / 12.1 / 12.0 / 12.1 / 12.0 / 12.0 / 12.1 / 12.1; topaz 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5
                        SC1's first acceptance line under the clamp holds at 10 of 10 shape seeds
+
+  The vug under tighter bounds, seeds 42 / 1 / 2. At 0 every positive zone of the pair is rescaled to nothing. The arms at 1 and 0 preview no value of the bound.
+      shipped          share of the cavity's volume at run end, %, the three largest: feldspar 99.3, albite 0.7, quartz 0.0 / feldspar 99.5, albite 0.5, quartz 0.0 / feldspar 98.3, albite 1.7, quartz 0.0
+      rate clamp at 7  largest fill of the run 100.0 / 100.0 / 100.0 %; first step at fill >= 0.7 62 / 64 / 64; at >= 0.999 97 / 99 / 99; last step anything grew 98 / 100 / 99
+                       feldspar 7.6 / 7.6 / 7.9 mm; albite 9.6 / 9.9 / 10.3; quartz 14.5 / 14.4 / 14.8; tourmaline 5.0 / 5.1 / 5.1; topaz — / 0.00 / —
+                       share of the cavity's volume at run end, %, the three largest: feldspar 51.4, quartz 37.6, albite 7.9 / feldspar 49.6, quartz 38.7, albite 7.8 / feldspar 52.2, quartz 35.4, albite 7.8
+                       fill at run end 100.0 / 100.0 / 100.0 %; the pair holds solid at 3 of 3 seeds; SC1's first acceptance line holds at 0 of 3
+      rate clamp at 3  largest fill of the run 100.0 / 100.0 / 100.0 %; first step at fill >= 0.7 81 / 82 / 83; at >= 0.999 166 / 163 / 166; last step anything grew 167 / 164 / 167
+                       feldspar 4.5 / 4.4 / 4.6 mm; albite 5.8 / 5.6 / 6.0; quartz 18.4 / 18.3 / 18.8; tourmaline 7.0 / 6.9 / 7.2; topaz 0.19 / 0.18 / 0.17
+                       share of the cavity's volume at run end, %, the three largest: quartz 78.7, feldspar 10.2, tourmaline 9.0 / quartz 78.6, tourmaline 10.3, feldspar 9.3 / quartz 74.7, tourmaline 12.5, feldspar 10.2
+                       fill at run end 100.0 / 100.0 / 100.0 %; the pair holds solid at 3 of 3 seeds; SC1's first acceptance line holds at 0 of 3
+      rate clamp at 1  largest fill of the run 100.0 / 100.0 / 100.0 %; first step at fill >= 0.7 84 / 84 / 86; at >= 0.999 174 / 173 / 177; last step anything grew 176 / 174 / 178
+                       feldspar 1.6 / 1.5 / 1.6 mm; albite 2.1 / 1.9 / 2.2; quartz 18.9 / 18.9 / 19.4; tourmaline 7.4 / 7.3 / 7.7; topaz 0.30 / 0.23 / 0.27
+                       share of the cavity's volume at run end, %, the three largest: quartz 85.8, tourmaline 13.2, feldspar 0.4 / quartz 86.8, tourmaline 12.4, feldspar 0.4 / quartz 82.7, tourmaline 15.7, spodumene 1.0
+                       fill at run end 100.0 / 100.0 / 100.0 %; the pair holds solid at 3 of 3 seeds; SC1's first acceptance line holds at 0 of 3
+      rate clamp at 0  largest fill of the run 100.0 / 100.0 / 100.0 %; first step at fill >= 0.7 84 / 84 / 86; at >= 0.999 174 / 174 / 176; last step anything grew 175 / 175 / 178
+                       feldspar — / — / — mm; albite — / — / —; quartz 19.1 / 18.9 / 19.4; tourmaline 7.5 / 7.3 / 7.7; topaz 0.28 / 0.23 / 0.28
+                       share of the cavity's volume at run end, %, the three largest: quartz 86.6, tourmaline 12.9, spodumene 0.3 / quartz 87.2, tourmaline 12.5, lepidolite 0.2 / quartz 83.0, tourmaline 15.8, spodumene 1.0
+                       fill at run end 100.0 / 100.0 / 100.0 %; the pair holds solid at 0 of 3 seeds; SC1's first acceptance line holds at 0 of 3
+
+  SC1's other courses in the vug, seeds 42 / 1 / 2: the fill switch (per_cell_local_fill: true), the change to the broth (SiO2 × 0.1 and Al × 0.15, no bound) and the rind (no thickness past 5 mm on the pair)
+  controls: the vug built through the scenario's factory is the run the command runtime builds, at every seed; the change to the broth in the scenario's own cavity ends 19.4 / 21.1 / 15.5 % full, and its largest fill is that of the committed A/B run at every seed (ab-gem-broth.json)
+      the fill switch  largest fill of the run 112.6 / 100.0 / 100.0 %; first step at fill >= 0.7 2 / 1 / 4; at >= 0.999 2 / 66 / 6; last step anything grew 2 / 66 / 6
+                       feldspar 10.0 / 10.6 / 7.2 mm; albite 5.5 / 4.9 / 24.1; quartz 0.51 / 13.0 / 0.92; tourmaline 0.08 / 4.6 / 0.17; topaz — / — / —
+                       share of the cavity's volume at run end, %, the three largest: feldspar 111.9, albite 0.7, quartz 0.0 / feldspar 76.0, quartz 21.7, tourmaline 1.7 / albite 62.9, feldspar 37.1, quartz 0.0
+                       fill at run end 112.6 / 100.0 / 100.0 %; SC1's first acceptance line holds at 0 of 3
+      the broth change largest fill of the run 100.0 / 100.0 / 100.0 %; first step at fill >= 0.7 91 / 90 / 93; at >= 0.999 134 / 132 / 138; last step anything grew 134 / 133 / 139
+                       feldspar 9.8 / 9.4 / 9.8 mm; albite 14.1 / 13.2 / 14.3; quartz — / — / —; tourmaline 6.7 / 6.6 / 6.6; topaz 0.18 / 0.16 / 0.23
+                       share of the cavity's volume at run end, %, the three largest: feldspar 76.4, albite 15.5, tourmaline 7.6 / feldspar 74.9, albite 15.1, tourmaline 8.9 / feldspar 74.6, albite 13.1, tourmaline 10.9
+                       fill at run end 100.0 / 100.0 / 100.0 %; SC1's first acceptance line holds at 0 of 3
+      the rind at 5 mm largest fill of the run 112.6 / 96.0 / 100.0 %; first step at fill >= 0.7 2 / 1 / 65; at >= 0.999 2 / — / 177; last step anything grew 2 / 230 / 179
+                       feldspar 10.0 / 10.6 / 7.2 mm; albite 5.5 / 8.2 / 7.2; quartz 0.51 / 8.8 / 16.7; tourmaline 0.08 / 3.2 / 6.2; topaz — / 0.47 / 0.12
+                       share of the cavity's volume at run end, %, the three largest: feldspar 111.9, albite 0.7, quartz 0.0 / feldspar 85.2, quartz 6.1, albite 4.3 / quartz 51.8, feldspar 37.1, tourmaline 7.7
+                       fill at run end 112.6 / 96.0 / 100.0 %; SC1's first acceptance line holds at 0 of 3
 
 controls after Part 4: the time scale reads 5; gem_pegmatite's shipped run at seed 42 still reproduces the baseline

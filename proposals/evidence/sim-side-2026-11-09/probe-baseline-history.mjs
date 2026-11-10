@@ -6,6 +6,10 @@
  * Reads every committed tests-js/baselines/seed42_v<N>.json and prints, for a few (scenario, mineral)
  * pairs, the versions between which the largest crystal changed by more than 1.5× or appeared or
  * vanished; and for gem_pegmatite the largest tourmaline and the smallest feldspar in any baseline.
+ * For the lead minerals of the two scenarios that grow uraninite it also prints the spans of
+ * baselines in which each is on record, with the largest crystal in the span and the number of
+ * baselines in which that crystal is 0 µm: a baseline row counts a mineral's crystals whether or
+ * not they grew, so a mineral can be on record at no size (§3.3).
  * Given a canary stratum (the vugg-canary repository, logs/<date>/v<SIM>) it also prints the same
  * pairs' spread over that stratum's seeds from the committed <scenario>/frequency.json.
  *
@@ -53,13 +57,36 @@ for (const [s, m] of PAIRS) {
   if (!c.out.length) console.log('   (never)');
 }
 
+// On record at no size.
+{
+  const missing = [];
+  for (let v = files[0].v; v <= files[files.length - 1].v; v++) if (!files.some(f => f.v === v)) missing.push(v);
+  console.log(`\non record, by baseline. A baseline row counts a mineral's crystals whether or not they grew, so a mineral can be on record with a largest crystal of 0 µm. Versions from v${files[0].v} to v${files[files.length - 1].v} with no committed baseline: ${missing.map(v => 'v' + v).join(', ') || 'none'}`);
+  const LEAD = [['radioactive_pegmatite', 'galena'], ['radioactive_pegmatite', 'plumbogummite'],
+    ['schneeberg', 'galena'], ['schneeberg', 'anglesite'], ['schneeberg', 'duftite'], ['schneeberg', 'plumbogummite']];
+  for (const [s, m] of LEAD) {
+    const spans = [];
+    for (const x of series(s, m)) {
+      const on = x.um != null, last = spans[spans.length - 1];
+      if (last && last.on === on) {
+        last.to = x.v; last.n++;
+        if (on) { if (x.um > last.max) last.max = x.um; if (x.um === 0) last.zero++; }
+      } else spans.push({ on, from: x.v, to: x.v, n: 1, max: on ? x.um : 0, zero: on && x.um === 0 ? 1 : 0 });
+    }
+    console.log(`  ${s} / ${m}: ` + spans.map(p => (p.on
+      ? `on record v${p.from} … v${p.to} (${p.n} baseline${p.n === 1 ? '' : 's'}; largest crystal in any of them ${mm(p.max)} mm; at 0 µm in ${p.zero})`
+      : `not on record v${p.from} … v${p.to} (${p.n})`)).join('; '));
+  }
+}
+
 const stratum = process.argv[2];
 if (stratum) {
   const rd = (s) => JSON.parse(fs.readFileSync(path.join(stratum, s, 'frequency.json'), 'utf8'));
   console.log(`\ncanary stratum ${path.basename(path.dirname(path.resolve(stratum)))}/${path.basename(path.resolve(stratum))} — largest crystal over the stratum's seeds`);
   const CANARY = [['gem_pegmatite', 'tourmaline'], ['gem_pegmatite', 'feldspar'], ['gem_pegmatite', 'topaz'], ['gem_pegmatite', 'beryl'],
     ['naica_geothermal', 'selenite'], ['shigar_pegmatite', 'aquamarine'], ['shigar_pegmatite', 'tourmaline'], ['shigar_pegmatite', 'topaz'],
-    ['radioactive_pegmatite', 'plumbogummite'], ['radioactive_pegmatite', 'galena'], ['radioactive_pegmatite', 'autunite']];
+    ['radioactive_pegmatite', 'plumbogummite'], ['radioactive_pegmatite', 'galena'], ['radioactive_pegmatite', 'autunite'],
+    ['schneeberg', 'galena'], ['schneeberg', 'anglesite'], ['schneeberg', 'duftite'], ['schneeberg', 'plumbogummite']];
   for (const [s, m] of CANARY) {
     const f = rd(s), v = f.species[m];
     console.log(`  ${s} / ${m}: ${v ? `in ${v.seeds_present} of ${f.n_seeds} seeds; min / median / max ${mm(v.size_um.min)} / ${mm(v.size_um.median)} / ${mm(v.size_um.max)} mm` : `absent in all ${f.n_seeds} seeds`}`);

@@ -116,13 +116,17 @@ single execution ledger for the science-first AAA completion branch.
     a bound on a rate and buys steps, not an end: where Simulation mode, Quick Play and
     Creative mode start the scenario it keeps the pocket under 0.7 full for the scenario's
     own 230 steps and 27–29 more; a run that goes on seals at step 304–306, on quartz, and
-    Creative mode, where the Scenarios menu opens a scenario, has no last step. Its value is
-    sized to the scenario's own cavity: at the 15 mm vug setting of Simulation mode's Cavity
-    Size select the bounded pocket is full at step 97–99. It does not
+    Creative mode, where the Scenarios menu opens a scenario, has no last step. How many
+    steps it buys depends on the cavity: at the 15 mm vug setting of Simulation mode's Cavity
+    Size select the bounded pocket is full at step 97–99, and no value mends that (with the
+    pair holding no solid, quartz and tourmaline seal the vug at step 174–176), so that size
+    is to be accepted, left to SC4 or treated as a matter for the form. It does not
     reach Zen mode, which drops the scenario object and runs at a fifth of the time scale
     (its `gem_pegmatite` plugs at step 32–33), or Random Vugg's pegmatite archetype, where
-    the plug was first reported, which has no scenario (3 of 8 random pockets fill). The same
-    clamp in the engines for every scenario reaches those too; it changes eight
+    the plug was first reported, which has no scenario (3 of 8 cavities of its pocket size
+    class fill, all 8 of its vug class, 4 of 8 at the setting its page opens on). The same
+    clamp in the engines for every scenario reaches those too (in Random Vugg it keeps the
+    pocket class from filling completely, and six vugs of eight still fill); it changes eight
     baselines, empties Shigar's pocket, and leaves `schneeberg` without solid of three of the
     species it expects at seed 1 and two at seed 2. The tree's own `per_cell_local_fill` switch
     keeps the pocket open at 5 seeds of 11. Factor caps at one uniform ceiling delete both
@@ -144,8 +148,12 @@ single execution ledger for the science-first AAA completion branch.
     galena's six and passes at exactly four, the agent API); find them by a search of the
     tree, do not count them. The other coherent pair keeps today's timing and licenses
     galena, with a source. The held release leaves the cation gate's two numbers as
-    commissioned and adds one field to the simulator (saves replay a run and need nothing
-    new); the continuous one moves the gate's share by 62 times the tolerance. Under either
+    commissioned and adds one field to the simulator (saves replay a run and need no new
+    field); the continuous one moves the gate's share by 62 times the tolerance. Where the
+    game starts that fluid without the scenario's events (Creative mode's starter fluid, a
+    Zen run; neither has a license) nothing alters the uraninite: the held release releases
+    nothing there, and the continuous one grows a galena of 8–10 mm in the starter fluid and
+    half a millimetre in Zen. Under either
     timing `schneeberg`'s two largest crystals are named amazonite on their cards where they
     are named microcline today; the cavity view draws them as before; and where the game
     shows them zone by zone (the step log, the zone-history bar) the held release puts the
@@ -160,6 +168,11 @@ single execution ledger for the science-first AAA completion branch.
     that `supergene_oxidation`'s last event sets, which lands the bulk handle on azurite's redox
     minimum and the wall cells below it and starts four azurites dissolving. No change is
     proposed.
+  - [ ] Rule on Zen mode as the review met it (the doc's §6, decision 8): a Zen run of a
+    scenario has no scenario object, so no license, exclusions, windows or movements (an
+    emerald is on record in its `gem_pegmatite`); and Zen's drift is written to the bulk
+    handle alone, the fluid that births read and not the one that crystals grow from. No
+    change is proposed.
 
 ## P2 — scenario and content science
 
