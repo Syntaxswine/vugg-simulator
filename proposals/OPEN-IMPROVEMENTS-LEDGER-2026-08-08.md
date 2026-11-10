@@ -102,7 +102,9 @@ single execution ledger for the science-first AAA completion branch.
   `tools/seed-variety-census.mjs`); nothing shipped moves. The reading: supply binds at a crystal's
   own cell (returning every debit moves 26 of 41 scenarios and changes the baseline of 38) and
   nowhere above it. It builds on the roadmap's rung C1, the local-σ depletion field, whose probe
-  showed in July that the rate reads the cell, and on the high-fill research of May.
+  showed in July that the rate reads the cell, on the wallet law of 2026-07-08, on the boss's
+  report of 2026-05-06 of a pegmatite feldspar filling its vug, and on the high-fill research
+  of May.
   The items below await the boss (the doc's §6), with pre-registered acceptance in its §4. SC1–SC3
   are SIM bumps; SC4 is a pilot; SC5 is a habit. They are numbered SC, for simulation-side
   change, so as not to collide with the roadmap's C rungs or the recipe review's R rungs:
@@ -110,23 +112,30 @@ single execution ledger for the science-first AAA completion branch.
     pocket is full at step 9–10 of 230 (7 of its 8 events fire into a full pocket). Recommended: a
     clamp on the rate authored on that scenario alone, which changes one baseline. It makes topaz
     appear at all three locality-gate seeds, so the same bump has to move topaz out of that
-    scenario's aspirational tier, which is a ruling. The same clamp in the engines for every
-    scenario changes eight baselines, empties Shigar's pocket, and leaves `schneeberg` without
-    solid of three of the species it expects at seed 1 and two at seed 2. Factor caps at one
-    uniform ceiling delete both feldspars from the Grimsel cleft. The authored field needs a
-    class in `tools/creative-lever-audit.mjs`.
+    scenario's aspirational tier, which is a ruling, and rewrite its rationale by hand. It
+    cures the scenario's own runs only: Zen mode drops the scenario object, and Random Vugg's
+    pegmatite archetype, where the plug was first reported, has none (3 of 8 random pockets
+    fill). The same clamp in the engines for every scenario reaches those too; it changes eight
+    baselines, empties Shigar's pocket, and leaves `schneeberg` without solid of three of the
+    species it expects at seed 1 and two at seed 2. The tree's own `per_cell_local_fill` switch
+    keeps the pocket open at 5 seeds of 11. Factor caps at one uniform ceiling delete both
+    feldspars from the Grimsel cleft. The authored field needs a class in
+    `tools/creative-lever-audit.mjs`.
   - [ ] SC2 — put galena, molybdenite and uraninite on σ − 1 (they propose a rate at saturation).
     At the same constant the uraninites end smaller and write less radiogenic lead, so the bump
     has to recommission the cation gate (`npm run audit:cations`): the Ca share it holds
     `schneeberg` to at seed 42 moves from 0.582 to 0.630.
   - [ ] SC3 — carry radiogenic Pb to the voxels as well as the bulk handle
     (`js/85-simulator.ts:1276` writes the bulk handle only). Recommended timing: hold it until a
-    uraninite is altered, and drop the two sentences in which `radioactive_pegmatite` promises
-    galena, since under that timing no license can produce it. The other coherent pair keeps
-    today's timing and licenses galena, with a source. The held release leaves the cation
-    gate's two numbers as commissioned; the continuous one moves its share by 62 times the
-    tolerance. SC2 and SC3 both reach the two uraninite scenarios: preview the second to land on
-    the tree the first leaves.
+    uraninite is altered, and take the galena out of the four places where
+    `radioactive_pegmatite` promises it (the description, the notes, the step-100 narration in
+    `js/70d-pegmatite-radioactive.ts`, the agent API's copy), since under that timing no license
+    can produce it. The other coherent pair keeps today's timing and licenses galena, with a
+    source. The held release leaves the cation gate's two numbers as commissioned and adds
+    state that a save and the replay fingerprint carry; the continuous one moves the gate's
+    share by 62 times the tolerance. Under either timing `schneeberg`'s two largest crystals
+    turn from microcline to green amazonite. SC2 and SC3 both reach the two uraninite
+    scenarios: preview the second to land on the tree the first leaves.
   - [ ] SC4 — decide whether to pilot a supply with a scale above the cell: a physical debit, a feed
     from the authored `flow_rate` (assigned 103 times, read by no growth code), a clock. Overlaps
     the reservoir arc of PRs #35–#39 and #42.

@@ -11,15 +11,17 @@
  *   statistical                                                               appears in 1 or 2
  *   aspirational                                                              appears in none
  *   excluded                                                                  appears in none
+ *   named by no tier and no exclusion ("unclassified")                        appears in none
  * The A/B outputs in this folder were run at exactly those three seeds. For every arm of every
  * ab-*.json this probe counts, per scenario and mineral, the seeds in which the mineral appears in
- * the shipped arm and under the arm, applies the four rules, and prints each clash the arm
+ * the shipped arm and under the arm, applies the five rules, and prints each clash the arm
  * introduces and each it removes. A scenario run at fewer than the three seeds is skipped.
  *
  * What it cannot see. Appearance is read from the crystal records at run end (the tool's `species`
  * and `noSolid`), so a mineral whose every crystal was transformed into another mineral is missed;
- * the gate reads every step. The gate's first-appearance windows are not checked. And the gate reads
- * the committed claim cards and frequency receipt, which a SIM bump regenerates; this is a preview.
+ * the gate reads every step. The gate's first-appearance windows are not checked here;
+ * probe-appearance-windows.mjs reads them. And the gate reads the committed claim cards and
+ * frequency receipt, which a SIM bump regenerates; this is a preview.
  *
  * It runs no simulation: it loads the bundle only to read each scenario's authored tiers through
  * tools/_harness.mjs. PASSIVE: prints to stdout, writes nothing, exits 0.
@@ -61,12 +63,16 @@ function clashes(scenario, perSeed) {
   }
   for (const m of t.aspirational) if (count[m]) out[m] = `aspirational ${m} appears in ${count[m]} of ${PANEL.length} seeds`;
   for (const m of t.excluded) if (count[m]) out[m] = `excluded ${m} appears in ${count[m]} of ${PANEL.length} seeds`;
+  // a product that no tier and no exclusion names: with --check the gate fails on one
+  for (const m of Object.keys(count)) {
+    if (!t.deterministic.has(m) && !t.statistical.has(m) && !t.aspirational.has(m) && !t.excluded.has(m)) out[m] = `unclassified ${m} appears in ${count[m]} of ${PANEL.length} seeds`;
+  }
   return out;
 }
 
 console.log(`probe-appearance-contract — SIM ${SIM_VERSION}; the locality gate's four tiers on the seed panel ${PANEL.join(', ')}, read from the A/B outputs in this folder`);
 let arms = 0, clean = 0;
-const shippedClashes = new Set();
+const shippedClashes = new Set(), unclassified = new Set();
 for (const file of fs.readdirSync(HERE).filter(n => /^ab-.*\.json$/.test(n)).sort()) {
   const j = JSON.parse(fs.readFileSync(path.join(HERE, file), 'utf8'));
   const scenarios = [...new Set(j.runs.map(r => r.scenario))];
@@ -79,6 +85,7 @@ for (const file of fs.readdirSync(HERE).filter(n => /^ab-.*\.json$/.test(n)).sor
       if (runs.some(r => !r)) continue;
       const a = clashes(scenario, runs.map(r => appears(r.A))), b = clashes(scenario, runs.map(r => appears(r.B[arm])));
       for (const text of Object.values(a)) shippedClashes.add(`${scenario}: ${text}`);
+      for (const text of [...Object.values(a), ...Object.values(b)]) if (text.startsWith('unclassified ')) unclassified.add(`${scenario}: ${text}`);
       const introduced = Object.keys(b).filter(m => !a[m]).map(m => b[m]);
       const changed = Object.keys(b).filter(m => a[m] && a[m] !== b[m]).map(m => `${b[m]} (shipped: ${a[m].replace(/^.* appears in /, '')})`);
       const removed = Object.keys(a).filter(m => !b[m]).map(m => a[m]);
@@ -93,4 +100,5 @@ for (const file of fs.readdirSync(HERE).filter(n => /^ab-.*\.json$/.test(n)).sor
   if (j.seeds.length >= PANEL.length) for (const l of lines) console.log(l);
 }
 console.log(`\narms read: ${arms}; arms that introduce, change or remove no tier clash: ${clean}`);
+console.log(`products that no tier and no exclusion of their scenario names, under any arm or as shipped: ${[...unclassified].sort().join('; ') || 'none'}`);
 console.log(`tier clashes this reading finds in the SHIPPED arm (the gate passes today, so each is something a record at run end cannot show): ${[...shippedClashes].sort().join('; ') || 'none'}`);

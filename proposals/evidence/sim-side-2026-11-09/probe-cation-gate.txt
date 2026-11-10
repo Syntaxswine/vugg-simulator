@@ -15,6 +15,8 @@ the shipped run reproduces the baseline, and it reads the commissioned values (c
       Ca share on the cells of the pharmacolites that hold solid, at run end: 0.721 to 0.728
       pharmacolite's engine ran 68 times; the Ca share on the cell it read was 0.6 or more (the factor of 1.3) on 68 of them, and under 0.3 (sigma 0) on 0
       Zn: none in any fluid at any step, none booked
+      uraninites: #1 active on 89 steps, enclosed from step 90 by feldspar; #7 active on 159 steps, never enclosed; #10 active on 86 steps, enclosed from step 90 by feldspar
+      radiation: total dose 17.4; quartz with solid past the smoky threshold (0.3) 3 of 3; crystals with solid past the metamict threshold (0.8) 71 of 74
       the gate's commissioned values: carry over; the scenario's baseline summary is as shipped
   SC1 written into the engines (rclamp=7)
       pharmacolite on record 5; with solid 4, largest 974.4 µm; uraninite largest 6.9 mm
@@ -23,6 +25,9 @@ the shipped run reproduces the baseline, and it reads the commissioned values (c
       Ca share on the cells of the pharmacolites that hold solid, at run end: 0.722 to 0.726
       pharmacolite's engine ran 68 times; the Ca share on the cell it read was 0.6 or more (the factor of 1.3) on 68 of them, and under 0.3 (sigma 0) on 0
       Zn: none in any fluid at any step, none booked
+      uraninites: #1 active on 160 steps, never enclosed; #7 active on 159 steps, never enclosed; #10 active on 157 steps, never enclosed
+      radiation: total dose 27.9; quartz with solid past the smoky threshold (0.3) 3 of 3; crystals with solid past the metamict threshold (0.8) 67 of 69
+      minerals shown under another name or colour than as shipped: none
       the gate's commissioned values: do not carry over (share); the scenario's baseline summary differs from shipped
   SC2, same constant (excess=1)
       pharmacolite on record 5; with solid 5, largest 1094.7 µm; uraninite largest 5.1 mm
@@ -31,6 +36,9 @@ the shipped run reproduces the baseline, and it reads the commissioned values (c
       Ca share on the cells of the pharmacolites that hold solid, at run end: 0.721 to 0.728
       pharmacolite's engine ran 68 times; the Ca share on the cell it read was 0.6 or more (the factor of 1.3) on 68 of them, and under 0.3 (sigma 0) on 0
       Zn: none in any fluid at any step, none booked
+      uraninites: #1 active on 88 steps, enclosed from step 89 by feldspar; #7 active on 159 steps, never enclosed; #10 active on 85 steps, enclosed from step 89 by feldspar
+      radiation: total dose 10.6; quartz with solid past the smoky threshold (0.3) 3 of 3; crystals with solid past the metamict threshold (0.8) 69 of 74
+      minerals shown under another name or colour than as shipped: none
       the gate's commissioned values: do not carry over (share); the scenario's baseline summary differs from shipped
   SC2, three times the constant (excess=3)
       pharmacolite on record 5; with solid 5, largest 1094.7 µm; uraninite largest 11.8 mm
@@ -39,6 +47,9 @@ the shipped run reproduces the baseline, and it reads the commissioned values (c
       Ca share on the cells of the pharmacolites that hold solid, at run end: 0.722 to 0.728
       pharmacolite's engine ran 68 times; the Ca share on the cell it read was 0.6 or more (the factor of 1.3) on 68 of them, and under 0.3 (sigma 0) on 0
       Zn: none in any fluid at any step, none booked
+      uraninites: #1 active on 160 steps, never enclosed; #7 active on 159 steps, never enclosed; #10 active on 157 steps, never enclosed
+      radiation: total dose 46.0; quartz with solid past the smoky threshold (0.3) 3 of 3; crystals with solid past the metamict threshold (0.8) 72 of 74
+      minerals shown under another name or colour than as shipped: none
       the gate's commissioned values: do not carry over (share); the scenario's baseline summary differs from shipped
   SC3, every step (pb)
       pharmacolite on record 5; with solid 5, largest 797.2 µm; uraninite largest 8.3 mm
@@ -47,6 +58,9 @@ the shipped run reproduces the baseline, and it reads the commissioned values (c
       Ca share on the cells of the pharmacolites that hold solid, at run end: 0.579 to 0.585
       pharmacolite's engine ran 68 times; the Ca share on the cell it read was 0.6 or more (the factor of 1.3) on 0 of them, and under 0.3 (sigma 0) on 0
       Zn: none in any fluid at any step, none booked
+      uraninites: #1 active on 89 steps, enclosed from step 90 by feldspar; #7 active on 159 steps, never enclosed; #10 active on 86 steps, enclosed from step 90 by feldspar
+      radiation: total dose 17.4; quartz with solid past the smoky threshold (0.3) 3 of 3; crystals with solid past the metamict threshold (0.8) 70 of 73
+      minerals shown under another name or colour than as shipped: feldspar: microcline #a09080 → amazonite #44bb88
       the gate's commissioned values: do not carry over (share); the scenario's baseline summary differs from shipped
   SC3, held until alteration (held)
       pharmacolite on record 5; with solid 5, largest 797.2 µm; uraninite largest 8.3 mm
@@ -55,6 +69,9 @@ the shipped run reproduces the baseline, and it reads the commissioned values (c
       Ca share on the cells of the pharmacolites that hold solid, at run end: 0.579 to 0.585
       pharmacolite's engine ran 68 times; the Ca share on the cell it read was 0.6 or more (the factor of 1.3) on 0 of them, and under 0.3 (sigma 0) on 0
       Zn: none in any fluid at any step, none booked
+      uraninites: #1 active on 89 steps, enclosed from step 90 by feldspar; #7 active on 159 steps, never enclosed; #10 active on 86 steps, enclosed from step 90 by feldspar
+      radiation: total dose 17.4; quartz with solid past the smoky threshold (0.3) 3 of 3; crystals with solid past the metamict threshold (0.8) 71 of 74
+      minerals shown under another name or colour than as shipped: feldspar: microcline #a09080 → amazonite #44bb88
       the gate's commissioned values: carry over; the scenario's baseline summary differs from shipped
   no radiogenic lead (nopb)
       pharmacolite on record 5; with solid 5, largest 1094.7 µm; uraninite largest 8.3 mm
@@ -63,6 +80,9 @@ the shipped run reproduces the baseline, and it reads the commissioned values (c
       Ca share on the cells of the pharmacolites that hold solid, at run end: 0.721 to 0.728
       pharmacolite's engine ran 68 times; the Ca share on the cell it read was 0.6 or more (the factor of 1.3) on 68 of them, and under 0.3 (sigma 0) on 0
       Zn: none in any fluid at any step, none booked
+      uraninites: #1 active on 89 steps, enclosed from step 90 by feldspar; #7 active on 159 steps, never enclosed; #10 active on 86 steps, enclosed from step 90 by feldspar
+      radiation: total dose 17.4; quartz with solid past the smoky threshold (0.3) 3 of 3; crystals with solid past the metamict threshold (0.8) 71 of 74
+      minerals shown under another name or colour than as shipped: none
       the gate's commissioned values: do not carry over (share); the scenario's baseline summary is as shipped
   SC2, same constant, with SC3 held
       pharmacolite on record 5; with solid 5, largest 1082.1 µm; uraninite largest 5.1 mm
@@ -71,4 +91,17 @@ the shipped run reproduces the baseline, and it reads the commissioned values (c
       Ca share on the cells of the pharmacolites that hold solid, at run end: 0.627 to 0.632
       pharmacolite's engine ran 68 times; the Ca share on the cell it read was 0.6 or more (the factor of 1.3) on 68 of them, and under 0.3 (sigma 0) on 0
       Zn: none in any fluid at any step, none booked
+      uraninites: #1 active on 88 steps, enclosed from step 89 by feldspar; #7 active on 159 steps, never enclosed; #10 active on 85 steps, enclosed from step 89 by feldspar
+      radiation: total dose 10.6; quartz with solid past the smoky threshold (0.3) 3 of 3; crystals with solid past the metamict threshold (0.8) 69 of 74
+      minerals shown under another name or colour than as shipped: feldspar: microcline #a09080 → amazonite #44bb88
       the gate's commissioned values: do not carry over (share); the scenario's baseline summary differs from shipped
+
+pharmacolite and the factor of 1.3 at seeds 1 and 2 (schneeberg; no gate reads these seeds)
+  seed 1  shipped                              pharmacolite on record 3, with solid 1, largest 462.3 µm; engine calls 24, Ca share 0.6 or more on 24; share on their cells at run end 0.727 to 0.727
+  seed 1  SC3, every step (pb)                 pharmacolite on record 3, with solid 1, largest 337.5 µm; engine calls 24, Ca share 0.6 or more on 0; share on their cells at run end 0.557 to 0.557
+  seed 1  SC3, held until alteration (held)    pharmacolite on record 3, with solid 1, largest 337.5 µm; engine calls 24, Ca share 0.6 or more on 0; share on their cells at run end 0.557 to 0.557
+  seed 1  SC2, same constant, with SC3 held    pharmacolite on record 3, with solid 1, largest 461.3 µm; engine calls 24, Ca share 0.6 or more on 24; share on their cells at run end 0.613 to 0.613
+  seed 2  shipped                              pharmacolite on record 0, with solid 0, largest 0.0 µm; engine calls 0, Ca share 0.6 or more on 0; share on their cells at run end —
+  seed 2  SC3, every step (pb)                 pharmacolite on record 0, with solid 0, largest 0.0 µm; engine calls 0, Ca share 0.6 or more on 0; share on their cells at run end —
+  seed 2  SC3, held until alteration (held)    pharmacolite on record 0, with solid 0, largest 0.0 µm; engine calls 0, Ca share 0.6 or more on 0; share on their cells at run end —
+  seed 2  SC2, same constant, with SC3 held    pharmacolite on record 0, with solid 0, largest 0.0 µm; engine calls 0, Ca share 0.6 or more on 0; share on their cells at run end —

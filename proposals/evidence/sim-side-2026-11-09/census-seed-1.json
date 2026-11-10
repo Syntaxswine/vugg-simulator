@@ -3,7 +3,7 @@
  "sim_version": 286,
  "seed": 1,
  "inputs": "05da5a017fec8da93cab5175ac0feb264748d7258a0f961de41e8a071dad5590",
- "tool_sha256": "832e001cf8c9633d2eb8a10f5d97c27db044e76764fb0ee360baf59609e31156",
+ "tool_sha256": "c5148646a8b508358be775087451c0780a771d56afeabd8a672cc2c562ca6372",
  "scenarios": 41,
  "controls": [
   {
@@ -191,7 +191,7 @@
   {
    "id": "big-drawn-down",
    "kind": "positive",
-   "label": "at least three of colorado_plateau's surviving crystals of 1 mm or more stored most of their growth on a cell under half the reference's excess",
+   "label": "exactly three of colorado_plateau's thirteen surviving crystals of 1 mm or more stored most of their growth on a cell under half the reference's excess",
    "pass": true,
    "detail": "3 of 13: uranophane ×3"
   },
@@ -203,6 +203,13 @@
    "detail": "919 crystal-steps (sylvanite ×381, calaverite ×351, galena ×92)"
   },
   {
+   "id": "starved",
+   "kind": "negative",
+   "label": "schneeberg has at least 10 crystal-steps below saturation on the cell only that the ingredients do not restore, filed apart from the starved ones",
+   "pass": true,
+   "detail": "70 crystal-steps not restored by the ingredients (goethite:O2 ×51, pharmacolite:pH ×17, cassiterite:F ×2); 224 starved"
+  },
+  {
    "id": "band",
    "kind": "positive",
    "label": "bisbee stores at least a tenth of its growth on a cell between 0.5 and 0.9 of the reference's excess",
@@ -210,11 +217,25 @@
    "detail": "20.6 % of 474 mm stored"
   },
   {
+   "id": "band",
+   "kind": "negative",
+   "label": "tn457_barite_pulses stores nothing on a cell between 0.5 and 0.9 of the reference's excess",
+   "pass": true,
+   "detail": "0.0 % of 31.0 mm stored; 100.0 % at 0.9 or more"
+  },
+  {
    "id": "reference-under",
    "kind": "positive",
    "label": "zoned_dripstone_cave stores more than half its growth where the bulk handle's own fluid is at or under saturation",
    "pass": true,
    "detail": "52.6 % of 11.4 mm stored"
+  },
+  {
+   "id": "reference-under",
+   "kind": "negative",
+   "label": "mvt stores nothing where the bulk handle's own fluid is at or under saturation",
+   "pass": true,
+   "detail": "0.0 % of 81.8 mm stored"
   },
   {
    "id": "wall-min",
@@ -226,7 +247,7 @@
   {
    "id": "ring-means",
    "kind": "positive",
-   "label": "schneeberg's floor ring ends with a voxel-mean O2 at least 0.2 below the bulk handle's",
+   "label": "schneeberg's floor ring ends with a voxel-mean O2 between 0.2 and 0.4 below the bulk handle's, and its top ring within 0.01 of it",
    "pass": true,
    "detail": "bulk handle 1.800; floor ring 1.498, top ring 1.800"
   }

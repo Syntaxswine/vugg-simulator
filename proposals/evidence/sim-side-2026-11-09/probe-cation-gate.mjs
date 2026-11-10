@@ -45,7 +45,17 @@
  * returns 0 while calcium's share is under 0.3 and carries a factor of 1.3 while it is 0.6 or more.
  * A pass-through on pharmacolite's engine counts, in every run, the calls on which the share on the
  * fluid the engine is about to read (the crystal's own cell) is on either side of those two steps.
- * The shipped run carries the pass-through too, and still has to reproduce the baseline.
+ * The shipped run carries the pass-through too, and still has to reproduce the baseline. The gate
+ * runs seed 42 only; a last block repeats that count at seeds 1 and 2.
+ *
+ * Three more readings per arm, on what else follows the uraninites and the lead:
+ *   uraninites   only an active uraninite writes lead; per uraninite, the steps it ended active
+ *                and the first step it ended enclosed, with what enclosed it
+ *   radiation    the same block of run_step gives every other active crystal a dose of 0.02 of
+ *                each uraninite's size a step; the run's total dose, and the crystals past the
+ *                smoky (0.3, quartz) and metamict (0.8) thresholds
+ *   shown as     the name and colour the game gives each mineral's crystals (crystalDisplayName,
+ *                crystalColor, js/12-mineral-art.ts), where they differ from the shipped run's
  *
  * PASSIVE: prints to stdout, writes nothing, exits 0. Imports tools/_harness.mjs and node builtins.
  * Controls: the shipped run is compared with the committed baseline, and it has to read exactly the
@@ -61,8 +71,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const harness = await import(pathToFileURL(path.join(ROOT, 'tools', '_harness.mjs')).href);
-const { SCENARIOS, VugSimulator, setSeed, SIM_VERSION, MODEL_DIGEST, MINERAL_ENGINES, arsenateCompetingCationMolarFraction } = await harness.loadSimBundle({
-  toolName: 'probe-cation-gate', extraExports: ['MINERAL_ENGINES', 'arsenateCompetingCationMolarFraction'],
+const { SCENARIOS, VugSimulator, setSeed, SIM_VERSION, MODEL_DIGEST, MINERAL_ENGINES, arsenateCompetingCationMolarFraction, crystalDisplayName, crystalColor } = await harness.loadSimBundle({
+  toolName: 'probe-cation-gate', extraExports: ['MINERAL_ENGINES', 'arsenateCompetingCationMolarFraction', 'crystalDisplayName', 'crystalColor'],
 });
 const BASELINE = JSON.parse(fs.readFileSync(path.join(ROOT, 'tests-js', 'baselines', `seed42_v${SIM_VERSION}.json`), 'utf8'));
 const NAME = 'schneeberg', SEED = 42;
@@ -101,8 +111,24 @@ function booked(sim, species) {
   return total;
 }
 
+// What the game shows for each mineral: the distinct name and colour of its crystals that hold solid
+// (crystalDisplayName and crystalColor, js/12-mineral-art.ts, which the lists, the cards and the
+// narrators read).
+function shownAs(sim) {
+  const out = {};
+  for (const c of sim.crystals) {
+    if (!(c.total_growth_um > 0)) continue;
+    (out[c.mineral] ||= new Set()).add(`${crystalDisplayName(c)} ${crystalColor(c)}`);
+  }
+  return Object.fromEntries(Object.entries(out).map(([m, s]) => [m, [...s].sort()]));
+}
+function shownDifferently(A, B) {
+  return Object.keys(A).filter(m => B[m] && JSON.stringify(A[m]) !== JSON.stringify(B[m])).sort()
+    .map(m => `${m}: ${A[m].join(', ')} → ${B[m].join(', ')}`);
+}
+
 // One run. engines: { minerals, excess, rclamp } wraps those growth engines as the A/B tool does.
-function run({ engines = [], timing = 'shipped' } = {}) {
+function run({ engines = [], timing = 'shipped' } = {}, seed = SEED) {
   const saved = {};
   try {
     for (const arm of engines) {
@@ -139,7 +165,7 @@ function run({ engines = [], timing = 'shipped' } = {}) {
         return orig(crystal, conditions, step);
       };
     }
-    setSeed(SEED);
+    setSeed(seed);
     const { conditions, events, defaultSteps } = SCENARIOS[NAME]();
     const sim = new VugSimulator(conditions, events);
     const grid = sim.wall_state.voxelGridFor(sim);
@@ -180,11 +206,35 @@ function run({ engines = [], timing = 'shipped' } = {}) {
       for (const v of grid.voxels) { const x = Math.abs(Number(v.fluid.Zn) || 0); if (x > peakZn) peakZn = x; }
     };
     zn();
-    for (let i = 0; i < steps; i++) { sim.run_step(); zn(); }
+    // Only an active uraninite writes lead (js/85-simulator.ts, the uraninite block). Per uraninite:
+    // the steps it ended active, and the first step it ended enclosed, with what enclosed it.
+    const activeSteps = new Map(), enclosedAt = new Map();
+    for (let i = 0; i < steps; i++) {
+      sim.run_step();
+      zn();
+      for (const c of sim.crystals) {
+        if (c.mineral !== 'uraninite') continue;
+        if (c.active) activeSteps.set(c.crystal_id, (activeSteps.get(c.crystal_id) || 0) + 1);
+        if (c.enclosed_by != null && !enclosedAt.has(c.crystal_id)) enclosedAt.set(c.crystal_id, { step: sim.step, by: c.enclosed_by });
+      }
+    }
     // the audit's count: crystals on record, by the mineral they were born as
     const pharmacolite = sim.crystals.filter(c => (c.paramorph_origin || c.mineral) === 'pharmacolite');
     const solid = pharmacolite.filter(c => c.total_growth_um > 0);
     const uraninite = sim.crystals.filter(c => c.mineral === 'uraninite');
+    const byId = new Map(sim.crystals.map(c => [c.crystal_id, c]));
+    const uraninites = uraninite.map(c => {
+      const e = enclosedAt.get(c.crystal_id), host = e ? byId.get(e.by) : null;
+      return `#${c.crystal_id} active on ${activeSteps.get(c.crystal_id) || 0} steps${e ? `, enclosed from step ${e.step} by ${host ? host.mineral : '#' + e.by}` : ', never enclosed'}`;
+    });
+    // The same block gives every other active crystal a dose of 0.02 × the uraninite's size a step.
+    const quartz = sim.crystals.filter(c => c.mineral === 'quartz' && c.total_growth_um > 0);
+    const radiation = {
+      dose: Number(sim.radiation_dose) || 0,
+      smoky: quartz.filter(c => (c.radiation_damage || 0) > 0.3).length, quartz: quartz.length,
+      metamict: sim.crystals.filter(c => c.total_growth_um > 0 && (c.radiation_damage || 0) > 0.8).length,
+      withSolid: sim.crystals.filter(c => c.total_growth_um > 0).length,
+    };
     const cellShares = solid.map(c => { const cell = mesh.cellOf(c, sim.wall_state); return cell?.fluid ? arsenateCompetingCationMolarFraction(cell.fluid, 'Ca') : null; }).filter(x => x != null).sort((a, b) => a - b);
     let voxPb = 0;
     for (const v of grid.voxels) voxPb += Number(v.fluid.Pb) || 0;
@@ -195,6 +245,7 @@ function run({ engines = [], timing = 'shipped' } = {}) {
       cellShares, shareAtEngine,
       bulkPb: Number(sim.conditions.fluid.Pb), voxPb: voxPb / grid.voxels.length,
       uraninite: uraninite.length ? Math.max(...uraninite.map(c => c.total_growth_um)) : 0,
+      uraninites, radiation, shown: shownAs(sim),
       peakZn, bookedZn: booked(sim, 'Zn'), releases, held: store,
     };
   } finally {
@@ -232,5 +283,20 @@ for (const [label, r] of results) {
   console.log(`      Ca share on the cells of the pharmacolites that hold solid, at run end: ${r.cellShares.length ? `${r.cellShares[0].toFixed(3)} to ${r.cellShares[r.cellShares.length - 1].toFixed(3)}` : 'none'}`);
   console.log(`      pharmacolite's engine ran ${r.shareAtEngine.calls} times; the Ca share on the cell it read was 0.6 or more (the factor of 1.3) on ${r.shareAtEngine.bonus} of them, and under 0.3 (sigma 0) on ${r.shareAtEngine.zero}`);
   console.log(`      Zn: ${zinc ? 'none in any fluid at any step, none booked' : `PEAK ${r.peakZn} ppm, booked ${r.bookedZn}`}`);
+  console.log(`      uraninites: ${r.uraninites.join('; ') || 'none'}`);
+  console.log(`      radiation: total dose ${r.radiation.dose.toFixed(1)}; quartz with solid past the smoky threshold (0.3) ${r.radiation.smoky} of ${r.radiation.quartz}; crystals with solid past the metamict threshold (0.8) ${r.radiation.metamict} of ${r.radiation.withSolid}`);
+  if (r !== shipped) {
+    const d = shownDifferently(shipped.shown, r.shown);
+    console.log(`      minerals shown under another name or colour than as shipped: ${d.length ? d.join('; ') : 'none'}`);
+  }
   console.log(`      the gate's commissioned values: ${countOk && shareOk ? 'carry over' : `do not carry over (${[countOk ? null : 'count', shareOk ? null : 'share'].filter(Boolean).join(' and ')})`}; the scenario's baseline summary ${JSON.stringify(r.summary) === JSON.stringify(shipped.summary) ? 'is as shipped' : 'differs from shipped'}`);
+}
+
+// ---- pharmacolite's factor at the other two seeds (the gate itself runs seed 42 only) ----
+console.log(`\npharmacolite and the factor of 1.3 at seeds 1 and 2 (${NAME}; no gate reads these seeds)`);
+for (const seed of [1, 2]) {
+  for (const [label, arm] of [ARMS[0], ARMS[4], ARMS[5], ARMS[7]]) {
+    const r = run(arm, seed);
+    console.log(`  seed ${seed}  ${label.padEnd(36)} pharmacolite on record ${r.count}, with solid ${r.solid}, largest ${r.largest.toFixed(1)} µm; engine calls ${r.shareAtEngine.calls}, Ca share 0.6 or more on ${r.shareAtEngine.bonus}; share on their cells at run end ${r.cellShares.length ? `${r.cellShares[0].toFixed(3)} to ${r.cellShares[r.cellShares.length - 1].toFixed(3)}` : '—'}`);
+  }
 }

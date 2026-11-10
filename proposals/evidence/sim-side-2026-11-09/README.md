@@ -1,13 +1,13 @@
 # Evidence for `REVIEW-SIMULATION-SIDE-2026-11-09.md`
 
-Outputs of the review's passive instruments, copied byte for byte from `.local-evidence/`, ten
+Outputs of the review's passive instruments, copied byte for byte from `.local-evidence/`, twelve
 small probes with their outputs, and the output of one earlier probe of the repository's own, run
 unchanged on this tree. Runtime: Windows x64, Node 24.15.0. SIM 286. No file under `js/` or
 `data/` differs from `origin/main` `e86ba58a`, and `dist/` is built from it. The input digest each
 census report prints (`ccb0db2bfa2c…` at seed 42; each seed has its own) covers the seed, the runtime, `dist/`,
 `js/`, `data/`, the harness, the lockfile, the seed-42 baseline and the text of the code that produces
 a census row. The census reports and the mutation report name the sha256 of `tools/sim-side-census.mjs`
-as it ran, `832e001cf8c9…`.
+as it ran, `c5148646a8b5…`.
 
 Every `ab-*` file here was produced by the code of `tools/sim-side-ab.mjs` as it stands at commit
 `0b243e32`: all but two in one re-run made after the last change to what that tool does, and
@@ -43,10 +43,12 @@ Nothing here is a receipt, and no test or gate reads this directory.
 | `probe-nucleation-envelope.mjs`, `.txt`, `-per-vertex.txt` | `node proposals/evidence/sim-side-2026-11-09/probe-nucleation-envelope.mjs` (and `--minerals selenite,celestine,calcite,aragonite,anhydrite naica_geothermal stalactite_demo zoned_dripstone_cave`) | §7: a wrapped supersaturation method governs births too |
 | `probe-cell-field-gap.mjs`, `-uranophane-pH.txt`, `-ferrimolybdite-O2.txt`, `-ferrimolybdite-Mo.txt` | `node proposals/evidence/sim-side-2026-11-09/probe-cell-field-gap.mjs schneeberg uranophane pH 6.0` (and `supergene_oxidation ferrimolybdite O2`, `supergene_oxidation ferrimolybdite Mo`) | §2.1: the field that holds a cell down where the ingredients do not explain it |
 | `probe-side-doors.mjs`, `.txt` | `node proposals/evidence/sim-side-2026-11-09/probe-side-doors.mjs` (a static reading of the nucleation files; runs no simulation) | §2.3: what a side door on a count gate is made of |
-| `probe-lead-choices.mjs`, `.txt` | `node proposals/evidence/sim-side-2026-11-09/probe-lead-choices.mjs` (about 12 minutes) | §4 SC3: when the radiogenic lead is released against whether galena is licensed; the amazonite note; what SC3 delivers if SC2 lands first |
-| `probe-cation-gate.mjs`, `.txt` | `node proposals/evidence/sim-side-2026-11-09/probe-cation-gate.mjs` | §4: which previewed change moves the two numbers `npm run audit:cations` commissions |
+| `probe-lead-choices.mjs`, `.txt` | `node proposals/evidence/sim-side-2026-11-09/probe-lead-choices.mjs` (about 6 minutes) | §4 SC3: when the radiogenic lead is released against whether galena is licensed; the amazonite note and what the game shows for it; the simulator's own audits under both timings; what SC3 delivers if SC2 lands first |
+| `probe-cation-gate.mjs`, `.txt` | `node proposals/evidence/sim-side-2026-11-09/probe-cation-gate.mjs` | §4: which previewed change moves the two numbers `npm run audit:cations` commissions; the uraninites' enclosure, the radiation dose and the names shown, under each |
 | `probe-enclosed-survivors.mjs`, `.txt` | `node proposals/evidence/sim-side-2026-11-09/probe-enclosed-survivors.mjs` | §4 SC1: why schneeberg loses species under the clamp in every scenario |
-| `probe-appearance-contract.mjs`, `.txt` | `node proposals/evidence/sim-side-2026-11-09/probe-appearance-contract.mjs` (reads the `ab-*.json` files here and the scenarios' tiers; runs no simulation) | §4: which previewed change would trip `npm run audit:localities` |
+| `probe-pegmatite-reach.mjs`, `.txt` | `node proposals/evidence/sim-side-2026-11-09/probe-pegmatite-reach.mjs` (about 10 minutes) | §3.1 and §4 SC1: gem_pegmatite at eleven seeds under the bound and under `per_cell_local_fill`; the same fluid in Random Vugg, in Zen mode and as a Creative starter fluid |
+| `probe-appearance-windows.mjs`, `.txt` | `node proposals/evidence/sim-side-2026-11-09/probe-appearance-windows.mjs` (about 7 minutes) | §4: the first-appearance windows `npm run audit:localities` holds, under each previewed change that reaches a scenario authoring them |
+| `probe-appearance-contract.mjs`, `.txt` | `node proposals/evidence/sim-side-2026-11-09/probe-appearance-contract.mjs` (reads the `ab-*.json` files here and the scenarios' tiers; runs no simulation) | §4: which previewed change would trip the tiers of `npm run audit:localities` |
 | `probe-ab-digest.mjs`, `.txt` | `node proposals/evidence/sim-side-2026-11-09/probe-ab-digest.mjs` (reads the `ab-*.json` and `census-seed-*.json` files here; runs no simulation) | the counts §2.1, §3.1, §3.3 and §4 draw from the A/B outputs and the census reports |
 | `c1-depletion-ev-probe-seed-42.txt` | `node tools/c1-depletion-ev-probe.mjs --seed 42` (the repository's own probe of 2026-07-07, unchanged, run on this tree) | §2.1: what was already known about the cell and the bulk fluid |
 

@@ -31,7 +31,13 @@
  * at run end). With them, a
  * change no species table shows: grow_feldspar notes a microcline zone "amazonite" when its own
  * cell holds more than 10 ppm of Pb (js/59-engines-silicate.ts, `trace_Pb > 0.1` with
- * trace_Pb = 0.01 Pb), so lead in the voxels changes what a feldspar zone is called.
+ * trace_Pb = 0.01 Pb). The game reads that note per crystal: crystalDisplayName and crystalColor
+ * (js/12-mineral-art.ts) call a microcline "amazonite" and colour it green when any one of its
+ * zones carries it. So the probe prints both the noted zones and what each feldspar crystal that
+ * holds solid is shown as. It also counts, for every run of this part, what tools/sim-side-ab.mjs
+ * counts to see whether an arm tripped one of the simulator's own audits: CO2 or carbonate events
+ * that say they were paused or refused, failed carbonate-boundary transactions, and entries of
+ * the three violation ledgers.
  *
  * Third part. SC2 and SC3 both reach radioactive_pegmatite: SC2 puts uraninite on σ − 1, the
  * uraninites end smaller, and the block's lead is a tenth of their size a step. So the pocket held
@@ -53,9 +59,11 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const harness = await import(pathToFileURL(path.join(ROOT, 'tools', '_harness.mjs')).href);
-const { SCENARIOS, VugSimulator, setSeed, SIM_VERSION, MINERAL_GATES_REGISTRY, MINERAL_ENGINES } = await harness.loadSimBundle({
-  toolName: 'probe-lead-choices', extraExports: ['MINERAL_GATES_REGISTRY', 'MINERAL_ENGINES'],
+const { SCENARIOS, VugSimulator, setSeed, SIM_VERSION, MINERAL_GATES_REGISTRY, MINERAL_ENGINES, crystalDisplayName, crystalColor } = await harness.loadSimBundle({
+  toolName: 'probe-lead-choices', extraExports: ['MINERAL_GATES_REGISTRY', 'MINERAL_ENGINES', 'crystalDisplayName', 'crystalColor'],
 });
+// tools/sim-side-ab.mjs REFUSAL, copied: a CO2 or carbonate event of js/70l that says it was paused or refused.
+const REFUSAL = /(CO₂|Carbonate) [a-z₂ ]*(paused|refused): /;
 const BASELINE = JSON.parse(fs.readFileSync(path.join(ROOT, 'tests-js', 'baselines', `seed42_v${SIM_VERSION}.json`), 'utf8'));
 const SEEDS = [42, 1, 2];
 const mm = (um) => (um / 1000).toFixed(um < 1000 ? 3 : 1);
@@ -74,15 +82,15 @@ function summarize(sim) {
   return sorted;
 }
 
-const C2_MINERALS = ['galena', 'molybdenite', 'uraninite'];
+const SC2_MINERALS = ['galena', 'molybdenite', 'uraninite'];
 
 function run(name, seed, options = {}) {
-  if (!options.c2) return runOnce(name, seed, options);
+  if (!options.sc2) return runOnce(name, seed, options);
   // SC2 as tools/sim-side-ab.mjs previews it (`excess=1`): every positive zone of the three engines
   // rescaled by (sigma − 1)/sigma, sigma read on the conditions the engine is about to read.
   const saved = {};
   try {
-    for (const m of C2_MINERALS) {
+    for (const m of SC2_MINERALS) {
       const orig = saved[m] = MINERAL_ENGINES[m];
       MINERAL_ENGINES[m] = (crystal, conditions, step) => {
         const s = conditions['supersaturation_' + m]();
@@ -150,7 +158,19 @@ function runOnce(name, seed, { timing = 'shipped', license = false, open = false
     return origNucleation.apply(this, a);
   };
   const steps = defaultSteps ?? 100;
-  for (let i = 0; i < steps; i++) sim.run_step();
+  let eventRefusals = 0;
+  for (let i = 0; i < steps; i++) {
+    for (const line of sim.run_step()) if (REFUSAL.test(line)) eventRefusals++;
+  }
+  const audit = {
+    eventRefusals,
+    failedCarbonateTransactions: (sim._carbonateBoundaryState?.transactions || []).filter(t => t && t.ok === false).length,
+    ledgerViolations: (sim._sulfurPropagationViolations || []).length + (sim._carbonPropagationViolations || []).length
+      + (sim._fluidBoundaryViolations || []).length,
+  };
+  // what the game shows for each feldspar crystal that holds solid
+  const feldsparShown = sim.crystals.filter(c => c.mineral === 'feldspar' && c.total_growth_um > 0)
+    .map(c => `${mm(c.total_growth_um)} mm ${crystalDisplayName(c)} ${crystalColor(c)}`);
   const of = (m) => {
     const all = sim.crystals.filter(c => c.mineral === m), solid = all.filter(c => c.total_growth_um > 0);
     if (!all.length) return 'none';
@@ -178,7 +198,7 @@ function runOnce(name, seed, { timing = 'shipped', license = false, open = false
     galena: of('galena'), plumbogummite: of('plumbogummite'),
     uraniniteMm: uraninite.length ? Math.max(...uraninite.map(c => c.total_growth_um)) / 1000 : 0,
     negativeZones: negative.length, negativeFrom: negative.length ? Math.min(...negative) : null,
-    releases, released,
+    releases, released, audit, feldsparShown,
     feldsparZones: feldspar.length, amazoniteZones: amazonite.length,
     feldsparMm: feldspar.reduce((s, z) => s + z.thickness_um, 0) / 1000, amazoniteMm: amazonite.reduce((s, z) => s + z.thickness_um, 0) / 1000,
   };
@@ -228,15 +248,17 @@ for (const name of ['radioactive_pegmatite', 'schneeberg']) {
     console.log(`  ${name.padEnd(22)} ${timing.padEnd(8)} bulk Pb ${each(r => r.bulkPb.toFixed(1))}, voxel mean ${each(r => r.voxPb.toFixed(1))}${timing === 'held' ? `; released ${each(r => r.released.toFixed(1))} ppm in ${each(r => r.releases)} release(s)` : ''}`);
     if (timing !== 'shipped') console.log(`  ${''.padEnd(31)} species moved ${c.map(x => x.moved.length ? `${x.moved.length} (${x.moved.join(', ')})` : '0').join(' / ')}; gained ${c.map(x => x.gained.join('+') || 'none').join(' / ')}; lost ${c.map(x => x.lost.join('+') || 'none').join(' / ')}; the baseline differs ${c.map(x => (x.same ? 'no' : 'yes')).join(' / ')}; minerals on record under the arm and not as shipped ${c.map(x => x.appeared.join('+') || 'none').join(' / ')}, and the reverse ${c.map(x => x.vanished.join('+') || 'none').join(' / ')}`);
     console.log(`  ${''.padEnd(31)} feldspar zones noted amazonite: ${each(r => `${r.amazoniteZones} of ${r.feldsparZones} (${r.amazoniteMm.toFixed(1)} of ${r.feldsparMm.toFixed(1)} mm)`)}`);
+    console.log(`  ${''.padEnd(31)} feldspar crystals with solid, as the game shows them: ${each(r => r.feldsparShown.join(', ') || 'none')}`);
+    console.log(`  ${''.padEnd(31)} the simulator's own audits: event refusals ${each(r => r.audit.eventRefusals)}; failed carbonate transactions ${each(r => r.audit.failedCarbonateTransactions)}; ledger violations ${each(r => r.audit.ledgerViolations)}${timing === 'shipped' ? '' : runs.every((r, i) => JSON.stringify(r.audit) === JSON.stringify(shipped[name][i].audit)) ? ' (as shipped at every seed)' : ' (DIFFERS FROM SHIPPED)'}`);
   }
 }
 
 console.log('\nif SC2 lands first: radioactive_pegmatite, pocket held open, galena not licensed, with galena, molybdenite and uraninite on sigma − 1 (excess=1)');
-for (const c2 of [false, true]) {
+for (const sc2 of [false, true]) {
   for (const timing of ['pb', 'held']) {
-    const runs = SEEDS.map(seed => run('radioactive_pegmatite', seed, { timing, open: true, c2 }));
+    const runs = SEEDS.map(seed => run('radioactive_pegmatite', seed, { timing, open: true, sc2 }));
     const each = (f) => runs.map(f).join(' / ');
-    console.log(`  ${(c2 ? 'with SC2' : 'today\'s law').padEnd(11)} ${timing.padEnd(5)} uraninite largest ${each(r => r.uraniniteMm.toFixed(1))} mm; bulk Pb at run end ${each(r => r.bulkPb.toFixed(1))}${timing === 'held' ? `; released ${each(r => r.released.toFixed(1))} ppm in ${each(r => r.releases)} release(s)` : ''}; fill ${each(r => (r.fill * 100).toFixed(1))} %`);
+    console.log(`  ${(sc2 ? 'with SC2' : 'today\'s law').padEnd(11)} ${timing.padEnd(5)} uraninite largest ${each(r => r.uraniniteMm.toFixed(1))} mm; bulk Pb at run end ${each(r => r.bulkPb.toFixed(1))}${timing === 'held' ? `; released ${each(r => r.released.toFixed(1))} ppm in ${each(r => r.releases)} release(s)` : ''}; fill ${each(r => (r.fill * 100).toFixed(1))} %`);
     console.log(`  ${''.padEnd(17)} plumbogummite: ${each(r => r.plumbogummite)}`);
   }
 }

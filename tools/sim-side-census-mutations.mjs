@@ -21,7 +21,7 @@
  * js/, data/ or dist/ is written.
  *
  * Usage:
- *   node tools/sim-side-census-mutations.mjs        # seed 42; about 25 min
+ *   node tools/sim-side-census-mutations.mjs        # seed 42; 12 min with 46 mutants, 49 when other heavy work shared the machine
  */
 import crypto from 'node:crypto';
 import fs from 'node:fs';
@@ -159,6 +159,23 @@ const MUTANTS = [
   { id: 'ring-means-read-bulk', control: ['ring-means', 'positive'], scenarios: ['schneeberg'],
     what: "each ring's mean is read from the bulk handle",
     from: 'sum[r] = (sum[r] || 0) + (Number(v.fluid[field]) || 0);', to: 'sum[r] = (sum[r] || 0) + (Number(sim.conditions.fluid[field]) || 0);' },
+  // Five that count too MUCH, or read a gap too wide. A control that is only a floor passes all of them.
+  { id: 'reference-under-takes-everything', control: ['reference-under', 'negative'], scenarios: ['mvt'],
+    what: 'every stored zone the dry run read is filed as stored where the bulk handle is at or under saturation',
+    from: 'if (!(d.ref > 1)) { draw.refUnder += stored; continue; }', to: 'if (true) { draw.refUnder += stored; continue; }' },
+  { id: 'ring-means-halved', control: ['ring-means', 'positive'], scenarios: ['schneeberg'],
+    what: "each ring's mean is taken over twice the voxels it has",
+    from: 'n[r] = (n[r] || 0) + 1;', to: 'n[r] = (n[r] || 0) + 2;' },
+  { id: 'crystal-share-counts-the-band', control: ['big-drawn-down', 'positive'], scenarios: ['colorado_plateau'],
+    what: "thickness stored between 0.5 and 0.9 of the reference's excess is also added to a crystal's own drawn-down share",
+    from: 'else if (share >= DRAW_HALF) draw.mid += stored;', to: 'else if (share >= DRAW_HALF) { draw.mid += stored; pc.half += stored; }' },
+  { id: 'near-filed-as-band', control: ['band', 'negative'], scenarios: ['tn457_barite_pulses'],
+    what: "thickness stored at 0.9 or more of the reference's excess is filed in the 0.5 to 0.9 band",
+    from: 'if (share >= DRAW_NEAR) draw.near += stored;', to: 'if (share >= DRAW_NEAR) draw.mid += stored;' },
+  { id: 'starved-without-the-ingredient-test', control: ['starved', 'negative'], scenarios: ['schneeberg'],
+    what: 'a crystal-step below saturation on the cell only is counted as starved whether or not the ingredients restore it',
+    from: 'if (d.ing != null && d.ing >= 1) starved[c.mineral] = (starved[c.mineral] || 0) + 1;',
+    to: 'if (true) starved[c.mineral] = (starved[c.mineral] || 0) + 1;' },
 ];
 
 if (process.argv.slice(2).some(a => a === '--help' || a === '-h')) {

@@ -1,0 +1,75 @@
+[scenarios] loaded 41 from ./data/scenarios.json5
+[spec] loaded 184 minerals from ./data/minerals.json
+[thermo] loaded 15 carbonate entries from ./data/thermo-carbonates.json
+[thermo] loaded 4 sulfate entries from ./data/thermo-sulfates.json
+[narratives] loaded 94 species
+probe-appearance-windows — SIM 286; the locality gate's first-appearance windows on its seed panel 42 / 1 / 2
+
+scenarios that author a first-appearance window
+  bisbee                 on deterministic or statistical entries (checked by the gate): 26 (albite, argentite, pyrite, tennantite, tetrahedrite, chalcedony, chalcocite, covellite, marcasite, acanthite, goethite, cuprite, hematite, opal, atacamite, turquoise, bornite, native_gold, native_copper, native_silver, lepidocrocite, mimetite, dioptase, jarosite, alunite, feldspar)
+                         on aspirational entries (must not appear at all): 0
+  ouro_preto             on deterministic or statistical entries (checked by the gate): 0
+                         on aspirational entries (must not appear at all): 1 (hematite)
+  porphyry               on deterministic or statistical entries (checked by the gate): 17 (albite, argentite, bismuthinite, feldspar, arsenopyrite, stibnite, galena, tennantite, tetrahedrite, magnetite, malachite, acanthite, anglesite, brochantite, goethite, hematite, ferrimolybdite)
+                         on aspirational entries (must not appear at all): 5 (native_gold, epidote, titanite, chrysocolla, opal)
+  roughten_gill          on deterministic or statistical entries (checked by the gate): 1 (mimetite)
+                         on aspirational entries (must not appear at all): 0
+  schneeberg             on deterministic or statistical entries (checked by the gate): 0
+                         on aspirational entries (must not appear at all): 2 (realgar, pararealgar)
+  gem_pegmatite, the one scenario SC1 as recommended reaches: authors none
+  radioactive_pegmatite, which SC2 and SC3 reach: authors none
+
+bisbee — 26 checked windows; seed 42: the shipped run reproduces the baseline
+  shipped
+      windows violated: none
+  SC1 written into the engines (rclamp=7)
+      the baseline summary differs from shipped: yes / yes / yes; windowed species whose first step moves: none
+      windows violated: none
+  SC2, same constant (excess=1)
+      not run: no galena, molybdenite, uraninite on record in the shipped run at any seed, so the arm's code never runs
+  SC2, three times the constant (excess=3)
+      not run: no galena, molybdenite, uraninite on record in the shipped run at any seed, so the arm's code never runs
+  SC3, every step (pb)
+      not run: no uraninite on record in the shipped run at any seed, so the arm's code never runs
+  SC3, held until alteration (held)
+      not run: no uraninite on record in the shipped run at any seed, so the arm's code never runs
+
+porphyry — 17 checked windows; seed 42: the shipped run reproduces the baseline
+  shipped
+      windows violated: none
+  SC1 written into the engines (rclamp=7)
+      the baseline summary differs from shipped: no / no / no; windowed species whose first step moves: none
+      windows violated: none
+  SC2, same constant (excess=1)
+      the baseline summary differs from shipped: yes / yes / yes; windowed species whose first step moves: none
+      windows violated: none
+  SC2, three times the constant (excess=3)
+      the baseline summary differs from shipped: yes / yes / yes; windowed species whose first step moves: none
+      windows violated: none
+  SC3, every step (pb)
+      not run: no uraninite on record in the shipped run at any seed, so the arm's code never runs
+  SC3, held until alteration (held)
+      not run: no uraninite on record in the shipped run at any seed, so the arm's code never runs
+
+roughten_gill — 1 checked window; seed 42: the shipped run reproduces the baseline
+  shipped
+      windows violated: none
+  SC1 written into the engines (rclamp=7)
+      not run: no feldspar, albite on record in the shipped run at any seed, so the arm's code never runs
+  SC2, same constant (excess=1)
+      the baseline summary differs from shipped: yes / yes / yes; windowed species whose first step moves: none
+      windows violated: none
+  SC2, three times the constant (excess=3)
+      the baseline summary differs from shipped: yes / yes / yes; windowed species whose first step moves: mimetite 180 / 180 / 180 → 180 / 188 / 187 (not before step 100)
+      windows violated: none
+  SC3, every step (pb)
+      not run: no uraninite on record in the shipped run at any seed, so the arm's code never runs
+  SC3, held until alteration (held)
+      not run: no uraninite on record in the shipped run at any seed, so the arm's code never runs
+
+controls
+  shipped runs: no window violated at any seed, as the gate reads the shipped tree
+  the clamp at Infinity on all five engines, bisbee at seed 42: is the shipped run, first steps included
+  the check seen to fail: bisbee's albite first appears at step 1 as shipped; held to a window closing at step 0 the check reports a violation, and to its authored window (not after step 64) it reports none
+
+arms run: 6; arms under which a windowed species' first step moves: 1; window violations under the arms: 0

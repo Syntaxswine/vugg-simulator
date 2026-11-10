@@ -1,4 +1,4 @@
-sim-side census v5 — SIM 286, seed 1, 41 scenario(s); inputs 05da5a017fec; tools/sim-side-census.mjs sha256 832e001cf8c9
+sim-side census v5 — SIM 286, seed 1, 41 scenario(s); inputs 05da5a017fec; tools/sim-side-census.mjs sha256 c5148646a8b5
 integrity: no seed-42 baseline applies to this seed; the runs are not compared
 
 CONTROLS
@@ -28,12 +28,15 @@ CONTROLS
   [PASS] positive vadose: the vadose override dries rings in schneeberg, the equator ring among them, and the bulk handle's O2 rises by at least 0.2 ppm on that step — step 110: 10 rings from ring 6 up; bulk O2 1.50 → 1.80
   [PASS] negative vadose: the vadose override dries no ring in mvt — 0 step(s) on which a ring dried
   [PASS] positive draw-down-other: schneeberg stores at least 0.5 mm on a cell under half the reference's excess that its ingredients do not explain, and pH restores at least nine tenths of it — 3.16 mm not through the ingredients; uranophane:pH 3.16 mm
-  [PASS] positive big-drawn-down: at least three of colorado_plateau's surviving crystals of 1 mm or more stored most of their growth on a cell under half the reference's excess — 3 of 13: uranophane ×3
+  [PASS] positive big-drawn-down: exactly three of colorado_plateau's thirteen surviving crystals of 1 mm or more stored most of their growth on a cell under half the reference's excess — 3 of 13: uranophane ×3
   [PASS] positive starved: sunnyside_american_tunnel has at least 100 starved crystal-steps (nothing proposed, the cell below saturation, the bulk handle at or above it, the ingredients enough to restore it) — 919 crystal-steps (sylvanite ×381, calaverite ×351, galena ×92)
+  [PASS] negative starved: schneeberg has at least 10 crystal-steps below saturation on the cell only that the ingredients do not restore, filed apart from the starved ones — 70 crystal-steps not restored by the ingredients (goethite:O2 ×51, pharmacolite:pH ×17, cassiterite:F ×2); 224 starved
   [PASS] positive band: bisbee stores at least a tenth of its growth on a cell between 0.5 and 0.9 of the reference's excess — 20.6 % of 474 mm stored
+  [PASS] negative band: tn457_barite_pulses stores nothing on a cell between 0.5 and 0.9 of the reference's excess — 0.0 % of 31.0 mm stored; 100.0 % at 0.9 or more
   [PASS] positive reference-under: zoned_dripstone_cave stores more than half its growth where the bulk handle's own fluid is at or under saturation — 52.6 % of 11.4 mm stored
+  [PASS] negative reference-under: mvt stores nothing where the bulk handle's own fluid is at or under saturation — 0.0 % of 81.8 mm stored
   [PASS] positive wall-min: mvt's lowest wall cell ends between 0.3 and 1.5 ppm of Cd (the bulk handle holds 2), and its lowest wall cell of Ca between 390 and 400 ppm — Cd 0.66, Ca 394.6 ppm
-  [PASS] positive ring-means: schneeberg's floor ring ends with a voxel-mean O2 at least 0.2 below the bulk handle's — bulk handle 1.800; floor ring 1.498, top ring 1.800
+  [PASS] positive ring-means: schneeberg's floor ring ends with a voxel-mean O2 between 0.2 and 0.4 below the bulk handle's, and its top ring within 0.01 of it — bulk handle 1.800; floor ring 1.498, top ring 1.800
 
 SPACE and TIME
 scenario                               steps  cavity mm  fill at end  first step fill>=0.7 / >=0.999  last growth  largest crystal, and what ended its growth

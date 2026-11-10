@@ -19,38 +19,52 @@ Living list of open work items, captured from session conversations so context s
 > the baseline of 38 (Shigar's pocket plugs at step 23). Above the cell nothing binds: the cavity's
 > inventory is never dented, the bulk handle is never debited, and `flow_rate` (authored 103 times)
 > feeds nothing. So a slowed crystal is seldom stopped; it ends with the run, the cavity, an event
-> or burial. It builds on two earlier pieces of work: the roadmap's rung C1 (the local-σ
-> depletion field, 2026-07-07), whose probe showed that the rate reads the cell, and the high-fill
-> research of 2026-05-16, which had the two pegmatites sealing early. Its own proposed changes
-> are numbered SC1–SC5, so as not to collide with the roadmap's C rungs.
+> or burial. It builds on earlier work, cited in the doc: the roadmap's rung C1 (the local-σ
+> depletion field, 2026-07-07), whose probe showed that the rate reads the cell; the wallet law
+> of 2026-07-08 (Shigar's aquamarine); the owner's report of 2026-05-06 of a pegmatite feldspar
+> filling its vug; and the high-fill research of 2026-05-16, which had the two pegmatites
+> sealing early. Its own proposed changes are numbered SC1–SC5, so as not to collide with the
+> roadmap's C rungs.
 > **Three defects, each with an A/B:** F1 the pegmatite pocket plugs (`gem_pegmatite` is
 > full at step 9–10 of 230; with feldspar and albite bounded, tourmaline reaches 12 mm and topaz
 > appears; boron is NOT the lever — tourmaline's boron factor is at its cap, so do not test
-> story-pocket WP8(b) on it); F2 galena, molybdenite and uraninite propose growth at saturation
-> (k·σ where 171 other engines vanish at σ = 1); F3 radiogenic Pb is written to the bulk handle
-> only (`js/85-simulator.ts:1276`), and `radioactive_pegmatite` does not license the galena its
-> description promises. **This review has been corrected four times by its own review rounds
-> (the doc's §9 lists each set): the first version said supply does not bind; the second costed
-> the recommended fixes too lightly; the third said the feldspar clamp loses no species, having
-> counted a dissolved-away crystal's record as presence, and recommended a lead mechanism that
-> cannot work; the fourth left out the locality gate, which the recommended clamp trips, and put
-> two coupled choices to the owner as independent.**
+> story-pocket WP8(b) on it; the same fluid plugs a Zen run of the scenario and fills 3 of 8
+> pegmatite pockets in Random Vugg); F2 galena, molybdenite and uraninite propose growth at
+> saturation (k·σ where 171 other engines vanish at σ = 1); F3 radiogenic Pb is written to the
+> bulk handle only (`js/85-simulator.ts:1276`), and `radioactive_pegmatite` does not license the
+> galena that its description, its notes and the narration of its last event promise.
+> **This review has been corrected five times by its own review rounds (the doc's §9 lists each
+> set): the first version said supply does not bind; the second costed the recommended fixes
+> too lightly; the third said the feldspar clamp loses no species, having counted a
+> dissolved-away crystal's record as presence, and recommended a lead mechanism that cannot
+> work; the fourth left out the locality gate, which the recommended clamp trips, and put two
+> coupled choices to the owner as independent; the fifth counted two places where the galena is
+> promised when there are four, and gave as a reason for one lead timing a difference the game
+> does not show.**
 > **Awaits the boss:** the seven decisions in the doc's §6. SC1: a clamp on the feldspar pair's
 > rate authored on `gem_pegmatite` ALONE (recommended; one baseline changes), which makes topaz
 > appear at all three locality-gate seeds, so the bump must also PROMOTE TOPAZ out of the
-> aspirational tier. Against it: the same clamp in the engines for every scenario (eight
-> baselines change; it empties Shigar's pocket and leaves `schneeberg` without solid native
-> arsenic and native bismuth at seeds 1 and 2, and cobaltite at seed 1, all three of them species
-> it expects); a change to the broth, which costs the pocket its quartz; or no bound until SC4.
-> NOT factor caps, which delete both feldspars from the Grimsel cleft. The field SC1 authors
-> also needs a class in the Creative lever audit. SC2's constant; at the same constant SC2
-> shrinks the uraninites, their radiogenic lead falls (`schneeberg`'s bulk handle ends at 111
-> ppm, not 179), and the CATION GATE (`npm run audit:cations`) must be recommissioned with a
-> new Ca share (0.630, not 0.582). SC3: hold the radiogenic lead until a uraninite is altered and
-> release it to the bulk handle and the voxels alike (recommended), and drop the two galena
-> sentences, because under that timing no license can produce galena; or keep today's timing
-> and license galena, with a source. The held release leaves the cation gate's numbers as
-> commissioned; the continuous one does not. SC2 and SC3 meet in `schneeberg`'s pharmacolite, so
+> aspirational tier and rewrite its rationale by hand (the gate does not check that sentence).
+> It cures the scenario's own runs ONLY: Zen mode drops the scenario object, and Random Vugg's
+> pegmatite archetype, where the boss first reported the plug, has none. Against it: the same
+> clamp in the engines for every scenario, which reaches those too (eight baselines change; it
+> empties Shigar's pocket and leaves `schneeberg` without solid native arsenic and native
+> bismuth at seeds 1 and 2, and cobaltite at seed 1, all three of them species it expects); the
+> tree's own `per_cell_local_fill` switch, which keeps the pocket open at 5 seeds of 11 where
+> the clamp does at 11; a change to the broth, which costs the pocket its quartz; or no bound
+> until SC4. NOT factor caps, which delete both feldspars from the Grimsel cleft. The field SC1
+> authors also needs a class in the Creative lever audit. SC2's constant; at the same constant
+> SC2 shrinks the uraninites, their radiogenic lead falls (`schneeberg`'s bulk handle ends at
+> 111 ppm, not 179), and the CATION GATE (`npm run audit:cations`) must be recommissioned with
+> a new Ca share (0.630, not 0.582). SC3: hold the radiogenic lead until a uraninite is altered
+> and release it to the bulk handle and the voxels alike (recommended), and take the galena out
+> of the FOUR places that promise it (the description, the notes, the step-100 narration in
+> `js/70d-pegmatite-radioactive.ts`, the agent API's copy), because under that timing no
+> license can produce galena; or keep today's timing and license galena, with a source. The
+> held release leaves the cation gate's numbers as commissioned and adds state that a save and
+> the replay fingerprint carry; the continuous one moves the gate's share. UNDER EITHER TIMING
+> `schneeberg`'s two largest crystals turn from microcline to green amazonite. SC2 and SC3 meet
+> in `schneeberg`'s pharmacolite, so
 > the second to land is previewed on the tree the first leaves. Whether to pilot a supply with a
 > scale above the cell, SC4. Whether the census joins the SIM-bump routine, SC5. The order
 > against the open ladders. And three authored values that sit exactly on a σ threshold, one of

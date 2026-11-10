@@ -83,4 +83,5 @@ ab-rind-13-scenarios.json
   rind=5000                gem_pegmatite            introduces: aspirational topaz appears in 3 of 3 seeds
 
 arms read: 44; arms that introduce, change or remove no tier clash: 13
+products that no tier and no exclusion of their scenario names, under any arm or as shipped: none
 tier clashes this reading finds in the SHIPPED arm (the gate passes today, so each is something a record at run end cannot show): bisbee: deterministic argentite appears in 0 of 3 seeds; porphyry: deterministic argentite appears in 0 of 3 seeds; schneeberg: deterministic argentite appears in 0 of 3 seeds; schneeberg: deterministic torbernite appears in 0 of 3 seeds; schneeberg: deterministic zeunerite appears in 1 of 3 seeds

@@ -1,8 +1,8 @@
 {
  "seed": 42,
- "census_sha256": "832e001cf8c9633d2eb8a10f5d97c27db044e76764fb0ee360baf59609e31156",
+ "census_sha256": "c5148646a8b508358be775087451c0780a771d56afeabd8a672cc2c562ca6372",
  "ok": true,
- "controlsDeclared": 32,
+ "controlsDeclared": 35,
  "controlsWithNoMutant": [],
  "results": [
   {
@@ -373,6 +373,51 @@
    "committedDetail": "bulk handle 1.800; floor ring 1.498, top ring 1.800",
    "mutant_verdict": "FAIL",
    "mutantDetail": "bulk handle 1.800; floor ring 1.800, top ring 1.800"
+  },
+  {
+   "mutant": "reference-under-takes-everything",
+   "what": "every stored zone the dry run read is filed as stored where the bulk handle is at or under saturation",
+   "control": "reference-under negative",
+   "committed": "PASS",
+   "committedDetail": "0.0 % of 85.7 mm stored",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "100.0 % of 85.7 mm stored"
+  },
+  {
+   "mutant": "ring-means-halved",
+   "what": "each ring's mean is taken over twice the voxels it has",
+   "control": "ring-means positive",
+   "committed": "PASS",
+   "committedDetail": "bulk handle 1.800; floor ring 1.498, top ring 1.800",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "bulk handle 1.800; floor ring 0.749, top ring 0.900"
+  },
+  {
+   "mutant": "crystal-share-counts-the-band",
+   "what": "thickness stored between 0.5 and 0.9 of the reference's excess is also added to a crystal's own drawn-down share",
+   "control": "big-drawn-down positive",
+   "committed": "PASS",
+   "committedDetail": "3 of 13: uranophane ×3",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "8 of 13: tyuyamunite ×5, uranophane ×3"
+  },
+  {
+   "mutant": "near-filed-as-band",
+   "what": "thickness stored at 0.9 or more of the reference's excess is filed in the 0.5 to 0.9 band",
+   "control": "band negative",
+   "committed": "PASS",
+   "committedDetail": "0.0 % of 31.2 mm stored; 100.0 % at 0.9 or more",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "100.0 % of 31.2 mm stored; 0.0 % at 0.9 or more"
+  },
+  {
+   "mutant": "starved-without-the-ingredient-test",
+   "what": "a crystal-step below saturation on the cell only is counted as starved whether or not the ingredients restore it",
+   "control": "starved negative",
+   "committed": "PASS",
+   "committedDetail": "34 crystal-steps not restored by the ingredients (goethite:O2 ×34); 126 starved",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "0 crystal-steps not restored by the ingredients; 160 starved"
   }
  ]
 }
