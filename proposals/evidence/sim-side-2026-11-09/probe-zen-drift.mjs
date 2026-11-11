@@ -19,8 +19,10 @@
  * so that it has crystals. Then one write at a time is made as the drift makes it; sigma is read
  * for every active crystal the way its engine would read it (the cell's fluid and temperature
  * swapped in, as _runEngineForCrystal does) and for the same minerals on the bulk handle; and
- * the write is put back. Four writes, each about as large as one random event makes it:
- *   species       each of the drift's nine species × 4 (the injection multiplies one by 2 to 6)
+ * the write is put back. Four writes. The last three are about as large as one random event makes
+ * them. The first is larger than any one event: it is made to all nine species at once.
+ *   species       each of the drift's nine species set to 4 times the larger of its value and 10,
+ *                 as the injection event sets one of them (to 2 to 6 times)
  *   pH            − 0.75 (the crack shifts it by up to 0.75 either way)
  *   temperature   − 50 °C (the cooling takes 30 to 80)
  *   pressure      − 0.5 kbar, clamped as the event clamps it (the crack takes 0.05 to 0.5)
@@ -28,6 +30,22 @@
  * write is made and left in place, and run_step is called once. The probe prints what the bulk
  * handle and the cells hold before the write, after it and after the step, beside the same step
  * on a simulator with no write.
+ * Part 3, every scenario. Zen offers every scenario, and its simulator leaves the scenario object
+ * and the events behind. For each of the 41, Zen's own simulator is built at seed 42 and stepped by
+ * run_step alone, without the drift, for the scenario's own length. Two readings:
+ *   the envelope  the steps on which the simulator puts up the localized-nucleation envelope, under
+ *                 which a birth reads the largest sigma over the wall cells and not the bulk
+ *                 handle's (_installLocalizedNucleationEnvelope, js/85b-simulator-nucleate.ts; it
+ *                 goes up where the wall nucleates per vertex or a thermal field is active). A
+ *                 wall may author per-vertex nucleation, and a weathering epilogue with
+ *                 localized nucleation switches it on when it begins
+ *                 (js/44e-weathering-epilogue.ts); the epilogue is read from the scenario
+ *                 object. The census finds the envelope in four scenarios' own runs
+ *                 (census-seed-42.json in this folder is read). The same counter is put on
+ *                 those four own runs, with what puts the envelope up in each.
+ *   uraninite     whether a uraninite is on record, how large, and what the bulk handle's lead and
+ *                 the voxels' do: the uraninite block of the simulator's step writes its lead to
+ *                 the bulk handle alone (§3.3), in whatever mode the step runs.
  *
  * PASSIVE: prints to stdout and writes nothing. It exits 0 when it finishes, and throws if the
  * game's constructor leaves no simulator. Imports tools/_harness.mjs and node builtins. The
@@ -35,7 +53,9 @@
  * Controls: gem_pegmatite's shipped run at seed 42 is compared with the committed baseline at the
  * start and at the end, with the time scale read back; in Part 1 every sigma read again with
  * nothing applied has to be the same; in Part 2 every fresh simulator has to be the one Part 1
- * read at that seed (the same crystals and the same bulk fluid before the write).
+ * read at that seed (the same crystals and the same bulk fluid before the write); in Part 3 the
+ * envelope counter, put on the own runs of the census's four scenarios, has to give the census's
+ * counts.
  *
  *   node proposals/evidence/sim-side-2026-11-09/probe-zen-drift.mjs
  */
@@ -79,14 +99,19 @@ function baselineCheck() {
   return JSON.stringify(summarize(sim)) === JSON.stringify(BASELINE.gem_pegmatite);
 }
 
-// Zen's own simulator for a scenario, stepped without the drift.
-function build(name, seed) {
+// Zen's own simulator for a scenario, as the game's constructor leaves it.
+function zenSim(name, seed) {
   setSeed(seed);
   const clock = Date.now;
   Date.now = () => seed;                         // idleCreateSim seeds from the clock
   let sim;
   try { sim = idleCreateSim(name); } finally { Date.now = clock; }
   if (!sim) throw new Error(`idleCreateSim('${name}') returned no simulator under the harness`);
+  return sim;
+}
+// The same, stepped without the drift.
+function build(name, seed) {
+  const sim = zenSim(name, seed);
   for (let i = 0; i < STEPS; i++) sim.run_step();
   return sim;
 }
@@ -197,6 +222,76 @@ for (const name of NAMES) {
   }
 }
 console.log(`\n  control: every simulator of Part 2 ${fresh ? 'is the one Part 1 read at that seed' : 'IS A DIFFERENT RUN'}`);
+
+// ---- part 3 ----
+// The steps on which a simulator puts the localized-nucleation envelope up: its own
+// _installLocalizedNucleationEnvelope returns a function that takes the envelope down again when it
+// has put one up, and null when it has not (js/85b-simulator-nucleate.ts).
+function countEnvelope(sim) {
+  const counter = { installed: 0 };
+  const orig = sim._installLocalizedNucleationEnvelope;
+  if (typeof orig !== 'function') throw new Error('the simulator has no _installLocalizedNucleationEnvelope');
+  sim._installLocalizedNucleationEnvelope = function (...a) { const out = orig.apply(this, a); if (out) counter.installed++; return out; };
+  return counter;
+}
+const ALL = Object.keys(SCENARIOS);
+console.log(`\nPART 3 — each of the ${ALL.length} scenarios in Zen's own simulator, seed ${SEEDS[0]}, by run_step alone for the scenario's own length; time scale ${getSimulationTimeScale()}`);
+{
+  const rows = ALL.map(name => {
+    setSeed(SEEDS[0]);
+    const steps = SCENARIOS[name]().defaultSteps ?? 100;
+    const sim = zenSim(name, SEEDS[0]);
+    const counter = countEnvelope(sim);
+    const grid = sim.wall_state.voxelGridFor(sim);
+    const pb0 = Number(sim.conditions.fluid.Pb) || 0;
+    for (let i = 0; i < steps; i++) sim.run_step();
+    const u = sim.crystals.filter(c => c.mineral === 'uraninite');
+    let low = Infinity, high = -Infinity;
+    for (const v of grid.voxels) { const p = Number(v.fluid.Pb) || 0; if (p < low) low = p; if (p > high) high = p; }
+    return { name, steps, installed: counter.installed, scenario: sim.conditions._scenario != null, events: (sim.events || []).length,
+      perVertex: !!sim.wall_state?.per_vertex_nucleation, thermal: !!sim._thermalFieldActivated, epilogue: sim._weatheringEpilogueState != null,
+      uraninites: u.length, uraniniteMm: u.length ? Math.max(...u.map(c => c.total_growth_um)) / 1000 : 0,
+      pb0, pb1: Number(sim.conditions.fluid.Pb) || 0, low, high, fill: sim.get_vug_fill() };
+  });
+  console.log(`  scenario object ${rows.some(r => r.scenario) ? 'PRESENT in some run' : `absent in all ${rows.length}`}; events ${rows.every(r => r.events === 0) ? `none in all ${rows.length}` : 'SOME'}`);
+  const up = rows.filter(r => r.installed > 0);
+  console.log(`  the localized-nucleation envelope goes up in ${up.length} of the ${rows.length}: ${up.map(r => `${r.name} on ${r.installed} of ${r.steps} steps (per-vertex nucleation on the wall: ${r.perVertex ? 'yes' : 'no'}; thermal field active at the end: ${r.thermal ? 'yes' : 'no'})`).join('; ') || 'none'}`);
+  const census = JSON.parse(fs.readFileSync(path.join(ROOT, 'proposals', 'evidence', 'sim-side-2026-11-09', 'census-seed-42.json'), 'utf8'));
+  const inOwnRun = census.count.envelope.scenarios;                       // "name passes/steps", the scenarios' own runs
+  console.log(`  in the scenarios' own runs the census finds it in ${inOwnRun.length} (census-seed-42.json): ${inOwnRun.join(', ')}`);
+  for (const entry of inOwnRun) {
+    const r = rows.find(x => x.name === entry.split(' ')[0]);
+    console.log(`    ${r.name} in Zen: on ${r.installed} of ${r.steps} steps; per-vertex nucleation on the wall: ${r.perVertex ? 'yes' : 'no'}; thermal field active at the end: ${r.thermal ? 'yes' : 'no'}`);
+  }
+  // control, at the scenarios' own time scale: the same counter on the own runs the census names,
+  // and what puts the envelope up in each
+  setSimulationTimeScale(5);
+  const counted = inOwnRun.map(entry => {
+    const name = entry.split(' ')[0];
+    setSeed(SEEDS[0]);
+    const { conditions, events, defaultSteps } = SCENARIOS[name]();
+    const sim = new VugSimulator(conditions, events);
+    const counter = countEnvelope(sim);
+    const atStart = !!sim.wall_state?.per_vertex_nucleation;
+    for (let i = 0; i < (defaultSteps ?? 100); i++) sim.run_step();
+    const epilogue = sim.conditions._scenario?.weathering_epilogue;
+    const zen = rows.find(x => x.name === name);
+    console.log(`    ${name}, its own run: per-vertex nucleation on the wall at the start: ${atStart ? 'yes' : 'no'}, at the end: ${sim.wall_state?.per_vertex_nucleation ? 'yes' : 'no'}; thermal field active at the end: ${sim._thermalFieldActivated ? 'yes' : 'no'}; weathering epilogue on the scenario object: ${epilogue ? `from step ${epilogue.start_step}, localized nucleation ${epilogue.localized_nucleation === true ? 'on' : 'off'}` : 'none'}. In Zen: scenario object ${zen.scenario ? 'PRESENT in some run' : 'absent'}, a weathering epilogue began: ${zen.epilogue ? 'yes' : 'no'}`);
+    return `${name} ${counter.installed}/${defaultSteps ?? 100}`;
+  });
+  console.log(`  control: the same counter on those ${inOwnRun.length} own runs, at time scale ${getSimulationTimeScale()}, gives ${counted.join(', ')}: ${JSON.stringify(counted) === JSON.stringify(inOwnRun) ? 'the census\'s counts' : 'NOT THE CENSUS\'S COUNTS'}`);
+  const authored = ALL.filter(name => { setSeed(SEEDS[0]); const s = SCENARIOS[name]().conditions._scenario || {}; return (Array.isArray(s.thermal_sources) && s.thermal_sources.length > 0) || s.thermal_field != null || s.wall_rock_thermal_buffer_C != null; });
+  console.log(`  scenarios whose scenario object authors a thermal source, a thermal field or a wall-rock thermal buffer: ${authored.length ? authored.join(', ') : 'none'}; that author a weathering epilogue: ${ALL.filter(name => { setSeed(SEEDS[0]); return SCENARIOS[name]().conditions._scenario?.weathering_epilogue != null; }).join(', ') || 'none'}`);
+
+  // the uraninites of the Zen simulators above (read at Zen's time scale of 1, before the control)
+  const withU = rows.filter(r => r.uraninites > 0);
+  console.log(`  a uraninite is on record in ${withU.length} of the ${rows.length} Zen simulators: ${withU.map(r => r.name).join(', ') || 'none'}`);
+  for (const r of withU) {
+    console.log(`    ${r.name}, ${r.steps} steps: ${r.uraninites} uraninite${r.uraninites === 1 ? '' : 's'}, the largest ${r.uraniniteMm.toFixed(1)} mm; Pb on the bulk handle ${r.pb0.toFixed(1)} → ${r.pb1.toFixed(1)} ppm; lowest..highest voxel at the end ${r.low.toFixed(2)}..${r.high.toFixed(2)}; the pocket ${(r.fill * 100).toFixed(0)} % full`);
+  }
+  const gap = rows.filter(r => r.uraninites === 0 && Math.abs(r.pb1 - r.pb0) > 1e-9);
+  console.log(`  the bulk handle's Pb ends where it started in ${rows.filter(r => r.uraninites === 0).length - gap.length} of the ${rows.filter(r => r.uraninites === 0).length} with no uraninite${gap.length ? ` (not in: ${gap.map(r => `${r.name} ${r.pb0.toFixed(1)} → ${r.pb1.toFixed(1)}`).join(', ')})` : ''}`);
+}
 
 setSimulationTimeScale(5);
 console.log(`\ncontrol at the end: the time scale reads ${getSimulationTimeScale()}; gem_pegmatite's shipped run at seed 42 ${baselineCheck() ? 'still reproduces the baseline' : 'NO LONGER REPRODUCES THE BASELINE'}`);

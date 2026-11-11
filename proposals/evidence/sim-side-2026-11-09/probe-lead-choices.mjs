@@ -75,10 +75,14 @@
  *   Creative, a starter    fortressBeginFromStarterFluid('radioactive', seed) (js/94-ui-menu.ts):
  *                radioactive_pegmatite's fluid at 200 °C in a limestone cavity, no events, no
  *                scenario object. 120 steps of run_step alone, at the time scale of 5 that
- *                Creative mode sets. Run twice: left to itself, and with one Drain after step
+ *                Creative mode sets. Run four times: left to itself; with one Drain after step
  *                60, made by the page's own fortressStep('drain') (js/97-ui-fortress.ts), which
  *                lowers the water level, sets O2 on the bulk handle to at least 0.6 and advances
- *                no step. Drain is one of the actions a player has there.
+ *                no step; with one Evaporate after step 60 instead (fortressStep('evaporate'):
+ *                O2 to at least 1.5, the water level further down, eight species concentrated
+ *                by 1.4 and the fluid 10 °C cooler); and with the Drain after step 30. Drain
+ *                and Evaporate are buttons of that mode, and the two cases of fortressStep
+ *                behind a button that write O2.
  *   Random Vugg  buildRandomScenario('pegmatite', 'pocket') (js/96-ui-random.ts), which draws
  *                uranium into about a third of its fluids and builds no scenario object. The
  *                eight seeds of probe-pegmatite-reach.mjs; those whose shipped run puts a
@@ -89,6 +93,9 @@
  *                the page; switchMode('idle'), which sets the time scale to 1; idleTogglePlay()
  *                with the clock held at the seed, which builds the simulator; idleTogglePause();
  *                and idleDoStep() 600 times (Zen's drift, then run_step, then the page's drawing).
+ *                Then the same loop on schneeberg, the other scenario whose own run grows a
+ *                uraninite: Zen offers every scenario, and probe-zen-drift.mjs (Part 3) finds
+ *                which of the 41 Zen simulators put a uraninite on record.
  * The held timing releases its store on a step on which a uraninite takes a negative zone, and
  * grow_uraninite takes one only below saturation with O2 above 0.3 (js/57-engines-oxide.ts). In
  * the scenario's own run an event brings that about. This part reads whether anything does where
@@ -415,8 +422,9 @@ console.log('\nwhere the game runs a fluid that grows uraninite without the scen
 console.log(`\n  Creative mode, starter fluid "Radioactive Pegmatite": fortressBeginFromStarterFluid('radioactive', seed) itself (js/94-ui-menu.ts); ${STARTER_STEPS} steps of run_step alone; time scale ${getSimulationTimeScale()}`);
 {
   // action: null for a run left to itself, or one of the page's own Creative actions, made once
-  // after ACTION_AFTER steps through fortressStep (js/97-ui-fortress.ts), which advances no step.
-  const starter = (seed, timing, action = null) => {
+  // after `after` steps through fortressStep (js/97-ui-fortress.ts), which advances no step.
+  const EARLY = 30;
+  const starter = (seed, timing, action = null, after = ACTION_AFTER) => {
     setSeed(seed);
     fortressBeginFromStarterFluid('radioactive', seed);
     const sim = globalThis.window?.vugg?.fortressSim;
@@ -425,22 +433,28 @@ console.log(`\n  Creative mode, starter fluid "Radioactive Pegmatite": fortressB
     const start = startOf(sim);
     const lead = leadTiming(sim, grid, timing);
     const track = { first70: null, full: null };
-    advance(sim, ACTION_AFTER, () => sim.run_step(), track);
-    // the run as it stands before the action, to compare a drained run with the one left to itself
-    const before = JSON.stringify(summarize(sim)) + ' ' + Number(sim.conditions.fluid.Pb) + ' ' + lead.store;
-    let act = null;
-    if (action != null) {
-      const o2Before = Number(sim.conditions.fluid.O2);
-      fortressStep(action);
-      if (sim.step !== start.step + ACTION_AFTER) throw new Error(`fortressStep('${action}') moved the simulator to step ${sim.step}`);
-      let voxelHigh = -Infinity;
-      for (const v of grid.voxels) if (Number(v.fluid.O2) > voxelHigh) voxelHigh = Number(v.fluid.O2);
-      act = { o2Before, o2After: Number(sim.conditions.fluid.O2), voxelHigh };
+    // The run as it stands after EARLY and after ACTION_AFTER steps, read before any action made at
+    // that step: what a run with an action has to share with the one left to itself.
+    const stamps = {};
+    let act = null, done = 0;
+    for (const mark of [...new Set([EARLY, ACTION_AFTER, after])].sort((a, b) => a - b)) {
+      advance(sim, mark - done, () => sim.run_step(), track);
+      done = mark;
+      stamps[mark] = JSON.stringify(summarize(sim)) + ' ' + Number(sim.conditions.fluid.Pb) + ' ' + lead.store;
+      if (action != null && mark === after) {
+        const o2Before = Number(sim.conditions.fluid.O2), tBefore = Number(sim.conditions.temperature);
+        fortressStep(action);
+        if (sim.step !== start.step + after) throw new Error(`fortressStep('${action}') moved the simulator to step ${sim.step}`);
+        let voxelHigh = -Infinity;
+        for (const v of grid.voxels) if (Number(v.fluid.O2) > voxelHigh) voxelHigh = Number(v.fluid.O2);
+        act = { o2Before, o2After: Number(sim.conditions.fluid.O2), voxelHigh, tBefore, tAfter: Number(sim.conditions.temperature) };
+      }
     }
-    advance(sim, STARTER_STEPS - ACTION_AFTER, () => sim.run_step(), track);
+    advance(sim, STARTER_STEPS - done, () => sim.run_step(), track);
     const out = readElsewhere(sim, grid, lead, start, track);
     out.act = act;
-    out.before = before;
+    out.before = stamps[ACTION_AFTER];
+    out.stamps = stamps;
     return out;
   };
   const all = {};
@@ -463,6 +477,22 @@ console.log(`\n  Creative mode, starter fluid "Radioactive Pegmatite": fortressB
   const everyDrained = Object.values(drained).flat();
   const sameBefore = ['shipped', 'pb', 'held'].every(timing => drained[timing].every((r, i) => r.before === all[timing][i].before));
   console.log(`    controls over the ${everyDrained.length} drained runs: steps run: ${everyDrained.every(r => r.steps === STARTER_STEPS) ? `${STARTER_STEPS} in every run` : 'NOT THE NUMBER ASKED FOR'}; the action raised O2 on the bulk handle ${everyDrained.every(r => r.act.o2After > r.act.o2Before) ? 'in every run' : 'IN NOT EVERY RUN'}; before the action each drained run ${sameBefore ? 'is the run left to itself, at every seed and timing' : 'IS A DIFFERENT RUN'}`);
+
+  // Two more of the same kind: the page's other button that raises O2 (Evaporate sets it to at
+  // least 1.5, and also drops the water level further, concentrates eight species by 1.4 and cools
+  // the fluid by 10 °C), and the same Drain made earlier in the run.
+  for (const [label, action, after] of [['one Evaporate after step 60', 'evaporate', ACTION_AFTER], ['one Drain after step 30', 'drain', EARLY]]) {
+    console.log(`\n  the same starter fluid with ${label}: the page's own fortressStep('${action}') (js/97-ui-fortress.ts), called once between two steps`);
+    const acted = {};
+    for (const timing of ['shipped', 'pb', 'held']) {
+      acted[timing] = SEEDS.map(seed => starter(seed, timing, action, after));
+      if (timing === 'shipped') console.log(`    the action: O2 on the bulk handle ${acted.shipped.map(r => `${r.act.o2Before.toFixed(2)} → ${r.act.o2After.toFixed(2)}`).join(' / ')}; highest voxel right after it ${acted.shipped.map(r => r.act.voxelHigh.toFixed(2)).join(' / ')}; the conditions' temperature ${acted.shipped.map(r => `${r.act.tBefore.toFixed(0)} → ${r.act.tAfter.toFixed(0)}`).join(' / ')} °C`);
+      printElsewhere(timing, acted[timing], acted.shipped);
+    }
+    const everyActed = Object.values(acted).flat();
+    const sameUntil = ['shipped', 'pb', 'held'].every(timing => acted[timing].every((r, i) => r.stamps[after] === all[timing][i].stamps[after]));
+    console.log(`    controls over these ${everyActed.length} runs: steps run: ${everyActed.every(r => r.steps === STARTER_STEPS) ? `${STARTER_STEPS} in every run` : 'NOT THE NUMBER ASKED FOR'}; the action raised O2 on the bulk handle ${everyActed.every(r => r.act.o2After > r.act.o2Before) ? 'in every run' : 'IN NOT EVERY RUN'}; before the action each run ${sameUntil ? 'is the run left to itself, at every seed and timing' : 'IS A DIFFERENT RUN'}`);
+  }
 }
 
 // Random Vugg's pegmatite archetype draws uranium in some runs (js/96-ui-random.ts) and builds no
@@ -507,7 +537,9 @@ console.log(`\n  Zen mode by the game's own loop: switchMode('idle'), idleToggle
   document.body.appendChild(select);
   select.value = 'radioactive_pegmatite';
 
-  const zen = async (seed, timing) => {
+  const zen = async (seed, timing, name = 'radioactive_pegmatite') => {
+    select.value = name;
+    if (select.value !== name) throw new Error(`the scenario picker does not hold ${name}`);
     let threw = '';
     try { switchMode('idle'); } catch (e) { threw = String(e && e.message).slice(0, 80); }
     const scaleAtStart = getSimulationTimeScale();
@@ -530,7 +562,7 @@ console.log(`\n  Zen mode by the game's own loop: switchMode('idle'), idleToggle
     const out = readElsewhere(sim, grid, lead, start, track);
     Object.assign(out, { scaleAtStart, scaleAtEnd: getSimulationTimeScale(), drawingThrew, switchThrew: threw });
     idleStop();
-    try { idlePickScenario('radioactive_pegmatite'); } catch (e) { out.pickThrew = String(e && e.message).slice(0, 60); }
+    try { idlePickScenario(name); } catch (e) { out.pickThrew = String(e && e.message).slice(0, 60); }
     out.left = globalThis.window.vugg.idleSim == null ? 'none' : 'A SIMULATOR';
     return out;
   };
@@ -543,6 +575,28 @@ console.log(`\n  Zen mode by the game's own loop: switchMode('idle'), idleToggle
   const again = await zen(SEEDS[0], 'shipped');
   const every = Object.values(all).flat();
   console.log(`    controls over the ${every.length} Zen runs: the simulator's step before the first idleDoStep ${every.every(r => r.step === 0) ? 'is 0 in every run' : 'IS NOT 0 IN SOME RUN'}; time scale after switchMode('idle') ${every.every(r => r.scaleAtStart === 1) ? '1 in every run' : 'NOT 1 IN SOME RUN'}, and at the end of the run ${every.every(r => r.scaleAtEnd === 1) ? '1 in every run' : 'NOT 1 IN SOME RUN'}; scenario object ${every.some(r => r.scenario) ? 'PRESENT in some run' : 'absent in every run'}; events ${every.every(r => r.events === 0) ? 'none in every run' : 'SOME'}; switchMode ${every.some(r => r.switchThrew) ? 'THREW in some run' : 'threw in none'}; idleDoStep calls whose drawing threw after the physics had run: ${every.reduce((a, r) => a + r.drawingThrew, 0)}; Zen simulator left on the page after a run was ended: ${every.every(r => r.left === 'none') ? 'none' : 'ONE WAS LEFT'}${every.some(r => r.pickThrew) ? '; idlePickScenario THREW in some run' : ''}; the first run, made again after the other eight, ${JSON.stringify(again.summary) === JSON.stringify(all.shipped[0].summary) && again.bulkPb === all.shipped[0].bulkPb ? 'is the same run' : 'IS A DIFFERENT RUN'}`);
+
+  // Zen offers every scenario. schneeberg is the other scenario whose own run grows a uraninite, and
+  // its Zen simulator grows one too (probe-zen-drift.mjs, Part 3). The same loop, the same timings.
+  {
+    const other = 'schneeberg';
+    const second = document.createElement('option');
+    second.value = other;
+    second.textContent = other;
+    select.appendChild(second);
+    console.log(`\n  the same loop on ${other}, ${ZEN_STEPS} steps`);
+    const runs = {};
+    for (const timing of ['shipped', 'pb', 'held']) {
+      runs[timing] = [];
+      for (const seed of SEEDS) runs[timing].push(await zen(seed, timing, other));
+      printElsewhere(timing, runs[timing], runs.shipped);
+      // every mineral on record under the arm and not as shipped, with its count and its largest crystal
+      if (timing !== 'shipped') console.log(`    ${''.padEnd(8)} on record under the arm and not as shipped, with the largest crystal: ${runs[timing].map((r, i) => r.records.filter(m => !runs.shipped[i].records.includes(m)).map(m => `${m} ×${r.summary[m].total} @ ${mm(r.summary[m].max_um)} mm`).join(', ') || 'none').join(' / ')}`);
+    }
+    const repeat = await zen(SEEDS[0], 'shipped', other);
+    const each = Object.values(runs).flat();
+    console.log(`    controls over the ${each.length} Zen runs of ${other}: the simulator's step before the first idleDoStep ${each.every(r => r.step === 0) ? 'is 0 in every run' : 'IS NOT 0 IN SOME RUN'}; time scale after switchMode('idle') ${each.every(r => r.scaleAtStart === 1) ? '1 in every run' : 'NOT 1 IN SOME RUN'}, and at the end of the run ${each.every(r => r.scaleAtEnd === 1) ? '1 in every run' : 'NOT 1 IN SOME RUN'}; scenario object ${each.some(r => r.scenario) ? 'PRESENT in some run' : 'absent in every run'}; events ${each.every(r => r.events === 0) ? 'none in every run' : 'SOME'}; switchMode ${each.some(r => r.switchThrew) ? 'THREW in some run' : 'threw in none'}; idleDoStep calls whose drawing threw after the physics had run: ${each.reduce((a, r) => a + r.drawingThrew, 0)}; Zen simulator left on the page after a run was ended: ${each.every(r => r.left === 'none') ? 'none' : 'ONE WAS LEFT'}${each.some(r => r.pickThrew) ? '; idlePickScenario THREW in some run' : ''}; the first run, made again after the other eight, ${JSON.stringify(repeat.summary) === JSON.stringify(runs.shipped[0].summary) && repeat.bulkPb === runs.shipped[0].bulkPb ? 'is the same run' : 'IS A DIFFERENT RUN'}`);
+  }
   setSimulationTimeScale(5);
 }
 

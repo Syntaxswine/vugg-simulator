@@ -69,11 +69,12 @@
  *                 run. Ten shape seeds at growth seed 42, shipped and with the clamp.
  *   The vug again, with the clamp at 3, at 1 and at 0. Under the clamp at 0 every positive zone
  *                 of the pair is rescaled to nothing, so the pair holds no solid: what the vug
- *                 does then is what no bound on the pair can change. Like the clamp at 1 of
- *                 probe-clamp-horizon.mjs, the arms at 1 and 0 preview no value of the bound
- *                 (the engine still draws its inclusion roll on the rate it proposed). Each run
- *                 also gives every mineral's share of the cavity's volume at the end, summed
- *                 the way get_vug_fill sums the fill.
+ *                 does then is what no bound on the pair can change. At 1 and at 0, as at the
+ *                 clamp of 1 in probe-clamp-horizon.mjs, the wrapper's run is not the run a
+ *                 clamp inside the engine would make (the engine still makes its inclusion
+ *                 roll on the rate it proposed); probe-clamp-in-engine.mjs makes both runs.
+ *                 Each run also gives every mineral's share of the cavity's volume at the end,
+ *                 summed the way get_vug_fill sums the fill.
  *   SC1's other courses in the vug: the fill switch, the change to the broth that
  *                 ab-gem-broth previews (SiO2 × 0.1 and Al × 0.15, with no bound) and the
  *                 rind at 5 mm. Each is a change made between the scenario's factory and the
@@ -87,14 +88,18 @@
  *                 with the clamp at 7. And the one pair that keeps the vug under 0.7 full, run
  *                 again in the scenario's own cavity. The clamp wrapper rescales the zone an
  *                 engine returns, after the engine has made its own tests on the rate it
- *                 proposed. Feldspar's rate is 3·(σ − 1)·u with u between 0.7 and 1.3, and it
- *                 rolls for an inclusion above a rate of 4 (js/59-engines-silicate.ts); albite's
- *                 is 4·(σ − 1)·u with u between 0.8 and 1.2, and it rolls for a platy habit
- *                 below a rate of 3 at under 350 °C. A clamp inside the engine at 2 leaves both
- *                 tests where the wrapper leaves them (feldspar 4.2 to 7.8, albite 6.4 to 9.6).
+ *                 proposed. Feldspar's rate is 3·(σ − 1)·u with u between 0.7 and 1.3; it
+ *                 returns nothing below a rate of 0.1, takes the adularia habit under 250 °C at
+ *                 a rate under 2, and rolls for an inclusion above a rate of 4
+ *                 (js/59-engines-silicate.ts). Albite's is 4·(σ − 1)·u with u between 0.8 and
+ *                 1.2; it returns nothing below 0.1 and rolls for a platy habit below a rate of
+ *                 3 at under 350 °C. A clamp inside the engine at 2 leaves every one of those
+ *                 tests where the wrapper leaves it (feldspar 4.2 to 7.8, albite 6.4 to 9.6).
  *                 At 1.5 feldspar's clamped rate would be 3.15 to 5.85 and at 1 it would be 2.1
  *                 to 3.9, so the engine would make the inclusion roll sometimes or never, where
- *                 under the wrapper it always makes it. Those arms are not a preview of a value.
+ *                 under the wrapper it always makes it. At those values the wrapper's run is
+ *                 not the run a clamp in the engine would make. probe-clamp-in-engine.mjs makes
+ *                 both runs at each value and prints how far apart they end.
  * The runs are stepped with run_step, as every run of this probe is. Simulation mode steps through
  * applySimulationCommand, one step to a command; a control makes the seed-42 run that way and
  * compares it with the baseline and with the run stepped by run_step.
@@ -487,7 +492,7 @@ console.log(`\nPART 4 — Simulation mode's own form: the Cavity Size select and
   }
 
   // The vug again: is it the value of the bound that fails there, or is it the cavity?
-  console.log(`\n  The vug under tighter bounds, seeds ${OTHER_SEEDS.join(' / ')}. At 0 every positive zone of the pair is rescaled to nothing. The arms at 1 and 0 preview no value of the bound.`);
+  console.log(`\n  The vug under tighter bounds, seeds ${OTHER_SEEDS.join(' / ')}. At 0 every positive zone of the pair is rescaled to nothing. At 1 and 0 the wrapper's run is not the run a clamp inside the engine would make; probe-clamp-in-engine.mjs makes both.`);
   {
     const { overrides, s, c } = kept.vug;
     const shares = (runs) => runs.map(r => r.share.slice(0, 3).map(([m, x]) => `${m} ${(x * 100).toFixed(1)}`).join(', ')).join(' / ');
@@ -519,7 +524,7 @@ console.log(`\nPART 4 — Simulation mode's own form: the Cavity Size select and
     }
 
     // Pairs of those changes, made together in the same vug.
-    console.log(`\n  Pairs of courses in the vug, seeds ${OTHER_SEEDS.join(' / ')}: the change to the broth with the pair's rate clamped as well, at six values; the fill switch with the clamp at 7; the rind with the clamp at 7. The wrapper is what a clamp in the engine would be at 2 and above, and not at 1.5, 1 or 0 (see the header).`);
+    console.log(`\n  Pairs of courses in the vug, seeds ${OTHER_SEEDS.join(' / ')}: the change to the broth with the pair's rate clamped as well, at six values; the fill switch with the clamp at 7; the rind with the clamp at 7. The wrapper's run is the run a clamp in the engine would make at 2 and above, and not at 1.5, 1 or 0 (see the header); probe-clamp-in-engine.mjs makes both.`);
     const PAIRS_OF_COURSES = [
       ['broth, clamp 7', { mul: BROTH, clamp: 7 }], ['broth, clamp 3', { mul: BROTH, clamp: 3 }], ['broth, clamp 2', { mul: BROTH, clamp: 2 }],
       ['broth, clamp 1.5', { mul: BROTH, clamp: 1.5 }], ['broth, clamp 1', { mul: BROTH, clamp: 1 }], ['broth, clamp 0', { mul: BROTH, clamp: 0 }],

@@ -210,7 +210,7 @@ PART 4 — Simulation mode's own form: the Cavity Size select and the Shape Seed
                        feldspar 24.2 / 24.2 / 24.4 / 24.1 / 24.4 / 24.1 / 24.4 / 24.4 / 24.1 / 24.2 mm; albite 32.1 / 32.4 / 32.2 / 32.2 / 32.2 / 32.5 / 32.1 / 32.2 / 32.2 / 32.1; quartz 36.9 / 37.9 / 37.5 / 36.8 / 37.5 / 37.0 / 37.7 / 37.5 / 36.8 / 36.9; tourmaline 12.1 / 12.0 / 12.0 / 12.1 / 12.0 / 12.1 / 12.0 / 12.0 / 12.1 / 12.1; topaz 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5
                        SC1's first acceptance line under the clamp holds at 10 of 10 shape seeds
 
-  The vug under tighter bounds, seeds 42 / 1 / 2. At 0 every positive zone of the pair is rescaled to nothing. The arms at 1 and 0 preview no value of the bound.
+  The vug under tighter bounds, seeds 42 / 1 / 2. At 0 every positive zone of the pair is rescaled to nothing. At 1 and 0 the wrapper's run is not the run a clamp inside the engine would make; probe-clamp-in-engine.mjs makes both.
       shipped          share of the cavity's volume at run end, %, the three largest: feldspar 99.3, albite 0.7, quartz 0.0 / feldspar 99.5, albite 0.5, quartz 0.0 / feldspar 98.3, albite 1.7, quartz 0.0
       rate clamp at 7  largest fill of the run 100.0 / 100.0 / 100.0 %; first step at fill >= 0.7 62 / 64 / 64; at >= 0.999 97 / 99 / 99; last step anything grew 98 / 100 / 99
                        feldspar 7.6 / 7.6 / 7.9 mm; albite 9.6 / 9.9 / 10.3; quartz 14.5 / 14.4 / 14.8; tourmaline 5.0 / 5.1 / 5.1; topaz — / 0.00 / —
@@ -244,7 +244,7 @@ PART 4 — Simulation mode's own form: the Cavity Size select and the Shape Seed
                        share of the cavity's volume at run end, %, the three largest: feldspar 111.9, albite 0.7, quartz 0.0 / feldspar 85.2, quartz 6.1, albite 4.3 / quartz 51.8, feldspar 37.1, tourmaline 7.7
                        fill at run end 112.6 / 96.0 / 100.0 %; SC1's first acceptance line holds at 0 of 3
 
-  Pairs of courses in the vug, seeds 42 / 1 / 2: the change to the broth with the pair's rate clamped as well, at six values; the fill switch with the clamp at 7; the rind with the clamp at 7. The wrapper is what a clamp in the engine would be at 2 and above, and not at 1.5, 1 or 0 (see the header).
+  Pairs of courses in the vug, seeds 42 / 1 / 2: the change to the broth with the pair's rate clamped as well, at six values; the fill switch with the clamp at 7; the rind with the clamp at 7. The wrapper's run is the run a clamp in the engine would make at 2 and above, and not at 1.5, 1 or 0 (see the header); probe-clamp-in-engine.mjs makes both.
       broth, clamp 7   largest fill of the run 100.0 / 100.0 / 100.0 %; first step at fill >= 0.7 93 / 92 / 95; at >= 0.999 141 / 138 / 144; last step anything grew 142 / 138 / 145
                        feldspar 10.0 / 9.6 / 10.0 mm; albite 10.7 / 9.9 / 11.0; quartz — / — / —; tourmaline 6.9 / 6.8 / 6.8; topaz 0.24 / 0.21 / 0.29
                        share of the cavity's volume at run end, %, the three largest: feldspar 82.5, tourmaline 8.5, albite 8.5 / feldspar 81.2, tourmaline 9.8, albite 7.8 / feldspar 80.4, tourmaline 12.2, albite 5.9

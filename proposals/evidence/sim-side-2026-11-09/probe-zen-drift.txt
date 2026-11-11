@@ -51,4 +51,23 @@ PART 2 — one step after the write, seed 42; each line gives the value before t
 
   control: every simulator of Part 2 is the one Part 1 read at that seed
 
+PART 3 — each of the 41 scenarios in Zen's own simulator, seed 42, by run_step alone for the scenario's own length; time scale 1
+  scenario object absent in all 41; events none in all 41
+  the localized-nucleation envelope goes up in 2 of the 41: stalactite_demo on 100 of 100 steps (per-vertex nucleation on the wall: yes; thermal field active at the end: no); zoned_dripstone_cave on 150 of 150 steps (per-vertex nucleation on the wall: yes; thermal field active at the end: no)
+  in the scenarios' own runs the census finds it in 4 (census-seed-42.json): naica_geothermal 61/320, stalactite_demo 100/100, wittichen 51/220, zoned_dripstone_cave 150/150
+    naica_geothermal in Zen: on 0 of 320 steps; per-vertex nucleation on the wall: no; thermal field active at the end: no
+    stalactite_demo in Zen: on 100 of 100 steps; per-vertex nucleation on the wall: yes; thermal field active at the end: no
+    wittichen in Zen: on 0 of 220 steps; per-vertex nucleation on the wall: no; thermal field active at the end: no
+    zoned_dripstone_cave in Zen: on 150 of 150 steps; per-vertex nucleation on the wall: yes; thermal field active at the end: no
+    naica_geothermal, its own run: per-vertex nucleation on the wall at the start: no, at the end: yes; thermal field active at the end: no; weathering epilogue on the scenario object: from step 260, localized nucleation on. In Zen: scenario object absent, a weathering epilogue began: no
+    stalactite_demo, its own run: per-vertex nucleation on the wall at the start: yes, at the end: yes; thermal field active at the end: no; weathering epilogue on the scenario object: none. In Zen: scenario object absent, a weathering epilogue began: no
+    wittichen, its own run: per-vertex nucleation on the wall at the start: no, at the end: yes; thermal field active at the end: no; weathering epilogue on the scenario object: from step 170, localized nucleation on. In Zen: scenario object absent, a weathering epilogue began: no
+    zoned_dripstone_cave, its own run: per-vertex nucleation on the wall at the start: yes, at the end: yes; thermal field active at the end: no; weathering epilogue on the scenario object: none. In Zen: scenario object absent, a weathering epilogue began: no
+  control: the same counter on those 4 own runs, at time scale 5, gives naica_geothermal 61/320, stalactite_demo 100/100, wittichen 51/220, zoned_dripstone_cave 150/150: the census's counts
+  scenarios whose scenario object authors a thermal source, a thermal field or a wall-rock thermal buffer: none; that author a weathering epilogue: naica_geothermal, wittichen
+  a uraninite is on record in 2 of the 41 Zen simulators: radioactive_pegmatite, schneeberg
+    radioactive_pegmatite, 120 steps: 3 uraninites, the largest 4.0 mm; Pb on the bulk handle 30.0 → 100.7 ppm; lowest..highest voxel at the end 30.00..30.00; the pocket 80 % full
+    schneeberg, 160 steps: 3 uraninites, the largest 3.5 mm; Pb on the bulk handle 5.0 → 87.3 ppm; lowest..highest voxel at the end 5.00..5.00; the pocket 1 % full
+  the bulk handle's Pb ends where it started in 39 of the 39 with no uraninite
+
 control at the end: the time scale reads 5; gem_pegmatite's shipped run at seed 42 still reproduces the baseline

@@ -121,9 +121,12 @@ single execution ledger for the science-first AAA completion branch.
     Size select the bounded pocket is full at step 97–99, and no value alone mends that
     (with the pair holding no solid, quartz and tourmaline seal the vug at step 174–176),
     nor does any other single course of the doc's §4; one pair of changes of the eight run
-    does, at the price of the pocket's quartz. That setting fills 16–17 of the 41 scenarios
-    as shipped (3 in their own cavities), so the size is a question for the form as much as
-    for this bound, and the recommendation does not hold it. It does not
+    does (the changed broth with the pair clamped at 1, by the preview's wrapper or by a
+    clamp written into the engine), at the price of the pocket's quartz. One of the 41
+    scenarios is an open surface with no pocket to fill (`great_salt_plains`); of the other
+    40 that setting fills 15–16 as shipped (3 in their own cavities), so the size is a
+    question for the form as much as for this bound, and the recommendation does not hold
+    it: the doc would accept it in this bump and put the question to SC4's pilot. It does not
     reach Zen mode, which drops the scenario object and runs at a fifth of the time scale
     (its `gem_pegmatite` plugs at step 32–33), or Random Vugg's pegmatite archetype, where
     the plug was first reported, which has no scenario (3 of 8 cavities of its pocket size
@@ -154,11 +157,13 @@ single execution ledger for the science-first AAA completion branch.
     galena, with a source. The held release leaves the cation gate's two numbers as
     commissioned and adds one field to the simulator (saves replay a run and need no new
     field); the continuous one moves the gate's share by 62 times the tolerance. Where the
-    game starts that fluid without the scenario's events (Creative mode's starter fluid, a
-    Zen run; neither has a license) a run left to itself does not alter its uraninite: the
-    held release releases nothing there (one Drain by the player in Creative mode does
-    release it), and the continuous one grows a galena of 8–10 mm in the starter fluid and
-    half a millimetre in a Zen pocket that is full by step 200. Under either
+    game grows a uraninite with no event to alter it (Creative mode's starter fluid of that
+    broth, Zen runs of the two uraninite scenarios; none has a license) a run left to itself
+    does not alter its uraninite: the held release releases nothing there (a Drain or an
+    Evaporate by the player in Creative mode releases what is held by then), and the
+    continuous one grows a galena of 8–10 mm in the starter fluid, half a millimetre in a
+    Zen run of `radioactive_pegmatite` whose pocket is full by step 200, and 21–23 mm in a
+    Zen run of `schneeberg`. Under either
     timing `schneeberg`'s two largest crystals are named amazonite on their cards where they
     are named microcline today; the cavity view draws them as before; and where the game
     shows them zone by zone (the step log, the zone-history bar) the held release puts the
@@ -166,7 +171,8 @@ single execution ledger for the science-first AAA completion branch.
     the two uraninite scenarios: preview the second to land on the tree the first leaves.
   - [ ] SC4 — decide whether to pilot a supply with a scale above the cell: a physical debit, a feed
     from the authored `flow_rate` (assigned 103 times, read by no growth code), a clock. Overlaps
-    the reservoir arc of PRs #35–#39 and #42.
+    the reservoir arc of PRs #35–#39 and #42. Its pilot is asked to report on the form's
+    15 mm vug, the cavity no bound on a rate holds.
   - [ ] SC5 — decide whether the census and its mutation tool run at each SIM bump.
   - [ ] Rule on three authored values that sit exactly on a σ threshold (the doc's §3.4):
     `radioactive_pegmatite`'s broth Pb of 30, `schneeberg`'s event pH of 6.0, and the O2 of 1.0
@@ -174,11 +180,12 @@ single execution ledger for the science-first AAA completion branch.
     minimum and the wall cells below it and starts four azurites dissolving. No change is
     proposed.
   - [ ] Rule on Zen mode as the review met it (the doc's §6, decision 8): a Zen run of a
-    scenario has no scenario object, so no license, exclusions, windows or movements (an
-    emerald is on record in its `gem_pegmatite`); and the species and pH writes of Zen's
-    drift stay on the bulk handle, the fluid that births read and not the one that crystals
-    grow from (its temperature write is undone by the next step; its pressure write does
-    reach the crystals). No change is proposed.
+    scenario has no scenario object, so no license, exclusions, windows, movements or
+    weathering epilogue (an emerald is on record in its `gem_pegmatite`); and the species
+    and pH writes of Zen's
+    drift stay on the bulk handle, the fluid that births read in 39 of Zen's 41 simulators
+    and not the one that crystals grow from (its temperature write is undone by the next
+    step; its pressure write does reach the crystals). No change is proposed.
 
 ## P2 — scenario and content science
 

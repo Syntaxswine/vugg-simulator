@@ -31,10 +31,10 @@ a run's cavity and length (§4, SC1). The *scenario object* is `conditions._scen
 set of fields copied from the scenario's authored entry onto a run's conditions when the
 scenario is built (`js/70-events.ts:963`). The license, the exclusions, the nucleation
 windows and the fields an engine reads from the scenario are among them, and a field not
-named there is not carried. *Zen's drift* is what Zen mode applies to the bulk handle before
-each step in place of events: a random walk on temperature, nine fluid species and pH, and a
-2 % chance of a random event (`idleApplyDrift`, `js/98a-ui-zen.ts:116`). §3.1 says what of it
-reaches a crystal. A *size class* is one of three ranges of cavity diameter a wall can be
+named there is not carried. *Zen's drift* is what Zen mode writes to the simulator's
+conditions before each step in place of events: a random walk on temperature, nine fluid
+species and pH, and a 2 % chance of a random event (`idleApplyDrift`,
+`js/98a-ui-zen.ts:116`). §3.3 says what of it reaches a crystal. A *size class* is one of three ranges of cavity diameter a wall can be
 given: vug (5 to 25 mm), pocket (25 to 300 mm) and cave (0.3 to 3 m;
 `js/22-geometry-wall.ts:59`). Random Vugg draws a diameter inside the class. Simulation
 mode's Cavity Size select and Creative mode's own setup take the middle of it: 15, 162.5 and
@@ -90,7 +90,7 @@ has an A/B.
 | S3 | `flow_rate` is authored and feeds nothing | 103 assignments in 22 event files, 11 event lines of scenario data and a Creative slider. No engine, supply or nucleation code reads it. In the 41 scenarios its one reader is the wall's scallop record. | 2.5 |
 | F1 | The pegmatite pocket plugs | `gem_pegmatite` is full at step 9–10 of 230 at seeds 42, 1 and 2; 7 of its 8 events fire into a full pocket. With feldspar and albite bounded, tourmaline reaches 12 mm and topaz appears. Boron is not the lever: tourmaline's boron factor is already at its cap. The same fluid plugs a Zen run of the scenario. In Random Vugg a pegmatite's fluid fills 3 of 8 cavities of the pocket size class, all 8 of the vug class, and 4 of 8 at the size setting that page opens on. | 3.1 |
 | F2 | Three engines propose growth at saturation | Of 183 engines the probe drives 174. Of those, 171 propose a rate that vanishes at σ = 1; galena, molybdenite and uraninite propose half their σ = 2 rate. `reactive_wall`'s galena put on 88 % of its 3.9 mm below σ 1.05. | 3.2 |
-| F3 | Radiogenic lead reaches only the bulk handle | Bulk Pb climbs 30 → 147 ppm (`radioactive_pegmatite`) and 5 → 179 ppm (`schneeberg`); every voxel stays at 30.00 and 5.00. Latent while that pocket plugs. Outside the scenarios it is the same: 30 → 268–286 ppm in Creative mode's starter fluid of that broth and 30 → 621–682 ppm in a Zen run of the scenario (seeds 42, 1 and 2), every voxel at 30.00. The galena that `radioactive_pegmatite` promises, in its description, its notes and the narration of its last event, is not among the species the scenario licenses. | 3.3 |
+| F3 | Radiogenic lead reaches only the bulk handle | Bulk Pb climbs 30 → 147 ppm (`radioactive_pegmatite`) and 5 → 179 ppm (`schneeberg`); every voxel stays at 30.00 and 5.00. Latent while that pocket plugs. Outside the scenarios it is the same: 30 → 268–286 ppm in Creative mode's starter fluid of that broth, 30 → 621–682 ppm in a Zen run of the scenario and 5 → 1,015–1,035 ppm in a Zen run of `schneeberg` (seeds 42, 1 and 2), every voxel where it started. The galena that `radioactive_pegmatite` promises, in its description, its notes and the narration of its last event, is not among the species the scenario licenses. | 3.3 |
 | — | Counts are authored; a seed changes sizes more than species | Known (story-pocket WP7 and WP9; PR #45). Re-measured in §2.3 and §2.4 because they belong to the same structure. | 2.3, 2.4 |
 
 Most of these readings have ancestors in the tree, which the first four versions of this
@@ -130,8 +130,9 @@ sets out and §6 puts to the owner.
   mode's form lets a player choose the cavity as well as the length. In its smallest
   cavity, a 15 mm vug, the bounded pocket seals at step 97 to 99, and no bound on the pair
   alone would keep it open: with the pair holding no solid at all, quartz and tourmaline
-  seal that vug at step 174 to 176. That setting fills 16 or 17 of the 41 scenarios as
-  shipped, where three fill in their own cavities. The bound does not reach
+  seal that vug at step 174 to 176. That setting fills 15 or 16 of the 40 scenarios that
+  have a pocket to fill, as shipped, where three fill in their own cavities (the
+  forty-first is authored as an open surface). The bound does not reach
   Zen or Random Vugg. A Zen run of the same scenario leaves the
   scenario's entry behind and would plug as it does today, at step 32 or 33 on Zen's slower
   clock. Random Vugg's pegmatite archetype, where the owner first reported the plug, has no
@@ -154,14 +155,16 @@ sets out and §6 puts to the owner.
   texts, one of them the narration the player reads. Under either timing `schneeberg`'s two
   largest crystals are named amazonite where they are named microcline today, though the
   cavity view draws them as before, while `radioactive_pegmatite` shows nothing until its
-  pocket stays open. The timings also part where the game starts that scenario's fluid
-  without its events, in Creative mode's starter fluid and in a Zen run, neither of which
-  has a license. Left to itself such a run does not alter its uraninite. Held, the lead is
-  then not released, until a player oxidizes the pocket: one Drain in Creative mode
-  releases it. Released every step, it grows a galena of 8 to 10 mm in the starter fluid,
-  and one of half a millimetre in a Zen pocket that is full by step 200.
+  pocket stays open. The timings also part where the game grows a uraninite with no event
+  to alter it: in Creative mode's starter fluid of that broth and in Zen runs of the two
+  uraninite scenarios, none of which has a license. Left to itself such a run does not
+  alter its uraninite. Held, the lead is then not released, until a player oxidizes the
+  pocket: a Drain or an Evaporate in Creative mode releases what is held by then. Released
+  every step, it grows a galena of 8 to 10 mm in the starter fluid, one of half a
+  millimetre in a Zen run of the scenario, whose pocket is full by step 200, and one of 21
+  to 23 mm in a Zen run of `schneeberg`.
 
-**This document has been corrected ten times, each time by its own review round.** The first
+**This document has been corrected eleven times, each time by its own review round.** The first
 version said supply does not bind. The second costed the recommended fixes too lightly. The third
 counted a crystal that had dissolved away as still present, and recommended a lead mechanism that
 cannot work. The fourth left out a gate that the recommended change trips, and put two coupled
@@ -178,10 +181,17 @@ another value for it, when no bound on the pair keeps that cavity open; and it c
 Random Vugg's plugs in one of that mode's three size classes. The tenth then said that no
 course holds that cavity either, having run each course alone, when two of them together
 do, at a price; it said of a size class what it had run on eight cavities of it; and it
-read all of Zen's drift as written to the bulk handle, when one part of it is not. In the
-last seven rounds the measured numbers have held, and the source lines cited were the
-lines. What has gone wrong is what this document says about the cost and the reach of its
-own proposals, and that one reading. §9 lists every correction.
+read all of Zen's drift as written to the bulk handle, when one part of it is not. The
+eleventh counted, among the pockets that fill in the form's smallest cavity, a scenario the
+owner has authored as an open surface, which the game never seals; it said the preview
+could not stand for the one pair of changes that holds that cavity, when a clamp written
+into the engine gives the same result; and it carried a count of four scenarios from
+Simulation mode into Zen, where it is two. From the fourth round to the tenth the measured
+numbers held, and the source lines cited were the lines: what went wrong was what this
+document says about the cost and the reach of its own proposals, and one reading. In the
+eleventh a headline count was one too high as well, because a probe counted pockets by a
+fill the game does not use, and one cited line was two lines out. §9 lists every
+correction.
 
 ## 1. What was run
 
@@ -206,7 +216,7 @@ receipt, and the budget receipt, ignored; the voxel mean read from the bulk hand
 recorded as 0, and as 1; the stop never recorded; the crystal's own cell read from the bulk handle;
 the ingredients never restored; the license, the exclusion list and the nucleation window never
 asked; the localized-nucleation envelope not put up; and the engine's view read after the step's
-diffusion instead of at the dry run, which is the error the first version of this census made.
+diffusion instead of at the dry run (trap 8).
 Each control fails on its mutant, and the tool lists any control no mutant aims at (none). The
 tool has a limit of its own. It runs a mutant on the scenarios its one control needs and judges
 that control alone, so it does not show what else a mutant breaks, or that a control fails for
@@ -269,20 +279,22 @@ prerequisite test, which reads zero in every run, and every cause the `_wallStra
 attribution can name except a missing ingredient; and, within the draw-down reading of §2.1,
 every answer of the one-further-field search except pH.
 
-Fifteen small probes are committed beside their outputs in
-`proposals/evidence/sim-side-2026-11-09/`. Thirteen carry statements of their own: the range of σ
+Sixteen small probes are committed beside their outputs in
+`proposals/evidence/sim-side-2026-11-09/`. Fourteen carry statements of their own: the range of σ
 each scenario's bulk fluid covers for feldspar, albite and quartz (§3.1); the history of a few
 headline crystals across the 258 committed baselines (§3.1, §3.4); whether a wrapped σ method
 stays in force during nucleation (§7); one fluid field on a mineral's own cells against the
 bulk handle (§2.1); what the side doors on the count gates are made of (§2.3); when radiogenic
-lead is released against whether galena is licensed, in the scenario and in three places
-where the game runs such a fluid without its events (§4, SC3); which crystals of `schneeberg`
+lead is released against whether galena is licensed, in the scenario and in other places
+where the game grows a uraninite (§4, SC3); which crystals of `schneeberg`
 survive only inside another (§4, SC1); what each previewed change does to the two numbers the
 cation gate commissions (§4); where else the game builds a pegmatite's fluid, and what a bound
 does there, in other cavities and at eight more seeds (§3.1; §4, SC1); how many steps that bound buys before the
-pocket fills, where the game lets a run go on past the scenario's length (§4, SC1); what
+pocket fills, where the game lets a run go on past the scenario's length (§4, SC1); whether
+the wrapper that previews that bound is the clamp an engine would apply (§4, SC1; §7); what
 every scenario does, as shipped, in the smallest cavity Simulation mode's form offers (§3.1);
-which of the writes Zen mode's drift makes reach the fluid a crystal grows from (§3.3); and the
+which of the writes Zen mode's drift makes reach the fluid a crystal grows from, and which
+of Zen's 41 simulators put up the nucleation envelope or grow a uraninite (§3.3); and the
 first-appearance windows the locality gate holds, under each previewed change (§4). Two run no simulation and read the A/B
 outputs and census reports in that folder: one prints the counts this document draws from
 them, the other holds each previewed change to the locality gate's tiers (§4).
@@ -295,8 +307,10 @@ folder (§2.1).
 author's working directory under `.local-evidence/review-rN/`, which the repository ignores.
 Where this document cites one ("the sixth round ran", "by the seventh round's run"), the
 number was checked against that round's output file, and it cannot be reproduced from the
-committed tree: a reader has this document's word for it. Each such statement says *not
-committed* where it stands. They are of eight kinds: copies of the census that over-count
+committed tree: a reader has this document's word for it. In §1 to §8 each such statement
+says *not committed* where it stands. §9 lists what each round found, and the runs it
+cites there are the rounds' own unless an entry says a probe here now makes them. They are
+of eight kinds: copies of the census that over-count
 (above; trap 21); copies of the census with a proposed change installed (§4, SC2 and SC3;
 trap 5; §7); a run of the agent API's fluid preset (§3.3); `schneeberg` opened in Creative
 mode (§6, decision 3; §7); a looser clamp tried against an earlier acceptance line for Zen
@@ -468,9 +482,9 @@ store a tenth or more there as well: `naica_geothermal` 76 %, `jeffrey_mine` 32 
 change. The three scenarios whose baseline the arm leaves unchanged are `great_salt_plains`,
 `tutorial_first_crystal`, and `marble_contact_metamorphism`, which grows nothing.
 
-The arm is not a closed system, and it has to be shown to change nothing but what it names. The
-first version of it tripped the carbonate boundary's audit and so cancelled an authored event
-(§5, trap 10). The repaired arm leaves every audit the tool reads as the shipped arm has it, in
+The arm is not a closed system, and it has to be shown to change nothing but what it names. An
+arm of this kind can trip the carbonate boundary's audit and so cancel an authored event
+(§5, trap 10). This one leaves every audit the tool reads as the shipped arm has it, in
 all 123 runs.
 
 **Nothing above the cell binds.** The same ledger, read at the scale of the cavity:
@@ -551,7 +565,11 @@ in 7 and > 70 % in 6. Three reach fill ≥ 0.999: `gem_pegmatite` at step 9–10
 `radioactive_pegmatite` at step 55–61 of 120, and `searles_lake` at step 134–188 of 300 (an evaporite
 that re-dissolves and refills; it ends 88–91 % full). The other three above 70 % at seed 42 are
 `bisbee` (96 %), `shigar_pegmatite` (92 %) and `sunnyside_american_tunnel` (85 %), where the fill
-dampener of `js/85d` (it starts at fill 0.7) is slowing growth and has not yet stopped it. The
+dampener of `js/85d` (it starts at fill 0.7) is slowing growth and has not yet stopped it. One
+of the 41 is not a pocket. `great_salt_plains` is authored as an open surface (`open_system`
+on its wall, `data/scenarios.json5:1555`): the step reads its fill as 0, so its growth is never
+dampened for fill and it is never sealed (`js/85-simulator.ts:501`, `:627`). Its 5 to 6 % in
+this count is its crystals' volume over its basin's, a number the game does not use. The
 split is an old observation. The high-fill research of May 2026 found 6 of its 24 scenarios
 approaching a full pocket and 15 never passing a tenth full, and its proposals gave the
 simulator the dampener (`RESEARCH-GROWTH-AT-HIGH-FILL.md` §2). Its last proposal, a fill read
@@ -642,11 +660,14 @@ active (`probe-side-doors.txt`). The census evaluates neither. So the side-door 
 bound on the species-steps that could still have rolled, and "seven in ten" is a lower bound on
 those where an authored count rule stood in the way.
 
-**Four scenarios do not read the bulk handle.** Where a scenario nucleates per vertex or has an
-active thermal field, `check_nucleation` wraps every σ method for the length of the pass so that
+**Four scenarios do not read the bulk handle.** Where a wall nucleates per vertex or a thermal
+field is active, `check_nucleation` wraps every σ method for the length of the pass so that
 it returns the maximum over the wall cells (`_installLocalizedNucleationEnvelope`, `js/85b`). That
-holds on every step of `zoned_dripstone_cave` and `stalactite_demo`, on 61 of `naica_geothermal`'s
-320 and on 51 of `wittichen`'s 220. The census puts the same envelope up for its reading and
+holds on every step of `zoned_dripstone_cave` and `stalactite_demo`, whose walls author
+per-vertex nucleation, and on 61 of `naica_geothermal`'s 320 steps and 51 of `wittichen`'s
+220: the steps of their weathering epilogues, which switch per-vertex nucleation on when
+they begin (`js/44e-weathering-epilogue.ts:242`). No scenario authors a thermal field
+(`probe-zen-drift.txt`, its third part). The census puts the same envelope up for its reading and
 takes it down again. It changes the count in one place: `zoned_dripstone_cave`'s aragonite is
 past σ_crit on the envelope and not on the bulk handle on all 150 steps, because its ceiling zone
 is authored richer than the bulk. No species-step goes the other way.
@@ -918,17 +939,23 @@ fluid in other ways, and five were run, each through the game's own builder or c
   with room enough for 230 steps is one sized for half-metre feldspars.
 - *The same vug for every scenario.* The form offers its sizes to every scenario, so all 41
   were run at the vug setting as shipped, through the same command runtime
-  (`probe-form-vug-fleet.txt`; seeds 42 / 1 / 2; at that setting the wall reports 9 to
-  17 mm across the fleet, and 15 for `gem_pegmatite`). There 16 / 17 / 16 of the 41 reach
-  fill ≥ 0.999 inside their own length and 19 / 20 / 20 pass 0.7, where 3 and 6 do in their
-  own cavities at every seed. Fifteen fill at all three seeds. In six of them the largest
-  share of the vug at seed 42 is feldspar's or albite's: the three pegmatites, `ouro_preto`,
-  `schneeberg` and `tormiq_alpine_cleft`. In the other nine it is another mineral's:
-  calcite in `reactivated_fluorite_vein` and `sunnyside_american_tunnel`, molybdenite in
-  `porphyry`, thenardite in `searles_lake`, selenite in `great_salt_plains`, chalcopyrite in
-  `bisbee`, malachite in `supergene_oxidation`, hessite in `epithermal_telluride` and
-  marcasite in `sulphur_bank`. So a pocket that fills in that vug is not this scenario's
-  matter alone, and not the pair's alone.
+  (`probe-form-vug-fleet.txt`; seeds 42 / 1 / 2). The setting does not build one cavity.
+  The simulator sets the wall's diameter to that of a sphere of the built cavity's volume
+  (`js/85-simulator.ts:109`; `js/22-geometry-wall.ts:476`), and the architectures build
+  different volumes from the same 15 mm: across the fleet the wall is built 9.3 to 16.8 mm across and holds 0.42 to
+  2.49 cm³, the two clefts and the three basins the least (15.3 mm and 1.87 cm³ for
+  `gem_pegmatite`). One of the 41 has no pocket to fill. `great_salt_plains` is authored
+  as an open surface, and the step reads its fill as 0 (§2.2; §3.4). Of the other 40,
+  15 / 16 / 15 reach fill ≥ 0.999 inside their own length and 18 / 19 / 19 pass 0.7, where
+  3 and 6 do in their own cavities at every seed. Every one of the 55 runs that reaches
+  0.999 is a run the simulator itself sealed, and none of the other 185 is. Fourteen fill
+  at all three seeds. In six of them the largest share of the vug at seed 42 is feldspar's
+  or albite's: the three pegmatites, `ouro_preto`, `schneeberg` and `tormiq_alpine_cleft`.
+  In the other eight it is another mineral's: calcite in `reactivated_fluorite_vein` and
+  `sunnyside_american_tunnel`, molybdenite in `porphyry`, thenardite in `searles_lake`,
+  chalcopyrite in `bisbee`, malachite in `supergene_oxidation`, hessite in
+  `epithermal_telluride` and marcasite in `sulphur_bank`. So a pocket that fills in that
+  vug is not this scenario's matter alone, and not the pair's alone.
 - *Random Vugg*, the mode of the first report. Its `pegmatite` archetype draws a broth at random
   (SiO2 4,000 to 14,000 ppm, K 50 to 130, Na 35 to 90, Al 20 to 50; `buildRandomScenario`,
   `js/96-ui-random.ts:71`) and a cavity from the size class, and makes no scenario object. On
@@ -1002,8 +1029,10 @@ fluid in other ways, and five were run, each through the game's own builder or c
   were stopped.
 
 Zen mode's missing scenario object is wider than this finding. A Zen run of a scenario has none
-of its license, exclusion list, nucleation windows, movements or thermal field
-(`js/85j-movements.ts:174`, `:179`; `js/85-simulator.ts:247`, `:565`). In the Zen runs of
+of its license, exclusion list, nucleation windows, movements or weathering epilogue, nor
+would it have a thermal field if a scenario authored one
+(`js/85j-movements.ts:174`, `:179`; `js/44e-weathering-epilogue.ts:17`;
+`js/85-simulator.ts:247`, `:565`). In the Zen runs of
 `gem_pegmatite` made by `run_step` alone, emerald is on record at all three seeds, and that
 scenario excludes emerald by name; so is opal, which it does not license. In the game's own
 loop the emerald is on record at all three seeds by the time the pocket is full. Whether Zen
@@ -1111,27 +1140,47 @@ handle is what the broth panel shows and what nucleation gates read, so the scen
 lead-rich while no crystal can reach the lead. `_wallStrangledFor` then blocks births that the bulk
 σ admits, because no wall cell clears the threshold.
 
-The write is in the simulator's step, which every mode shares, so it is not confined to
-those 41 runs. It was measured in three places where the game runs a fluid that grows
-uraninite without the scenario's events. The bulk handle's lead climbs from 30 to 268 to
-286 ppm in 120 steps of Creative mode's starter fluid of this broth, from 30 to 621 to
-682 ppm in 600 steps of a Zen run of the scenario, and from 0 to 132 and 173 ppm in two
-runs of Random Vugg's pegmatite archetype, with every voxel where it started in each
-(§4, SC3; `probe-lead-choices.txt`). A fourth such place, the preset of the same broth on
-Creative mode's setup panel, was read and not run.
+The write is in the simulator's step, which every mode shares, so it is made wherever a
+uraninite is active, and not only in those 41 runs. Where else the game grows a uraninite
+was looked for by search and by run. What follows is a list, not a count, and a place it
+misses is not covered.
+
+- *Zen mode* offers every scenario and leaves its events behind. Of its 41 simulators at
+  seed 42, stepped for the scenario's own length without the drift, two put a uraninite on
+  record, `radioactive_pegmatite` and `schneeberg`, and in the other 39 the bulk handle's
+  lead ends where it started (`probe-zen-drift.txt`, its third part). By the game's own
+  loop, with the drift, the bulk handle's lead climbs from 30 to 621 to 682 ppm in 600
+  steps of the first, and from 5 to 1,015 to 1,035 ppm in 600 steps of the second.
+- *Creative mode.* Of its seven starter fluids one carries uranium, the one synced to
+  `radioactive_pegmatite` (`js/97-ui-fortress.ts:37` to `:73`). Started from the Scenarios
+  picker, it takes the bulk handle's lead from 30 to 268 to 286 ppm in 120 steps. The same
+  entry is a preset on that mode's setup panel, and the panel has a uranium slider of its
+  own, as the live broth panel has (`index.html:4015`, `:4121`; `js/97-ui-fortress.ts:160`,
+  `:997`). So a player can put uranium into any run built there, with no events, at
+  whatever temperature and in whatever cavity the panel holds. Those were read and not run.
+- *Random Vugg.* Its builder draws uranium in one of its seven archetypes, the pegmatite,
+  into about a third of that archetype's fluids (`js/96-ui-random.ts:77`). Two of the eight
+  seeds run grew a uraninite, and the bulk handle's lead went from 0 to 132 and to 173 ppm.
+
+In every one of these runs each voxel ends with the lead it started with
+(§4, SC3; `probe-lead-choices.txt`).
 
 Zen mode also has writes of this kind, at the scale of the whole mode. Its drift is
 applied to the simulator's conditions before each step, outside any snapshot and propagate
 pair (`js/98a-ui-zen.ts:116` to `:198`): the walk on nine species and on pH, the walk on
 temperature, and the four of its five random events that write anything, which are a
-thermal pulse, an injection that multiplies one species by 2 to 6, a shift of pH with a
-drop of pressure, and a cooling that cuts silica to 0.6 of its value. What becomes of each
+thermal pulse, an injection that sets one species to 2 to 6 times the larger of its value
+and 10 ppm, a shift of pH with a drop of pressure, and a cooling that cuts silica to 0.6 of
+its value. What becomes of each
 kind of write was measured on Zen's own simulator for three scenarios, `mvt`,
 `gem_pegmatite` and `radioactive_pegmatite`, at seeds 42, 1 and 2 (`probe-zen-drift.txt`).
-The writes were made about as large as one random event makes them.
+The pH, temperature and pressure writes were made about as large as one random event makes
+them. The species write is larger than any one event: it multiplies all nine species at
+once, where an event multiplies one.
 
-- *Species and pH stay on the bulk handle.* With each of the nine species multiplied by 4,
-  or the pH lowered by 0.75, the σ that a crystal's engine reads on its own cell changes for
+- *Species and pH stay on the bulk handle.* With each of the nine species set to four times
+  the larger of its value and 10 ppm, as the injection sets one of them, or with the pH
+  lowered by 0.75, the σ that a crystal's engine reads on its own cell changes for
   none of the 4 to 33 active crystals in any of the nine simulators. On the bulk handle the
   species write changes σ for every one of their minerals but one, and the pH write for up
   to three of them. One step later the bulk handle still holds the write and the voxels
@@ -1142,7 +1191,7 @@ The writes were made about as large as one random event makes them.
   −50 °C to the conditions changes no σ on a cell. One step later the conditions'
   temperature is where a step with no write leaves it (148.4 °C in `mvt`, after a write
   from 150 to 100).
-- *Pressure reaches the crystals.* The pressure the crack event lowers (`:186`) is not a
+- *Pressure reaches the crystals.* The pressure the crack event lowers (`:184`) is not a
   fluid field. A crystal's engine is called with its cell's fluid and temperature swapped
   in and the conditions' pressure left as it is (`js/85b-simulator-nucleate.ts:1349`), and
   the write is still there a step later. Among the σ functions that read it are thirteen
@@ -1152,8 +1201,17 @@ The writes were made about as large as one random event makes them.
   from 2.54 to 4.74. In the two pegmatites it changes no σ, on a cell or on the handle.
 
 So in these Zen simulators the species and the pH of the bulk handle drift, and those of
-the cells that crystals grow from do not. Births read the bulk handle in all but the four
-scenarios of §2.3. That is F3's defect, by design or not, and it is put to the owner with
+the cells that crystals grow from do not. Births read the bulk handle, except where a
+simulator puts up the envelope under which a birth reads the wall cells (§2.3). Four
+scenarios put it up in their own runs. In Zen two of the 41 do, `stalactite_demo` and
+`zoned_dripstone_cave`, whose walls author per-vertex nucleation, and on every step. The
+other two, `naica_geothermal` and `wittichen`, owe it to their weathering epilogues, which
+switch per-vertex nucleation on when they begin (§2.3). An epilogue is read from the
+scenario object (`js/44e-weathering-epilogue.ts:17`), which Zen leaves behind. In Zen no
+epilogue begins, and those two put the envelope up on no step (seed 42, the scenario's own
+length, without the drift; `probe-zen-drift.txt`, its third part). So in 39 of Zen's 41 simulators births read the bulk handle, which is where
+the drift's writes to the species and to pH stay; and in the three simulators read above no
+crystal reads them. That is F3's defect, by design or not, and it is put to the owner with
 the rest of what this review met in Zen (§6, decision 8).
 
 **A/B.** Two arms send the lead somewhere else. `pb` also adds the same increment to every voxel,
@@ -1318,7 +1376,7 @@ there.
 
 | Scenario | The authored value | The edge it sits on | What follows |
 |---|---|---|---|
-| `radioactive_pegmatite` | the broth's Pb, 30 ppm | `supersaturation_plumbogummite` returns 0 when Pb is under 30 (`js/38-supersat-phosphate.ts:268`) | With no radiogenic lead the bulk handle holds exactly 30 and plumbogummite is still born, once at each seed (`nopb`, §3.3). An arm that added the lead and subtracted it again left the handle a rounding error under 30 and no plumbogummite at two seeds of three. The third version of this document reported that as a cost of SC3 (§9). |
+| `radioactive_pegmatite` | the broth's Pb, 30 ppm | `supersaturation_plumbogummite` returns 0 when Pb is under 30 (`js/38-supersat-phosphate.ts:268`) | With no radiogenic lead the bulk handle holds exactly 30 and plumbogummite is still born, once at each seed (`nopb`, §3.3). An arm that added the lead and subtracted it again left the handle a rounding error under 30 and no plumbogummite at two seeds of three (trap 12). |
 | `schneeberg` | the step-85 event sets pH to 6.0 (`js/70d-pegmatite-radioactive.ts:72`) | `supersaturation_uranophane` multiplies by 1.3 from pH 6.0 to 7.5 and by 0.625 just under 6.0 (`js/39-supersat-silicate.ts:1002`) | The bulk handle reads 6.0000 on every step its uranophane grows and the cells sit a hair under it, so the two fluids are on opposite sides of the edge on 112 / 165 / 163 of 165 crystal-steps (§2.1). |
 | `supergene_oxidation` | the step-160 event sets O2 to 1.0 (`js/70i-supergene.ts:173`) | azurite's σ is 0 below a redox minimum of 1.0 (`js/32-supersat-carbonate.ts:237`, `:682`) | The bulk handle lands on the minimum and every ring's voxel mean below it (§3.3). Four azurites of 2.5 to 3.3 mm start to dissolve at that step and six arsenates stop, while the bulk handle reads azurite at or above saturation (§2.2). Over the run `_wallStrangledFor` refuses azurite 39 / 18 / 39 times for want of oxygen in the wall cells (§2.3). |
 
@@ -1380,15 +1438,22 @@ at seed 42, 71 of the 74 crystals that hold solid are past that threshold
 metamict is a question for the sources. This was read in one run, on the way to following what
 SC2 moves (§4), and nothing is proposed for it.
 
-**A fill can pass 100 %.** The step clamps a zone to the room the cavity has left
-(`js/85-simulator.ts:947`). Two cases here pass it all the same. At the vug setting of
-Simulation mode's form, `great_salt_plains` as shipped reports a largest fill of
-2,834 / 2,877 / 2,711 %, on selenite, in a cavity the wall reports as 10 mm
-(`probe-form-vug-fleet.txt`). And in `gem_pegmatite`'s vug the fill switch and the rind end
-113 % full at seed 42 (§4, SC1). No run of the 41 scenarios in their own cavities does, at
-these three seeds. The tenth review round traced the second case (not committed): the clamp
-sized a new feldspar's first zone under the habit the crystal was born with, and the zone
-was stored under another. The first case was not traced. Nothing is proposed for either.
+**A fill above 100 %.** The step clamps a zone to the room the cavity has left
+(`js/85-simulator.ts:947`), and two readings here pass 100 % all the same. They are not one
+thing. The first is by design. `great_salt_plains` is authored as an open surface, a salt
+plain that "never runs out of room" (`open_system`, `data/scenarios.json5:1550`; the
+owner's directive of 2026-06-22). The step reads the fill of such a cavity as 0
+(`js/85-simulator.ts:501`), so the clamp sizes every zone to the whole cavity and never to
+the room left. At the vug setting of Simulation mode's form its crystals come to
+2,834 / 2,877 / 2,711 % of the capacity of a wall built 10 mm across (0.60 cm³), and the
+plain is never sealed, grows to its last step and goes on nucleating
+(`probe-form-vug-fleet.txt`). That is the open system doing what it is authored to do, in
+a cavity the form let a player shrink. The second is an overshoot. In
+`gem_pegmatite`'s vug the fill switch and the rind end 113 % full at seed 42 (§4, SC1). The
+tenth review round traced it (not committed): the clamp sized a new feldspar's first zone
+under the habit the crystal was born with, and the zone was stored under another. No run of
+the other 40 scenarios as shipped passes 100.5 %, in its own cavity or in the form's vug,
+at these three seeds. Nothing is proposed for either.
 
 ## 4. What I would change, and in what order
 
@@ -1640,11 +1705,23 @@ clamp; and then under eight pairs of those changes made together.
 | the fill switch with the rate clamped at 7 | 93 / 100 / 104 | not by step 230 at seeds 42 and 1, which end 92 and 98 % full; 152 at seed 2 | quartz 48 to 60 | met at none |
 | the rind with the rate clamped at 7 | 76 / 77 / 79 | 177 / 172 / 175 | quartz 70 to 74, feldspar 16 to 17 | met at none |
 
-The clamp is previewed by a wrapper, which is what a clamp inside the engine would be at 2
-and above. At 1.5 and at 1 it is not, and at 0 it removes the pair (§7). Those rows show a
-vug with less of the pair than any value that was run stands for. A share above 100 % is
-growth that overshot the cavity in the step that sealed it. The eight pairs in the table
-are the pairs that were run; no other pair was, and no three changes together.
+Every clamp in this table is made by a wrapper round the engine, which rescales the zone
+the engine returns. SC1 would write the clamp inside the engine. `probe-clamp-in-engine.txt`
+makes both runs side by side: for the recommended bound in the scenario's own cavity, for
+eight of this table's twelve clamped rows, and in three other places the clamp at 7 has
+been previewed. At 2 and above the two are one run, in all 22 pairs made: the same
+baseline-style summary, and a fill that agrees at every step to the last binary place. At
+1.5, 1 and 0 they are different runs, in all 18 pairs. At 1.5 and at 1 a clamp in the
+engine puts feldspar's rate under the 4 at which the engine rolls for an inclusion, and
+under the wrapper the roll is still made; at 0 the engine returns nothing, where under the
+wrapper it runs as shipped and its zone is rescaled to nothing. They end close. The fill at the end of the run is within
+0.6 of a point, the step at which the fill passes 0.7 within 10 steps, the step at which
+the pocket is full within 3, and the first acceptance line has the same verdict under both
+forms in all 18 pairs. So the rows at 1.5 and at 1 stand for a clamp in the engine at those
+values to within those margins, and the rows at 0 show the vug without the pair (§7). A
+share above 100 % is growth that overshot the cavity in the step that sealed it. The eight
+pairs in the table are the pairs that were run; no other pair was, and no three changes
+together.
 
 Five things follow.
 
@@ -1657,8 +1734,9 @@ Five things follow.
    to 53 or 54. With the pair held to 4 to 6 mm (E = 1) the pocket passes 0.7 only 15 steps later and
    seals 4 or 5 steps later, 98 % of it quartz. The pair is then a thousandth of the pocket,
    so a tighter bound has nothing more to give: about 15 steps is all the margin a bound on
-   the pair can add. (The E = 1 arm is there to show that. It is not a preview of a value,
-   §7.) This is `radioactive_pegmatite`'s quartz again (§3.1). It is SC4's case, not SC1's.
+   the pair can add. (A clamp of 1 written inside the engine passes 0.7 at the same three
+   steps and seals within a step of the wrapper's; `probe-clamp-in-engine.txt`.) This is
+   `radioactive_pegmatite`'s quartz again (§3.1). It is SC4's case, not SC1's.
 3. *In Zen the horizon is the pair's, and it is minutes long.* There quartz stops at about
    25 mm: it is that size after 400 steps without the drift and after 2,400 with it, by
    which time the fluid is at 25 °C. The pair goes on at the clamped rate, 21 and 28 µm a
@@ -1672,8 +1750,9 @@ Five things follow.
    run does, at a price.* In the 15 mm vug the bounded pocket passes 0.7 at step 62 to 64
    and is full at step 97 to 99, inside the scenario's 230 steps, and the first acceptance
    line fails at every seed. That is not the value of the bound. With the pair holding no
-   solid at all the vug passes 0.7 at step 84 to 86 and is full at step 174 to 176: a 19 mm
-   quartz and tourmalines of 7.3 to 7.7 mm fill 1.9 cm³ between them. So the bound as
+   solid at all the vug passes 0.7 at step 84 to 86 and is full at step 174 to 176 (83 to
+   87 and 173 to 179 with the pair switched off inside the engine): a 19 mm quartz and
+   tourmalines of 7.3 to 7.7 mm fill 1.9 cm³ between them. So the bound as
    recommended costs that vug 20 to 22 steps to 0.7 and 75 to 77 to the seal, against no
    feldspar at all. Each other course of this section, taken alone, leaves the vug past 0.7
    too: the fill switch by step 4; the rind by step 65, and at two seeds by step 2; and the
@@ -1681,19 +1760,24 @@ Five things follow.
    step 132 to 138. Two changes together can keep it open. With the broth changed and the
    pair's rate clamped at 1 the vug ends 49 / 66 / 67 % full, most of that tourmaline, and
    the first acceptance line is met at all three seeds, by 3.5 points of fill at the
-   nearest. Three things qualify that. The arm at 1 is not a preview of a value: at 2, the
-   tightest value the wrapper does stand for, the line is met at seed 42 and fails at seeds
-   1 and 2, where the vug passes 0.7 at step 171 and 173. The pocket is left one quartz
-   crystal of 0.01 mm, and quartz is the one species this scenario calls deterministic.
-   And in the scenario's own cavity the same two changes leave the pocket 1.3 / 1.8 / 1.8 %
-   full. A larger cavity is not a cure for the plug either: as shipped
+   nearest. A clamp of 1 written inside the engine gives the same verdict: the vug ends
+   49 / 66 / 66 % full and the line is met at all three seeds, by 3.8 points at the nearest
+   (`probe-clamp-in-engine.txt`). The value is a narrow one. At 1.5 and at 2 the line is
+   met at seed 42 alone, under either form of the clamp: at seeds 1 and 2 the vug passes 0.7
+   between steps 171 and 220. And the pair has a price in two parts. The pocket is left one
+   quartz crystal of 0.01 mm, and quartz is the one species this scenario calls
+   deterministic. The first acceptance line asks only that a species which has solid as
+   shipped still has some, so that speck passes it. And in the scenario's own cavity the
+   same two changes leave the pocket 1.3 / 1.8 / 1.8 % full. A larger cavity is not a cure
+   for the plug either: as shipped
    the 162.5 mm pocket is full at step 37 to 38, and the 1.65 m cave is open at step 230
    only because nothing fills 2.5 m³ in that time. Its feldspars are 460 to 475 mm.
 5. *That vug is not this scenario's matter alone.* The form offers it to every scenario.
-   As shipped, 16 / 17 / 16 of the 41 scenarios are full inside their own length there,
-   where three are in their own cavities, and in nine of the fifteen that fill at every
-   seed the mineral with the largest share is not feldspar or albite (§3.1). So what
-   happens at that size is a question about the form's setting as much as about this bound.
+   One of the 41 is an open surface with no pocket to fill. Of the other 40, as shipped,
+   15 / 16 / 15 are full inside their own length there, where three are in their own
+   cavities, and in eight of the fourteen that fill at every seed the mineral with the
+   largest share is not feldspar or albite (§3.1). So what happens at that size is a
+   question about the form's setting as much as about this bound.
 
 So the bound is not a cure, in any mode. It gives the scenario's own run, in the scenario's
 own cavity, an open pocket. It gives a longer run a later seal. In the form's smallest
@@ -1753,7 +1837,8 @@ What it costs.
   So the bound as recommended reaches the scenario where the baseline, Quick Play and Creative
   mode start it. In the scenario's own cavity it keeps the pocket under 0.7 full there for
   the scenario's 230 steps and 27 to 29 more; in the form's smallest cavity the pocket does
-  not last the 230, with this bound or with any other on the pair. It does not reach a Zen run of the same scenario, or Random Vugg's pegmatite
+  not last the 230, with this bound or with any other on the pair alone. It does not reach
+  a Zen run of the same scenario, or Random Vugg's pegmatite
   archetype, the mode of the owner's first report. Two ways to widen it were not previewed.
   A field authored under the scenario's wall rides into Zen, which passes the wall through
   (`js/98a-ui-zen.ts:99`), as `per_cell_local_fill` would; a wall field needs a class in the
@@ -1784,8 +1869,9 @@ and with no bound the vug is full at step 2.
   that seeds 1 to 400 draw, ten still fill under the clamp, with quartz holding the largest
   share of six and morganite of four.
   At its vug setting six of the eight cavities still fill under the clamp and all eight
-  pass 0.7, and five still fill with the pair holding no solid, so no value mends that
-  class. At its cave setting none fills with the clamp or without it. At the setting the
+  pass 0.7, and five still fill with the pair holding no solid, so on those eight seeds no
+  value of the clamp alone keeps that class open. At its cave setting none fills with the
+  clamp or without it. At the setting the
   page opens on, which draws a class, one of eight fills where four do as shipped (§3.1).
   Its cost is the E = 7
   column above, with
@@ -1858,6 +1944,13 @@ Pre-registered acceptance for SC1's bump, as recommended:
   the fill by 28 or 29 steps: stepped on, the pocket passes 0.7 at step 258 or 259. As a
   report and not a test, the bump gives that step for its own run, so that the margin is on
   record.)
+- Quartz, the one species the scenario calls deterministic, keeps a crystal of 5 mm or more
+  at each of those seeds. The line above does not ask for that. It asks that a species with
+  solid today still has some, and one quartz crystal of 0.01 mm meets it, as the changed
+  broth shows (above). The preview grows quartz of 36.7 to 37.5 mm at those three seeds,
+  and of 36.6 mm or more at the eight others and at the ten shape seeds. Wherever this
+  section says a run meets or fails "the first acceptance line", it is the line above and
+  not this one.
 - *A report, not a test.* The bump says what the bound does at the form's three other
   cavity sizes. In the preview the first line is met at the pocket and cave sizes and fails
   at the vug size, where the pocket is full at step 97 to 99. This bump is not asked to
@@ -1902,8 +1995,8 @@ chosen, and Shigar's outcome is decided before the bump. (The table has a column
 cation gate's share is commissioned anew (0.521 by the preview at 7) and not restated, and
 there is no scenario field for the Creative lever audit to class. And the last line's
 report becomes a test: a clamp in the engines is carried into every entry, Zen among them,
-so the Zen bar applies. The first line, the two census controls that sit on
-`gem_pegmatite` and the ruling on topaz stand. Which other census controls the general
+so the Zen bar applies. The first line, the line on quartz, the two census controls that
+sit on `gem_pegmatite` and the ruling on topaz stand. Which other census controls the general
 clamp flips, on the seven other scenarios whose baseline it changes, was not predicted.
 A line that no scenario loses a species cannot be met at E = 7.
 
@@ -2164,8 +2257,8 @@ for the cation gate. The closing narration's own sentence about galena from uran
 (§3.3) would then print in that scenario, and with the lead in the cells it would be true.
 The test that counts galena in six scenarios (§3.3) would find five where it finds four.
 That timing also grows a galena where there is no license to consult: 8.3 to 9.7 mm in
-Creative mode's starter fluid of the same name, and about half a millimetre in a Zen run of
-the scenario (below).
+Creative mode's starter fluid of the same name, about half a millimetre in a Zen run of
+the scenario, and 21.5 to 22.5 mm in a Zen run of `schneeberg` (below).
 
 Under either pair the same thing happens to `schneeberg`, and the owner should see it before
 choosing to land SC3 at all: its two largest crystals are named amazonite where they are named
@@ -2181,51 +2274,72 @@ the oxidizing fluid.
 
 Where nothing alters the uraninite, a held release delivers nothing. `grow_uraninite` takes
 a negative zone only below saturation with O2 above 0.3 (`js/57-engines-oxide.ts:79`), and
-in the scenario's own run it is an event that brings the oxygen. The game also runs fluids
-that grow uraninite without the scenario's events. The timings were run in three such
-places, each through the game's own code (`probe-lead-choices.txt`, its last part):
-Creative mode's starter fluid of this scenario's broth; a Zen run of the scenario; and
-Random Vugg's pegmatite archetype, which draws uranium into about a third of its fluids
-(`js/96-ui-random.ts:77`). None of these runs has a scenario object, so none has a license.
-Three numbers are seeds 42 / 1 / 2. Random Vugg's two are seeds 42 and 5, the two of the
-eight run whose fluid grew a uraninite.
+in the scenario's own run it is an event that brings the oxygen. The game also grows
+uraninite where no such event comes; §3.3 lists the places that were found. The timings
+were run in the ones that list has a run for, each through the game's own code
+(`probe-lead-choices.txt`, its last part): Creative mode's starter fluid of this scenario's broth; Random Vugg's pegmatite
+archetype, whose one event is a cooling (`js/96-ui-random.ts:81`); and Zen runs of the two
+scenarios whose Zen simulators grow a uraninite, `radioactive_pegmatite` and `schneeberg`.
+None of these runs has a scenario object, so none has a license. Three numbers are seeds
+42 / 1 / 2. Random Vugg's two are seeds 42 and 5, the two of the eight run whose fluid grew
+a uraninite.
 
 | | As shipped | Every step (`pb`) | Held (`held`) |
 |---|---|---|---|
 | Creative mode's starter fluid "Radioactive Pegmatite", 120 steps, left to itself | bulk Pb 30 → 286 / 275 / 268 ppm; every voxel at 30.00; no galena | voxels at 250 to 287 ppm; four galenas at each seed, the largest 9.7 / 8.9 / 8.3 mm, born from step 53 / 56 / 66 and still growing at step 120 | nothing released; 256 / 245 / 238 ppm kept back; the run's summary is the shipped run's |
 | … with one Drain after step 60, which takes O2 on the bulk handle from 0.00 to 0.60 (the highest voxel reads 0.60 right after it) | the uraninites take 46 / 12 / 3 negative zones, from step 61 / 95 / 61; bulk Pb ends at 253 / 220 / 213 ppm, every voxel at 30.00 | one galena of 0.63 mm, whose last zone is at step 60 / one of 8.6 mm / none | released on 46 / 9 / 3 steps, 185 / 168 / 62 ppm in all, the first at step 61 / 95 / 61; 38 / 22 / 120 ppm still held at step 120; no lead mineral on record |
+| … with one Evaporate after step 60 instead, which takes O2 to 1.50 and cools the fluid by 10 °C | the uraninites take 36 / 67 / 32 negative zones, all from step 61; bulk Pb ends at 185.5 / 193.7 / 168.5 ppm, every voxel at 30.00 | one galena of 0.63 mm, whose last zone is at step 60 / one of 6.3 mm / none | released on 33 / 36 / 29 steps, 121.8 / 134.1 / 101.7 ppm in all, the first at step 61 at every seed; 33.7 / 29.5 / 36.9 ppm still held at step 120; no lead mineral on record |
+| … with the Drain after step 30 instead | the uraninites take 78 / 79 / 3 negative zones, from step 31 / 66 / 31; bulk Pb ends at 226.3 / 200.9 / 194.5 ppm, every voxel at 30.00 | no galena at any seed | released on 78 / 42 / 3 steps, 164.8 / 153.5 / 15.2 ppm in all, the first at step 31 / 66 / 31; 31.5 / 17.4 / 149.2 ppm still held at step 120; no lead mineral on record |
 | Random Vugg, archetype pegmatite, pocket class, 155 and 167 steps | bulk Pb 0 → 132 / 173 ppm; every voxel at 0.00 | voxels at the bulk handle's value; no lead mineral on record | nothing released; 132 / 173 ppm kept back; the run's summary is the shipped run's |
 | A Zen run of the scenario, by the game's own loop, 600 steps | bulk Pb 30 → 682 / 621 / 652 ppm; every voxel at 30.00; no galena | voxels at the bulk handle's value; two, four and four galenas, the largest 0.61 / 0.41 / 0.55 mm, born from step 102 / 105 / 103, their last zone at step 202 / 199 / 198 | nothing released; 652 / 591 / 622 ppm kept back; the run's summary is the shipped run's |
+| A Zen run of `schneeberg`, by the same loop, 600 steps | bulk Pb 5 → 1,035 / 1,021 / 1,015 ppm; every voxel at 5.00; no galena; the pocket 6 % full | voxels at 1,002 to 1,034 ppm; four galenas at each seed, the largest 22.5 / 21.8 / 21.5 mm, born from step 152 / 156 / 165 and still growing at step 600; the pocket 12 / 11 / 9 % full | nothing released; 1,030 / 1,016 / 1,010 ppm kept back; the run's summary is the shipped run's |
 
-In the 24 runs left to themselves (the first, third and fourth rows) no uraninite takes a
-negative zone, and O2 at the end is under 0.3 on the bulk handle and in every voxel: 0.00
-in the starter fluid and in Zen, 0.10 and 0.06 in the two Random Vugg runs. Four things
-follow.
+In the 33 runs left to themselves (every row but the three with an action) no uraninite
+takes a negative zone, and O2 at the end is under 0.3 on the bulk handle and in every
+voxel: 0.00 in the starter fluid and in both Zen simulators, 0.10 and 0.06 in the two
+Random Vugg runs. Four things follow.
 
 1. *F3 is not confined to the two scenarios.* In each of these runs, as shipped, the
-   uraninites' lead goes to the bulk handle alone (§3.3).
+   uraninites' lead goes to the bulk handle alone (§3.3). In the Zen run of `schneeberg`
+   that is a thousand parts per million in 600 steps, with every voxel at 5.
 2. *Held, a run that nothing oxidizes keeps its lead.* That is what the sources describe
    for a uraninite that nothing alters, and the run is then the shipped run: its
    baseline-style summary is the same, and only the lead on the bulk handle differs. A
-   player can oxidize it. Drain is one of Creative mode's actions
-   (`js/97-ui-fortress.ts:1596`), and one Drain alters the uraninites and releases the
-   store to the bulk handle and the cells alike, at all three seeds. So in the starter
-   fluid, as in the scenario, the held store is released when the uraninite is altered. No
-   lead mineral is on record 60 steps later.
+   player can oxidize it. Two of Creative mode's buttons, Drain and Evaporate, raise O2 on
+   the bulk handle (`js/97-ui-fortress.ts:1596`, `:1605`). In each of the three rows with
+   an action the uraninites are altered and the store is released to the bulk handle and
+   the cells alike, at all three seeds: at the step after the action, or at seed 1 under a
+   Drain 35 or 36 steps after it. What is released is what the store holds at each
+   alteration. The uraninites go on making lead, and what they make after their last
+   alteration is held again: 17 to 149 ppm at step 120. At seed 2 a Drain alters them on
+   three steps only, and most of that run's lead is still held at its end. So in the
+   starter fluid, as in the scenario, held lead is released when the uraninite is altered.
+   In none of the nine held runs with an action is a galena, a plumbogummite or any mineral
+   on record at step 120 that the same run lacks as shipped.
 3. *Released every step, the lead reaches the cells of runs that have no license to
-   consult.* In the starter fluid a galena grows to 8 to 10 mm, larger than the 5 mm the
-   licensed scenario grows in a pocket held open. In Zen it reaches about half a
-   millimetre and stores its last zone at step 198 to 202, which is where that pocket is
-   full (it passes 0.7 at step 80 to 94 and is full at step 198 to 201), so the figure is a
-   plugged pocket's. In Random Vugg's two runs, whose draws hold no sulfur and no
-   phosphorus, no lead mineral is on record under either timing.
-4. *So the choice of timing is also a choice of whether Creative mode's starter fluid and a
-   Zen run grow a galena that no scenario licenses.*
+   consult, and what grows there depends on the pocket.* In the starter fluid a galena
+   grows to 8 to 10 mm, larger than the 5 mm the licensed scenario grows in a pocket held
+   open. An action can stop it or forestall it: with a Drain or an Evaporate after step 60
+   the galena of seed 42 stops at 0.63 mm, and with a Drain after step 30 no galena is born
+   at any seed. In a Zen run of `radioactive_pegmatite` it reaches about half a millimetre
+   and stores its last zone at step 198 to 202, which is where that pocket is full (it
+   passes 0.7 at step 80 to 94 and is full at step 198 to 201), so the figure is a plugged
+   pocket's. In a Zen run of `schneeberg`, whose pocket is 9 to 12 % full at step 600, four
+   galenas are born at step 152 to 165 and are 21.5 to 22.5 mm and still growing at step
+   600. That is the largest galena that radiogenic lead grows in any run of this review,
+   and `schneeberg` licenses no lead mineral. (At seeds 1 and 2 that run also lacks the
+   opal the shipped Zen run has on record.) In Random Vugg's two runs, whose draws hold no
+   sulfur and no phosphorus, no lead mineral is on record under either timing.
+4. *So the choice of timing is also a choice of whether Creative mode's starter fluid and
+   Zen runs of the two uraninite scenarios grow a galena that no scenario licenses.*
 
-Not run: Evaporate, Creative mode's other action that raises O2 (`:1605`); a second
-action, or one at another step; and the preset of the same broth on Creative mode's setup
-panel (`index.html:4015`; `js/97-ui-fortress.ts:997`), which builds a run with no events as
-well, at whatever temperature and in whatever cavity the panel's controls hold.
+Not run: any other way a Creative player has of oxidizing a pocket. A search of
+`fortressStep` for writes of O2 finds, besides the two buttons, an action that no button of
+the page calls (`'oxidize'`, `:1812`), and the live broth panel has an oxygen control
+(`js/97-ui-fortress.ts:192`; `js/97a-ui-broth.ts:462`). That search is not a list of
+everything that can raise O2 there. Nor were two actions made in one run. Nor was a run
+built on Creative mode's setup panel, from the preset of this broth or with the panel's own
+uranium slider (§3.3), at whatever temperature and in whatever cavity the panel holds.
 
 The `nopb` arm of the A/B tool keeps the radiogenic lead out of every fluid, and shows what the
 lead on the bulk handle does today. In the pocket as shipped plumbogummite is then born once at
@@ -2268,10 +2382,11 @@ Acceptance, under either timing unless said:
   seeds 42 and 1 unless SC2 has landed. The simulator's own audits read as they do on the
   shipped run (event refusals, failed carbonate transactions and ledger violations, counted
   for both timings in `probe-lead-choices.txt`).
-- *A report, not a test.* The bump says what its timing does where the game starts this
-  fluid without the scenario's events. By the preview, in Creative mode's starter fluid and
-  in a Zen run of the scenario, each left to itself, the held release releases nothing and
-  the run's summary is today's; the continuous release grows galena in both.
+- *A report, not a test.* The bump says what its timing does where the game grows a
+  uraninite with no event to alter it. By the preview, in Creative mode's starter fluid
+  and in Zen runs of `radioactive_pegmatite` and `schneeberg`, each left to itself, the
+  held release releases nothing and the run's summary is today's; the continuous release
+  grows galena in all three.
 - *A report for a reviewer to check, not a test that can fail.* Under the held release, the
   galena is gone from the scenario by a search of the tree, not
   by a list. The search is the one of §3.3: tracked files that name both the scenario and
@@ -2317,7 +2432,9 @@ piloted on one scenario behind a per-scenario flag, byte-identical elsewhere. `g
 the natural first: six of its eight events author a flow value (1.0 falling to 0.1), it has a
 closed-system story to earn, and after SC1 it has an open pocket to compare against.
 
-Pre-registered acceptance for the pilot:
+Pre-registered acceptance for the pilot. Unless a line says otherwise, it is read on the
+piloted scenario at seeds 42, 1 and 2, as Simulation mode starts it with its form at the
+defaults: the scenario's own cavity and shape seed, and its own 230 steps.
 
 - With the feed off and the price at today's constant, the piloted scenario reproduces the unpiloted
   run, and the fleet outside the flag is byte-identical.
@@ -2356,6 +2473,14 @@ Pre-registered acceptance for the pilot:
 - The locality gate passes on the piloted scenario. If SC1 has promoted topaz by then, topaz has
   to appear at all three of the gate's seeds with the bound lifted, or the pilot fails the gate
   for a reason that is its own.
+- *A report, not a test.* The pilot is run once more with the bound lifted, in the 15 mm vug
+  of Simulation mode's Cavity Size select, at the same seeds and for 230 steps, and says
+  whether SC1's first acceptance line holds there. Under a bound on the pair's rate it does
+  not: that vug is full at step 97 to 99, and at step 174 to 176 with the pair holding no
+  solid (§4, SC1). SC4 is the one proposal here in whose design a cavity's volume enters,
+  through the water each voxel holds, so this is the run in which a supply with a scale
+  above the cell and a slower rate can be told apart. It is a report because nothing in
+  this review previews it.
 
 ### SC5 — keep the census
 
@@ -2504,7 +2629,19 @@ without a control (§1 lists them) stays labelled as one.
     174 to 176, on quartz and tourmaline: no value of the bound alone was there to find.
     The tenth version then wrote that no course would hold that vug either, having run each
     course alone. A pair of them does, at a price (§4, SC1). "Nothing does" is a claim
-    about every run that was not made. Write what was run.
+    about every run that was not made. Write what was run. The eleventh version said of
+    that pair that the preview could not stand for its clamp, from a reading of the engine.
+    Run beside a clamp written into the engine, the preview ends within a point of it and
+    reaches the same verdict (§7). A preview that is doubted has to be run against the
+    thing it stands for.
+23. **One scenario has no pocket to fill.** `great_salt_plains` authors an open system, and
+    the step reads its fill as 0: it is never dampened for fill and never sealed
+    (`js/85-simulator.ts:501`). `get_vug_fill` still returns its crystals' volume over the
+    wall's capacity, so a count of pockets taken from that number takes the plain for a
+    full one as soon as its crystals outgrow the wall, which at the form's vug setting they
+    do 27 to 29 times over. The census leaves an open system out of "pocket full"
+    (`tools/sim-side-census.mjs:890`). The fleet probe of the eleventh version did not, and
+    its headline count was one too high. Count a pocket as full by the fill the step reads.
 
 ## 6. Decisions for the boss
 
@@ -2529,14 +2666,19 @@ without a control (§1 lists them) stays labelled as one.
    tourmaline fill it by step 174 to 176. Nor does another course alone: the fill switch,
    the rind and the change to the broth each leave it past 0.7 full by step 93 at the
    latest. Of the eight pairs of those changes that were run, one keeps that vug under 0.7:
-   the changed broth with the pair's rate clamped at 1, which is a clamp the preview does
-   not stand for (at 2, which it does, the line fails at two seeds of three). Its price is
-   the pocket's quartz, and in the scenario's own cavity a pocket 1 to 2 % full. That vug
-   is hard on the whole fleet as well: as shipped, 16 / 17 / 16 of the 41 scenarios fill in
-   it, where three do in their own cavities (§3.1; §4, SC1). The recommendation does not
-   hold that size, and this review found no course for it that it would recommend. What
-   is to be done about it, for this scenario or for the form's setting, is not narrowed
-   here. Whether an open
+   the changed broth with the pair's rate clamped at 1, with the clamp made by the
+   preview's wrapper or written inside the engine (at 1.5 and at 2 the line fails at two
+   seeds of three). Its price is the pocket's quartz, which is left one crystal of 0.01 mm,
+   and in the scenario's own cavity a pocket 1 to 2 % full. That vug is hard on the fleet
+   as well. One of the 41 scenarios is authored as an open surface, with no pocket to
+   fill. Of the other 40, as shipped, 15 / 16 / 15 are full in that vug inside their own length, where
+   three are in their own cavities (§3.1; §4, SC1). The recommendation does not hold that
+   size. What could be done about it includes these, and the list is open: accept it, as
+   one more of the pockets that fill at that setting today; take that pair, at its price;
+   leave it to SC4, the one proposal here in whose design a cavity's volume enters, which
+   has no preview and whose pilot is asked to report on this vug; or treat it as a matter
+   of the form, which offers a 15 mm cavity to every scenario. I would accept it in SC1's
+   bump and put the question to SC4's pilot. Whether an open
    pocket for the authored run in the authored cavity is enough is the question. The bound
    does not reach a Zen run of the same scenario, which plugs at step 32 or 33 on Zen's
    slower clock, unless the bump carries it there. Carried there it would hold the fill
@@ -2576,12 +2718,15 @@ without a control (§1 lists them) stays labelled as one.
    The other coherent pair keeps today's timing and licenses galena, with a source: galena then
    grows to 5 mm in an open pocket, born before any uraninite is altered. Licensing galena on
    today's tree, or with the held release, produces none. The two timings also part where
-   the game starts this fluid without the scenario's events, in Creative mode's starter
-   fluid and in a Zen run, neither of which has a license. Left to itself such a run does
-   not alter its uraninite, so the held release releases nothing and the run is the one it
-   is today; one Drain by the player in Creative mode does release the store. The
-   continuous release grows galena in both: 8 to 10 mm in the starter fluid, and about half
-   a millimetre in a Zen pocket that is full by step 200. Under either pair `schneeberg`'s two
+   the game grows a uraninite with no event to alter it: in Creative mode's starter fluid
+   of this broth and in Zen runs of the two uraninite scenarios, none of which has a
+   license. Left to itself such a run does not alter its uraninite, so the held release
+   releases nothing and the run is the one it is today; a Drain or an Evaporate by the
+   player in Creative mode alters the uraninite and releases what is held by then. The
+   continuous release grows galena in all three: 8 to 10 mm in the starter fluid, about
+   half a millimetre in a Zen run of this scenario, whose pocket is full by step 200, and
+   21 to 23 mm in a Zen run of `schneeberg`, which licenses no lead mineral and whose
+   pocket stays open. Under either pair `schneeberg`'s two
    largest crystals are named amazonite where they are named microcline today, and the cavity
    view draws them as before. In the scenario's Simulation-mode run its pharmacolite also
    loses a quarter of its size unless SC2 has landed. (Opened from the Scenarios menu, which
@@ -2616,16 +2761,20 @@ without a control (§1 lists them) stays labelled as one.
 8. **Zen mode, as this review met it.** Three things, none of which this review set out to
    examine, and nothing is proposed for them here. A Zen run of a scenario leaves the
    scenario object behind, and with it the license, the exclusions, the nucleation windows,
-   the movements and the thermal field: an emerald is on record in its `gem_pegmatite` at
-   every seed run, and that scenario excludes emerald by name (§3.1). Of Zen's drift, the
-   writes to the species and to pH stay on the bulk handle, the fluid that births read and
-   not the one that crystals grow from, which is F3's defect at the scale of a mode; the
-   temperature write is undone by the next step; and the pressure write does reach a
-   crystal whose σ reads pressure, as the calcite of a Zen run of `mvt` shows (§3.3). What
-   the drift does to a run's births was not measured. And the changes proposed
+   the movements and the weathering epilogue: an emerald is on record in its
+   `gem_pegmatite` at
+   every seed run, and that scenario excludes emerald by name (§3.1). Without their
+   weathering epilogues, which ride on the scenario object, `naica_geothermal` and
+   `wittichen` never put up the envelope under which their births read the wall cells in
+   their own runs, so births read the bulk handle in 39 of Zen's 41 simulators (§3.3). Of Zen's drift, the writes to the species and to pH stay on
+   that handle and reach no crystal in the three simulators read, which is F3's defect at
+   the scale of a mode; the temperature write is undone by the next step; and the pressure
+   write does reach a crystal whose σ reads pressure, as the calcite of a Zen run of `mvt`
+   shows (§3.3). What the drift does to a run's births was not measured. And the changes proposed
    here each do something of their own there: SC1's bound does not reach a Zen run unless
    the bump carries it (decision 1), SC3's held release released nothing in the Zen runs
-   made, and its continuous release grew a galena there that no scenario licensed
+   made, of the two scenarios whose Zen simulators grow a uraninite, and its continuous
+   release grew a galena in both that no scenario licensed, of 21 to 23 mm in `schneeberg`
    (decision 3). Whether Zen is
    meant to run a scenario this way is the owner's to say. If it is not, that is work of
    its own, and one finding should have one owner.
@@ -2683,17 +2832,28 @@ without a control (§1 lists them) stays labelled as one.
   refunded zone, so that the boundary's audit sees the cell as it now is (trap 10). At `refund=1`
   a field that the return brings back to within rounding of its value before the debit is set to
   that value exactly (trap 12). The neutral setting `refund=0` does not exercise that step, and
-  nothing self-checks it. `rclamp` rescales a positive zone inside the engine's call, on a
-  σ read before the engine runs, and leaves the σ method alone. It is the shape SC1 recommends; at
-  the values previewed in the A/B outputs, 3 to 47, the tests the two engines make on their
-  own rate (a habit, an inclusion roll) fall on the same side as they would with the clamp
-  written into the engine. That is not so of the E = 1 arm of `probe-clamp-horizon.mjs`: a
-  clamp of 1 in the engine would put feldspar's rate under the 4 at which it rolls for an
-  inclusion (`js/59-engines-silicate.ts:293`), and the arm still makes the roll. That arm
-  shows the pocket with the pair nearly absent. It previews no value. The same holds for
-  the arms at 1 and at 0 of `probe-pegmatite-reach.mjs`, run in the 15 mm vug and, at 0, in
-  Random Vugg's vug class: at 0 the wrapper rescales every positive zone of the pair to
-  nothing, so they show a cavity without the pair. `rind` drops
+  nothing self-checks it. `rclamp`, like the rate clamp of every probe here but one, is a
+  wrapper round the engine: σ is read before the engine runs, the engine runs as shipped, and a positive
+  zone it returns is rescaled by E/(σ − 1) where σ − 1 is above E. The σ method is left
+  alone. SC1 recommends the clamp written inside the engine, where the five tests the two
+  engines make on their own rates would be made on the clamped rate: each that its rate is
+  0.1 or more, each for a habit, and feldspar for an inclusion roll
+  (`js/59-engines-silicate.ts:221`, `:245`, `:293`, `:349`, `:358`). `probe-clamp-in-engine.txt` makes both runs side by side, in 40 pairs. At each
+  value of 2 or more that was run (2, 3, 7 and 11) the two are one run in all 22 pairs: the
+  same baseline-style summary and a fill that agrees at every step to the last binary
+  place. The recommended bound in the scenario's own cavity is among them, stepped on to
+  the seal, and so are `schneeberg` and `tormiq_alpine_cleft` under the general clamp and
+  two of Random Vugg's small pockets. Where the clamp is active feldspar's clamped rate is
+  at least 2.1·E and albite's 3.2·E, so every value of the A/B outputs (3 to 47) is on that
+  side. Below 2 (1.5, 1 and 0 were run) the two are different runs in all 18 pairs. At 1.5
+  and at 1 a clamp in the engine puts feldspar's rate under the 4 at which it rolls for an
+  inclusion, and under the wrapper the roll is still made; at 0 the engine returns nothing,
+  where under the wrapper it runs as shipped. They end within 0.6 of a point of fill,
+  pass 0.7 within 10 steps of each other and fill within 3, and SC1's first acceptance line
+  has the same verdict under both in all 18 pairs. So the wrapper's arms at 1.5 and at 1,
+  in `probe-clamp-horizon.mjs` and in the 15 mm vug of `probe-pegmatite-reach.mjs`, stand
+  for a clamp in the engine to within those margins. Its arms at 0, in that vug and in
+  Random Vugg's vug class, show a cavity without the pair. `rind` drops
   a positive zone once the crystal has reached the rind and lets a dissolution zone through. `pb`
   adds to every voxel the increment the uraninite block has just added to the bulk handle. `nopb`
   puts the bulk handle's Pb back to the value it had before that block ran; it restores the value
@@ -2766,9 +2926,10 @@ without a control (§1 lists them) stays labelled as one.
   it stands: the runs of §3.1's last part (`gem_pegmatite`, Random Vugg's pegmatite
   archetype, Creative mode's "Radioactive Pegmatite" starter fluid, and every scenario at
   the form's vug setting); the horizon and cavity tables of §4 (`gem_pegmatite`); the lead
-  timings of §3.3 and §4 in that starter fluid, in a Zen run of `radioactive_pegmatite` and
-  in Random Vugg's archetype; and the Zen simulators of three scenarios on which §3.3 reads
-  the drift. The game's other modes
+  timings of §3.3 and §4 in that starter fluid, in Zen runs of `radioactive_pegmatite` and
+  `schneeberg` and in Random Vugg's archetype; the Zen simulators of three scenarios on
+  which §3.3 reads the drift; and Zen's simulators of all 41, stepped without the drift at
+  seed 42, in which §3.3 counts the nucleation envelope and the uraninites. The game's other modes
   differ in what this review found by reading their entry points: Zen sets the time scale to
   1 and leaves the scenario object and the events behind; a scenario opened in Creative mode
   gains a carbonate boundary; Random Vugg and the Creative starter fluids have no scenario
@@ -2802,10 +2963,11 @@ without a control (§1 lists them) stays labelled as one.
   SC3 are written into engines or the simulator's step, which every mode shares. For SC2
   the question of what it does in another mode was not asked. SC3's two timings were run
   in Creative mode's "Radioactive Pegmatite" starter fluid, left to itself and with one
-  Drain after step 60; in a Zen run of `radioactive_pegmatite`; and in two runs of Random
-  Vugg's pegmatite archetype (§4, SC3). They were not run in a scenario opened in Creative
-  mode, in a custom Creative run from the setup panel's preset of that broth, or under any
-  other action of a player. The agent API is a
+  action (a Drain after step 60 or after step 30, or an Evaporate after step 60); in Zen
+  runs of `radioactive_pegmatite` and `schneeberg`; and in two runs of Random Vugg's
+  pegmatite archetype (§4, SC3). They were not run in a scenario opened in Creative mode,
+  in a run built on Creative mode's setup panel, under two actions, or under any other
+  action of a player. The agent API is a
   second copy of the engines; it was read where §3.3 and §4 say so and not run.
 - **Which readers were followed.** For the lead that SC2 and SC3 move, the readers followed
   are the σ functions, through the species tables; the cation gate's share; the radiation
@@ -2873,13 +3035,14 @@ node proposals/evidence/sim-side-2026-11-09/probe-nucleation-envelope.mjs --mine
 node proposals/evidence/sim-side-2026-11-09/probe-cell-field-gap.mjs schneeberg uranophane pH 6.0
 node proposals/evidence/sim-side-2026-11-09/probe-cell-field-gap.mjs supergene_oxidation ferrimolybdite O2      # and Mo
 node proposals/evidence/sim-side-2026-11-09/probe-side-doors.mjs     # a static reading of the nucleation files
-node proposals/evidence/sim-side-2026-11-09/probe-lead-choices.mjs   # both uraninite scenarios; then the starter fluid (left to itself and drained), Random Vugg and Zen by the game's own loop; 39 min at its last run, with two other heavy probes on the machine
+node proposals/evidence/sim-side-2026-11-09/probe-lead-choices.mjs   # both uraninite scenarios; then the starter fluid (left to itself and with one action), Random Vugg, and Zen runs of the two by the game's own loop; 52 min at its last run, with three or four other probes on the machine
 node proposals/evidence/sim-side-2026-11-09/probe-cation-gate.mjs    # schneeberg: eight runs at seed 42, four each at seeds 1 and 2
 node proposals/evidence/sim-side-2026-11-09/probe-enclosed-survivors.mjs
-node proposals/evidence/sim-side-2026-11-09/probe-pegmatite-reach.mjs       # gem_pegmatite at eleven seeds; Random Vugg at its four size settings; Creative (scenario and starter); Zen at its own time scale; Simulation mode's Cavity Size and Shape Seed boxes, and its vug under tighter bounds, under SC1's other courses and under pairs of them; 48 min at its last run, with two other heavy probes on the machine
+node proposals/evidence/sim-side-2026-11-09/probe-pegmatite-reach.mjs       # gem_pegmatite at eleven seeds; Random Vugg at its four size settings; Creative (scenario and starter); Zen at its own time scale; Simulation mode's Cavity Size and Shape Seed boxes, and its vug under tighter bounds, under SC1's other courses and under pairs of them; 40 min at its last run, with three or four other probes on the machine
 node proposals/evidence/sim-side-2026-11-09/probe-clamp-horizon.mjs         # gem_pegmatite under the bound, stepped past its 230 steps: Simulation, Creative, and Zen by the game's own loop; 30 min at its last run, 53 at the one before; run it after probe-pegmatite-reach.mjs
-node proposals/evidence/sim-side-2026-11-09/probe-form-vug-fleet.mjs        # every scenario at the form's vug setting and in its own cavity, three seeds; 52 min at its one run, with two other heavy probes on the machine
-node proposals/evidence/sim-side-2026-11-09/probe-zen-drift.mjs             # which of Zen's drift writes reach a crystal's own cell; about a minute
+node proposals/evidence/sim-side-2026-11-09/probe-clamp-in-engine.mjs       # the wrapper that previews the clamp beside a clamp written inside the engine, 40 pairs of runs; 15 to 18 min, with three or four other probes on the machine
+node proposals/evidence/sim-side-2026-11-09/probe-form-vug-fleet.mjs        # every scenario at the form's vug setting and in its own cavity, three seeds; 44 min at its last run, with three or four other probes on the machine
+node proposals/evidence/sim-side-2026-11-09/probe-zen-drift.mjs             # which of Zen's drift writes reach a crystal's own cell, then each of the 41 scenarios in Zen's own simulator; about 7 min
 node proposals/evidence/sim-side-2026-11-09/probe-appearance-windows.mjs    # bisbee, porphyry, roughten_gill under each change that reaches them; about 7 min
 node proposals/evidence/sim-side-2026-11-09/probe-appearance-contract.mjs   # reads the committed A/B outputs and the scenarios' tiers
 node proposals/evidence/sim-side-2026-11-09/probe-ab-digest.mjs      # reads the committed A/B outputs and census reports; runs nothing
@@ -2901,7 +3064,7 @@ npm run audit:evidence         # not a step of `npm run ci`
 
 The five tools write only under `.local-evidence/`, the directory the test identity guard excludes.
 They exit 0 whatever their readings and controls say; they throw on a bad argument, and the
-mutation tool throws if a mutant no longer matches the census. The fifteen probes print and
+mutation tool throws if a mutant no longer matches the census. The sixteen probes print and
 write nothing. Four of them call functions of the game's own page code that change the
 page's state.
 `probe-pegmatite-reach.mjs` calls four: Zen mode's constructor, with the clock held still for
@@ -2914,15 +3077,19 @@ constructor and the Creative scenario constructor the same way, and drives Zen's
 the mode switch into Zen, then the page's play, pause and step functions, and its stop and
 scenario-pick functions to end a run. It puts a scenario picker on the harness's page for the
 play function to read, since that page has none. `probe-lead-choices.mjs` calls Creative
-mode's starter-fluid constructor and one of that mode's actions (`fortressStep('drain')`),
-and drives Zen's loop the same way, in its last part. `probe-zen-drift.mjs` calls Zen's
-constructor.
+mode's starter-fluid constructor and two of that mode's actions (`fortressStep('drain')`
+and `fortressStep('evaporate')`), and drives Zen's loop the same way, in its last part.
+`probe-zen-drift.mjs` calls Zen's constructor, for three scenarios and then for all 41.
 These calls change the page's state in
 memory (a visible simulator, a strip recorder, an autosave record) and write no file. Each
 of the four probes ends with the time scale read back at 5 and the baseline reproduced.
 `probe-form-vug-fleet.mjs` builds every one of its runs through Simulation mode's command
 runtime, as Part 4 of `probe-pegmatite-reach.mjs` does, and compares each scenario's
-seed-42 run in its own cavity with the baseline.
+seed-42 run in its own cavity with the baseline. `probe-clamp-in-engine.mjs` builds its
+runs through the scenarios' factories and Random Vugg's builder, and one control run
+through that command runtime. For the length of one engine call at a time it replaces a σ
+method on the run's conditions, and puts it back when the call returns. `probe-zen-drift.mjs`
+reads one committed census report, `census-seed-42.json`, for a control.
 Two probes also call functions of the page that only read a crystal: `probe-lead-choices.mjs`
 (`crystalDisplayName`, `crystalColor`, `groupZonesByChemistry`, `resolveBodyColour`,
 `_bodyFieldVal`) and `probe-cation-gate.mjs` (the first two, and the page's function for
@@ -3381,10 +3548,12 @@ general.
   now run and tabled, with what that one costs: a clamp the preview does not stand for,
   the pocket's quartz, and a pocket 1 to 2 % full in the scenario's own cavity. The
   document no longer says what can or cannot be chosen for that size. It says what was
-  run (§4, SC1; §6; trap 22).
+  run (§4, SC1; §6; trap 22). (The first of those three costs was wrong, and "says what
+  was run" left the owner no list at all; see the next list.)
 - The vug was treated as this scenario's matter. The form offers it to every scenario, and
   the round ran the fleet there: 16 of 41 scenarios fill as shipped. That is now a
-  committed probe at three seeds (§3.1; §4, SC1; §6).
+  committed probe at three seeds (§3.1; §4, SC1; §6). (Sixteen counted an open surface
+  among the pockets; see the next list.)
 - "The general clamp keeps Random Vugg's pocket class from filling completely" was true of
   the eight cavities run, which are 34 mm and larger. Of the 23 pockets under 40 mm that
   seeds 1 to 400 draw, ten still fill under it, four of them on morganite (§0; §3.1;
@@ -3409,6 +3578,62 @@ general.
   now a note of its own (§3.4), with the fleet's case beside it; the general clamp's
   acceptance named a "column for the value chosen" that exists for four values; and the
   history of earlier versions is taken out of the argument of §1 to §4, where §9 has it.
+  (Three sentences of it were left there; see the next list.)
+
+**Corrections to the eleventh version** (commit `ba02e86f`). Its eleventh review round found
+every item of the tenth round answered with a committed run, and every number it re-drove
+as committed. It found one headline count wrong by one, and four statements that said more
+or less than their evidence.
+
+- The fleet count took an open surface for a full pocket. `great_salt_plains` is authored
+  as an open system, by the owner's directive of 2026-06-22: the step reads its fill as 0
+  and never seals it. The fleet probe counted pockets by `get_vug_fill`, which for that
+  scenario returns its crystals' volume over the wall's capacity, and so counted it among
+  the scenarios that fill in the form's vug, at 2,834 %. §3.4 gave that figure as a fill
+  the clamp had failed to stop, untraced, and the pull request listed it as a defect found
+  on the way. This review's own census has the guard, and its probe did not. The probe
+  now sets an open system aside and checks that every run it counts as full is a run the
+  simulator sealed. Of the other 40 scenarios 15 / 16 / 15 fill in that vug, where the
+  text had 16 / 17 / 16 of 41; fourteen fill at every seed, not fifteen; and in eight of
+  them, not nine, the largest share is another mineral's than the pair's
+  (§0; §2.2; §3.1; §3.4; §4, SC1; §6; trap 23).
+- The one pair of changes that holds the form's vug was said to rest on a clamp the preview
+  does not stand for. That was a reading of the engine. No clamp had been written into it.
+  The round wrote one, and a probe here now does, in 40 pairs of runs. At 2 and above the
+  preview's wrapper and a clamp in the engine are one run. At 1.5, 1 and 0 they end within
+  0.6 of a point of fill of each other and reach the same verdict in every pair. So a
+  clamp of 1 in the engine, with the changed broth, keeps that vug under 0.7 at all three
+  seeds, at the price already given (§4, SC1; §6; §7; trap 22).
+- "Births read the bulk handle in all but the four scenarios of §2.3" was Simulation mode's
+  count carried into Zen. Two of the four owe their envelope to a weathering epilogue,
+  which rides on the scenario object that Zen leaves behind. In Zen it is two of 41, which
+  is now measured, and §2.3 now says what puts the envelope up in each of the four
+  (§2.3; §3.3; §6, decision 8).
+- The places where the game grows a uraninite with no event to alter it were counted
+  again, and were short again: a Zen run of `schneeberg` was missing, and so was Creative
+  mode's own uranium slider. §3.3 now gives a list by search and by run, and says it is a
+  list. Both lead timings are now run in that Zen simulator. Released every step, the lead
+  grows a galena of 21 to 23 mm there, the largest in any run of this review that
+  radiogenic lead grows (§0; §3.3; §4, SC3; §6).
+- The form's vug had been left with no proposal to answer for it, once the tenth version's
+  closed list was cut. Decision 1 now gives an open list and says what this review would
+  do, and SC4's pilot is asked to report on that vug. SC4's acceptance lines now say at
+  which seeds, in which mode and in which cavity they are read (§4, SC4; §6).
+- Smaller: the crack event's pressure write is at line 184 of `js/98a-ui-zen.ts`, not 186;
+  three sentences of §1 to §3 still told what an earlier version had said, and are
+  reworded (§1 still tells, round by round, how the census's controls came to be what they
+  are); "each such statement says not committed where it stands" did not hold in §9, and
+  is now scoped to §1 to §8; "no value mends that class" lacked "alone" and its eight
+  seeds; §7 named two of the tests the two engines make on their own rates, and there are
+  five; the "15 mm" setting
+  builds walls of 9.3 to 16.8 mm, because the simulator sets the wall's diameter from the
+  volume of the cavity it builds, which is now said; one Drain releases what is held by then, and at
+  seed 2 most of that run's lead is made afterwards and held again; the species write of
+  the Zen probe is larger than any one event's; the first acceptance line is met by a
+  pocket whose quartz is a speck, so the bump's acceptance gains a floor for quartz;
+  Evaporate and an earlier Drain, which the eleventh version listed as not run, are run;
+  and Random Vugg's pegmatite archetype, which was listed among the runs "without the
+  scenario's events", has one event of its own, a cooling that brings no oxygen.
 
 ## References
 
@@ -3703,12 +3928,13 @@ The instruments' outputs are committed unedited in `proposals/evidence/sim-side-
 | `probe-nucleation-envelope.txt`, `probe-nucleation-envelope-per-vertex.txt` | §7 |
 | `probe-cell-field-gap-uranophane-pH.txt`, `-ferrimolybdite-O2.txt`, `-ferrimolybdite-Mo.txt` | §2.1 |
 | `probe-side-doors.txt` | §2.3 |
-| `probe-lead-choices.txt` | §3.3 and §4 SC3: the lead timings in the two uraninite scenarios, and in Creative mode's starter fluid, Random Vugg's pegmatite archetype and a Zen run |
+| `probe-lead-choices.txt` | §3.3 and §4 SC3: the lead timings in the two uraninite scenarios, and in Creative mode's starter fluid, Random Vugg's pegmatite archetype and Zen runs of the two |
 | `probe-cation-gate.txt` | §4 SC1, SC2, SC3: the cation gate |
 | `probe-enclosed-survivors.txt` | §4 SC1 |
 | `probe-pegmatite-reach.txt` | §3.1 and §4 SC1: `gem_pegmatite` at eleven seeds under the bound and under the tree's fill switch; Random Vugg at its four size settings, Creative mode and Zen mode; the Cavity Size and Shape Seed boxes of Simulation mode's form, and its vug under tighter bounds, under SC1's other courses and under pairs of them |
-| `probe-form-vug-fleet.txt` | §3.1 and §6: every scenario at the form's vug setting, as shipped |
-| `probe-zen-drift.txt` | §3.3 and §6: which of Zen's drift writes reach a crystal's own cell |
+| `probe-form-vug-fleet.txt` | §3.1, §3.4 and §6: every scenario at the form's vug setting, as shipped |
+| `probe-clamp-in-engine.txt` | §4 SC1 and §7: the wrapper that previews the clamp, beside the clamp written inside the engine |
+| `probe-zen-drift.txt` | §3.3 and §6: which of Zen's drift writes reach a crystal's own cell; the envelope and the uraninites in Zen's 41 simulators |
 | `probe-clamp-horizon.txt` | §3.1 and §4 SC1: how many steps the bound buys, in Simulation mode, Creative mode and Zen mode's own loop |
 | `probe-appearance-contract.txt` | §4 SC1, SC2, SC3: the locality gate's tiers |
 | `probe-appearance-windows.txt` | §4: the locality gate's first-appearance windows |

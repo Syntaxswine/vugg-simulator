@@ -58,8 +58,9 @@
  * The wrapper rescales the zone the engine returns. The engine's own tests on its rate (feldspar
  * rolls for an inclusion at a rate above 4) have already been made on the unclamped rate. At
  * E = 7 and above the clamped rate passes those tests too, so the wrapper is what a clamp in the
- * engine would be. At E = 1 it is not. That arm shows the pocket with the pair nearly absent;
- * it does not preview a value.
+ * engine would be. At E = 1 it is not: the wrapper's run is not the run a clamp inside the
+ * engine would make. That arm shows the pocket with the pair nearly absent.
+ * probe-clamp-in-engine.mjs makes both runs, here and at E = 7, and prints how far apart they end.
  *
  * PASSIVE: prints to stdout and writes nothing. It exits 0 when it finishes, and throws if the
  * game's code leaves no simulator or a step does not advance it by one. Imports tools/_harness.mjs
