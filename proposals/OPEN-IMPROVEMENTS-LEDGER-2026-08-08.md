@@ -138,13 +138,20 @@ single execution ledger for the science-first AAA completion branch.
     species it expects at seed 1 and two at seed 2. The tree's own `per_cell_local_fill` switch
     keeps the pocket open at 5 seeds of 11. Factor caps at one uniform ceiling delete both
     feldspars from the Grimsel cleft. The authored field needs a class in
-    `tools/creative-lever-audit.mjs`.
+    `tools/creative-lever-audit.mjs`. The preview is a wrapper round the engine. Written
+    into the engine, a clamp of 2 or more gives the same sizes and fill and other trace-Al
+    values on albite (up to 14 % apart, printed by the step log), which the bump should
+    expect. The acceptance has a floor for the pair (feldspar 15 mm, albite 20 mm), so a
+    bound that is too tight fails it as one that is too loose does.
   - [ ] SC2 — put galena, molybdenite and uraninite on σ − 1 (they propose a rate at saturation).
     At the same constant the uraninites end smaller and write less radiogenic lead, so the bump
     has to recommission the cation gate (`npm run audit:cations`): the Ca share it holds
     `schneeberg` to at seed 42 moves from 0.582 to 0.630. One test stands at its floor on
     galena (`tests-js/cascade-gate-audit.test.ts:107`: a galena on record in four of six
-    scenarios, and exactly four today); the preview keeps all four.
+    scenarios, and exactly four today); the preview keeps all four. The preview is a wrapper
+    round the engines. With the law written into them the two have the same sizes and fill
+    in 45 of 48 pairs; `sunnyside_american_tunnel` at seed 42 is another run (86.5 % full
+    against 83.1 %), and the same species move in all 48.
   - [ ] SC3 — carry radiogenic Pb to the voxels as well as the bulk handle
     (`js/85-simulator.ts:1276` writes the bulk handle only). Recommended timing: hold it until a
     uraninite is altered, and take the galena out of `radioactive_pegmatite`'s own texts (the

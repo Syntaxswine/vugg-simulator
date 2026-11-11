@@ -41,7 +41,7 @@ Living list of open work items, captured from session conversations so context s
 > Creative mode's "Radioactive Pegmatite" starter fluid and in Zen runs of the two uraninite
 > scenarios, bulk Pb climbs to 268–286, 621–682 and 1,015–1,035 ppm with every voxel where
 > it started.)
-> **This review has been corrected eleven times by its own review rounds (the doc's §9 lists each
+> **This review has been corrected twelve times by its own review rounds (the doc's §9 lists each
 > set): the first version said supply does not bind; the second costed the recommended fixes
 > too lightly; the third said the feldspar clamp loses no species, having counted a
 > dissolved-away crystal's record as presence, and recommended a lead mechanism that cannot
@@ -67,7 +67,13 @@ Living list of open work items, captured from session conversations so context s
 > the measured numbers held and the source lines cited were the lines; the errors were in
 > what it says its own proposals cost and reach, and in one reading. In the eleventh a
 > headline count was one too high as well, through a probe that counted pockets by a fill
-> the game does not use.**
+> the game does not use. The twelfth round found nothing that had to be fixed, and three
+> statements wider than what stood behind them: the preview's wrapper and a clamp written
+> into the engine were called one run where their sizes and fill had been compared (albite's
+> zones record another trace Al); SC2's preview, a wrapper too, had not been run against the
+> law in the engine (it is another run in one scenario at one seed); and SC1's acceptance
+> lines refused no bound that is too tight. Those are corrected, and the corrections have
+> had no review round of their own.**
 > **Awaits the boss:** the eight decisions in the doc's §6. SC1: a clamp on the feldspar pair's
 > rate authored on `gem_pegmatite` ALONE (recommended; one baseline changes), which makes topaz
 > appear at all three locality-gate seeds, so the bump must also PROMOTE TOPAZ out of the
@@ -99,7 +105,12 @@ Living list of open work items, captured from session conversations so context s
 > tree's own `per_cell_local_fill` switch, which keeps the pocket open at 5 seeds of 11 where
 > the clamp does at 11; a change to the broth, which costs the pocket its quartz; or no bound
 > until SC4. NOT factor caps, which delete both feldspars from the Grimsel cleft. The field SC1
-> authors also needs a class in the Creative lever audit. SC2's constant; at the same constant
+> authors also needs a class in the Creative lever audit. THE PREVIEWS OF SC1 AND SC2 ARE
+> WRAPPERS ROUND THE ENGINES, and both were run beside the change written into the engine:
+> SC1's clamp gives the same sizes and fill at 2 and above and other trace-Al values on
+> albite (up to 14 % apart; the step log prints them), and SC2's law is another run in
+> `sunnyside_american_tunnel` at seed 42 (86.5 % full against 83.1 %; the same species
+> moved in all 48 pairs). SC2's constant; at the same constant
 > SC2 shrinks the uraninites, their radiogenic lead falls (`schneeberg`'s bulk handle ends at
 > 111 ppm, not 179), and the CATION GATE (`npm run audit:cations`) must be recommissioned with
 > a new Ca share (0.630, not 0.582). SC3: hold the radiogenic lead until a uraninite is altered

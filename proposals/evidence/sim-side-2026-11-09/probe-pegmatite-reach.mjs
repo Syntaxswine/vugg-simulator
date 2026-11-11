@@ -94,9 +94,11 @@
  *                 (js/59-engines-silicate.ts). Albite's is 4·(σ − 1)·u with u between 0.8 and
  *                 1.2; it returns nothing below 0.1 and rolls for a platy habit below a rate of
  *                 3 at under 350 °C. A clamp inside the engine at 2 leaves every one of those
- *                 tests where the wrapper leaves it (feldspar 4.2 to 7.8, albite 6.4 to 9.6).
- *                 At 1.5 feldspar's clamped rate would be 3.15 to 5.85 and at 1 it would be 2.1
- *                 to 3.9, so the engine would make the inclusion roll sometimes or never, where
+ *                 tests where the wrapper leaves it (feldspar 4.2 to 7.8, albite 6.4 to 9.6),
+ *                 so the two give every zone the same thickness. (They do not give it the same
+ *                 record: albite records its trace Al after a debit made at its rate.) At 1.5
+ *                 feldspar's clamped rate would be 3.15 to 5.85 and at 1 it would be 2.1 to
+ *                 3.9, so the engine would make the inclusion roll sometimes or never, where
  *                 under the wrapper it always makes it. At those values the wrapper's run is
  *                 not the run a clamp in the engine would make. probe-clamp-in-engine.mjs makes
  *                 both runs at each value and prints how far apart they end.
@@ -524,7 +526,7 @@ console.log(`\nPART 4 — Simulation mode's own form: the Cavity Size select and
     }
 
     // Pairs of those changes, made together in the same vug.
-    console.log(`\n  Pairs of courses in the vug, seeds ${OTHER_SEEDS.join(' / ')}: the change to the broth with the pair's rate clamped as well, at six values; the fill switch with the clamp at 7; the rind with the clamp at 7. The wrapper's run is the run a clamp in the engine would make at 2 and above, and not at 1.5, 1 or 0 (see the header); probe-clamp-in-engine.mjs makes both.`);
+    console.log(`\n  Pairs of courses in the vug, seeds ${OTHER_SEEDS.join(' / ')}: the change to the broth with the pair's rate clamped as well, at six values; the fill switch with the clamp at 7; the rind with the clamp at 7. The wrapper's run has the sizes and the fill of the run a clamp in the engine would make at 2 and above, and not at 1.5, 1 or 0 (see the header); probe-clamp-in-engine.mjs makes both.`);
     const PAIRS_OF_COURSES = [
       ['broth, clamp 7', { mul: BROTH, clamp: 7 }], ['broth, clamp 3', { mul: BROTH, clamp: 3 }], ['broth, clamp 2', { mul: BROTH, clamp: 2 }],
       ['broth, clamp 1.5', { mul: BROTH, clamp: 1.5 }], ['broth, clamp 1', { mul: BROTH, clamp: 1 }], ['broth, clamp 0', { mul: BROTH, clamp: 0 }],

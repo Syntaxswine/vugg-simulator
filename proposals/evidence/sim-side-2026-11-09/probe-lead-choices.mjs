@@ -79,8 +79,10 @@
  *                60, made by the page's own fortressStep('drain') (js/97-ui-fortress.ts), which
  *                lowers the water level, sets O2 on the bulk handle to at least 0.6 and advances
  *                no step; with one Evaporate after step 60 instead (fortressStep('evaporate'):
- *                O2 to at least 1.5, the water level further down, eight species concentrated
- *                by 1.4 and the fluid 10 °C cooler); and with the Drain after step 30. Drain
+ *                O2 to at least 1.5, the water level further down, the flow cut to a fifth,
+ *                eight species concentrated by 1.4, CO3 with them where the simulator holds
+ *                no carbonate boundary, and the fluid 10 °C cooler); and with the Drain after
+ *                step 30. Drain
  *                and Evaporate are buttons of that mode, and the two cases of fortressStep
  *                behind a button that write O2.
  *   Random Vugg  buildRandomScenario('pegmatite', 'pocket') (js/96-ui-random.ts), which draws
@@ -479,8 +481,9 @@ console.log(`\n  Creative mode, starter fluid "Radioactive Pegmatite": fortressB
   console.log(`    controls over the ${everyDrained.length} drained runs: steps run: ${everyDrained.every(r => r.steps === STARTER_STEPS) ? `${STARTER_STEPS} in every run` : 'NOT THE NUMBER ASKED FOR'}; the action raised O2 on the bulk handle ${everyDrained.every(r => r.act.o2After > r.act.o2Before) ? 'in every run' : 'IN NOT EVERY RUN'}; before the action each drained run ${sameBefore ? 'is the run left to itself, at every seed and timing' : 'IS A DIFFERENT RUN'}`);
 
   // Two more of the same kind: the page's other button that raises O2 (Evaporate sets it to at
-  // least 1.5, and also drops the water level further, concentrates eight species by 1.4 and cools
-  // the fluid by 10 °C), and the same Drain made earlier in the run.
+  // least 1.5, and also drops the water level further, cuts the flow, concentrates eight species
+  // by 1.4, and CO3 too where there is no carbonate boundary, and cools the fluid by 10 °C), and
+  // the same Drain made earlier in the run.
   for (const [label, action, after] of [['one Evaporate after step 60', 'evaporate', ACTION_AFTER], ['one Drain after step 30', 'drain', EARLY]]) {
     console.log(`\n  the same starter fluid with ${label}: the page's own fortressStep('${action}') (js/97-ui-fortress.ts), called once between two steps`);
     const acted = {};

@@ -13,16 +13,22 @@
  *                   fluid inclusion at a rate above 4.
  *   grow_albite     rate = 4·(σ − 1)·u, u between 0.8 and 1.2. It returns nothing below a rate of
  *                   0.1, and rolls for the platy habit under 350 °C at a rate under 3.
+ * grow_albite uses its rate once more. It debits Na, Al and SiO2 from the fluid it was handed by
+ * its rate (the simulator puts those debits back, since formula species are booked by the ledger:
+ * _runEngineFluidTransaction, js/85b-simulator-nucleate.ts), and it records the zone's trace Al
+ * from the aluminium that is left.
  * SC1 recommends the clamp INSIDE the engine: rate = k·min(σ − 1, E)·u, with each of those tests
- * made on the clamped rate. This probe makes that run too. For the length of the engine's call and
- * no longer, the mineral's σ method on the conditions returns min(σ, E + 1). Each engine reads σ
- * once, tests it against 1, takes σ − 1 for its rate and uses it for nothing else, so the call
- * computes k·min(σ − 1, E)·u and nothing else in it changes. σ is as shipped for every other reader.
+ * and writes made on the clamped rate. This probe makes that run too. For the length of the
+ * engine's call and no longer, the mineral's σ method on the conditions returns min(σ, E + 1).
+ * Each engine reads σ once, tests it against 1 and takes σ − 1 for its rate, so the call is the
+ * engine with rate = k·min(σ − 1, E)·u. σ is as shipped for every other reader.
  *
  * Where the clamp is active the rate the engine proposes is above 2.1·E for feldspar and 3.2·E for
  * albite, with the clamp inside the engine or without it. So from E = 2 up (2.1·E is then 4.2 or
- * more) every one of those tests falls on the same side under both forms, and the two runs should be
- * one run. Below about 1.9, feldspar's clamped rate can be under 4: the engine then makes no
+ * more) every one of those tests falls on the same side under both forms, every zone should have
+ * the same thickness, and the two runs should have the same sizes and the same fill. They are not
+ * the same record: an albite zone carries another trace Al under each form, and the step log
+ * prints it. Below about 1.9, feldspar's clamped rate can be under 4: the engine then makes no
  * inclusion roll where under the wrapper it makes one, a random draw is not taken, and the two runs
  * part from there. At 0 the engine returns nothing where the wrapper returns a zone of no thickness.
  * The probe runs both forms side by side and prints how far apart they end.
@@ -44,17 +50,21 @@
  * Readings per run: the largest fill of the run and the fill at its end; the first step at fill
  * >= 0.7 and at >= 0.999; the largest quartz, tourmaline and topaz with solid; SC1's first acceptance
  * line, read against the shipped run in the same cavity at the same seed; the positive zones the
- * pair's engines returned, and how many carry a fluid inclusion. Two runs are "the same run" when
- * their baseline-style summaries are equal and their fill after every step agrees to a billionth of
- * the cavity. They are not the same arithmetic: the wrapper stores k·(σ − 1)·u·E/(σ − 1) where the
- * engine stores k·E·u, and the two can differ in the last binary place.
+ * pair's engines returned, and how many carry a fluid inclusion. Two runs have "the same sizes and
+ * fill" when their baseline-style summaries are equal and their fill after every step agrees to a
+ * billionth of the cavity. (They are not the same arithmetic: the wrapper stores
+ * k·(σ − 1)·u·E/(σ − 1) where the engine stores k·E·u, and the two can differ in the last binary
+ * place.) Where two runs have the same sizes and fill, they are also compared zone by zone, field
+ * by field, and step-log line by step-log line: numbers have to agree to a billionth of
+ * themselves, and everything else has to be equal.
  *
  * PASSIVE: prints to stdout and writes nothing. It exits 0 when it finishes. Imports
  * tools/_harness.mjs and node builtins.
  * Controls: gem_pegmatite's shipped run at seed 42 is compared with the committed baseline, at the
  * start and at the end, and schneeberg's and tormiq_alpine_cleft's once; each form at E = Infinity
  * has to be the shipped run; the vug built through the factory has to be the run the game's command
- * runtime builds; and at every E of 2 or more the two forms have to be the same run.
+ * runtime builds; at every E of 2 or more the two forms have to have the same sizes and fill; and
+ * the clamp in the engine at 7, made twice, has to differ in no zone field and no step-log line.
  *
  *   node proposals/evidence/sim-side-2026-11-09/probe-clamp-in-engine.mjs
  */
@@ -147,8 +157,10 @@ function run(seed, make, { form = null, E = null, mul = null, horizon = null } =
     const steps = made.defaultSteps ?? 100;
     let maxFill = 0, first70 = null, full = null;
     const fills = [];
+    const logs = [];                                                // the lines each step returns
+    const keep = (lines) => logs.push(Array.isArray(lines) ? lines.slice() : []);
     for (let i = 0; i < steps; i++) {
-      sim.run_step();
+      keep(sim.run_step());
       const fill = sim.get_vug_fill();
       fills.push(fill);
       if (fill > maxFill) maxFill = fill;
@@ -166,12 +178,13 @@ function run(seed, make, { form = null, E = null, mul = null, horizon = null } =
       if (c.total_growth_um > o.max_um) o.max_um = c.total_growth_um;
     }
     const out = { steps, fill: sim.get_vug_fill(), maxFill, first70, full, lastGrowth, species, fills, summary: JSON.stringify(summarize(sim)),
-      zones: count.zones, inclusions: count.inclusions, diameter: Number(sim.conditions.wall.vug_diameter_mm) };
+      zones: count.zones, inclusions: count.inclusions, diameter: Number(sim.conditions.wall.vug_diameter_mm),
+      crystals: sim.crystals, logs };                               // kept until the two forms have been compared, then dropped
     // stepped on past the run's own length
     if (horizon != null) {
       let first70On = first70, fullOn = full;
       while (sim.step < horizon && fullOn == null) {
-        sim.run_step();
+        keep(sim.run_step());
         const fill = sim.get_vug_fill();
         out.fills.push(fill);
         if (first70On == null && fill >= 0.7) first70On = sim.step;
@@ -192,7 +205,7 @@ const firstLine = (r, base) => r.maxFill < 0.7 && r.lastGrowth > 215
   && Object.keys(base.species).every(m => r.species[m]);
 // The largest difference between two runs' fill, over every step. The two forms are not the same
 // arithmetic: the wrapper stores k·(σ − 1)·u·E/(σ − 1) and the engine k·E·u, which can differ in the
-// last binary place, so "the same run" allows the fill a billionth of the cavity.
+// last binary place, so "the same sizes and fill" allows the fill a billionth of the cavity.
 const fillApart = (a, b) => {
   if (a.fills.length !== b.fills.length) return Infinity;
   let worst = 0;
@@ -200,9 +213,52 @@ const fillApart = (a, b) => {
   return worst;
 };
 const SAME_FILL = 1e-9;
-const sameRun = (a, b) => a.summary === b.summary && (a.summaryOn ?? '') === (b.summaryOn ?? '') && fillApart(a, b) < SAME_FILL;
+const sameSizesAndFill = (a, b) => a.summary === b.summary && (a.summaryOn ?? '') === (b.summaryOn ?? '') && fillApart(a, b) < SAME_FILL;
 
-const comparisons = [];     // { label, E, pairs: [[wrapper, engine], …], lines: [[boolean, boolean], …] | null }
+// Two runs compared zone by zone, field by field, and step-log line by step-log line. Numbers have
+// to agree to a billionth of themselves; anything else has to be equal.
+const near = (a, b) => a === b || (Number.isFinite(a) && Number.isFinite(b) && Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(a), Math.abs(b)));
+function equal(a, b) {
+  if (typeof a === 'number' && typeof b === 'number') return near(a, b) || (Number.isNaN(a) && Number.isNaN(b));
+  if (a === b) return true;
+  if (a && b && typeof a === 'object' && typeof b === 'object') {
+    const ka = Object.keys(a), kb = Object.keys(b);
+    return ka.length === kb.length && ka.every(k => equal(a[k], b[k]));
+  }
+  return false;
+}
+function records(A, B) {
+  const fields = {};                       // "mineral.field" -> { zones, worst }: zones on which the field differs, and the largest relative difference of a number
+  let zones = 0, zoneCounts = 0, sizes = 0;
+  const n = Math.min(A.crystals.length, B.crystals.length);
+  for (let i = 0; i < n; i++) {
+    const ca = A.crystals[i], cb = B.crystals[i];
+    if (ca.mineral !== cb.mineral || ca.habit !== cb.habit || !near(ca.total_growth_um, cb.total_growth_um)) sizes++;
+    if (ca.mineral !== cb.mineral || ca.zones.length !== cb.zones.length) { zoneCounts++; continue; }
+    for (let z = 0; z < ca.zones.length; z++) {
+      const za = ca.zones[z], zb = cb.zones[z];
+      zones++;
+      for (const k of new Set([...Object.keys(za), ...Object.keys(zb)])) {
+        if (equal(za[k], zb[k])) continue;
+        const o = (fields[`${ca.mineral}.${k}`] ||= { zones: 0, worst: 0 });
+        o.zones++;
+        if (typeof za[k] === 'number' && typeof zb[k] === 'number') o.worst = Math.max(o.worst, Math.abs(za[k] - zb[k]) / Math.max(Math.abs(za[k]), Math.abs(zb[k])));
+      }
+    }
+  }
+  let logLines = 0, logTotal = 0;
+  for (let s = 0; s < Math.max(A.logs.length, B.logs.length); s++) {
+    const la = A.logs[s] || [], lb = B.logs[s] || [];
+    logTotal += la.length;
+    logLines += Math.abs(la.length - lb.length);
+    for (let j = 0; j < Math.min(la.length, lb.length); j++) if (la[j] !== lb[j]) logLines++;
+  }
+  return { fields, zones, zoneCounts: zoneCounts + Math.abs(A.crystals.length - B.crystals.length), sizes, logLines, logTotal };
+}
+// A run's crystals and step log are dropped once they have been compared.
+const lighten = (r) => { delete r.crystals; delete r.logs; return r; };
+
+const comparisons = [];     // one entry for each call of compare()
 function compare(label, E, seeds, make, options, bases) {
   const w = seeds.map(seed => run(seed, make, { ...options, form: 'wrapper', E }));
   const e = seeds.map(seed => run(seed, make, { ...options, form: 'engine', E }));
@@ -214,10 +270,20 @@ function compare(label, E, seeds, make, options, bases) {
   console.log(`    ${label}, E = ${E}${seeds.length === SEEDS.length ? '' : ` (seed${seeds.length === 1 ? '' : 's'} ${seeds.join(' / ')})`}`);
   console.log(`      wrapper        ${line(w)}`);
   console.log(`      in the engine  ${line(e)}`);
-  const same = w.map((r, i) => sameRun(r, e[i]));
+  const same = w.map((r, i) => sameSizesAndFill(r, e[i]));
   const fillGap = Math.max(...w.map((r, i) => Math.abs(r.fill - e[i].fill) * 100));
-  console.log(`      the two forms: ${same.every(Boolean) ? 'the same run at every seed' : same.some(Boolean) ? `the same run at ${same.filter(Boolean).length} of ${same.length} seeds` : 'a different run at every seed'}; positive zones of the pair ${each(w, r => r.zones)} against ${each(e, r => r.zones)}, with a fluid inclusion ${each(w, r => r.inclusions)} against ${each(e, r => r.inclusions)}${same.every(Boolean) ? '' : `; fill at the end apart by ${fillGap.toFixed(1)} points at most`}`);
-  comparisons.push({ label, E, w, e, same, lines: bases ? w.map((r, i) => [firstLine(r, bases[i]), firstLine(e[i], bases[i])]) : null, horizon: options.horizon ?? null });
+  console.log(`      the two forms: ${same.every(Boolean) ? 'the same sizes and fill at every seed' : same.some(Boolean) ? `the same sizes and fill at ${same.filter(Boolean).length} of ${same.length} seeds` : 'other sizes or another fill at every seed'}; positive zones of the pair ${each(w, r => r.zones)} against ${each(e, r => r.zones)}, with a fluid inclusion ${each(w, r => r.inclusions)} against ${each(e, r => r.inclusions)}${same.every(Boolean) ? '' : `; fill at the end apart by ${fillGap.toFixed(2)} points at most`}`);
+  // Where the two forms have the same sizes and fill: are they the same record?
+  let recs = null;
+  if (same.every(Boolean)) {
+    recs = w.map((r, i) => records(r, e[i]));
+    const names = [...new Set(recs.flatMap(r => Object.keys(r.fields)))].sort();
+    console.log(`      their records: ${each(recs, r => r.zones)} zones compared; crystals whose size or habit differs ${each(recs, r => r.sizes)}, whose count of zones differs ${each(recs, r => r.zoneCounts)}; `
+      + (names.length ? `zone fields that differ: ${names.map(k => `${k} on ${each(recs, r => r.fields[k]?.zones ?? 0)} zones${recs.some(r => r.fields[k]?.worst > 0) ? ` (by ${(Math.max(...recs.map(r => r.fields[k]?.worst ?? 0)) * 100).toFixed(1)} % at most)` : ''}`).join('; ')}` : 'no zone field differs')
+      + `; step-log lines that differ ${each(recs, r => r.logLines)} of ${each(recs, r => r.logTotal)}`);
+  }
+  w.forEach(lighten); e.forEach(lighten);
+  comparisons.push({ label, E, w, e, same, recs, lines: bases ? w.map((r, i) => [firstLine(r, bases[i]), firstLine(e[i], bases[i])]) : null, horizon: options.horizon ?? null });
   return { w, e };
 }
 
@@ -227,14 +293,14 @@ const BROTH = [['SiO2', 0.1], ['Al', 0.15]];                                    
 const viaFactory = (o) => () => SCENARIOS.gem_pegmatite(JSON.parse(JSON.stringify(o)));
 const own = viaFactory({}), vug = viaFactory(VUG);
 
-const shippedOwn = SEEDS.map(seed => run(seed, own));
-const shippedVug = SEEDS.map(seed => run(seed, vug));
+const shippedOwn = SEEDS.map(seed => lighten(run(seed, own)));
+const shippedVug = SEEDS.map(seed => lighten(run(seed, vug)));
 {
   const viaRuntime = startSimulationCommandRuntime(makeSimulationStartCommand('gem_pegmatite', 42, VUG));
   for (let i = 0; i < viaRuntime.scenarioData.defaultSteps; i++) viaRuntime.sim.run_step();
   console.log(`controls at seed 42: gem_pegmatite's shipped run ${shippedOwn[0].summary === JSON.stringify(BASELINE.gem_pegmatite) ? 'reproduces the baseline' : 'DOES NOT REPRODUCE THE BASELINE'}; `
-    + `the wrapper at Infinity ${sameRun(shippedOwn[0], run(42, own, { form: 'wrapper', E: Infinity })) ? 'is the shipped run' : 'MOVES THE RUN'}; `
-    + `the clamp in the engine at Infinity ${sameRun(shippedOwn[0], run(42, own, { form: 'engine', E: Infinity })) ? 'is the shipped run' : 'MOVES THE RUN'}; `
+    + `the wrapper at Infinity ${sameSizesAndFill(shippedOwn[0], run(42, own, { form: 'wrapper', E: Infinity })) ? 'is the shipped run' : 'MOVES THE RUN'}; `
+    + `the clamp in the engine at Infinity ${sameSizesAndFill(shippedOwn[0], run(42, own, { form: 'engine', E: Infinity })) ? 'is the shipped run' : 'MOVES THE RUN'}; `
     + `the vug built through the scenario's factory ${shippedVug[0].summary === JSON.stringify(summarize(viaRuntime.sim)) ? 'is the run the command runtime builds' : 'IS A DIFFERENT RUN'} `
     + `(${shippedVug[0].diameter.toFixed(1)} mm; full at step ${shippedVug.map(r => r.full ?? '—').join(' / ')})`);
 }
@@ -269,7 +335,20 @@ compare('own cavity, changed broth', 1, SEEDS, own, { mul: BROTH }, shippedOwn);
   const sameRuns = (list) => list.reduce((n, c) => n + c.same.filter(Boolean).length, 0);
   console.log(`\nover the ${comparisons.length} comparisons (${runs(comparisons)} pairs of runs):`);
   const apart2 = Math.max(...from2.flatMap(c => c.w.map((r, i) => fillApart(r, c.e[i]))));
-  console.log(`  at E of 2 or more (${[...new Set(from2.map(c => c.E))].sort((a, b) => a - b).join(', ')}): ${sameRuns(from2) === runs(from2) ? `the two forms make the same run in all ${runs(from2)} pairs` : `THE TWO FORMS PART in ${runs(from2) - sameRuns(from2)} of ${runs(from2)} pairs`}; the same baseline-style summary in ${from2.reduce((n, c) => n + c.w.filter((r, i) => r.summary === c.e[i].summary && (r.summaryOn ?? '') === (c.e[i].summaryOn ?? '')).length, 0)}; the fill after any step apart by ${apart2.toExponential(1)} of the cavity at most`);
+  console.log(`  at E of 2 or more (${[...new Set(from2.map(c => c.E))].sort((a, b) => a - b).join(', ')}): ${sameRuns(from2) === runs(from2) ? `the two forms have the same sizes and fill in all ${runs(from2)} pairs` : `THE TWO FORMS PART in ${runs(from2) - sameRuns(from2)} of ${runs(from2)} pairs`}; the same baseline-style summary in ${from2.reduce((n, c) => n + c.w.filter((r, i) => r.summary === c.e[i].summary && (r.summaryOn ?? '') === (c.e[i].summaryOn ?? '')).length, 0)}; the fill after any step apart by ${apart2.toExponential(1)} of the cavity at most`);
+  {
+    // the same sizes and fill is not the same record
+    const recs = from2.flatMap(c => c.recs || []);
+    const sum = (f) => recs.reduce((n, r) => n + f(r), 0);
+    const names = [...new Set(recs.flatMap(r => Object.keys(r.fields)))].sort();
+    console.log(`  at E of 2 or more, the records of the ${recs.length} pairs with the same sizes and fill (${sum(r => r.zones)} zones compared): `
+      + (names.length ? names.map(k => {
+        const worst = Math.max(...recs.map(r => r.fields[k]?.worst ?? 0));
+        const inPairs = recs.filter(r => r.fields[k]).length, onZones = sum(r => r.fields[k]?.zones ?? 0);
+        return `${k} differs in ${inPairs} pair${inPairs === 1 ? '' : 's'}, on ${onZones} zone${onZones === 1 ? '' : 's'}${worst > 0 ? ` (by ${(worst * 100).toFixed(1)} % at most)` : ''}`;
+      }).join('; ') : 'no zone field differs')
+      + `; the step log differs in ${recs.filter(r => r.logLines > 0).length} pairs, on ${sum(r => r.logLines)} of ${sum(r => r.logTotal)} lines; a crystal's count of zones differs in ${recs.filter(r => r.zoneCounts > 0).length} pair${recs.filter(r => r.zoneCounts > 0).length === 1 ? '' : 's'}, and a crystal's size or habit in ${recs.filter(r => r.sizes > 0).length}`);
+  }
   const gap = (f) => Math.max(...below.flatMap(c => c.w.map((r, i) => f(r, c.e[i]))));
   const stepGap = (key) => {
     let worst = 0, oneSided = 0;
@@ -281,7 +360,7 @@ compare('own cavity, changed broth', 1, SEEDS, own, { mul: BROTH }, shippedOwn);
     return `${worst} step${worst === 1 ? '' : 's'} at most${oneSided ? `, and in ${oneSided} pair${oneSided === 1 ? '' : 's'} ONE FORM REACHES IT AND THE OTHER DOES NOT` : ''}`;
   };
   const verdicts = below.filter(c => c.lines).flatMap(c => c.lines);
-  console.log(`  below 2 (${[...new Set(below.map(c => c.E))].sort((a, b) => a - b).join(', ')}): the same run in ${sameRuns(below)} of ${runs(below)} pairs; the fill at the end of the run's own length apart by ${gap((a, b) => Math.abs(a.fill - b.fill) * 100).toFixed(1)} points at most, and the largest fill by ${gap((a, b) => Math.abs(a.maxFill - b.maxFill) * 100).toFixed(1)}; the first step at fill >= 0.7 apart by ${stepGap('first70')}, and at >= 0.999 by ${stepGap('full')}`);
+  console.log(`  below 2 (${[...new Set(below.map(c => c.E))].sort((a, b) => a - b).join(', ')}): the same sizes and fill in ${sameRuns(below)} of ${runs(below)} pairs; the fill at the end of the run's own length apart by ${gap((a, b) => Math.abs(a.fill - b.fill) * 100).toFixed(2)} points at most, and the largest fill by ${gap((a, b) => Math.abs(a.maxFill - b.maxFill) * 100).toFixed(2)}; the first step at fill >= 0.7 apart by ${stepGap('first70')}, and at >= 0.999 by ${stepGap('full')}`);
   const horizons = below.filter(c => c.horizon != null);
   if (horizons.length) {
     const hGap = (key) => Math.max(...horizons.flatMap(c => c.w.map((r, i) => (r[key] == null || c.e[i][key] == null ? Infinity : Math.abs(r[key] - c.e[i][key])))));
@@ -289,4 +368,9 @@ compare('own cavity, changed broth', 1, SEEDS, own, { mul: BROTH }, shippedOwn);
   }
   console.log(`  below 2, SC1's first acceptance line: ${verdicts.every(([a, b]) => a === b) ? `the same verdict under both forms in all ${verdicts.length} pairs of runs it was read on` : `A DIFFERENT VERDICT in ${verdicts.filter(([a, b]) => a !== b).length} of ${verdicts.length} pairs`}`);
 }
-console.log(`\ncontrol at the end: gem_pegmatite's shipped run at seed 42 ${run(42, own).summary === JSON.stringify(BASELINE.gem_pegmatite) ? 'still reproduces the baseline' : 'NO LONGER REPRODUCES THE BASELINE'}`);
+{
+  // the record comparison finds nothing between a run and the same run made again
+  const r = records(run(42, own, { form: 'engine', E: 7 }), run(42, own, { form: 'engine', E: 7 }));
+  console.log(`\ncontrol: the clamp in the engine at 7, seed 42, made twice ${Object.keys(r.fields).length === 0 && r.logLines === 0 && r.zoneCounts === 0 && r.sizes === 0 ? `differs in no field of ${r.zones} zones and in none of ${r.logTotal} step-log lines` : 'DIFFERS FROM ITSELF'}`);
+}
+console.log(`control at the end: gem_pegmatite's shipped run at seed 42 ${run(42, own).summary === JSON.stringify(BASELINE.gem_pegmatite) ? 'still reproduces the baseline' : 'NO LONGER REPRODUCES THE BASELINE'}`);
