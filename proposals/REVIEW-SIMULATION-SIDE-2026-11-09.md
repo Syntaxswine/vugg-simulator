@@ -1148,7 +1148,8 @@ misses is not covered.
 - *Zen mode* offers every scenario and leaves its events behind. Of its 41 simulators at
   seed 42, stepped for the scenario's own length without the drift, two put a uraninite on
   record, `radioactive_pegmatite` and `schneeberg`, and in the other 39 the bulk handle's
-  lead ends where it started (`probe-zen-drift.txt`, its third part). By the game's own
+  lead ends where it started (`probe-zen-drift.txt`, its third part). (Three scenarios
+  author uranium in their fluid. The third, `colorado_plateau`, is among the 39.) By the game's own
   loop, with the drift, the bulk handle's lead climbs from 30 to 621 to 682 ppm in 600
   steps of the first, and from 5 to 1,015 to 1,035 ppm in 600 steps of the second.
 - *Creative mode.* Of its seven starter fluids one carries uranium, the one synced to
@@ -2469,7 +2470,10 @@ defaults: the scenario's own cavity and shape seed, and its own 230 steps.
   would pass the locality gate, which reads records and not solid (trap 14), and it would
   grow no gem. A pilot that fails this line has found a broth that cannot be read at face
   value. That is the pilot's first output, as said above, and it is not a pass. The floors
-  are SC1's, and are choices.
+  are SC1's, and are choices. SC1's line on quartz is not carried over. How much quartz a
+  pocket with a real supply leaves is one of the things the pilot is run to find out, so
+  the pilot reports the largest quartz at each seed, and a speck of it is a finding to
+  explain and not a failure of this line.
 - The locality gate passes on the piloted scenario. If SC1 has promoted topaz by then, topaz has
   to appear at all three of the gate's seeds with the bound lifted, or the pilot fails the gate
   for a reason that is its own.
