@@ -1,0 +1,42 @@
+[scenarios] loaded 41 from ./data/scenarios.json5
+[spec] loaded 184 minerals from ./data/minerals.json
+[thermo] loaded 15 carbonate entries from ./data/thermo-carbonates.json
+[thermo] loaded 4 sulfate entries from ./data/thermo-sulfates.json
+[narratives] loaded 94 species
+probe-enclosure-floor --sc2 — SIM 286; the other 7 scenarios SC2 moves; seeds 42 / 1 / 2; time scale 5
+4 nudges of the three minerals' positive zones (1 − 1.1e-16, 1 − 1.0e-14, 1 + 1.0e-13, 1 − 1.0e-13); each line gives the three seeds
+"on a residue" is an enclosure of the un-nudged run whose host layer of that step is under 0.000001 µm; the counts after it are of the 4 nudged runs at each seed
+each scenario is run in a process of its own, this probe started with --sc2-one and the scenario's name, and the 7 run side by side
+
+  reactive_wall
+    the shipped engines                        largest fill 0.1 / 0.1 / 0.1 %, first 1 to a billionth at step — / — / —; enclosures 1 / 1 / 1, on a residue 0 / 0 / 0; reached 4 / 4 / 4; a size or the lead differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+    SC2's preview at the same constant         largest fill 0.1 / 0.1 / 0.1 %, first 1 to a billionth at step — / — / —; enclosures 1 / 2 / 2, on a residue 0 / 0 / 0; reached 4 / 4 / 4; a size or the lead differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+    SC2's preview at three times the constant  largest fill 0.1 / 0.1 / 0.1 %, first 1 to a billionth at step — / — / —; enclosures 1 / 1 / 1, on a residue 0 / 0 / 0; reached 3 / 3 / 4; a size or the lead differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  reactivated_fluorite_vein
+    the shipped engines                        largest fill 22.8 / 23.3 / 24.3 %, first 1 to a billionth at step — / — / —; enclosures 5 / 0 / 1, on a residue 0 / 0 / 0; reached 4 / 4 / 4; a size or the lead differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+    SC2's preview at the same constant         largest fill 22.7 / 23.2 / 24.2 %, first 1 to a billionth at step — / — / —; enclosures 4 / 0 / 1, on a residue 0 / 0 / 0; reached 3 / 4 / 3; a size or the lead differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+    SC2's preview at three times the constant  largest fill 22.7 / 23.2 / 24.2 %, first 1 to a billionth at step — / — / —; enclosures 5 / 0 / 1, on a residue 0 / 0 / 0; reached 3 / 4 / 4; a size or the lead differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  mvt
+    the shipped engines                        largest fill 8.7 / 9.9 / 4.3 %, first 1 to a billionth at step — / — / —; enclosures 34 / 48 / 50, on a residue 0 / 0 / 0; reached 4 / 3 / 4; a size or the lead differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+    SC2's preview at the same constant         largest fill 8.4 / 9.6 / 4.0 %, first 1 to a billionth at step — / — / —; enclosures 34 / 53 / 50, on a residue 0 / 0 / 0; reached 3 / 3 / 3; a size or the lead differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+    SC2's preview at three times the constant  largest fill 8.7 / 9.9 / 4.3 %, first 1 to a billionth at step — / — / —; enclosures 34 / 48 / 50, on a residue 0 / 0 / 0; reached 4 / 3 / 3; a size or the lead differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  sunnyside_american_tunnel
+    the shipped engines                        largest fill 85.4 / 87.5 / 87.7 %, first 1 to a billionth at step — / — / —; enclosures 8 / 5 / 7, on a residue 0 / 0 / 0; reached 4 / 4 / 4; a size or the lead differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+    SC2's preview at the same constant         largest fill 83.1 / 83.2 / 83.6 %, first 1 to a billionth at step — / — / —; enclosures 4 / 2 / 6, on a residue 0 / 0 / 0; reached 4 / 4 / 4; a size or the lead differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+    SC2's preview at three times the constant  largest fill 84.0 / 88.4 / 88.1 %, first 1 to a billionth at step — / — / —; enclosures 4 / 5 / 7, on a residue 0 / 0 / 0; reached 4 / 4 / 4; a size or the lead differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  porphyry
+    the shipped engines                        largest fill 12.1 / 13.8 / 12.6 %, first 1 to a billionth at step — / — / —; enclosures 3 / 9 / 4, on a residue 0 / 0 / 0; reached 4 / 4 / 4; a size or the lead differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+    SC2's preview at the same constant         largest fill 10.7 / 12.5 / 11.0 %, first 1 to a billionth at step — / — / —; enclosures 3 / 9 / 4, on a residue 0 / 0 / 0; reached 4 / 4 / 4; a size or the lead differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+    SC2's preview at three times the constant  largest fill 49.7 / 54.1 / 49.8 %, first 1 to a billionth at step — / — / —; enclosures 3 / 8 / 4, on a residue 0 / 0 / 0; reached 4 / 4 / 4; a size or the lead differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  roughten_gill
+    the shipped engines                        largest fill 15.0 / 52.5 / 67.0 %, first 1 to a billionth at step — / — / —; enclosures 11 / 14 / 12, on a residue 0 / 0 / 0; reached 4 / 4 / 4; a size or the lead differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+    SC2's preview at the same constant         largest fill 11.9 / 36.7 / 46.4 %, first 1 to a billionth at step — / — / —; enclosures 11 / 14 / 12, on a residue 0 / 0 / 0; reached 4 / 4 / 4; a size or the lead differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+    SC2's preview at three times the constant  largest fill 22.6 / 100.0 / 100.0 %, first 1 to a billionth at step — / 59 / 52; enclosures 11 / 9 / 9, on a residue 0 / 0 / 0; reached 4 / 3 / 4; a size or the lead differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  schneeberg
+    the shipped engines                        largest fill 11.1 / 11.0 / 10.6 %, first 1 to a billionth at step — / — / —; enclosures 22 / 6 / 15, on a residue 0 / 0 / 0; reached 4 / 4 / 4; a size or the lead differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+    SC2's preview at the same constant         largest fill 10.9 / 10.8 / 10.5 %, first 1 to a billionth at step — / — / —; enclosures 22 / 6 / 15, on a residue 0 / 0 / 0; reached 4 / 4 / 4; a size or the lead differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+    SC2's preview at three times the constant  largest fill 11.6 / 11.5 / 11.1 %, first 1 to a billionth at step — / — / —; enclosures 20 / 5 / 15, on a residue 0 / 0 / 0; reached 4 / 4 / 4; a size or the lead differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+
+0 of 252 nudged runs differ from their un-nudged run in a size or the lead, and 0 more in an enclosure alone; the nudge reached 240 of the 252
+0 enclosures of the 63 un-nudged runs are on a residue
+control: at seed 42 the shipped run reproduces the baseline for all 7 scenarios

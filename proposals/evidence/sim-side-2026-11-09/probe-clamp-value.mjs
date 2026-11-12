@@ -19,6 +19,12 @@
  * The lowest and the highest value that meet all three lines at all three seeds are then run at
  * the eight further seeds probe-pegmatite-reach.mjs uses (3, 4, 5, 7, 13, 99, 2024, 17).
  *
+ * With --shape-seeds: the acceptance is read in the scenario's own cavity, which has one shape
+ * seed. Simulation mode's form has a Shape Seed box, and its Random button redraws it for every
+ * run, which changes the cavity's volume. This run takes the values 5 to 9, which the default run
+ * finds to meet all three lines, to the ten shape seeds probe-pegmatite-reach.mjs uses, at growth
+ * seed 42, and reads the three lines against the shipped run at the same shape seed.
+ *
  * The clamp is written inside the engine, as probe-clamp-in-engine.mjs writes it: for the length
  * of the engine's call and no longer, the mineral's σ method on the conditions returns
  * min(σ, E + 1), so the engine computes rate = k·min(σ − 1, E)·u and makes its own tests on that
@@ -28,9 +34,11 @@
  * PASSIVE: prints to stdout and writes nothing. It exits 0 when it finishes. Imports
  * tools/_harness.mjs and node builtins.
  * Controls: gem_pegmatite's shipped run at seed 42 is compared with the committed baseline, at the
- * start and at the end; the clamp at Infinity has to be the shipped run.
+ * start and at the end; the clamp at Infinity has to be the shipped run; with --shape-seeds, the
+ * wall of every run has to carry the shape seed asked for.
  *
  *   node proposals/evidence/sim-side-2026-11-09/probe-clamp-value.mjs
+ *   node proposals/evidence/sim-side-2026-11-09/probe-clamp-value.mjs --shape-seeds
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -47,6 +55,8 @@ const PAIR = ['feldspar', 'albite'];
 const SEEDS = [42, 1, 2];
 const FURTHER_SEEDS = [3, 4, 5, 7, 13, 99, 2024, 17];
 const VALUES = [3, 4, 5, 6, 7, 8, 9, 10, 11];
+const SHAPE_SEEDS = [1, 2, 3, 7, 13, 42, 99, 2024, 123456789, 987654321];   // probe-pegmatite-reach.mjs, Part 4
+const VALUES_AT_SHAPE_SEEDS = [5, 6, 7, 8, 9];                              // the values the default run finds to meet all three lines
 const STEP_ON_TO = 400;
 const FLOOR_UM = { tourmaline: 5000, topaz: 1000, quartz: 5000, feldspar: 15000, albite: 20000 };
 const mm = (um) => (um == null ? '—' : (um / 1000).toFixed(um < 1000 ? 2 : 1));
@@ -65,8 +75,9 @@ function summarize(sim) {
   return sorted;
 }
 
-// One run of gem_pegmatite in its own cavity. E: the clamp's value; null for the shipped run.
-function run(seed, E = null) {
+// One run of gem_pegmatite. E: the clamp's value; null for the shipped run. shape: the shape seed
+// put on the wall, which is what the form's Shape Seed box does; null for the scenario's own cavity.
+function run(seed, E = null, shape = null) {
   const saved = {};
   try {
     if (E != null) {
@@ -84,7 +95,7 @@ function run(seed, E = null) {
       }
     }
     setSeed(seed);
-    const made = SCENARIOS.gem_pegmatite({});
+    const made = SCENARIOS.gem_pegmatite(shape == null ? {} : { wall: { shape_seed: shape } });
     const sim = new VugSimulator(made.conditions, made.events);
     const steps = made.defaultSteps;
     let maxFill = 0, first70 = null;
@@ -104,7 +115,11 @@ function run(seed, E = null) {
       o.n++;
       if (c.total_growth_um > o.max_um) o.max_um = c.total_growth_um;
     }
-    const out = { steps, fill: sim.get_vug_fill(), maxFill, first70, lastGrowth, species, summary: JSON.stringify(summarize(sim)) };
+    const out = {
+      steps, fill: sim.get_vug_fill(), maxFill, first70, lastGrowth, species, summary: JSON.stringify(summarize(sim)),
+      capacity: Number(sim.conditions.wall.cavity_capacity_volume_mm3),   // what get_vug_fill divides by, mm3
+      shapeSeed: sim.conditions.wall.shape_seed ?? null,
+    };
     // stepped on past the run's own length, to the step at which the fill first reaches 0.7
     let first70On = first70;
     while (E != null && first70On == null && sim.step < STEP_ON_TO) {
@@ -139,13 +154,48 @@ const rangeMm = (runs, m) => {
 // how many steps after the run's last step the fill first reaches 0.7; negative when it does so inside the run
 const margin = (r) => (r.first70On == null ? null : r.first70On - r.steps);
 
-function block(E, runs, bases) {
+function block(E, runs, bases, noun = 'seeds') {
   const lines = { first: runs.map((r, i) => firstLine(r, bases[i])), quartz: runs.map(quartzLine), pair: runs.map(pairLine) };
   console.log(`  E = ${String(E).padEnd(3)} largest fill of the run ${each(runs, r => (r.maxFill * 100).toFixed(1))} %; fill >= 0.7 first at step ${each(runs, r => r.first70On ?? `not by ${STEP_ON_TO}`)}, which is ${each(runs, r => margin(r) ?? '—')} steps after the run's last, ${runs[0].steps} (a negative number is inside the run)`);
   console.log(`          feldspar ${each(runs, r => mm(r.species.feldspar?.max_um))} mm; albite ${each(runs, r => mm(r.species.albite?.max_um))}; quartz ${each(runs, r => mm(r.species.quartz?.max_um))}; tourmaline ${each(runs, r => mm(r.species.tourmaline?.max_um))}; topaz ${each(runs, r => mm(r.species.topaz?.max_um))}; last step anything grew ${each(runs, r => r.lastGrowth)}`);
   const count = (list) => `${list.filter(Boolean).length} of ${list.length}`;
-  console.log(`          the first line is met at ${count(lines.first)} seeds; the quartz line at ${count(lines.quartz)}; the pair line at ${count(lines.pair)}`);
+  console.log(`          the first line is met at ${count(lines.first)} ${noun}; the quartz line at ${count(lines.quartz)}; the pair line at ${count(lines.pair)}`);
   return lines;
+}
+
+const SHAPE_MODE = process.argv.includes('--shape-seeds');
+const says = (list) => list.join(', ') || 'none';
+const cm3 = (r) => (r.capacity / 1000).toFixed(1);
+
+if (SHAPE_MODE) {
+  console.log(`probe-clamp-value --shape-seeds — SIM ${SIM_VERSION}; gem_pegmatite at ${SHAPE_SEEDS.length} shape seeds, growth seed 42; the clamp written inside the engine; time scale ${getSimulationTimeScale()}`);
+  const own = run(42);
+  console.log(`controls at seed 42 in the scenario's own cavity (shape seed ${own.shapeSeed}, ${cm3(own)} cm3): the shipped run ${own.summary === JSON.stringify(BASELINE.gem_pegmatite) ? 'reproduces the baseline' : 'DOES NOT REPRODUCE THE BASELINE'}; the clamp at Infinity ${run(42, Infinity).summary === own.summary ? 'is the shipped run' : 'MOVES THE RUN'}`);
+  console.log(`floors of the lines: tourmaline ${mm(FLOOR_UM.tourmaline)} mm, topaz ${mm(FLOOR_UM.topaz)}, quartz ${mm(FLOOR_UM.quartz)}, feldspar ${mm(FLOOR_UM.feldspar)}, albite ${mm(FLOOR_UM.albite)}`);
+
+  console.log(`\nC — the values ${VALUES_AT_SHAPE_SEEDS[0]} to ${VALUES_AT_SHAPE_SEEDS.at(-1)} at shape seeds ${SHAPE_SEEDS.join(' / ')}, growth seed 42; each run stepped on until its fill reaches 0.7 or ${STEP_ON_TO} steps have run`);
+  const shippedAt = SHAPE_SEEDS.map(shape => run(42, null, shape));
+  console.log(`  the cavity holds ${each(shippedAt, cm3)} cm3; the shape seed on the wall is ${shippedAt.every((r, i) => r.shapeSeed === SHAPE_SEEDS[i]) ? 'the one asked for in every run' : 'NOT THE ONE ASKED FOR in some run'}`);
+  console.log(`  shipped: full at every one of them: ${shippedAt.every(r => r.maxFill >= 0.999) ? 'yes' : 'NO'}; species with solid ${each(shippedAt, r => Object.keys(r.species).length)}`);
+  const met = {};
+  let sameCavity = true;
+  for (const E of VALUES_AT_SHAPE_SEEDS) {
+    const runs = SHAPE_SEEDS.map(shape => run(42, E, shape));
+    sameCavity &&= runs.every((r, i) => r.shapeSeed === SHAPE_SEEDS[i] && r.capacity === shippedAt[i].capacity);
+    const lines = block(E, runs, shippedAt, 'shape seeds');
+    const all = runs.map((_, i) => lines.first[i] && lines.quartz[i] && lines.pair[i]);
+    met[E] = all;
+    const notAt = (list) => SHAPE_SEEDS.filter((_, i) => !list[i]);
+    const failing = [['the first line', lines.first], ['the quartz line', lines.quartz], ['the pair line', lines.pair]]
+      .filter(([, list]) => notAt(list).length)
+      .map(([name, list]) => `${name} at shape seed ${notAt(list).join(', ')}`);
+    console.log(`          all three lines are met at ${all.filter(Boolean).length} of ${all.length} shape seeds${failing.length ? `; not met: ${failing.join('; ')}` : ''}; margin ${range(runs.map(margin))} steps`);
+  }
+  console.log(`\n  under the clamp every run has the shape seed and the cavity volume of the shipped run it is read against: ${sameCavity ? 'yes' : 'NO'}`);
+  console.log(`  values that meet all three lines at all ${SHAPE_SEEDS.length} shape seeds: ${says(VALUES_AT_SHAPE_SEEDS.filter(E => met[E].every(Boolean)))}`);
+  console.log(`  values that fail a line at some shape seed: ${says(VALUES_AT_SHAPE_SEEDS.filter(E => !met[E].every(Boolean)))}`);
+  console.log(`\ncontrol at the end: gem_pegmatite's shipped run at seed 42 ${run(42).summary === JSON.stringify(BASELINE.gem_pegmatite) ? 'still reproduces the baseline' : 'NO LONGER REPRODUCES THE BASELINE'}`);
+  process.exit(0);
 }
 
 console.log(`probe-clamp-value — SIM ${SIM_VERSION}; gem_pegmatite in its own cavity; the clamp written inside the engine; time scale ${getSimulationTimeScale()}`);
@@ -163,7 +213,6 @@ for (const E of VALUES) {
   kept[E] = runs;
 }
 const all3 = VALUES.filter(E => verdict[E].first && verdict[E].quartz && verdict[E].pair);
-const says = (list) => list.join(', ') || 'none';
 console.log(`\n  values that meet all three lines at all three seeds: ${says(all3)}`);
 console.log(`  values that fail the first line at some seed: ${says(VALUES.filter(E => !verdict[E].first))}; the quartz line: ${says(VALUES.filter(E => !verdict[E].quartz))}; the pair line: ${says(VALUES.filter(E => !verdict[E].pair))}`);
 if (all3.length) {

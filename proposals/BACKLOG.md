@@ -41,7 +41,7 @@ Living list of open work items, captured from session conversations so context s
 > Creative mode's "Radioactive Pegmatite" starter fluid and in Zen runs of the two uraninite
 > scenarios, bulk Pb climbs to 268–286, 621–682 and 1,015–1,035 ppm with every voxel where
 > it started.)
-> **This review has been corrected thirteen times by its own review rounds (the doc's §9 lists each
+> **This review has been corrected fourteen times by its own review rounds (the doc's §9 lists each
 > set): the first version said supply does not bind; the second costed the recommended fixes
 > too lightly; the third said the feldspar clamp loses no species, having counted a
 > dissolved-away crystal's record as presence, and recommended a lead mechanism that cannot
@@ -78,14 +78,25 @@ Living list of open work items, captured from session conversations so context s
 > value from 5 to 9; its probe for SC2 had refused the preview's zones where a reading of
 > the engines said the engine would, and had not made an engine compute the law; and a
 > sentence on what differs between the two forms of the clamp was contradicted by the
-> probe's own output.**
+> probe's own output. The fourteenth round reviewed the commit that answered the thirteenth
+> and again found nothing that had to be fixed, and three things left short: that commit
+> reported that SC2's two forms part in `radioactive_pegmatite` by rounding alone, said the
+> cause was not traced and still bounded it ("at three times the constant"), and the cause
+> is an enclosure that a host layer of 10⁻¹¹ µm licenses in a full pocket, at work in the
+> SHIPPED run of that scenario at seeds 1 and 2; the range of 5 to 9 had been read at the
+> scenario's own shape seed alone; and one sentence still called 7 the loosest value run.
+> The corrections made after round 14 have had no review round.**
 > **Awaits the boss:** the eight decisions in the doc's §6. SC1: a clamp on the feldspar pair's
 > rate authored on `gem_pegmatite` ALONE (recommended; one baseline changes), which makes topaz
 > appear at all three locality-gate seeds, so the bump must also PROMOTE TOPAZ out of the
 > aspirational tier and rewrite its rationale by hand (the gate does not check that sentence).
 > ITS VALUE IS A CHOICE IN A RANGE: the bump's acceptance lines are met by every whole value
 > from 5 to 9 and pick none (5: feldspar 17 mm, 37–38 steps to spare; 9: feldspar 31 mm, 3–5
-> steps; the gems are the same throughout). The review recommends 7, the value its other
+> steps; the gems are the same throughout). That range is in the scenario's own cavity. At
+> ten other shape seeds of it, which the form's Shape Seed box draws (63–78 cm³ against its
+> own 69), 5 to 8 hold at all ten and 9 lets the pocket pass 0.7 inside the run at two; the
+> acceptance as written names no other shape seed, so it passes 9, and it asks the bump to
+> report that read. The review recommends 7, the value its other
 > previews were made at (28–29 steps to spare); another value needs those previews made again.
 > It is a bound on a RATE, so it BUYS STEPS, NOT AN END. Where Simulation mode, Quick Play and
 > Creative mode start the scenario it keeps the pocket under 0.7 full for the scenario's own
@@ -120,8 +131,20 @@ Living list of open work items, captured from session conversations so context s
 > albite (up to 14 % apart; the step log prints them), and SC2's law, computed by the
 > engines, is another run in `sunnyside_american_tunnel` at seed 42 at the same constant
 > (86.5 % full against 83.1 %), and in `radioactive_pegmatite` at seeds 1 and 2 at three
-> times the constant, where the plugged pocket's last steps turn on the last binary place of
-> a zone (the same species moved in all 48 pairs). SC2's constant; at the same constant
+> times the constant, by rounding alone (the same species moved in all 48 pairs). THAT
+> PARTING'S CAUSE IS NOT SC2'S, AND IT IS IN THE SHIPPED RUN: `_check_enclosure`
+> (`js/85c-simulator-state.ts:2466`) licenses an enclosure on any host layer above zero, a
+> full pocket hands its last room to the next crystal as a layer of 10⁻¹¹ µm, and an
+> enclosed uraninite is altered no further and writes no more lead. Twelve nudges of a
+> zone's last binary places move a size or the lead in 6 and 9 of 12 runs as shipped at
+> seeds 1 and 2 (lead 126.1–132.5 and 140.9–154.7 ppm where the shipped runs have 127.7 and
+> 147.2), in
+> 4 and 5 under SC2's same constant and in 11 and 12 under three times it; seed 42 moves in
+> no size and no lead, none of 252 nudged runs of the seven other scenarios SC2 moves
+> differs, and of the fleet's 914 enclosures as shipped the five on such a layer are all
+> in this scenario. So every number of `radioactive_pegmatite` at seeds 1 and 2 in its full
+> pocket is one run of several; nothing is proposed, and a floor was not previewed (the
+> doc's §3.4, a sixth note; decision 7). SC2's constant; at the same constant
 > SC2 shrinks the uraninites, their radiogenic lead falls (`schneeberg`'s bulk handle ends at
 > 111 ppm, not 179), and the CATION GATE (`npm run audit:cations`) must be recommissioned with
 > a new Ca share (0.630, not 0.582). SC3: hold the radiogenic lead until a uraninite is altered
@@ -151,7 +174,8 @@ Living list of open work items, captured from session conversations so context s
 > the second to land is previewed on the tree the first leaves. Whether to pilot a supply with a
 > scale above the cell, SC4. Whether the census joins the SIM-bump routine, SC5. The order
 > against the open ladders. Three authored values that sit exactly on a σ threshold, one of
-> which starts four of `supergene_oxidation`'s azurites dissolving at its last event. And Zen
+> which starts four of `supergene_oxidation`'s azurites dissolving at its last event, and
+> with them the enclosure test that has no floor (above). And Zen
 > mode as the review met it: no scenario object (an emerald in its `gem_pegmatite`), and a
 > drift whose species and pH writes stay on the bulk handle, the fluid that births read in
 > 39 of Zen's 41 simulators and not the one that crystals grow from (its temperature write

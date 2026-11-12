@@ -145,7 +145,10 @@ single execution ledger for the science-first AAA completion branch.
     bound that is too tight fails it as one that is too loose does. Its lines admit every
     whole value of the clamp from 5 to 9 and pick none: 7 is the value the review previewed
     (28–29 steps to spare after the scenario's 230), 9 the loosest (3–5 steps), 5 the
-    tightest (37–38), with the same gems at each. The value is the boss's to choose, and
+    tightest (37–38), with the same gems at each. That range is in the scenario's own
+    cavity: at ten other shape seeds of it (the form's Shape Seed box) 5 to 8 hold at all
+    ten and 9 fails the fill line at two, and the acceptance asks the bump to report that
+    read. The value is the boss's to choose, and
     another value than 7 needs its previews made.
   - [ ] SC2 — put galena, molybdenite and uraninite on σ − 1 (they propose a rate at saturation).
     At the same constant the uraninites end smaller and write less radiogenic lead, so the bump
@@ -156,8 +159,10 @@ single execution ledger for the science-first AAA completion branch.
     round the engines. With the law computed by the engines themselves the two have the same
     sizes and fill in 22 of 24 pairs at the same constant (`sunnyside_american_tunnel` at
     seed 42 is another run, 86.5 % full against 83.1 %) and in 21 of 24 at three times it
-    (`radioactive_pegmatite` at seeds 1 and 2 parts with no call refused: its plugged
-    pocket turns on the last binary place of a zone). The same species move in all 48.
+    (`radioactive_pegmatite` at seeds 1 and 2 parts with no call refused, by rounding
+    alone; the cause is the enclosure item below and is not SC2's). The same species move
+    in all 48. That scenario's cells at seeds 1 and 2 are each one run of several, in all
+    three columns of the doc's table, the shipped one among them.
   - [ ] SC3 — carry radiogenic Pb to the voxels as well as the bulk handle
     (`js/85-simulator.ts:1276` writes the bulk handle only). Recommended timing: hold it until a
     uraninite is altered, and take the galena out of `radioactive_pegmatite`'s own texts (the
@@ -192,6 +197,15 @@ single execution ledger for the science-first AAA completion branch.
     that `supergene_oxidation`'s last event sets, which lands the bulk handle on azurite's redox
     minimum and the wall cells below it and starts four azurites dissolving. No change is
     proposed.
+  - [ ] Rule on the enclosure test, which has no floor (the doc's §3.4, its sixth note;
+    decision 7). `_check_enclosure` (`js/85c-simulator-state.ts:2466`) licenses an enclosure
+    on any host layer above zero, and a full pocket hands its last room to the next crystal
+    as a layer of 10⁻¹¹ µm. In `radioactive_pegmatite` such a layer sets the step at which
+    a feldspar encloses the uraninites, which ends their alteration and their lead: as
+    shipped a nudge of a zone's last binary places moves a size or the lead in 6 and 9 of
+    12 runs at seeds 1 and 2, and in none at seed 42. Of the fleet's 914 enclosures as
+    shipped at three seeds, the five on such a layer are all in that scenario. A floor on
+    the host layer was not previewed, and no change is proposed.
   - [ ] Rule on Zen mode as the review met it (the doc's §6, decision 8): a Zen run of a
     scenario has no scenario object, so no license, exclusions, windows, movements or
     weathering epilogue (an emerald is on record in its `gem_pegmatite`); and the species
