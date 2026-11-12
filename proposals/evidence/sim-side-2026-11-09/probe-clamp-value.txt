@@ -1,0 +1,59 @@
+[scenarios] loaded 41 from ./data/scenarios.json5
+[spec] loaded 184 minerals from ./data/minerals.json
+[thermo] loaded 15 carbonate entries from ./data/thermo-carbonates.json
+[thermo] loaded 4 sulfate entries from ./data/thermo-sulfates.json
+[narratives] loaded 94 species
+probe-clamp-value — SIM 286; gem_pegmatite in its own cavity; the clamp written inside the engine; time scale 5
+controls at seed 42: the shipped run reproduces the baseline; the clamp at Infinity is the shipped run
+floors of the lines: tourmaline 5.0 mm, topaz 1.0, quartz 5.0, feldspar 15.0, albite 20.0
+
+A — every whole value from 3 to 11, seeds 42 / 1 / 2; each run stepped on until its fill reaches 0.7 or 400 steps have run
+  E = 3   largest fill of the run 21.3 / 21.4 / 20.3 %; fill >= 0.7 first at step 272 / 272 / 273, which is 42 / 42 / 43 steps after the run's last, 230 (a negative number is inside the run)
+          feldspar 10.4 / 10.6 / 10.5 mm; albite 13.9 / 13.8 / 14.0; quartz 37.4 / 37.0 / 36.4; tourmaline 12.0 / 11.9 / 12.0; topaz 2.5 / 2.5 / 2.5; last step anything grew 230 / 230 / 230
+          the first line is met at 3 of 3 seeds; the quartz line at 3 of 3; the pair line at 0 of 3
+  E = 4   largest fill of the run 23.8 / 23.8 / 23.2 %; fill >= 0.7 first at step 270 / 270 / 270, which is 40 / 40 / 40 steps after the run's last, 230 (a negative number is inside the run)
+          feldspar 13.8 / 14.1 / 14.1 mm; albite 18.5 / 18.4 / 18.6; quartz 37.4 / 37.0 / 37.3; tourmaline 12.0 / 11.9 / 12.0; topaz 2.5 / 2.5 / 2.5; last step anything grew 230 / 230 / 230
+          the first line is met at 3 of 3 seeds; the quartz line at 3 of 3; the pair line at 0 of 3
+  E = 5   largest fill of the run 27.8 / 27.7 / 27.1 %; fill >= 0.7 first at step 267 / 268 / 268, which is 37 / 38 / 38 steps after the run's last, 230 (a negative number is inside the run)
+          feldspar 17.3 / 17.6 / 17.6 mm; albite 23.1 / 23.0 / 23.2; quartz 37.4 / 37.0 / 37.3; tourmaline 12.0 / 11.9 / 12.0; topaz 2.5 / 2.5 / 2.5; last step anything grew 230 / 230 / 230
+          the first line is met at 3 of 3 seeds; the quartz line at 3 of 3; the pair line at 3 of 3
+  E = 6   largest fill of the run 33.8 / 33.5 / 32.9 %; fill >= 0.7 first at step 264 / 264 / 264, which is 34 / 34 / 34 steps after the run's last, 230 (a negative number is inside the run)
+          feldspar 20.7 / 21.1 / 21.1 mm; albite 27.7 / 27.6 / 27.9; quartz 37.4 / 37.0 / 37.3; tourmaline 12.0 / 11.9 / 12.0; topaz 2.5 / 2.5 / 2.5; last step anything grew 230 / 230 / 230
+          the first line is met at 3 of 3 seeds; the quartz line at 3 of 3; the pair line at 3 of 3
+  E = 7   largest fill of the run 42.1 / 41.4 / 41.0 %; fill >= 0.7 first at step 258 / 258 / 259, which is 28 / 28 / 29 steps after the run's last, 230 (a negative number is inside the run)
+          feldspar 24.1 / 24.7 / 24.7 mm; albite 32.3 / 32.2 / 32.5; quartz 37.5 / 36.7 / 37.3; tourmaline 12.0 / 11.9 / 12.0; topaz 2.5 / 2.5 / 2.5; last step anything grew 230 / 230 / 230
+          the first line is met at 3 of 3 seeds; the quartz line at 3 of 3; the pair line at 3 of 3
+  E = 8   largest fill of the run 53.2 / 53.0 / 51.7 %; fill >= 0.7 first at step 249 / 249 / 251, which is 19 / 19 / 21 steps after the run's last, 230 (a negative number is inside the run)
+          feldspar 27.6 / 28.2 / 28.2 mm; albite 36.9 / 36.9 / 37.2; quartz 37.5 / 37.3 / 37.3; tourmaline 12.0 / 12.0 / 12.0; topaz 2.5 / 2.5 / 2.5; last step anything grew 230 / 230 / 230
+          the first line is met at 3 of 3 seeds; the quartz line at 3 of 3; the pair line at 3 of 3
+  E = 9   largest fill of the run 67.5 / 66.9 / 65.8 %; fill >= 0.7 first at step 233 / 234 / 235, which is 3 / 4 / 5 steps after the run's last, 230 (a negative number is inside the run)
+          feldspar 31.0 / 31.6 / 31.5 mm; albite 41.5 / 41.5 / 42.0; quartz 37.4 / 37.4 / 37.3; tourmaline 12.0 / 12.0 / 12.0; topaz 2.5 / 2.5 / 2.5; last step anything grew 230 / 230 / 230
+          the first line is met at 3 of 3 seeds; the quartz line at 3 of 3; the pair line at 3 of 3
+  E = 10  largest fill of the run 82.4 / 81.2 / 81.0 %; fill >= 0.7 first at step 212 / 215 / 215, which is -18 / -15 / -15 steps after the run's last, 230 (a negative number is inside the run)
+          feldspar 34.1 / 34.2 / 34.7 mm; albite 45.6 / 45.4 / 46.2; quartz 36.6 / 36.8 / 36.6; tourmaline 12.0 / 11.9 / 12.0; topaz 2.5 / 2.5 / 2.5; last step anything grew 230 / 230 / 230
+          the first line is met at 0 of 3 seeds; the quartz line at 3 of 3; the pair line at 3 of 3
+  E = 11  largest fill of the run 90.3 / 89.8 / 89.6 %; fill >= 0.7 first at step 185 / 188 / 188, which is -45 / -42 / -42 steps after the run's last, 230 (a negative number is inside the run)
+          feldspar 35.2 / 36.4 / 36.2 mm; albite 47.1 / 46.9 / 47.9; quartz 32.9 / 32.9 / 33.0; tourmaline 12.0 / 12.0 / 12.0; topaz 2.5 / 2.4 / 2.5; last step anything grew 230 / 230 / 230
+          the first line is met at 0 of 3 seeds; the quartz line at 3 of 3; the pair line at 3 of 3
+
+  values that meet all three lines at all three seeds: 5, 6, 7, 8, 9
+  values that fail the first line at some seed: 10, 11; the quartz line: none; the pair line: 3, 4
+    E = 5: 37 to 38 steps of margin; the pocket 27 to 28 % full at its fullest; feldspar 17.3 to 17.6 mm, albite 23.0 to 23.2 mm
+    E = 6: 34 steps of margin; the pocket 33 to 34 % full at its fullest; feldspar 20.7 to 21.1 mm, albite 27.6 to 27.9 mm
+    E = 7: 28 to 29 steps of margin; the pocket 41 to 42 % full at its fullest; feldspar 24.1 to 24.7 mm, albite 32.2 to 32.5 mm
+    E = 8: 19 to 21 steps of margin; the pocket 52 to 53 % full at its fullest; feldspar 27.6 to 28.2 mm, albite 36.9 to 37.2 mm
+    E = 9: 3 to 5 steps of margin; the pocket 66 to 67 % full at its fullest; feldspar 31.0 to 31.6 mm, albite 41.5 to 42.0 mm
+  over those values: tourmaline 11.9 to 12.0 mm, topaz 2.5 mm, quartz 36.7 to 37.5 mm
+
+B — the lowest and the highest of those values at eight further seeds (3 / 4 / 5 / 7 / 13 / 99 / 2024 / 17)
+  shipped: full at every one of them: yes; species with solid 7 / 7 / 6 / 6 / 7 / 7 / 7 / 7
+  E = 5   largest fill of the run 27.5 / 27.7 / 24.7 / 25.6 / 27.3 / 26.3 / 24.5 / 27.6 %; fill >= 0.7 first at step 268 / 267 / 270 / 270 / 269 / 269 / 271 / 268, which is 38 / 37 / 40 / 40 / 39 / 39 / 41 / 38 steps after the run's last, 230 (a negative number is inside the run)
+          feldspar 17.1 / 17.4 / 17.2 / 17.4 / 17.3 / 17.1 / 17.4 / 17.5 mm; albite 23.2 / 23.0 / 23.1 / 22.4 / 22.8 / 23.2 / 22.7 / 22.9; quartz 37.7 / 37.1 / 36.6 / 37.3 / 36.9 / 36.8 / 37.2 / 36.9; tourmaline 12.3 / 12.0 / 11.8 / 12.0 / 12.0 / 12.0 / 11.9 / 12.0; topaz 2.5 / 2.4 / 2.2 / 2.4 / 2.3 / 2.3 / 2.3 / 2.4; last step anything grew 230 / 230 / 230 / 230 / 230 / 230 / 230 / 230
+          the first line is met at 8 of 8 seeds; the quartz line at 8 of 8; the pair line at 8 of 8
+          all three lines are met at 8 of 8 of these seeds; margin 37 to 41 steps
+  E = 9   largest fill of the run 66.4 / 67.1 / 56.8 / 56.6 / 65.7 / 65.2 / 56.5 / 67.2 %; fill >= 0.7 first at step 235 / 234 / 247 / 247 / 236 / 236 / 247 / 234, which is 5 / 4 / 17 / 17 / 6 / 6 / 17 / 4 steps after the run's last, 230 (a negative number is inside the run)
+          feldspar 31.0 / 31.3 / 31.0 / 31.3 / 31.1 / 30.8 / 31.4 / 31.6 mm; albite 42.1 / 41.4 / 41.7 / 40.3 / 41.0 / 41.7 / 40.8 / 41.3; quartz 37.5 / 37.1 / 36.6 / 37.2 / 36.9 / 36.8 / 37.2 / 36.9; tourmaline 12.3 / 12.0 / 11.8 / 12.0 / 12.0 / 12.0 / 11.9 / 12.0; topaz 2.5 / 2.4 / 2.2 / 2.4 / 2.3 / 2.3 / 2.3 / 2.4; last step anything grew 230 / 230 / 230 / 230 / 230 / 230 / 230 / 230
+          the first line is met at 8 of 8 seeds; the quartz line at 8 of 8; the pair line at 8 of 8
+          all three lines are met at 8 of 8 of these seeds; margin 4 to 17 steps
+
+control at the end: gem_pegmatite's shipped run at seed 42 still reproduces the baseline

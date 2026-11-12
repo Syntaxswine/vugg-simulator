@@ -142,16 +142,22 @@ single execution ledger for the science-first AAA completion branch.
     into the engine, a clamp of 2 or more gives the same sizes and fill and other trace-Al
     values on albite (up to 14 % apart, printed by the step log), which the bump should
     expect. The acceptance has a floor for the pair (feldspar 15 mm, albite 20 mm), so a
-    bound that is too tight fails it as one that is too loose does.
+    bound that is too tight fails it as one that is too loose does. Its lines admit every
+    whole value of the clamp from 5 to 9 and pick none: 7 is the value the review previewed
+    (28–29 steps to spare after the scenario's 230), 9 the loosest (3–5 steps), 5 the
+    tightest (37–38), with the same gems at each. The value is the boss's to choose, and
+    another value than 7 needs its previews made.
   - [ ] SC2 — put galena, molybdenite and uraninite on σ − 1 (they propose a rate at saturation).
     At the same constant the uraninites end smaller and write less radiogenic lead, so the bump
     has to recommission the cation gate (`npm run audit:cations`): the Ca share it holds
     `schneeberg` to at seed 42 moves from 0.582 to 0.630. One test stands at its floor on
     galena (`tests-js/cascade-gate-audit.test.ts:107`: a galena on record in four of six
     scenarios, and exactly four today); the preview keeps all four. The preview is a wrapper
-    round the engines. With the law written into them the two have the same sizes and fill
-    in 45 of 48 pairs; `sunnyside_american_tunnel` at seed 42 is another run (86.5 % full
-    against 83.1 %), and the same species move in all 48.
+    round the engines. With the law computed by the engines themselves the two have the same
+    sizes and fill in 22 of 24 pairs at the same constant (`sunnyside_american_tunnel` at
+    seed 42 is another run, 86.5 % full against 83.1 %) and in 21 of 24 at three times it
+    (`radioactive_pegmatite` at seeds 1 and 2 parts with no call refused: its plugged
+    pocket turns on the last binary place of a zone). The same species move in all 48.
   - [ ] SC3 — carry radiogenic Pb to the voxels as well as the bulk handle
     (`js/85-simulator.ts:1276` writes the bulk handle only). Recommended timing: hold it until a
     uraninite is altered, and take the galena out of `radioactive_pegmatite`'s own texts (the

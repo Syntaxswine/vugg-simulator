@@ -54,9 +54,15 @@
  * fill" when their baseline-style summaries are equal and their fill after every step agrees to a
  * billionth of the cavity. (They are not the same arithmetic: the wrapper stores
  * k·(σ − 1)·u·E/(σ − 1) where the engine stores k·E·u, and the two can differ in the last binary
- * place.) Where two runs have the same sizes and fill, they are also compared zone by zone, field
- * by field, and step-log line by step-log line: numbers have to agree to a billionth of
- * themselves, and everything else has to be equal.
+ * place.) Where two runs have the same sizes and fill, they are also compared crystal by crystal
+ * and zone by zone, field by field, and step-log line by step-log line: two numbers have to agree
+ * to a billionth of the larger of them, whatever their size, and everything else has to be equal.
+ * A crystal that stores another number of zones under one form has the zones both forms store
+ * compared, and the others are listed with their step and thickness. For each zone field that
+ * differs the probe prints on how many zones, by how much where the field is a number, under
+ * which form the number is the higher, at which steps, and how thick the thickest of those zones
+ * is: a field that differs only on a zone of 10^-11 µm at the step that seals the cavity is
+ * rounding, and one that differs on zones of 100 µm through the run is not.
  *
  * PASSIVE: prints to stdout and writes nothing. It exits 0 when it finishes. Imports
  * tools/_harness.mjs and node builtins.
@@ -64,7 +70,8 @@
  * start and at the end, and schneeberg's and tormiq_alpine_cleft's once; each form at E = Infinity
  * has to be the shipped run; the vug built through the factory has to be the run the game's command
  * runtime builds; at every E of 2 or more the two forms have to have the same sizes and fill; and
- * the clamp in the engine at 7, made twice, has to differ in no zone field and no step-log line.
+ * the clamp in the engine at 7, made twice, has to differ in no zone field, no crystal field and
+ * no step-log line.
  *
  *   node proposals/evidence/sim-side-2026-11-09/probe-clamp-in-engine.mjs
  */
@@ -215,34 +222,61 @@ const fillApart = (a, b) => {
 const SAME_FILL = 1e-9;
 const sameSizesAndFill = (a, b) => a.summary === b.summary && (a.summaryOn ?? '') === (b.summaryOn ?? '') && fillApart(a, b) < SAME_FILL;
 
-// Two runs compared zone by zone, field by field, and step-log line by step-log line. Numbers have
-// to agree to a billionth of themselves; anything else has to be equal.
-const near = (a, b) => a === b || (Number.isFinite(a) && Number.isFinite(b) && Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(a), Math.abs(b)));
-function equal(a, b) {
+// Two runs compared crystal by crystal, zone by zone, field by field, and step-log line by step-log
+// line. Two numbers agree when they are equal or within a billionth of the larger of them, whatever
+// their size; anything else has to be equal. An object already visited, or nested more than twelve
+// deep, is taken as agreeing, which cuts a cycle. A crystal that stores more zones under one form
+// than under the other has the zones both forms store compared, and the others listed.
+// A is the wrapper's run and B the engine's wherever the two forms are compared.
+const near = (a, b) => a === b || (Number.isFinite(a) && Number.isFinite(b) && Math.abs(a - b) <= 1e-9 * Math.max(Math.abs(a), Math.abs(b)));
+function equal(a, b, seen, depth = 0) {
   if (typeof a === 'number' && typeof b === 'number') return near(a, b) || (Number.isNaN(a) && Number.isNaN(b));
   if (a === b) return true;
+  if (typeof a === 'function' && typeof b === 'function') return true;
   if (a && b && typeof a === 'object' && typeof b === 'object') {
-    const ka = Object.keys(a), kb = Object.keys(b);
-    return ka.length === kb.length && ka.every(k => equal(a[k], b[k]));
+    if (seen.has(a) || depth > 12) return true;
+    seen.add(a);
+    for (const k of new Set([...Object.keys(a), ...Object.keys(b)])) if (!equal(a[k], b[k], seen, depth + 1)) return false;
+    return true;
   }
   return false;
 }
 function records(A, B) {
-  const fields = {};                       // "mineral.field" -> { zones, worst }: zones on which the field differs, and the largest relative difference of a number
-  let zones = 0, zoneCounts = 0, sizes = 0;
+  // "mineral.field" -> the zones on which the field differs; of those that are numbers, the largest
+  // relative difference and how many are the higher in B; the steps of those zones; the thickest of them
+  const fields = {};
+  const crystalFields = {};                // "mineral.field" -> the crystals on which a field other than the zones differs
+  const extras = [];                       // the crystals that store another number of zones
+  let zones = 0, sizes = 0;
   const n = Math.min(A.crystals.length, B.crystals.length);
   for (let i = 0; i < n; i++) {
     const ca = A.crystals[i], cb = B.crystals[i];
     if (ca.mineral !== cb.mineral || ca.habit !== cb.habit || !near(ca.total_growth_um, cb.total_growth_um)) sizes++;
-    if (ca.mineral !== cb.mineral || ca.zones.length !== cb.zones.length) { zoneCounts++; continue; }
-    for (let z = 0; z < ca.zones.length; z++) {
+    const seen = new WeakSet();
+    for (const k of new Set([...Object.keys(ca), ...Object.keys(cb)])) {
+      if (k === 'zones' || equal(ca[k], cb[k], seen)) continue;
+      crystalFields[`${ca.mineral}.${k}`] = (crystalFields[`${ca.mineral}.${k}`] || 0) + 1;
+    }
+    const shared = Math.min(ca.zones.length, cb.zones.length);
+    if (ca.zones.length !== cb.zones.length) {
+      const more = ca.zones.length > cb.zones.length ? ca : cb;
+      extras.push(`${ca.mineral} #${ca.crystal_id} stores ${ca.zones.length} zones against ${cb.zones.length}: ${more.zones.slice(shared).map(z => `one at step ${z.step}, ${Number(z.thickness_um).toExponential(1)} µm thick`).join('; ')}`);
+    }
+    for (let z = 0; z < shared; z++) {
       const za = ca.zones[z], zb = cb.zones[z];
       zones++;
       for (const k of new Set([...Object.keys(za), ...Object.keys(zb)])) {
-        if (equal(za[k], zb[k])) continue;
-        const o = (fields[`${ca.mineral}.${k}`] ||= { zones: 0, worst: 0 });
+        if (equal(za[k], zb[k], new WeakSet())) continue;
+        const o = (fields[`${ca.mineral}.${k}`] ||= { zones: 0, numeric: 0, worst: 0, higherB: 0, lowStep: Infinity, highStep: -Infinity, thickest: 0 });
         o.zones++;
-        if (typeof za[k] === 'number' && typeof zb[k] === 'number') o.worst = Math.max(o.worst, Math.abs(za[k] - zb[k]) / Math.max(Math.abs(za[k]), Math.abs(zb[k])));
+        if (typeof za[k] === 'number' && typeof zb[k] === 'number') {
+          o.numeric++;
+          o.worst = Math.max(o.worst, Math.abs(za[k] - zb[k]) / Math.max(Math.abs(za[k]), Math.abs(zb[k])));
+          if (zb[k] > za[k]) o.higherB++;
+        }
+        o.lowStep = Math.min(o.lowStep, za.step);
+        o.highStep = Math.max(o.highStep, za.step);
+        o.thickest = Math.max(o.thickest, Math.abs(za.thickness_um), Math.abs(zb.thickness_um));
       }
     }
   }
@@ -253,8 +287,23 @@ function records(A, B) {
     logLines += Math.abs(la.length - lb.length);
     for (let j = 0; j < Math.min(la.length, lb.length); j++) if (la[j] !== lb[j]) logLines++;
   }
-  return { fields, zones, zoneCounts: zoneCounts + Math.abs(A.crystals.length - B.crystals.length), sizes, logLines, logTotal };
+  return { fields, crystalFields, extras, zones, zoneCounts: extras.length + Math.abs(A.crystals.length - B.crystals.length), sizes, logLines, logTotal };
 }
+// What is known of one field over some comparisons of records: the size of the difference where the
+// field is a number, which form holds the higher value, the steps, and the thickest zone concerned.
+const microns = (t) => (t >= 0.1 ? `${t.toFixed(1)} µm` : `${t.toExponential(1)} µm`);
+function fieldDetail(k, recs) {
+  const of = (f, start) => recs.reduce((acc, r) => (r.fields[k] ? f(acc, r.fields[k]) : acc), start);
+  const worst = of((a, o) => Math.max(a, o.worst), 0), numeric = of((a, o) => a + o.numeric, 0), higher = of((a, o) => a + o.higherB, 0);
+  const lo = of((a, o) => Math.min(a, o.lowStep), Infinity), hi = of((a, o) => Math.max(a, o.highStep), -Infinity);
+  return [
+    numeric ? `by ${(worst * 100).toFixed(1)} % at most` : null,
+    numeric ? `the higher value in the engine on ${higher} of ${numeric}` : null,
+    lo === hi ? `at step ${lo}` : `at steps ${lo} to ${hi}`,
+    `the thickest of those zones ${microns(of((a, o) => Math.max(a, o.thickest), 0))}`,
+  ].filter(Boolean).join('; ');
+}
+const listed = (o) => Object.entries(o).map(([k, n]) => `${k} ×${n}`).join(', ') || 'none';
 // A run's crystals and step log are dropped once they have been compared.
 const lighten = (r) => { delete r.crystals; delete r.logs; return r; };
 
@@ -278,8 +327,9 @@ function compare(label, E, seeds, make, options, bases) {
   if (same.every(Boolean)) {
     recs = w.map((r, i) => records(r, e[i]));
     const names = [...new Set(recs.flatMap(r => Object.keys(r.fields)))].sort();
-    console.log(`      their records: ${each(recs, r => r.zones)} zones compared; crystals whose size or habit differs ${each(recs, r => r.sizes)}, whose count of zones differs ${each(recs, r => r.zoneCounts)}; `
-      + (names.length ? `zone fields that differ: ${names.map(k => `${k} on ${each(recs, r => r.fields[k]?.zones ?? 0)} zones${recs.some(r => r.fields[k]?.worst > 0) ? ` (by ${(Math.max(...recs.map(r => r.fields[k]?.worst ?? 0)) * 100).toFixed(1)} % at most)` : ''}`).join('; ')}` : 'no zone field differs')
+    console.log(`      their records: ${each(recs, r => r.zones)} zones compared; crystals whose size or habit differs ${each(recs, r => r.sizes)}, whose count of zones differs ${each(recs, r => r.zoneCounts)}${recs.some(r => r.extras.length) ? ` (${recs.flatMap(r => r.extras).join('; ')})` : ''}; `
+      + `crystal fields that differ: ${each(recs, r => listed(r.crystalFields))}; `
+      + (names.length ? `zone fields that differ: ${names.map(k => `${k} on ${each(recs, r => r.fields[k]?.zones ?? 0)} zone${recs.length === 1 && recs[0].fields[k]?.zones === 1 ? '' : 's'} (${fieldDetail(k, recs)})`).join('; ')}` : 'no zone field differs')
       + `; step-log lines that differ ${each(recs, r => r.logLines)} of ${each(recs, r => r.logTotal)}`);
   }
   w.forEach(lighten); e.forEach(lighten);
@@ -335,19 +385,20 @@ compare('own cavity, changed broth', 1, SEEDS, own, { mul: BROTH }, shippedOwn);
   const sameRuns = (list) => list.reduce((n, c) => n + c.same.filter(Boolean).length, 0);
   console.log(`\nover the ${comparisons.length} comparisons (${runs(comparisons)} pairs of runs):`);
   const apart2 = Math.max(...from2.flatMap(c => c.w.map((r, i) => fillApart(r, c.e[i]))));
-  console.log(`  at E of 2 or more (${[...new Set(from2.map(c => c.E))].sort((a, b) => a - b).join(', ')}): ${sameRuns(from2) === runs(from2) ? `the two forms have the same sizes and fill in all ${runs(from2)} pairs` : `THE TWO FORMS PART in ${runs(from2) - sameRuns(from2)} of ${runs(from2)} pairs`}; the same baseline-style summary in ${from2.reduce((n, c) => n + c.w.filter((r, i) => r.summary === c.e[i].summary && (r.summaryOn ?? '') === (c.e[i].summaryOn ?? '')).length, 0)}; the fill after any step apart by ${apart2.toExponential(1)} of the cavity at most`);
+  console.log(`  at E of 2 or more (${[...new Set(from2.map(c => c.E))].sort((a, b) => a - b).join(', ')}): ${sameRuns(from2) === runs(from2) ? `the two forms have the same sizes and fill in all ${runs(from2)} pairs` : `THE TWO FORMS PART in ${runs(from2) - sameRuns(from2)} of ${runs(from2)} pairs`}; the same baseline-style summary in ${from2.reduce((n, c) => n + c.w.filter((r, i) => r.summary === c.e[i].summary && (r.summaryOn ?? '') === (c.e[i].summaryOn ?? '')).length, 0)}; the fill after any step apart by ${apart2.toExponential(2)} of the cavity at most`);
   {
     // the same sizes and fill is not the same record
     const recs = from2.flatMap(c => c.recs || []);
     const sum = (f) => recs.reduce((n, r) => n + f(r), 0);
     const names = [...new Set(recs.flatMap(r => Object.keys(r.fields)))].sort();
+    const crystalFields = {};
+    for (const r of recs) for (const [k, n] of Object.entries(r.crystalFields)) crystalFields[k] = (crystalFields[k] || 0) + n;
     console.log(`  at E of 2 or more, the records of the ${recs.length} pairs with the same sizes and fill (${sum(r => r.zones)} zones compared): `
       + (names.length ? names.map(k => {
-        const worst = Math.max(...recs.map(r => r.fields[k]?.worst ?? 0));
         const inPairs = recs.filter(r => r.fields[k]).length, onZones = sum(r => r.fields[k]?.zones ?? 0);
-        return `${k} differs in ${inPairs} pair${inPairs === 1 ? '' : 's'}, on ${onZones} zone${onZones === 1 ? '' : 's'}${worst > 0 ? ` (by ${(worst * 100).toFixed(1)} % at most)` : ''}`;
+        return `${k} differs in ${inPairs} pair${inPairs === 1 ? '' : 's'}, on ${onZones} zone${onZones === 1 ? '' : 's'} (${fieldDetail(k, recs)})`;
       }).join('; ') : 'no zone field differs')
-      + `; the step log differs in ${recs.filter(r => r.logLines > 0).length} pairs, on ${sum(r => r.logLines)} of ${sum(r => r.logTotal)} lines; a crystal's count of zones differs in ${recs.filter(r => r.zoneCounts > 0).length} pair${recs.filter(r => r.zoneCounts > 0).length === 1 ? '' : 's'}, and a crystal's size or habit in ${recs.filter(r => r.sizes > 0).length}`);
+      + `; the step log differs in ${recs.filter(r => r.logLines > 0).length} pairs, on ${sum(r => r.logLines)} of ${sum(r => r.logTotal)} lines; a crystal's count of zones differs in ${recs.filter(r => r.zoneCounts > 0).length} pair${recs.filter(r => r.zoneCounts > 0).length === 1 ? '' : 's'}${recs.some(r => r.extras.length) ? ` (${recs.flatMap(r => r.extras).join('; ')})` : ''}; a crystal's size or habit differs in ${recs.filter(r => r.sizes > 0).length}; crystal fields that differ: ${listed(crystalFields)}`);
   }
   const gap = (f) => Math.max(...below.flatMap(c => c.w.map((r, i) => f(r, c.e[i]))));
   const stepGap = (key) => {
@@ -360,7 +411,7 @@ compare('own cavity, changed broth', 1, SEEDS, own, { mul: BROTH }, shippedOwn);
     return `${worst} step${worst === 1 ? '' : 's'} at most${oneSided ? `, and in ${oneSided} pair${oneSided === 1 ? '' : 's'} ONE FORM REACHES IT AND THE OTHER DOES NOT` : ''}`;
   };
   const verdicts = below.filter(c => c.lines).flatMap(c => c.lines);
-  console.log(`  below 2 (${[...new Set(below.map(c => c.E))].sort((a, b) => a - b).join(', ')}): the same sizes and fill in ${sameRuns(below)} of ${runs(below)} pairs; the fill at the end of the run's own length apart by ${gap((a, b) => Math.abs(a.fill - b.fill) * 100).toFixed(2)} points at most, and the largest fill by ${gap((a, b) => Math.abs(a.maxFill - b.maxFill) * 100).toFixed(2)}; the first step at fill >= 0.7 apart by ${stepGap('first70')}, and at >= 0.999 by ${stepGap('full')}`);
+  console.log(`  below 2 (${[...new Set(below.map(c => c.E))].sort((a, b) => a - b).join(', ')}): the same sizes and fill in ${sameRuns(below)} of ${runs(below)} pairs; the fill at the end of the run's own length apart by ${gap((a, b) => Math.abs(a.fill - b.fill) * 100).toFixed(4)} points at most, and the largest fill by ${gap((a, b) => Math.abs(a.maxFill - b.maxFill) * 100).toFixed(4)}; the first step at fill >= 0.7 apart by ${stepGap('first70')}, and at >= 0.999 by ${stepGap('full')}`);
   const horizons = below.filter(c => c.horizon != null);
   if (horizons.length) {
     const hGap = (key) => Math.max(...horizons.flatMap(c => c.w.map((r, i) => (r[key] == null || c.e[i][key] == null ? Infinity : Math.abs(r[key] - c.e[i][key])))));
@@ -371,6 +422,6 @@ compare('own cavity, changed broth', 1, SEEDS, own, { mul: BROTH }, shippedOwn);
 {
   // the record comparison finds nothing between a run and the same run made again
   const r = records(run(42, own, { form: 'engine', E: 7 }), run(42, own, { form: 'engine', E: 7 }));
-  console.log(`\ncontrol: the clamp in the engine at 7, seed 42, made twice ${Object.keys(r.fields).length === 0 && r.logLines === 0 && r.zoneCounts === 0 && r.sizes === 0 ? `differs in no field of ${r.zones} zones and in none of ${r.logTotal} step-log lines` : 'DIFFERS FROM ITSELF'}`);
+  console.log(`\ncontrol: the clamp in the engine at 7, seed 42, made twice ${Object.keys(r.fields).length === 0 && Object.keys(r.crystalFields).length === 0 && r.logLines === 0 && r.zoneCounts === 0 && r.sizes === 0 ? `differs in no field of ${r.zones} zones, in no crystal field and in none of ${r.logTotal} step-log lines` : 'DIFFERS FROM ITSELF'}`);
 }
 console.log(`control at the end: gem_pegmatite's shipped run at seed 42 ${run(42, own).summary === JSON.stringify(BASELINE.gem_pegmatite) ? 'still reproduces the baseline' : 'NO LONGER REPRODUCES THE BASELINE'}`);

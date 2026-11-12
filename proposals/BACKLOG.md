@@ -41,7 +41,7 @@ Living list of open work items, captured from session conversations so context s
 > Creative mode's "Radioactive Pegmatite" starter fluid and in Zen runs of the two uraninite
 > scenarios, bulk Pb climbs to 268–286, 621–682 and 1,015–1,035 ppm with every voxel where
 > it started.)
-> **This review has been corrected twelve times by its own review rounds (the doc's §9 lists each
+> **This review has been corrected thirteen times by its own review rounds (the doc's §9 lists each
 > set): the first version said supply does not bind; the second costed the recommended fixes
 > too lightly; the third said the feldspar clamp loses no species, having counted a
 > dissolved-away crystal's record as presence, and recommended a lead mechanism that cannot
@@ -72,12 +72,21 @@ Living list of open work items, captured from session conversations so context s
 > into the engine were called one run where their sizes and fill had been compared (albite's
 > zones record another trace Al); SC2's preview, a wrapper too, had not been run against the
 > law in the engine (it is another run in one scenario at one seed); and SC1's acceptance
-> lines refused no bound that is too tight. Those are corrected, and the corrections have
-> had no review round of their own.**
+> lines refused no bound that is too tight. The thirteenth round reviewed the one commit
+> that answered the twelfth: the rule it gave for the bound's value ("the loosest that
+> keeps the pocket open for its run") does not give 7, since the lines admit every whole
+> value from 5 to 9; its probe for SC2 had refused the preview's zones where a reading of
+> the engines said the engine would, and had not made an engine compute the law; and a
+> sentence on what differs between the two forms of the clamp was contradicted by the
+> probe's own output.**
 > **Awaits the boss:** the eight decisions in the doc's §6. SC1: a clamp on the feldspar pair's
 > rate authored on `gem_pegmatite` ALONE (recommended; one baseline changes), which makes topaz
 > appear at all three locality-gate seeds, so the bump must also PROMOTE TOPAZ out of the
 > aspirational tier and rewrite its rationale by hand (the gate does not check that sentence).
+> ITS VALUE IS A CHOICE IN A RANGE: the bump's acceptance lines are met by every whole value
+> from 5 to 9 and pick none (5: feldspar 17 mm, 37–38 steps to spare; 9: feldspar 31 mm, 3–5
+> steps; the gems are the same throughout). The review recommends 7, the value its other
+> previews were made at (28–29 steps to spare); another value needs those previews made again.
 > It is a bound on a RATE, so it BUYS STEPS, NOT AN END. Where Simulation mode, Quick Play and
 > Creative mode start the scenario it keeps the pocket under 0.7 full for the scenario's own
 > 230 steps and 27–29 more; a run that goes on (the Steps box, or Wait in Creative mode, where
@@ -106,11 +115,13 @@ Living list of open work items, captured from session conversations so context s
 > the clamp does at 11; a change to the broth, which costs the pocket its quartz; or no bound
 > until SC4. NOT factor caps, which delete both feldspars from the Grimsel cleft. The field SC1
 > authors also needs a class in the Creative lever audit. THE PREVIEWS OF SC1 AND SC2 ARE
-> WRAPPERS ROUND THE ENGINES, and both were run beside the change written into the engine:
+> WRAPPERS ROUND THE ENGINES, and both were run beside the change made in the engine itself:
 > SC1's clamp gives the same sizes and fill at 2 and above and other trace-Al values on
-> albite (up to 14 % apart; the step log prints them), and SC2's law is another run in
-> `sunnyside_american_tunnel` at seed 42 (86.5 % full against 83.1 %; the same species
-> moved in all 48 pairs). SC2's constant; at the same constant
+> albite (up to 14 % apart; the step log prints them), and SC2's law, computed by the
+> engines, is another run in `sunnyside_american_tunnel` at seed 42 at the same constant
+> (86.5 % full against 83.1 %), and in `radioactive_pegmatite` at seeds 1 and 2 at three
+> times the constant, where the plugged pocket's last steps turn on the last binary place of
+> a zone (the same species moved in all 48 pairs). SC2's constant; at the same constant
 > SC2 shrinks the uraninites, their radiogenic lead falls (`schneeberg`'s bulk handle ends at
 > 111 ppm, not 179), and the CATION GATE (`npm run audit:cations`) must be recommissioned with
 > a new Ca share (0.630, not 0.582). SC3: hold the radiogenic lead until a uraninite is altered
