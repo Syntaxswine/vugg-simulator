@@ -206,6 +206,17 @@ single execution ledger for the science-first AAA completion branch.
     12 runs at seeds 1 and 2, and in none at seed 42. Of the fleet's 914 enclosures as
     shipped at three seeds, the five on such a layer are all in that scenario. A floor on
     the host layer was not previewed, and no change is proposed.
+  - [ ] Rule on the weathering epilogue's choice of precursor (the doc's §3.4, its seventh
+    note; decision 7). `weatheringNucleationContext` (`js/44e-weathering-epilogue.ts:320`)
+    sorts the candidates by their latest negative zone, then by what they have released,
+    then by crystal id. In `wittichen` two skutterudites have released 0.340428 each when
+    the erythrite is born at step 171 and differ by 1.2e-14, so rounding decides the second
+    key and the id is never reached. With every zone multiplied by 1 − 1e-13 the erythrite
+    takes the other skutterudite, at seeds 42 and 2. At seed 42, the baseline's seed, a
+    safflorite then ends at 572 µm or at 8.5, and the baseline summary differs. Found by a
+    run of all 41 scenarios as shipped with every mineral's zones nudged
+    (`probe-rounding-reach.mjs`); a tolerance on the release was not previewed, and no
+    change is proposed.
   - [ ] Rule on Zen mode as the review met it (the doc's §6, decision 8): a Zen run of a
     scenario has no scenario object, so no license, exclusions, windows, movements or
     weathering epilogue (an emerald is on record in its `gem_pegmatite`); and the species

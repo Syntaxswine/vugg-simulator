@@ -85,6 +85,8 @@ Living list of open work items, captured from session conversations so context s
 > is an enclosure that a host layer of 10⁻¹¹ µm licenses in a full pocket, at work in the
 > SHIPPED run of that scenario at seeds 1 and 2; the range of 5 to 9 had been read at the
 > scenario's own shape seed alone; and one sentence still called 7 the loosest value run.
+> Answering it, a run of the whole fleet with every mineral's zones nudged found a second
+> outcome that rounding picks, in `wittichen` at the BASELINE'S seed (below).
 > The corrections made after round 14 have had no review round.**
 > **Awaits the boss:** the eight decisions in the doc's §6. SC1: a clamp on the feldspar pair's
 > rate authored on `gem_pegmatite` ALONE (recommended; one baseline changes), which makes topaz
@@ -144,7 +146,17 @@ Living list of open work items, captured from session conversations so context s
 > differs, and of the fleet's 914 enclosures as shipped the five on such a layer are all
 > in this scenario. So every number of `radioactive_pegmatite` at seeds 1 and 2 in its full
 > pocket is one run of several; nothing is proposed, and a floor was not previewed (the
-> doc's §3.4, a sixth note; decision 7). SC2's constant; at the same constant
+> doc's §3.4, a sixth note; decision 7). A SECOND OUTCOME THAT ROUNDING PICKS turned up when
+> the whole fleet was put to the nudge (every mineral's zones, four factors, 41 scenarios at
+> three seeds): `wittichen` at seeds 42 and 2, whose pocket is empty. Its weathering epilogue
+> takes the precursor that has released the most (`js/44e-weathering-epilogue.ts:320`); two
+> skutterudites dissolving since the same step have released 0.340428 each and differ by
+> 1.2e-14; and with every zone multiplied by 1 − 1e-13 the erythrite grows on the other one
+> and encloses it. At seed 42, THE BASELINE'S SEED, a safflorite then ends at 572 µm or at
+> 8.5 and the baseline summary differs. `searles_lake` at seed 42 moves by 0.0004 µm of one
+> calcite (the cavity's last room) and `gem_pegmatite` does not move. Nothing is proposed;
+> a tolerance before the crystal id was not previewed (§3.4, a seventh note; decision 7).
+> SC2's constant; at the same constant
 > SC2 shrinks the uraninites, their radiogenic lead falls (`schneeberg`'s bulk handle ends at
 > 111 ppm, not 179), and the CATION GATE (`npm run audit:cations`) must be recommissioned with
 > a new Ca share (0.630, not 0.582). SC3: hold the radiogenic lead until a uraninite is altered
@@ -175,7 +187,8 @@ Living list of open work items, captured from session conversations so context s
 > scale above the cell, SC4. Whether the census joins the SIM-bump routine, SC5. The order
 > against the open ladders. Three authored values that sit exactly on a σ threshold, one of
 > which starts four of `supergene_oxidation`'s azurites dissolving at its last event, and
-> with them the enclosure test that has no floor (above). And Zen
+> with them two outcomes that rounding picks: the enclosure test that has no floor and the
+> weathering epilogue's choice of precursor (above). And Zen
 > mode as the review met it: no scenario object (an emerald in its `gem_pegmatite`), and a
 > drift whose species and pH writes stay on the bulk handle, the fluid that births read in
 > 39 of Zen's 41 simulators and not the one that crystals grow from (its temperature write
