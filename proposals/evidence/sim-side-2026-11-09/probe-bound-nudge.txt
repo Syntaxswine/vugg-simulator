@@ -1,0 +1,20 @@
+[scenarios] loaded 41 from ./data/scenarios.json5
+[spec] loaded 184 minerals from ./data/minerals.json
+[thermo] loaded 15 carbonate entries from ./data/thermo-carbonates.json
+[thermo] loaded 4 sulfate entries from ./data/thermo-sulfates.json
+[narratives] loaded 94 species
+probe-bound-nudge — SIM 286; gem_pegmatite with the rate of feldspar and albite clamped inside the engine at E = 7; seeds 42 / 1 / 2; time scale 5
+12 nudges of every growth engine's positive zones (1 + 2.2e-16, 1 − 1.1e-16, 1 + 4.4e-16, 1 − 4.4e-16, 1 + 1.1e-15, 1 − 1.0e-15, 1 + 1.0e-14, 1 − 1.0e-14, 1 + 1.0e-13, 1 − 1.0e-13, 1 + 1.0e-12, 1 − 1.0e-12)
+each cavity and seed is run in a process of its own, this probe started with --one, the cavity and the seed, 6 at a time
+
+the scenario's own cavity, 230 steps
+  the bound, no nudge   largest fill of the run 42.1 / 41.4 / 41.0 %, at its end 42.1 / 41.4 / 41.0 %; first step at fill >= 0.7 — / — / —; at >= 0.999 — / — / —; quartz 37.5 / 36.7 / 37.3 mm, tourmaline 12.0 / 11.9 / 12.0, topaz 2.5 / 2.5 / 2.5, feldspar 24.1 / 24.7 / 24.7, albite 32.3 / 32.2 / 32.5; first step at a fill of 1 to a billionth — / — / —; crystals 40 / 37 / 34
+  the 12 nudged runs at each seed: reached 12 / 12 / 12; the first step at a fill of 0.7 is another in 0 / 0 / 0, at 0.999 in 0 / 0 / 0, at 1 to a billionth in 0 / 0 / 0; a crystal's size, active flag or host differs at the end in 0 / 0 / 0; the summary differs in 0 / 0 / 0
+
+the form's vug (15 mm), 230 steps
+  the bound, no nudge   largest fill of the run 100.0 / 100.0 / 100.0 %, at its end 100.0 / 100.0 / 100.0 %; first step at fill >= 0.7 62 / 64 / 64; at >= 0.999 97 / 99 / 99; quartz 14.5 / 14.4 / 14.8 mm, tourmaline 5.0 / 5.1 / 5.1, topaz — / 0.00 / —, feldspar 7.6 / 7.6 / 7.9, albite 9.6 / 9.9 / 10.3; first step at a fill of 1 to a billionth 98 / 100 / 99; crystals 42 / 36 / 32
+  the 12 nudged runs at each seed: reached 12 / 12 / 12; the first step at a fill of 0.7 is another in 0 / 0 / 0, at 0.999 in 0 / 0 / 0, at 1 to a billionth in 0 / 0 / 0; a crystal's size, active flag or host differs at the end in 0 / 0 / 0; the summary differs in 0 / 0 / 0
+
+0 of the 72 nudged runs differ from the un-nudged run of their cavity and seed in a step, a crystal or the summary
+control: a nudge of exactly 1 is the un-nudged run, to the last binary place of every size and of the fill, in both cavities at the three seeds
+control: with the clamp at Infinity and no nudge, the own cavity's run at seed 42 reproduces the baseline

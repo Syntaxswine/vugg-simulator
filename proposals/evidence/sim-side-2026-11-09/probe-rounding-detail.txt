@@ -68,6 +68,35 @@ wittichen as shipped, seeds 42 / 1 / 2: the crystals its first product born on a
     by the function's three keys the first is skutterudite #9, the precursor on the receipt
     the first two are at the same step and 1.9e-14 apart in release; the lower crystal id of the two is #2, which is not the one the function chose
 
-control: in that last part the crystal the three keys put first is the precursor on the product's receipt at 3 of 3 seeds
+wittichen as shipped, seeds 42 / 1 / 2: the shells each of those candidates' negative zones came off, and what each shell had booked
+  seed 42:
+    skutterudite #1: 90.1627 µm before its zone of step 170, which took 15.0000 µm off 7 shells (the engine takes min(3.0, 0.1 × size), 3.00000, times the time scale of 5)
+      booked Co per µm, 0.0047143999999987958 to 0.0047144000000010917 (7 distinct values in 7 shells); booked As per µm, 0.017980799999998288 to 0.017980800000003117 (7 distinct values in 7 shells); the release rebuilt from those shells is the zone's own to the last binary place
+    skutterudite #2: 91.1476 µm before its zone of step 170, which took 15.0000 µm off 7 shells (the engine takes min(3.0, 0.1 × size), 3.00000, times the time scale of 5)
+      booked Co per µm, 0.0047143999999992650 to 0.0047144000000016771 (7 distinct values in 7 shells); booked As per µm, 0.017980799999996404 to 0.017980799999999995 (7 distinct values in 7 shells); the release rebuilt from those shells is the zone's own to the last binary place
+    safflorite #12: 736.992 µm before its zone of step 170, which took 15.0000 µm off 2 shells (the engine takes min(3.0, 0.1 × size), 3.00000, times the time scale of 5)
+      booked Co per µm, 0.0047143999999999849 to 0.0047144000000002694 (2 distinct values in 2 shells); booked As per µm, 0.011987199999999820 to 0.011987200000000042 (2 distinct values in 2 shells); the release rebuilt from those shells is the zone's own to the last binary place
+    safflorite #11: 753.527 µm before its zone of step 170, which took 15.0000 µm off 2 shells (the engine takes min(3.0, 0.1 × size), 3.00000, times the time scale of 5)
+      booked Co per µm, 0.0047143999999998479 to 0.0047144000000001246 (2 distinct values in 2 shells); booked As per µm, 0.011987199999999676 to 0.011987200000000101 (2 distinct values in 2 shells); the release rebuilt from those shells is the zone's own to the last binary place
+    of skutterudite, safflorite, cobaltite, the crystals with no such zone: none
+  seed 1:
+    skutterudite #3: 91.9352 µm before its zone of step 170, which took 15.0000 µm off 7 shells (the engine takes min(3.0, 0.1 × size), 3.00000, times the time scale of 5)
+      booked Co per µm, 0.0047143999999993821 to 0.0047144000000018931 (7 distinct values in 7 shells); booked As per µm, 0.017980799999997368 to 0.017980800000001570 (7 distinct values in 7 shells); the release rebuilt from those shells is the zone's own to the last binary place
+    safflorite #12: 758.392 µm before its zone of step 170, which took 15.0000 µm off 1 shell (the engine takes min(3.0, 0.1 × size), 3.00000, times the time scale of 5)
+      booked Co per µm, 0.0047143999999999589 to 0.0047143999999999589 (1 distinct value in 1 shell); booked As per µm, 0.011987199999999839 to 0.011987199999999839 (1 distinct value in 1 shell); the release rebuilt from those shells is the zone's own to the last binary place
+    of skutterudite, safflorite, cobaltite, the crystals with no such zone: skutterudite #1 (92.64 µm when the product was born); safflorite #11 (726.5 µm when the product was born)
+  seed 2:
+    skutterudite #9: 56.7648 µm before its zone of step 170, which took 15.0000 µm off 7 shells (the engine takes min(3.0, 0.1 × size), 3.00000, times the time scale of 5)
+      booked Co per µm, 0.0047143999999983924 to 0.0047144000000007118 (7 distinct values in 7 shells); booked As per µm, 0.017980799999997452 to 0.017980800000002718 (7 distinct values in 7 shells); the release rebuilt from those shells is the zone's own to the last binary place
+    skutterudite #2: 94.0715 µm before its zone of step 170, which took 15.0000 µm off 6 shells (the engine takes min(3.0, 0.1 × size), 3.00000, times the time scale of 5)
+      booked Co per µm, 0.0047143999999989155 to 0.0047144000000006901 (6 distinct values in 6 shells); booked As per µm, 0.017980799999997618 to 0.017980800000002132 (6 distinct values in 6 shells); the release rebuilt from those shells is the zone's own to the last binary place
+    safflorite #12: 736.868 µm before its zone of step 170, which took 15.0000 µm off 2 shells (the engine takes min(3.0, 0.1 × size), 3.00000, times the time scale of 5)
+      booked Co per µm, 0.0047143999999998513 to 0.0047144000000000300 (2 distinct values in 2 shells); booked As per µm, 0.011987200000000111 to 0.011987200000000390 (2 distinct values in 2 shells); the release rebuilt from those shells is the zone's own to the last binary place
+    safflorite #13: 738.816 µm before its zone of step 170, which took 15.0000 µm off 2 shells (the engine takes min(3.0, 0.1 × size), 3.00000, times the time scale of 5)
+      booked Co per µm, 0.0047143999999998930 to 0.0047144000000000482 (2 distinct values in 2 shells); booked As per µm, 0.011987199999999382 to 0.011987200000000201 (2 distinct values in 2 shells); the release rebuilt from those shells is the zone's own to the last binary place
+    of skutterudite, safflorite, cobaltite, the crystals with no such zone: skutterudite #3 (15.56 µm when the product was born)
+
+control: where the candidates are listed, the crystal the three keys put first is the precursor on the product's receipt at 3 of 3 seeds
+control: the release rebuilt from the shells is the one the simulator wrote on the zone, to the last binary place of each species, for 10 of 10 zones
 control: at seed 42 the shipped run reproduces the baseline for the 2 scenarios read at that seed
 control: the release this probe sums for a product's precursor is the one on the simulator's receipt for the product in 4 of 4 cases

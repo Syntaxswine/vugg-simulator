@@ -197,31 +197,39 @@ single execution ledger for the science-first AAA completion branch.
     that `supergene_oxidation`'s last event sets, which lands the bulk handle on azurite's redox
     minimum and the wall cells below it and starts four azurites dissolving. No change is
     proposed.
-  - [ ] Rule on the enclosure test, which has no floor (the doc's §3.4, its sixth note;
-    decision 7). `_check_enclosure` (`js/85c-simulator-state.ts:2466`) licenses an enclosure
-    on any host layer above zero, and a full pocket hands its last room to the next crystal
-    as a layer of 10⁻¹¹ µm or less (`probe-last-room.mjs` reads the growth loop's fill as
-    each layer is accepted). In `radioactive_pegmatite` such a layer sets the step at which
-    a feldspar encloses the uraninites, which ends their alteration and their lead: as
-    shipped a nudge of a zone's last binary places moves a size or the lead in 6 and 9 of
-    12 runs at seeds 1 and 2, and in none at seed 42. In each scenario's own cavity, of the
-    fleet's 914 enclosures as shipped at three seeds, the five on such a layer are all in
-    that scenario. In the 15 mm vug of Simulation mode's form 18 of 1,285 are on such a
-    layer, in `supergene_oxidation` at all three seeds (1 / 3 / 12) and in
-    `radioactive_pegmatite` at two, and four nudges of every engine's zones move 51 of 492
-    runs, in nine scenarios. A floor on the host layer was not previewed, and no change is
-    proposed. The outputs give every host layer's size: a floor has room in the own
-    cavities (nothing between the residues and 0.13 µm) and none at the vug (no gap from
-    1e-12 µm to more than 5 µm). The loop that stores the layer
-    (`js/85-simulator.ts:705`, `:947`) is the other place a remedy could sit.
+  - [ ] Rule on what a full pocket hands the next crystal, and on the enclosure tests that
+    read it (the doc's §3.4, its sixth note; decision 7). The growth loop lets a crystal
+    through at any fill under 1 and cuts its zone to the room left
+    (`js/85-simulator.ts:705`, `:947`). Once a zone has taken the room, that is a residue
+    of 10⁻¹² µm and up, or nothing, and the crystal stores it (`probe-last-room-routes.mjs`
+    reads the loop's fill as each zone is accepted: one to nine units of its last binary
+    place under 1). `_check_enclosure` licenses an enclosure on any host layer above zero
+    (`js/85c-simulator-state.ts:2466`) and reads a guest as slowing by its last three zones
+    (`:2562`, `:2569`); neither has a floor. In `radioactive_pegmatite` such a layer sets
+    the step at which a feldspar encloses the uraninites, which ends their alteration and
+    their lead: as shipped a nudge of a zone's last binary places moves a size or the lead
+    in 6 and 9 of 12 runs at seeds 1 and 2, and in none at seed 42. In each scenario's own
+    cavity, of the fleet's 914 enclosures as shipped at three seeds, the five on such a
+    layer are all in that scenario, and the guest's side decides none. In the 15 mm vug of
+    Simulation mode's form 18 of 1,285 are on such a layer, in `supergene_oxidation` at all
+    three seeds (1 / 3 / 12) and in `radioactive_pegmatite` at two; in 24 the guest passes
+    only for its zones from the last room; that is 35 in all, in four scenarios; and four
+    nudges of every engine's zones move 51 of 492 runs, in nine scenarios. No remedy was
+    previewed, and no change is proposed. The outputs give every host layer's size: a
+    floor on the host's layer has room in both settings (nothing between the residues and
+    0.13 µm in the own cavities, or 4e-5 µm at the vug), and it would leave the guest's
+    side and the crystals' sizes as they are. The loop is the one place that comes before
+    all three.
   - [ ] Rule on the weathering epilogue's choice of precursor (the doc's §3.4, its seventh
     note; decision 7). `weatheringNucleationContext` (`js/44e-weathering-epilogue.ts:320`)
     sorts the candidates by their latest negative zone, then by what they have released,
     then by crystal id. In `wittichen` two skutterudites have released 0.340428 each when
     the erythrite is born at step 171 and differ by 1.2e-14, so rounding decides the second
-    key, and the id was reached in no run made here. The tie is built in: the erythrite's
-    window opens one step after the epilogue begins, and in that step each candidate lost
-    the same 15 µm. With every zone multiplied by 1 − 1e-13 the erythrite takes the other
+    key, and the id was reached in no run made here. The near-tie comes with the scenario:
+    the erythrite's window opens one step after the epilogue begins, and in that step each
+    candidate, being over 30 µm, lost the same 15 µm. The releases then differ by what
+    each crystal's shells had booked when they grew, by parts in 10¹⁴
+    (`probe-rounding-detail.mjs`). With every zone multiplied by 1 − 1e-13 the erythrite takes the other
     skutterudite, at seeds 42 and 2; of twelve factors three turn seed 42 and one turns
     seed 2, none of them within 1e-14 of 1 (`probe-rounding-twelve.mjs`). At seed 42, the
     baseline's seed, a safflorite then ends at 572 µm or at 8.5, and the baseline summary

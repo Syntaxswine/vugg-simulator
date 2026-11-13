@@ -30,13 +30,24 @@
  * function also asks each candidate for a local σ of the product above the product's threshold,
  * :310. This probe does not read that σ: the control below shows the ordering names the receipt's
  * precursor without it.)
+ * Last, for each of those candidates it prints the shells its negative zone came off and what each
+ * shell had booked per micrometre for each required species when it grew. The release is the sum,
+ * over those shells, of the thickness taken times the shell's booked number
+ * (js/19-mineral-stoichiometry.ts:955–981; the number is booked at :1125), so two crystals that
+ * lose the same thickness differ in release by what their shells booked. It prints each
+ * candidate's size before the zone beside the engines' law for the thickness, min(3.0, 0.1 × size)
+ * times the time scale (js/61-engines-sulfide.ts:1111, :1153), and the crystals of the parent
+ * minerals that have no such zone, with their sizes (the engines dissolve a crystal of more than
+ * 10 µm, :1109, :1151).
  *
  * PASSIVE: prints to stdout and writes nothing. It exits 0 when it finishes. Imports
  * tools/_harness.mjs and node builtins.
  * Controls: wittichen's and searles_lake's shipped runs at seed 42 are compared with the committed
  * baseline; for each product whose precursor is printed, the release this probe sums for that
- * precursor has to be the one on the simulator's own receipt for the product; and in the last
- * part the crystal the three keys put first has to be the precursor on the product's receipt.
+ * precursor has to be the one on the simulator's own receipt for the product; where the candidates
+ * are listed, the crystal the three keys put first has to be the precursor on the product's
+ * receipt; and the release rebuilt from the shells has to be the one the simulator wrote on the
+ * zone, to the last binary place.
  *
  *   node proposals/evidence/sim-side-2026-11-09/probe-rounding-detail.mjs
  */
@@ -170,6 +181,7 @@ for (const [name, seed, nudge] of PAIRS) {
 // What the function had to choose between when wittichen's first product was born, as shipped.
 console.log('\nwittichen as shipped, seeds 42 / 1 / 2: the crystals its first product born on a weathering precursor could have been born on');
 let ordered = 0, orderedHeld = 0;
+const kept = [];
 for (const seed of [42, 1, 2]) {
   const sim = (shipped.get(`wittichen ${seed}`) ?? run('wittichen', seed)).sim;
   const product = sim.crystals.filter(c => c.weathering_precursor_receipt).sort((a, b) => a.nucleation_step - b.nucleation_step || a.crystal_id - b.crystal_id)[0];
@@ -195,7 +207,52 @@ for (const seed of [42, 1, 2]) {
     const lower = Math.min(first.c.crystal_id, second.c.crystal_id);
     console.log(`    the first two are at the same step and ${first.total === second.total ? 'released exactly the same' : `${(first.total - second.total).toExponential(1)} apart in release`}; the lower crystal id of the two is #${lower}, ${lower === first.c.crystal_id ? 'the one the function chose' : 'which is not the one the function chose'}`);
   } else console.log(`    the first two are ${first.latest === second.latest ? 'at the same step' : `at steps ${first.latest} and ${second.latest}`} and ${(first.total - second.total).toPrecision(3)} apart in release: not a pair that rounding decides`);
+  kept.push({ seed, sim, product, species, parents, start, rows });
 }
-console.log(`\ncontrol: in that last part the crystal the three keys put first is the precursor on the product's receipt at ${orderedHeld} of ${ordered} seeds${orderedHeld === ordered ? '' : ' — THE ORDERING IS NOT THE SIMULATOR\'S'}`);
+
+// Where the releases of two such candidates come to differ. A negative zone takes its thickness off
+// the crystal's positive shells from the outermost inward, and returns for each shell the
+// thickness taken times the number that shell booked for each species when it grew
+// (js/19-mineral-stoichiometry.ts:955–981 reads z._budget_inventory_per_um; :1125 books it as what
+// the fluid lost to the shell divided by the shell's thickness). This part rebuilds that for every
+// candidate above and prints the shells and the numbers they booked.
+console.log('\nwittichen as shipped, seeds 42 / 1 / 2: the shells each of those candidates\' negative zones came off, and what each shell had booked');
+let rebuiltChecked = 0, rebuiltHeld = 0;
+const sizeBefore = (c, step) => c.zones.filter(z => Number(z.step) < step).reduce((n, z) => n + Number(z.thickness_um), 0);
+const spread = (list) => (list.length ? `${Math.min(...list).toPrecision(17)} to ${Math.max(...list).toPrecision(17)} (${new Set(list).size} distinct value${new Set(list).size === 1 ? '' : 's'} in ${list.length} shell${list.length === 1 ? '' : 's'})` : 'none booked');
+for (const { seed, sim, product, species, parents, start, rows } of kept) {
+  console.log(`  seed ${seed}:`);
+  for (const r of rows) {
+    // the crystal's positive shells with what is left of each, in the order they grew; each
+    // negative zone takes from the last shell back (the simulator's loop, :938–952 and :955–960)
+    const shells = [];
+    for (const z of r.c.zones) {
+      if (!z || !z.thickness_um) continue;
+      if (z.thickness_um > 0) { shells.push({ z, left: z.thickness_um }); continue; }
+      let toRemove = -z.thickness_um;
+      const taken = [];
+      for (let i = shells.length - 1; i >= 0 && toRemove > 0; i--) {
+        const available = Math.max(0, shells[i].left), removed = Math.min(available, toRemove);
+        shells[i].left = available - removed;
+        toRemove -= removed;
+        if (removed > 0) taken.push({ removed, booked: shells[i].z._budget_inventory_per_um || {} });
+      }
+      if (!(Number(z.step) >= start && Number(z.step) < product.nucleation_step)) continue;
+      const before = sizeBefore(r.c, Number(z.step));
+      const rebuilt = {};
+      for (const t of taken) for (const s of species) rebuilt[s] = (rebuilt[s] || 0) + t.removed * Number(t.booked[s]);
+      const returned = z._returned_budget_inventory || {};
+      const held = species.every(s => rebuilt[s] === Number(returned[s]));
+      rebuiltChecked++;
+      if (held) rebuiltHeld++;
+      console.log(`    ${r.c.mineral} #${r.c.crystal_id}: ${before.toPrecision(6)} µm before its zone of step ${z.step}, which took ${(-z.thickness_um).toPrecision(6)} µm off ${taken.length} shell${taken.length === 1 ? '' : 's'} (the engine takes min(3.0, 0.1 × size), ${Math.min(3.0, 0.1 * before).toPrecision(6)}, times the time scale of ${getSimulationTimeScale()})`);
+      console.log(`      ${species.map(s => `booked ${s} per µm, ${spread(taken.map(t => Number(t.booked[s])))}`).join('; ')}; the release rebuilt from those shells ${held ? 'is the zone\'s own to the last binary place' : 'IS NOT THE ZONE\'S OWN'}`);
+    }
+  }
+  const idle = sim.crystals.filter(c => parents.includes(c.mineral) && !rows.some(r => r.c === c));
+  console.log(`    of ${parents.join(', ')}, the crystals with no such zone: ${idle.map(c => `${c.mineral} #${c.crystal_id} (${sizeBefore(c, product.nucleation_step).toPrecision(4)} µm when the product was born)`).join('; ') || 'none'}`);
+}
+console.log(`\ncontrol: where the candidates are listed, the crystal the three keys put first is the precursor on the product's receipt at ${orderedHeld} of ${ordered} seeds${orderedHeld === ordered ? '' : ' — THE ORDERING IS NOT THE SIMULATOR\'S'}`);
+console.log(`control: the release rebuilt from the shells is the one the simulator wrote on the zone, to the last binary place of each species, for ${rebuiltHeld} of ${rebuiltChecked} zones${rebuiltHeld === rebuiltChecked ? '' : ' — THE SHELLS ARE NOT THE ONES THE SIMULATOR TOOK FROM'}`);
 console.log(`control: at seed 42 the shipped run ${reproduced === baselines.size ? `reproduces the baseline for the ${baselines.size} scenarios read at that seed` : 'DOES NOT REPRODUCE THE BASELINE'}`);
 console.log(`control: the release this probe sums for a product's precursor is the one on the simulator's receipt for the product in ${receiptsHeld} of ${receiptsChecked} cases${receiptsHeld === receiptsChecked ? '' : ' — THE SUM IS NOT THE SIMULATOR\'S'}`);
