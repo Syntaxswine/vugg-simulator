@@ -28,7 +28,14 @@
  *   - how many units of its last binary place under 1 the fill read at each zone in the last room.
  *     A zone accepted with the fill fewer than 100 units under 1 is called here a zone "on a
  *     residue of the fill", and the count of enclosures by the guest's zones is given a second
- *     time with only such zones set aside.
+ *     time with only such zones set aside;
+ *   - what the engine had written on the crystal with each zone in the last room. The simulator
+ *     takes an engine's changes to the crystal (its habit, its forms, a twin) back off it, stages
+ *     them on the zone (js/85b-simulator-nucleate.ts:147–149) and puts them on the crystal after
+ *     the budget, when the zone's final thickness is not zero (:89–97). So a residue carries them
+ *     and a zone cut to exactly nothing does not. Read: the fields staged, whether the crystal
+ *     holds them after the call, and the crystal's habit before the call, after it and at the end
+ *     of the run.
  *
  * "In the last room" is probe-last-room.mjs's reading, made with the same two wrappers: the loop's
  * fill, a return of _refreshVugFillAndSeal, read under 1 by a billionth or less when the zone went
@@ -43,7 +50,7 @@
  * Controls: for every enclosure, the guest's last three zones as summed here have to be the
  * guest_recent_growth_um on the simulator's receipt, and the host's positive zones of the step as
  * kept here have to add up to the receipt's layer; at seed 42 a run without the two wrappers has
- * to be the wrapped run to the last binary place; in each scenario's own cavity the seed-42 run is
+ * to be the wrapped run to the last binary place, and in every crystal's habit; in each scenario's own cavity the seed-42 run is
  * compared with the committed baseline. The enclosure counts are to be the ones
  * probe-last-room.txt and probe-last-room-vug.txt print, scenario by scenario.
  *
@@ -78,6 +85,8 @@ const micron = (t) => (Math.abs(t) >= 0.01 ? `${t.toPrecision(4)} µm` : `${t.to
 const inLastRoom = (fill) => fill != null && fill < 1 && 1 - fill <= LAST_ROOM;
 // one unit of the last binary place of x
 const ulp = (x) => 2 ** (Math.floor(Math.log2(x)) - 52);
+// whether a field of a crystal is the value an engine staged for it (a scalar, or an array or record of them)
+const same = (a, b) => Object.is(a, b) || (a != null && b != null && typeof a === 'object' && typeof b === 'object' && JSON.stringify(a) === JSON.stringify(b));
 // the simulator's sum of a guest's last three zones (js/85c-simulator-state.ts:2563–2568), copied
 const sum3 = (zones) => zones.slice(-3).reduce((sum, zone) => {
   const t = Number(zone?.thickness_um);
@@ -101,16 +110,24 @@ function run(name, seed, traced = true) {
     put('_refreshVugFillAndSeal', function (...args) { const fill = refresh.apply(this, args); last = fill; return fill; });
     put('_applyZoneGrowthBudget', function (crystal, zone) {
       const fill = last, before = crystal.total_growth_um;
+      // what the engine wrote on the crystal while it proposed this zone: the simulator has taken
+      // it back off the crystal and staged it on the zone (js/85b-simulator-nucleate.ts:147–149)
+      const mutations = zone && zone._engine_crystal_mutations ? zone._engine_crystal_mutations : null;
+      const staged = mutations ? Object.keys(mutations).sort() : [];
+      const habitWas = crystal.habit;
       const out = apply.call(this, crystal, zone);
       if (!zone || zone.is_phantom) return out;
       const cut = /cavity ceiling/.test(zone.note || '');
       const who = `${crystal.mineral} #${crystal.crystal_id}`;
+      // whether the crystal holds every staged field after the call
+      const held = staged.length > 0 && staged.every(k => (mutations[k].exists ? same(crystal[k], mutations[k].value) : !(k in crystal)));
+      const look = { id: crystal.crystal_id, staged, held, habitWas, habitNow: crystal.habit, habitStaged: mutations && mutations.habit && mutations.habit.exists ? mutations.habit.value : null };
       if (zone.thickness_um > 0) {
         accepted.push({ step: this.step, id: crystal.crystal_id, um: zone.thickness_um, fill, cut, before });
-        if (inLastRoom(fill)) tagged.set(zone, { step: this.step, who, um: zone.thickness_um, under: 1 - fill, cut, before });
+        if (inLastRoom(fill)) tagged.set(zone, { step: this.step, who, um: zone.thickness_um, under: 1 - fill, cut, before, ...look });
         else if (fill != null && fill < 1 && (nearest == null || 1 - fill < nearest.under)) nearest = { step: this.step, who, um: zone.thickness_um, under: 1 - fill, cut };
       } else if (Number(zone.thickness_um) === 0 && cut) {
-        if (inLastRoom(fill)) tagged.set(zone, { step: this.step, who, um: 0, under: 1 - fill, cut, before });
+        if (inLastRoom(fill)) tagged.set(zone, { step: this.step, who, um: 0, under: 1 - fill, cut, before, ...look });
         else zeroOutside++;
       }
       return out;
@@ -126,8 +143,8 @@ function run(name, seed, traced = true) {
     for (; seen < receipts.length; seen++) {
       const r = receipts[seen];
       if (!r || r.event !== 'enclosed') continue;
-      // the guest was made inactive by its enclosure (js/85c-simulator-state.ts:2689), so the loop
-      // has handed it nothing since the test read its zones; the first control holds this
+      // the guest's zone list is read here at the end of the step that enclosed it; the first
+      // control checks, for every enclosure, that its last three zones add up to the receipt's figure
       const guest = sim.crystals.find(c => c.crystal_id === r.guest_crystal_id);
       const zones = Array.isArray(guest?.zones) ? guest.zones : [];
       const others = zones.filter(z => !tagged.has(z));
@@ -153,8 +170,9 @@ function run(name, seed, traced = true) {
     }
   }
   const stored = new Set(sim.crystals.flatMap(c => (Array.isArray(c.zones) ? c.zones : [])));
-  const lastRoomZones = [...tagged.entries()].map(([zone, t]) => ({ ...t, stored: stored.has(zone) }));
-  const sizes = sim.crystals.map(c => [`${c.mineral} #${c.crystal_id}`, c.total_growth_um]);
+  const habits = new Map(sim.crystals.map(c => [c.crystal_id, c.habit]));
+  const lastRoomZones = [...tagged.entries()].map(([zone, t]) => ({ ...t, stored: stored.has(zone), habitEnd: habits.get(t.id) ?? null }));
+  const sizes = sim.crystals.map(c => [`${c.mineral} #${c.crystal_id}`, c.total_growth_um, c.habit]);
   const fluid = Object.entries(sim.conditions.fluid).filter(([, v]) => typeof v === 'number').sort(([a], [b]) => (a < b ? -1 : 1));
   const key = enclosures.map(x => `${x.guest} by ${x.host} at step ${x.step} on ${x.layer}`).join('; ');
   return { steps, firstFull, enclosures, lastRoomZones, zeroOutside, nearest, summary: JSON.stringify(summarize(sim)), exact: JSON.stringify([sizes, sim.get_vug_fill(), fluid, key]) };
@@ -294,9 +312,33 @@ if (process.argv.includes('--one')) {
   }
   console.log(`  outside the last room: the nearest the fill came to 1 when the loop accepted a positive zone is ${nearest ? `1 − ${nearest.z.under.toExponential(2)} (${nearest.name}, seed ${nearest.seed}, step ${nearest.z.step}, ${nearest.z.who}, a zone of ${micron(nearest.z.um)}${nearest.z.cut ? ', cut by the clamp' : ''})` : '— (no such zone)'}; zones the clamp cut to exactly nothing outside the last room: ${zeroOutside}`);
 
+  // what the engines had staged on the crystals with those zones
+  {
+    const carried = positive.filter(e => e.z.staged.length > 0), dropped = nothing.filter(e => e.z.staged.length > 0);
+    const fields = {};
+    for (const e of carried) for (const k of e.z.staged) fields[k] = (fields[k] || 0) + 1;
+    const turned = carried.filter(e => e.z.habitNow !== e.z.habitWas);
+    const crystalOf = (e) => `${e.name}|${e.seed}|${e.z.id}`;
+    const crystals = [...new Set(turned.map(crystalOf))];
+    const kept = crystals.filter(k => turned.some(e => crystalOf(e) === k && e.z.habitEnd === e.z.habitNow));
+    const sizeBefore = (z) => (z.before > 0 ? `${micron(z.before)} before` : 'no size before');
+    const unitsUnder = (z) => { const u = Math.round(z.under / UNIT); return `${u} unit${u === 1 ? '' : 's'} under 1`; };
+    console.log(`\nwhat the engine had written on the crystal with each of those zones, which the simulator stages on the zone and puts on the crystal when the zone's final thickness is not zero (js/85b-simulator-nucleate.ts:147–149, :89–97):`);
+    console.log(`  of the ${positive.length} positive zones, ${carried.length} carried staged fields, and after the call the crystal holds them in ${carried.filter(e => e.z.held).length} — ${Object.keys(fields).sort().map(k => `${k}: ${fields[k]}`).join('; ') || 'no field'}`);
+    console.log(`  the crystal's habit is another after the call than before it on ${turned.length} of them, on ${crystals.length} crystal${crystals.length === 1 ? '' : 's'}; ${kept.length} of those crystals end${kept.length === 1 ? 's' : ''} the run with a habit such a zone gave ${kept.length === 1 ? 'it' : 'them'}`);
+    console.log(`  of the ${nothing.length} cut to exactly nothing, ${dropped.length} carried staged fields, and after the call the crystal holds them in ${dropped.filter(e => e.z.held).length}`);
+    for (const e of carried) {
+      const habit = e.z.habitNow !== e.z.habitWas ? `its habit goes from ${e.z.habitWas} to ${e.z.habitNow}, and at the end of the run it is ${e.z.habitEnd}` : `its habit stays ${e.z.habitWas}`;
+      console.log(`  ${e.name}, seed ${e.seed}, step ${e.z.step}: ${e.z.who} (${sizeBefore(e.z)}) is handed ${micron(e.z.um)} with the fill ${unitsUnder(e.z)}; staged: ${e.z.staged.join(', ')}; ${habit}`);
+    }
+    for (const e of dropped) {
+      console.log(`  ${e.name}, seed ${e.seed}, step ${e.z.step}: ${e.z.who} (${sizeBefore(e.z)}) is cut to nothing with the fill ${unitsUnder(e.z)}; staged and not put on the crystal: ${e.z.staged.join(', ')}${e.z.habitStaged != null && e.z.habitStaged !== e.z.habitWas ? `; its habit stays ${e.z.habitWas}, where the engine had written ${e.z.habitStaged}` : ''}`);
+    }
+  }
+
   const recentHeld = all.filter(e => e.x.recentHeld).length, layerHeld = all.filter(e => e.x.layerHeld).length;
   console.log(`\ncontrol: the guest's last three zones, as this probe sums them at the end of the step, are the guest_recent_growth_um on the simulator's receipt in ${recentHeld} of ${all.length} enclosures${recentHeld === all.length ? '' : ' — THE GUEST\'S ZONES ARE NOT THE ONES THE TEST READ'}`);
   console.log(`control: the host's positive zones of the step, as this probe keeps them, add up to the layer on the simulator's receipt in ${layerHeld} of ${all.length} enclosures${layerHeld === all.length ? '' : ' — THE KEPT ZONES ARE NOT THE RECEIPT\'S LAYER'}`);
-  console.log(`control: at seed ${SEEDS[0]} a run without the two wrappers ${untraced === NAMES.length ? `is the wrapped run, to the last binary place of every size, the fill, the bulk fluid and every enclosure's layer, for all ${NAMES.length} scenarios` : `IS NOT THE WRAPPED RUN for ${NAMES.length - untraced} of ${NAMES.length} scenarios`}`);
+  console.log(`control: at seed ${SEEDS[0]} a run without the two wrappers ${untraced === NAMES.length ? `is the wrapped run, to the last binary place of every size, the fill, the bulk fluid and every enclosure's layer, and in every crystal's habit, for all ${NAMES.length} scenarios` : `IS NOT THE WRAPPED RUN for ${NAMES.length - untraced} of ${NAMES.length} scenarios`}`);
   if (!AT_VUG) console.log(`control: at seed ${SEEDS[0]} the run ${reproduced === NAMES.length ? `reproduces the baseline for all ${NAMES.length} scenarios` : `DOES NOT REPRODUCE THE BASELINE for ${NAMES.length - reproduced} of ${NAMES.length} scenarios`}`);
 }

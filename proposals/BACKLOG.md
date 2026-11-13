@@ -160,18 +160,26 @@ Living list of open work items, captured from session conversations so context s
 > (eleven at step 160 of seed 2, the step of the seal in decision 7) and one each in
 > `radioactive_pegmatite` at seeds 1 and 2; in 24 the guest passes only for its zones
 > from the last room (in none of the 914 of the own cavities); 35 enclosures in all, in
-> four scenarios. Four nudges of every engine's zones move a
+> four scenarios. A ZONE OF THE LAST ROOM THAT IS NOT EXACTLY NOTHING ALSO PUTS ON ITS
+> CRYSTAL WHAT THE ENGINE HAD WRITTEN (`js/85b-simulator-nucleate.ts:89`): at the vug 20
+> of the 151 such zones carried a field of the engine's (forms on 18, a habit on 15), and
+> ten crystals change habit on one, nine of which end the run with a habit such a zone
+> gave them (a 5 mm feldspar goes prismatic on 1.8e-12 µm). Four nudges of every
+> engine's zones move a
 > size or the bulk fluid in 51 of 492 runs, at 20 of 123 scenario-seeds, in NINE scenarios
 > (11, 5 and three in the own cavities), with a species moved or lost in 17 of the 51.
-> In the eight scenarios whose pocket fills there, every run that moves parts from the
+> In the eight scenarios whose pocket fills there, 53 of 96 nudged runs part from the
 > shipped one at or after the step the pocket first reads full, at a step on which the
 > loop handed out its last room: 23 in a crystal's size alone, 8 in an enclosure by the
-> host's layer, 20 in one by the guest's zones, 2 in one that a residue withheld. They
-> end up to hundreds of micrometres apart in the crystals the two runs share (`bisbee`,
-> seed 42: a turquoise at 477 µm or at 15).
-> Nothing is proposed, and no remedy was previewed. A floor on the host's layer has room
-> in both settings (no host layer lies between the residues and 0.13 µm in the own
-> cavities, or 4e-5 µm at the vug), and it would leave the guest's side as it is. The
+> host's layer, 20 in one by the guest's zones, 2 in one that a residue withheld. That
+> test reads sizes, flags and hosts; one run more ends with a quartz in another habit,
+> twinned. The runs that part end up to millimetres apart in the crystals they share
+> (`bisbee`, seed 42: an atacamite at 1.07 mm or at 7.33).
+> Nothing is proposed, and no remedy was previewed in a committed run. A floor on the
+> host's layer has room in both settings in the shipped runs (no host layer lies between
+> those under 1e-6 µm and 0.13 µm in the own cavities, or 4e-5 µm at the vug), and it
+> would leave the guest's side, the sizes and the habits as they are. The loop is not
+> the only reader of the fill: nucleation reads it too. The
 > doc's §3.4, a sixth note; decision 7. A SECOND OUTCOME THAT ROUNDING PICKS turned up when
 > the whole fleet was put to the nudge in its own cavities (every growth engine's zones,
 > four factors, 41 scenarios at three seeds): `wittichen` at seeds 42 and 2, whose pocket

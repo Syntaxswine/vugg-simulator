@@ -25,13 +25,22 @@
  *     by more than a billionth of itself. Counted: how many of them were made with the loop's fill
  *     under 1 by a billionth or less ("in the last room"), and what the others are;
  *   - at the end, among the crystals the two runs SHARE, how many differ and the largest
- *     difference in size; how many crystals of each run have no counterpart in the other; the
- *     mineral whose largest crystal differs most between the two runs; and the minerals that have
- *     solid left in one run alone. Two runs share a crystal
- *     when it carries the same number in both and was born as the same mineral, at the same step,
- *     in the same place (position and wall anchor). A number alone does not pair two crystals:
- *     once the runs have parted they number their crystals apart, and one number can name two
- *     different crystals.
+ *     difference in size; how many crystals of each run have no counterpart in the other, and the
+ *     largest of them; the mineral whose largest crystal differs most between the two runs; and
+ *     the minerals that have solid left in one run alone. Two runs share a crystal when it was
+ *     born in both as the same mineral, at the same step, in the same place: on the wall or on the
+ *     same host, in the same cell of the wall (the vertex its anchor is filed under,
+ *     wall_anchor.chemistry.vertexIndex). The number a crystal carries is no part of that: once
+ *     the runs have parted they number their crystals apart, so one number can name two crystals
+ *     and one crystal can carry two numbers. A place names a host by number ("on calcite #3"),
+ *     and the number is read as the host's own birth. Where a run has several crystals born
+ *     alike, they are paired in the order the runs list them. A shared crystal differs when its
+ *     size differs by more than a billionth of itself, or its active flag, or its host (read as
+ *     the host's birth);
+ *   - a crystal's habit, its forms and its twin, which the test of a parting does not read: for
+ *     every nudged run, the first step at which one of them differs from the shipped run's while
+ *     the two runs still hold the same crystals (a step before the parting step, or any step of a
+ *     run that does not part), and the loop's calls on that crystal at that step.
  * For each shipped run whose pocket reads full it also prints whether the first full step has a
  * zone accepted in the last room, and how many of the steps after it have one: the rates against
  * which the partings are to be read.
@@ -43,7 +52,7 @@
  * tools/_harness.mjs and node builtins.
  * Controls: at seed 42 a nudge of exactly 1 has to be the shipped run at every step. For every run
  * that parts, every crystal the two runs held before the parting step, when they were still alike,
- * has to be one they share by the test above. In the shipped runs the guest's last three zones as
+ * has to be paired with itself by the test above. In the shipped runs the guest's last three zones as
  * summed here have to be the figure on the simulator's receipt for every enclosure.
  * The runs that differ are to be the ones probe-last-room-vug.txt lists: this
  * probe prints the count for each scenario and seed in that probe's form, for the two outputs to
@@ -139,16 +148,24 @@ function run(name, seed, nudge = null) {
     });
     const steps = runtime.scenarioData.defaultSteps ?? 100;
     const history = [], enclosed = {};        // enclosed: by step, the simulator's receipts of that step as read here
-    const births = new Map();                 // by crystal id: what the crystal was born as (the end of the step it first appears in)
+    // by crystal id, read at the end of the step the crystal first appears in: what it was born as
+    // (the header says what that is), the text of its place, and its anchor's point on the wall
+    const births = new Map(), places = new Map(), points = new Map();
     let firstFull = null, seen = 0;
     for (let i = 0; i < steps; i++) {
       sim.run_step();
       const fill = sim.get_vug_fill();
       if (firstFull == null && fill >= 1 - 1e-9) firstFull = sim.step;
       for (const c of sim.crystals) {
-        if (!births.has(c.crystal_id)) births.set(c.crystal_id, [c.crystal_id, c.mineral, c.nucleation_step, c.position, c.wall_anchor ? `${c.wall_anchor.phi},${c.wall_anchor.theta}` : ''].join('|'));
+        if (births.has(c.crystal_id)) continue;
+        // a host is listed before its guests, so its birth is already kept when a guest's is made
+        const place = String(c.position).replace(/#(\d+)/g, (_, n) => `#(${births.get(Number(n)) ?? 'a crystal not held'})`);
+        births.set(c.crystal_id, [c.mineral, c.nucleation_step, place, `cell ${c.wall_anchor?.chemistry?.vertexIndex ?? 'none'}`].join('|'));
+        places.set(c.crystal_id, String(c.position));
+        points.set(c.crystal_id, JSON.stringify(c.wall_anchor?.position ?? null));
       }
       history.push({ step: sim.step, fill, crystals: sim.crystals.map(c => ({ id: c.crystal_id, mineral: c.mineral, who: `${c.mineral} #${c.crystal_id}`, um: c.total_growth_um, active: c.active, by: c.enclosed_by ?? null,
+        habit: String(c.habit), forms: JSON.stringify(c.dominant_forms ?? null), twin: c.twinned ? String(c.twin_law || 'twinned') : '',
         inWindow: (Array.isArray(c.zones) ? c.zones : []).slice(-3).filter(z => tagged.has(z)).length })) });
       const receipts = Array.isArray(sim._enclosureReceipts) ? sim._enclosureReceipts : [];
       for (; seen < receipts.length; seen++) {
@@ -164,7 +181,7 @@ function run(name, seed, nudge = null) {
           recentHeld: sum3(zones) === Number(r.guest_recent_growth_um) });
       }
     }
-    return { sim, steps, firstFull, history, calls, enclosed, births, summary: JSON.stringify(summarize(sim)) };
+    return { sim, steps, firstFull, history, calls, enclosed, births, places, points, summary: JSON.stringify(summarize(sim)) };
   } finally {
     for (const mineral of Object.keys(saved)) MINERAL_ENGINES[mineral] = saved[mineral];
   }
@@ -219,7 +236,7 @@ function parting(A, B) {
       return p && q ? `${A.sim.wall_state.anchorDistanceMm(p, q).toFixed(2)} mm` : 'no anchor';
     };
     const detail = what !== 'neither' ? null : {
-      born: hosted.map(({ x, y }) => `${x.who} was born at "${String(A.births.get(x.id)).split('|')[3]}"${(x.by ?? y.by) != null ? `, ${apartMm(x.id, x.by ?? y.by)} by the wall's anchors from the host it has in one run` : ''}`),
+      born: hosted.map(({ x, y }) => `${x.who} was born at "${A.places.get(x.id)}"${(x.by ?? y.by) != null ? `, ${apartMm(x.id, x.by ?? y.by)} by the wall's anchors from the host it has in one run` : ''}`),
       callers: callsApart(A, B, step).map(c => {
         const x = a.find(k => k.id === c.id), y = b.find(k => k.id === c.id);
         return `${(x || y).who}: host ${x?.by ?? 'none'} against ${y?.by ?? 'none'}, enclosed at that step ${gotNow(A, c.id) ? 'yes' : 'no'} against ${gotNow(B, c.id) ? 'yes' : 'no'}${hosted.map(({ x: g }) => `, ${apartMm(c.id, g.id)} from ${g.who}`).join('')}`;
@@ -228,13 +245,21 @@ function parting(A, B) {
     // the crystals whose calls differ at that step, and the calls among them made outside the last room
     const callList = callsApart(A, B, step);
     const outside = callList.flatMap(c => c.calls).filter(c => !c.lastRoom).sort((p, q) => (q.under ?? 0) - (p.under ?? 0));
-    // the end: the crystals the two runs share (the same number, born as the same mineral at the
-    // same step in the same place), and the rest by mineral
+    // the end: the crystals the two runs share (born as the same mineral at the same step in the
+    // same place, whatever number each carries), and the rest by mineral. Crystals of one run that
+    // were born alike are paired in the order the runs list them.
     const endA = A.history.at(-1).crystals, endB = B.history.at(-1).crystals;
-    const inB = new Map(endB.map(c => [c.id, c]));
-    const pairs = endA.filter(x => inB.has(x.id) && A.births.get(x.id) === B.births.get(x.id)).map(x => ({ x, y: inB.get(x.id) }));
+    const bornB = new Map();
+    for (const y of endB) { const k = B.births.get(y.id); (bornB.get(k) || bornB.set(k, []).get(k)).push(y); }
+    const pairs = [], aloneA = [];
+    for (const x of endA) { const list = bornB.get(A.births.get(x.id)); if (list && list.length) pairs.push({ x, y: list.shift() }); else aloneA.push(x); }
+    const aloneB = [...bornB.values()].flat();
     const before = i > 0 ? A.history[i - 1].crystals : [];
-    const end = pairs.filter(({ x, y }) => differs(x, y)).sort((p, q) => Math.abs(q.y.um - q.x.um) - Math.abs(p.y.um - p.x.um));
+    // a host is compared by its birth, since the two runs may number it apart
+    const hostOf = (R, c) => (c.by == null ? null : R.births.get(c.by) ?? `#${c.by}`);
+    const end = pairs.filter(({ x, y }) => !near(x.um, y.um) || x.active !== y.active || hostOf(A, x) !== hostOf(B, y)).sort((p, q) => Math.abs(q.y.um - q.x.um) - Math.abs(p.y.um - p.x.um));
+    const bornAlike = (R, list) => list.length - new Set(list.map(c => R.births.get(c.id))).size;
+    const biggest = (list) => { const c = list.slice().sort((p, q) => q.um - p.um)[0]; return c ? `${c.who} (${c.um > 0 ? `${size(c.um)} µm` : 'no size'})` : null; };
     const largest = (crystals) => { const m = {}; for (const c of crystals) if (!(c.um <= m[c.mineral])) m[c.mineral] = c.um; return m; };
     const mA = largest(endA), mB = largest(endB);
     const minerals = [...new Set([...Object.keys(mA), ...Object.keys(mB)])].map(k => ({ mineral: k, a: mA[k] ?? null, b: mB[k] ?? null, apart: Math.abs((mA[k] ?? 0) - (mB[k] ?? 0)) }))
@@ -243,18 +268,42 @@ function parting(A, B) {
     // tools/sim-side-ab.mjs reads it), each with its largest crystal in the run that has it
     const solid = (m) => Object.keys(m).filter(k => m[k] > 0);
     const alone = (m, other) => solid(m).filter(k => !(other[k] > 0)).sort().map(k => `${k} (${size(m[k])} µm)`);
-    return { step, other, differing: apart.length, at: worst ? { who: worst.x.who, a: worst.x.um, b: worst.y.um, flag: worst.x.active !== worst.y.active || worst.x.by !== worst.y.by } : null,
+    return { step, index: i, other, differing: apart.length, at: worst ? { who: worst.x.who, a: worst.x.um, b: worst.y.um, flag: worst.x.active !== worst.y.active || worst.x.by !== worst.y.by } : null,
       what, hosted: hosted.map(({ x, y }) => `${x.who}: host ${x.by ?? 'none'} against ${y.by ?? 'none'}`), unread, otherWindow, detail,
       calls: callList.length, callsLastRoom: callList.filter(c => c.calls.every(z => z.lastRoom)).length, callsNothing: callList.filter(c => c.calls.some(z => z.um === 0)).length,
       callOutside: outside[0] ? { who: outside[0].who, um: outside[0].um, under: outside[0].under, cut: outside[0].cut } : null,
       // the furthest under 1 the fill read at any call that differs and was made in the last room, in units
       callsUnits: Math.max(0, ...callList.flatMap(c => c.calls).filter(c => c.lastRoom).map(c => c.units)),
       lastA: (A.calls[step] || []).filter(c => c.lastRoom).length, lastB: (B.calls[step] || []).filter(c => c.lastRoom).length,
-      shared: pairs.length, sharedHeld: before.every(c => A.births.get(c.id) === B.births.get(c.id) && inB.has(c.id)), endDiffering: end.length,
+      shared: pairs.length, sharedHeld: before.every(c => pairs.some(({ x, y }) => x.id === c.id && y.id === c.id)), endDiffering: end.length,
       endWorst: end[0] ? { whoA: end[0].x.who, whoB: end[0].y.who, a: end[0].x.um, b: end[0].y.um } : null,
-      aloneA: endA.length - pairs.length, aloneB: endB.length - pairs.length,
+      // the pairs that carry another number in the nudged run; those whose anchors are the same point
+      // of the wall to the last digit; and the crystals of each run born as another of that run was
+      renumbered: pairs.filter(({ x, y }) => x.id !== y.id).length, samePoint: pairs.filter(({ x, y }) => A.points.get(x.id) === B.points.get(y.id)).length,
+      bornAlike: bornAlike(A, endA) + bornAlike(B, endB),
+      // the shared crystals that end with another habit, forms or twin (looksApart, below)
+      endLook: pairs.filter(({ x, y }) => looksApart(x, y)).length,
+      aloneA: aloneA.length, aloneB: aloneB.length, aloneWorstA: biggest(aloneA), aloneWorstB: biggest(aloneB),
       mineral: minerals[0] || null, solidA: alone(mA, mB), solidB: alone(mB, mA),
       sameFull: A.firstFull === B.firstFull, summary: A.summary !== B.summary };
+  }
+  return null;
+}
+// A crystal's habit, forms and twin, which the test of a parting does not read. The first step,
+// among the steps before index upTo, at which one of them differs between two runs that still hold
+// the same crystals, with the crystals that differ so and the loop's calls on each at that step;
+// null when none does. wholeRun: upTo is the end of the run, and the count at the end is given.
+const looksApart = (x, y) => x.habit !== y.habit || x.forms !== y.forms || x.twin !== y.twin;
+function look(A, B, upTo, wholeRun) {
+  for (let i = 0; i < upTo; i++) {
+    const a = A.history[i].crystals, b = B.history[i].crystals;
+    const apart = a.map((x, j) => ({ x, y: b[j] })).filter(({ x, y }) => y && looksApart(x, y));
+    if (!apart.length) continue;
+    const step = A.history[i].step;
+    const on = (R, id) => (R.calls[step] || []).filter(c => c.id === id).map(c => ({ um: c.um, lastRoom: c.lastRoom, units: c.units, under: c.under }));
+    const endA = A.history.at(-1).crystals, endB = B.history.at(-1).crystals;
+    return { step, crystals: apart.map(({ x, y }) => ({ who: x.who, um: x.um, habit: x.habit === y.habit ? null : [x.habit, y.habit], forms: x.forms !== y.forms, twin: x.twin === y.twin ? null : [x.twin, y.twin], callsA: on(A, x.id), callsB: on(B, x.id) })),
+      atEnd: wholeRun ? endA.filter((x, j) => endB[j] && looksApart(x, endB[j])).length : null };
   }
   return null;
 }
@@ -269,10 +318,14 @@ function scenario(name) {
     const from = base.firstFull;
     const has = (step) => (base.calls[step] || []).some(c => c.lastRoom);
     const after = from == null ? [] : base.history.map(h => h.step).filter(step => step > from);
-    const nudged = NUDGES.map(nudge => { const r = run(name, seed, nudge); return { nudge, p: parting(base, r), sameFull: r.firstFull === base.firstFull }; });
+    const nudged = NUDGES.map(nudge => {
+      const r = run(name, seed, nudge), p = parting(base, r);
+      // before the parting step the two runs hold the same crystals; a run that does not part holds them throughout
+      return { nudge, p, seen: look(base, r, p ? p.index : base.history.length, !p), sameFull: r.firstFull === base.firstFull };
+    });
     out.cells.push({ seed, steps: base.steps, firstFull: from, atFull: from == null ? null : has(from), stepsAfter: after.length, stepsAfterLastRoom: after.filter(has).length,
       // for each parting, whether the SHIPPED run has a zone accepted in the last room at that step
-      runs: nudged.map(({ nudge, p, sameFull }) => ({ nudge, p, sameFull, shippedHas: p ? has(p.step) : null })),
+      runs: nudged.map(({ nudge, p, seen, sameFull }) => ({ nudge, p, seen, sameFull, shippedHas: p ? has(p.step) : null })),
       recentHeld: Object.values(base.enclosed).flat().every(e => e.recentHeld) });
   }
   return out;
@@ -305,24 +358,33 @@ if (process.argv.includes('--one')) {
 
   const WHAT = { size: 'a crystal\'s size alone', flag: 'a crystal\'s active flag', other: 'the runs hold other crystals', host: 'an enclosure, host', guest: 'an enclosure, guest', 'host and guest': 'an enclosure, host and guest', neither: 'an enclosure, neither' };
   let runs = 0, parted = 0, unity = 0, sameFull = 0;
-  const all = [];
+  const all = [], looks = [];        // the runs that part; and every nudged run, with what look() found
+  const callText = (list) => (list.length ? list.map(c => `${size(c.um)} µm${c.lastRoom ? ` in the last room, the fill ${c.units} unit${c.units === 1 ? '' : 's'} under 1` : c.under == null ? '' : ` at a fill of 1 − ${c.under.toExponential(2)}`}`).join(' and ') : 'no call');
+  const seenText = (s) => `a crystal's habit, forms or twin differs from step ${s.step}, in ${s.crystals.length} crystal${s.crystals.length === 1 ? '' : 's'}: ${s.crystals.slice(0, 3).map(c => `${c.who} (${size(c.um)} µm)${c.habit ? `, habit ${c.habit[0]} against ${c.habit[1]}` : ''}${c.forms ? ', forms' : ''}${c.twin ? `, twin ${c.twin[0] || 'none'} against ${c.twin[1] || 'none'}` : ''}; the loop's calls on it at that step, ${callText(c.callsA)} against ${callText(c.callsB)}`).join('; ')}`;
   for (const report of reports) {
     if (report.unity) unity++;
     console.log(`\n${report.name}: ${report.cells[0].steps} steps; the shipped run's pocket first reads full at step ${each(report.cells, c => c.firstFull ?? '—')}; a zone accepted in the last room at that step ${each(report.cells, c => (c.atFull == null ? '—' : c.atFull ? 'yes' : 'no'))}; steps after it ${each(report.cells, c => c.stepsAfter)}, of them with a zone accepted in the last room ${each(report.cells, c => c.stepsAfterLastRoom)}; nudged runs that part ${each(report.cells, c => c.runs.filter(r => r.p).length)}`);
     for (const cell of report.cells) {
-      for (const { nudge, p, sameFull: same, shippedHas } of cell.runs) {
+      for (const { nudge, p, seen, sameFull: same, shippedHas } of cell.runs) {
         runs++;
         if (same) sameFull++;
-        if (!p) continue;
+        looks.push({ parted: !!p, seen });
+        if (!p) {
+          if (seen) console.log(`  seed ${cell.seed}, × (${label(nudge)}): does not part; ${seenText(seen)}; at the end ${seen.atEnd} crystal${seen.atEnd === 1 ? ' differs' : 's differ'} so`);
+          continue;
+        }
         parted++;
         const when = cell.firstFull == null ? 'the pocket never reads full' : p.step < cell.firstFull ? `BEFORE the pocket first reads full, at step ${cell.firstFull}` : p.step === cell.firstFull ? 'the step at which the pocket first reads full' : `${p.step - cell.firstFull} steps after the pocket first reads full`;
         const atStep = `${p.differing} crystal${p.differing === 1 ? ' differs' : 's differ'}${p.other ? ' and the runs hold other crystals' : ''}${p.at ? `, most ${p.at.who} (${size(p.at.a)} against ${size(p.at.b)} µm${p.at.flag ? ', and its active flag or host' : ''})` : ''}`;
         const whatText = `${WHAT[p.what]}${p.hosted.length ? ` (${p.hosted.join('; ')}${p.what === 'neither' && p.otherWindow ? '; in the run without it the crystal has a last-room zone among its last three' : ''}${p.unread ? `; ${p.unread} not read: no receipt of that step` : ''}${p.detail ? `; ${p.detail.born.join('; ')}; the crystals whose calls differ — ${p.detail.callers.join('; ') || 'none'}` : ''})` : ''}`;
         const callText = `the loop's calls differ at that step for ${p.calls} crystal${p.calls === 1 ? '' : 's'}, for ${p.callsLastRoom} of them in the last room alone${p.callsNothing ? ` (for ${p.callsNothing} a zone cut to nothing)` : ''}${p.callOutside ? `; outside it ${p.callOutside.who}, ${size(p.callOutside.um)} µm accepted at a fill of 1 − ${p.callOutside.under == null ? '?' : p.callOutside.under.toExponential(2)}${p.callOutside.cut ? ', cut by the clamp' : ''}` : ''}`;
-        const endShared = p.endDiffering ? `${p.endDiffering} of the ${p.shared} crystals the two runs share differ${p.endDiffering === 1 ? 's' : ''}, most ${p.endWorst.whoA}${p.endWorst.whoB === p.endWorst.whoA ? '' : ` (in the nudged run ${p.endWorst.whoB})`} (${size(p.endWorst.a)} against ${size(p.endWorst.b)} µm, ${size(Math.abs(p.endWorst.a - p.endWorst.b))} µm apart)` : `none of the ${p.shared} crystals the two runs share differs`;
+        const endShared = (p.endDiffering ? `${p.endDiffering} of the ${p.shared} crystals the two runs share differ${p.endDiffering === 1 ? 's' : ''}, most ${p.endWorst.whoA}${p.endWorst.whoB === p.endWorst.whoA ? '' : ` (in the nudged run ${p.endWorst.whoB})`} (${size(p.endWorst.a)} against ${size(p.endWorst.b)} µm, ${size(Math.abs(p.endWorst.a - p.endWorst.b))} µm apart)` : `none of the ${p.shared} crystals the two runs share differs`)
+          + (p.renumbered ? `; ${p.renumbered} of the ${p.shared} carry another number in the nudged run` : '')
+          + (p.endLook ? `; ${p.endLook} of the ${p.shared} end${p.endLook === 1 ? 's' : ''} with another habit, forms or twin` : '');
+        const endAlone = `crystals with no counterpart in the other run ${p.aloneA} against ${p.aloneB}${p.aloneA + p.aloneB ? `, the largest ${p.aloneWorstA ?? 'none'} against ${p.aloneWorstB ?? 'none'}` : ''}`;
         const endMineral = (p.mineral ? `; the mineral whose largest crystal differs most is ${p.mineral.mineral} (${p.mineral.a == null ? 'none' : size(p.mineral.a)} against ${p.mineral.b == null ? 'none' : size(p.mineral.b)} µm)` : '; no mineral\'s largest crystal differs')
           + (p.solidA.length || p.solidB.length ? `; with solid in the shipped run alone ${p.solidA.join(', ') || 'no mineral'}, in the nudged run alone ${p.solidB.join(', ') || 'no mineral'}` : '');
-        console.log(`  seed ${cell.seed}, × (${label(nudge)}): parts at step ${p.step}, ${when}; ${atStep}; what differs: ${whatText}; ${callText}; zones accepted in the last room at that step ${p.lastA} against ${p.lastB}; at the end ${endShared}; crystals with no counterpart in the other run ${p.aloneA} against ${p.aloneB}${endMineral}; the summary ${p.summary ? 'DIFFERS' : 'is the same'}`);
+        console.log(`  seed ${cell.seed}, × (${label(nudge)}): parts at step ${p.step}, ${when}; ${atStep}; what differs: ${whatText}; ${callText}; zones accepted in the last room at that step ${p.lastA} against ${p.lastB}; at the end ${endShared}; ${endAlone}${endMineral}; the summary ${p.summary ? 'DIFFERS' : 'is the same'}${seen ? `; before the parting step ${seenText(seen)}` : ''}`);
         all.push({ name: report.name, seed: cell.seed, firstFull: cell.firstFull, p, shippedHas });
       }
     }
@@ -352,10 +414,16 @@ if (process.argv.includes('--one')) {
   const ended = all.filter(e => e.p.endDiffering > 0), byMineral = all.filter(e => e.p.mineral);
   console.log(`  of the ${all.length} that part, ${all.length - ended.length} end with none of the crystals the two runs share differing; in the other ${ended.length} the largest difference in such a crystal's size at the end, µm — ${banded(ended, sharedApart)}`);
   console.log(`  of the ${all.length} that part, ${all.length - byMineral.length} end with every mineral's largest crystal the same; in the other ${byMineral.length} the largest difference in a mineral's largest crystal, µm — ${banded(byMineral, e => e.p.mineral.apart)}; a crystal of one run has no counterpart in the other in ${count(all, e => e.p.aloneA + e.p.aloneB > 0)}; a mineral has solid in one run alone in ${count(all, e => e.p.solidA.length + e.p.solidB.length > 0)}; the summary differs in ${count(all, e => e.p.summary)}`);
+  {
+    const total = (f) => all.reduce((n, e) => n + f(e.p), 0);
+    console.log(`  the crystals two runs share are paired by their birth, whatever number each carries: of the ${total(p => p.shared)} pairs in the ${all.length} runs that part, ${total(p => p.renumbered)} carry another number in the nudged run, in ${count(all, e => e.p.renumbered > 0)} of the runs; ${total(p => p.samePoint)} of the pairs have anchors that are the same point of the wall to the last digit; crystals born as another crystal of the same run was, at the end of those runs: ${total(p => p.bornAlike)}`);
+    const quiet = looks.filter(e => !e.parted), loud = looks.filter(e => e.parted);
+    console.log(`  a crystal's habit, forms or twin, which the test of a parting does not read: of the ${quiet.length} nudged runs that do not part, one of them differs from the shipped run's at some step in ${count(quiet, e => e.seen)}, and at the end in ${count(quiet, e => e.seen && e.seen.atEnd > 0)}; of the ${loud.length} that part, one differs at a step before the parting step in ${count(loud, e => e.seen)}, and a crystal the two runs share ends with another in ${count(all, e => e.p.endLook > 0)}`);
+  }
   console.log(`  by scenario, the runs that end with a shared crystal differing at seeds ${SEEDS.join(' / ')}: ${reports.map(r => `${r.name} ${each(r.cells, c => c.runs.filter(x => x.p && x.p.endDiffering > 0).length)}`).join('; ')}`);
   console.log(`  by scenario, the runs that part at seeds ${SEEDS.join(' / ')}: ${reports.map(r => `${r.name} ${each(r.cells, c => c.runs.filter(x => x.p).length)}`).join('; ')}`);
   const held = count(all, e => e.p.sharedHeld), recent = count(reports.flatMap(r => r.cells), c => c.recentHeld);
   console.log(`control: at seed ${SEEDS[0]} a nudge of exactly 1 ${unity === NAMES.length ? `is the shipped run at every step, in every crystal's size, active flag and host, for the ${NAMES.length} scenarios` : `IS NOT THE SHIPPED RUN for ${NAMES.length - unity} of ${NAMES.length} scenarios`}`);
-  console.log(`control: every crystal the runs held before the parting step, when they were still alike, is one the two runs share by that test in ${held} of the ${all.length} runs that part${held === all.length ? '' : ' — THE PAIRING TEST DOES NOT HOLD FOR CRYSTALS KNOWN TO BE THE SAME'}`);
+  console.log(`control: every crystal the runs held before the parting step, when they were still alike, is paired with itself by that test in ${held} of the ${all.length} runs that part${held === all.length ? '' : ' — THE PAIRING TEST DOES NOT HOLD FOR CRYSTALS KNOWN TO BE THE SAME'}`);
   console.log(`control: in the shipped runs, the guest's last three zones as summed here are the guest_recent_growth_um on the simulator's receipt for every enclosure in ${recent} of the ${reports.length * SEEDS.length} runs${recent === reports.length * SEEDS.length ? '' : ' — THE GUEST\'S ZONES ARE NOT THE ONES THE TEST READ'}`);
 }

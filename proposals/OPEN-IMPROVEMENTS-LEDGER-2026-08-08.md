@@ -205,7 +205,9 @@ single execution ledger for the science-first AAA completion branch.
     reads the loop's fill as each zone is accepted: one to nine units of its last binary
     place under 1). `_check_enclosure` licenses an enclosure on any host layer above zero
     (`js/85c-simulator-state.ts:2466`) and reads a guest as slowing by its last three zones
-    (`:2562`, `:2569`); neither has a floor. In `radioactive_pegmatite` such a layer sets
+    (`:2562`, `:2569`); neither has a floor. A zone that is not exactly nothing also puts
+    on its crystal the habit, forms or twin the engine had written
+    (`js/85b-simulator-nucleate.ts:89`). In `radioactive_pegmatite` such a layer sets
     the step at which a feldspar encloses the uraninites, which ends their alteration and
     their lead: as shipped a nudge of a zone's last binary places moves a size or the lead
     in 6 and 9 of 12 runs at seeds 1 and 2, and in none at seed 42. In each scenario's own
@@ -214,12 +216,17 @@ single execution ledger for the science-first AAA completion branch.
     Simulation mode's form 18 of 1,285 are on such a layer, in `supergene_oxidation` at all
     three seeds (1 / 3 / 12) and in `radioactive_pegmatite` at two; in 24 the guest passes
     only for its zones from the last room; that is 35 in all, in four scenarios; and four
-    nudges of every engine's zones move 51 of 492 runs, in nine scenarios. No remedy was
-    previewed, and no change is proposed. The outputs give every host layer's size: a
-    floor on the host's layer has room in both settings (nothing between the residues and
+    nudges of every engine's zones move 51 of 492 runs, in nine scenarios. There 20 of the
+    151 positive zones of the last room carried a field of the engine's (forms on 18, a
+    habit on 15), and ten crystals
+    change habit on one. No remedy was previewed in a committed run, and no change is
+    proposed. The outputs give every host layer's size: a
+    floor on the host's layer has room in both settings in the shipped runs (nothing
+    between the layers under 1e-6 µm and
     0.13 µm in the own cavities, or 4e-5 µm at the vug), and it would leave the guest's
-    side and the crystals' sizes as they are. The loop is the one place that comes before
-    all three.
+    side, the crystals' sizes and their habits as they are. The loop comes before those
+    tests, and it is not the only reader of the fill: nucleation reads it too
+    (`js/85-simulator.ts:657`).
   - [ ] Rule on the weathering epilogue's choice of precursor (the doc's §3.4, its seventh
     note; decision 7). `weatheringNucleationContext` (`js/44e-weathering-epilogue.ts:320`)
     sorts the candidates by their latest negative zone, then by what they have released,
