@@ -119,7 +119,7 @@ single execution ledger for the science-first AAA completion branch.
     Creative mode, where the Scenarios menu opens a scenario, has no last step. How many
     steps it buys depends on the cavity: at the 15 mm vug setting of Simulation mode's Cavity
     Size select the bounded pocket is full at step 97–99, and no value alone mends that
-    (with the pair holding no solid, quartz and tourmaline seal the vug at step 174–176),
+    (with the pair holding no solid, quartz and tourmaline fill the vug by step 174–176),
     nor does any other single course of the doc's §4; one pair of changes of the eight run
     does (the changed broth with the pair clamped at 1, by the preview's wrapper or by a
     clamp written into the engine), at the price of the pocket's quartz. One of the 41
@@ -218,14 +218,13 @@ single execution ledger for the science-first AAA completion branch.
     only for its zones from the last room; that is 35 in all, in four scenarios; and four
     nudges of every engine's zones move 51 of 492 runs, in nine scenarios. There 20 of the
     151 positive zones of the last room carried a field of the engine's (forms on 18, a
-    habit on 15), and ten crystals
-    change habit on one. No remedy was previewed in a committed run, and no change is
-    proposed. The outputs give every host layer's size: a
+    habit on 15), and ten crystals change habit on one. No remedy was previewed in a
+    committed run, and no change is proposed. The outputs give every host layer's size: a
     floor on the host's layer has room in both settings in the shipped runs (nothing
-    between the layers under 1e-6 µm and
-    0.13 µm in the own cavities, or 4e-5 µm at the vug), and it would leave the guest's
-    side, the crystals' sizes and their habits as they are. The loop comes before those
-    tests, and it is not the only reader of the fill: nucleation reads it too
+    between the layers under 1e-6 µm and 0.13 µm in the own cavities, or 4e-5 µm at the
+    vug), and it would leave the guest's side, the crystals' sizes, their habits and
+    whatever else such a zone sets as they are. The loop comes before those tests, and
+    it is not the only reader of the fill: nucleation reads it too
     (`js/85-simulator.ts:657`).
   - [ ] Rule on the weathering epilogue's choice of precursor (the doc's §3.4, its seventh
     note; decision 7). `weatheringNucleationContext` (`js/44e-weathering-epilogue.ts:320`)
