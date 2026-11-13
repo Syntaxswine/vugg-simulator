@@ -171,7 +171,7 @@ sets out and §6 puts to the owner.
   millimetre in a Zen run of the scenario, whose pocket is full by step 200, and one of 21
   to 23 mm in a Zen run of `schneeberg`.
 
-**This document has been corrected nineteen times, each time by its own review round.** The first
+**This document has been corrected twenty times, each time by its own review round.** The first
 version said supply does not bind. The second costed the recommended fixes too lightly. The third
 counted a crystal that had dissolved away as still present, and recommended a lead mechanism that
 cannot work. The fourth left out a gate that the recommended change trips, and put two coupled
@@ -247,8 +247,12 @@ differ in a habit read a crystal's habit, forms and twin, and none of the other 
 an engine stages.
 The nineteenth round reviewed the two commits that answered the eighteenth, and found
 one thing that had to be fixed, again in a sentence written for that answer. It said
-that no run had followed a habit set by such a zone into a fill, of a run that reads
-the fill, and in that run the habit moves it.
+that no run had followed a habit set by such a zone into a fill, of a round's run that
+reads the fill (not committed), and in that run the habit moves it.
+The twentieth round reviewed the two commits that answered the nineteenth, and found
+nothing that had to be fixed. It found three counts that should be: one given by one
+route where a habit has another, one that said more than its test shows, and one of
+edited probes that was one short.
 §9 lists every correction.
 
 ## 1. What was run
@@ -384,7 +388,7 @@ number was checked against that round's output file, and it cannot be reproduced
 committed tree: a reader has this document's word for it. In §1 to §8 each such statement
 says *not committed* where it stands. §9 lists what each round found, and the runs it
 cites there are the rounds' own unless an entry says a probe here now makes them. They are
-of twenty kinds: copies of the census that over-count
+of twenty-two kinds: copies of the census that over-count
 (above; trap 21); copies of the census with a proposed change installed (§4, SC2 and SC3;
 trap 5; §7); a run of the agent API's fluid preset (§3.3); `schneeberg` opened in Creative
 mode (§6, decision 3; §7); a looser clamp tried against an earlier acceptance line for Zen
@@ -400,11 +404,13 @@ wrappers (§3.4); what the engines of two crystals read on their cells at one st
 (§3.4); more of a crystal's record than a probe here reads, compared between a nudged
 run and the shipped one (§3.4); a film that a residue clears in one nudged run (§3.4);
 two runs' crystals paired by a key with no cell of the wall in it (trap 22); the volume
-that a zone which changes a habit is stored with, and the fill read after it (§3.4);
-and the same runs with such a zone stored under the habit the clamp had read (§3.4). No
-recommendation of §4 rests on one of them. The predictions of which census controls SC2
-and SC3 flip do, and so does the direct evidence that the walls of v160 held no radiogenic
-lead.
+that a zone which changes a habit is stored with, and the fill read after it (§3.4); the
+same runs with such a zone stored under the habit the clamp had read, or with that habit
+withheld (§3.4); what the simulator's log says of an acid wash, in those runs and in the
+scenario's own cavity (§3.4); and two runs' zones paired by their step, with what a
+listing of a crystal's record leaves out (§3.4). No recommendation of §4 rests on one of
+them. The predictions of which census controls SC2 and SC3 flip do, and so does the direct
+evidence that the walls of v160 held no radiogenic lead.
 
 ## 2. The structural reading
 
@@ -1768,25 +1774,47 @@ crystal does not hold it: a feldspar of 10.3 mm stays tabular at three steps at 
 the engine had written prismatic (`probe-last-room-routes-vug.txt`; the law of the
 quartz's twin is in `probe-vug-parting.txt`). In the own cavities 3 of the 25 residues
 carried a field, radiation damage each time, and no habit moved
-(`probe-last-room-routes.txt`). The habit is what the crystal's description gives
-(`js/27-geometry-crystal.ts:528`). The clamp sizes a zone under the habit the crystal
-has (`js/85-simulator.ts:956`), and the crystal stores it under the habit the zone
-brings (`js/27-geometry-crystal.ts:450`), which is the order behind the overshoot of the
-note before this one. The eighteenth review round read what that does to these 15 zones
-(not committed; run again here, line for line). On nine the habit changes and its aspect
-ratio does not, and the zone is stored with the room the clamp saw, to a thousandth. On
-the mimetite it is stored with 11.1 times that room, or with 0.09 of it when the habit
-turns back, and the fill the loop reads next runs from one unit under 1 to ten over. On
-the feldspar it is stored with nothing. The fill stays one unit under 1, and at the same
-step an opal is handed that room: 0.11 µm, which is all the solid it has. The nineteenth
-round made the eight runs that hold the 15 again, with each such zone stored under the
-habit the clamp had read, by a wrapper on that one call (not committed; run again here,
-line for line). The opal is then handed nothing, and in `supergene_oxidation` at seed 2
-an anglesite of 1.66 mm stays free, which a malachite encloses in the shipped run. So at
-this vug a habit that a residue brings moves the fill at which the next crystal is let
-through, in two of the eight shipped runs. The committed output keeps a trace of one: at
-step 99 the feldspar's zone and the opal's were both accepted with the fill one unit
-under 1 (`probe-last-room-routes-vug.txt`).
+(`probe-last-room-routes.txt`).
+
+The habit is what the crystal's description gives (`js/27-geometry-crystal.ts:528`). The
+clamp sizes a zone under the habit the crystal has (`js/85-simulator.ts:956`), and the
+crystal stores it under the habit the zone brings (`js/27-geometry-crystal.ts:450`),
+which is the order behind the overshoot of the note before this one. The eighteenth
+review round read what that does to these 15 zones (not committed; run again here, line
+for line). On nine of the 15 the habit changes and its aspect ratio does not, and the
+zone is stored with the room the clamp saw, to a thousandth. On the mimetite it is
+stored with 11.1 times that room, or with 0.09 of it when the habit turns back, and the
+fill the loop reads next runs from one unit under 1 to twenty of the same units over. On
+the feldspar it is stored with nothing: under the new habit the layer's volume is under
+half the last binary place of the crystal's own, and the sum drops it
+(`js/27-geometry-crystal.ts:456`; the twentieth round's trace, not committed, run again
+here line for line). The fill stays one unit under 1, and at the same step an opal is
+handed that room: 0.11 µm, which is all the solid it has. The nineteenth round made the
+eight runs that hold the 15 again, with each such zone stored under the habit the clamp
+had read, by a wrapper on that one call (not committed; run again here, line for line).
+The opal is then handed nothing, and in `supergene_oxidation` at seed 2 an anglesite of
+1.66 mm stays free, which a malachite encloses in the shipped run. So at this vug a
+habit that a residue brings moves the fill at which the next crystal is let through, in
+two of the eight shipped runs. The committed output keeps a trace of one: at step 99 the
+feldspar's zone and the opal's were both accepted with the fill one unit under 1
+(`probe-last-room-routes-vug.txt`).
+
+That two is the count by the volume a zone is stored with, which is all the nineteenth
+round's wrapper changes. A habit is also read as a habit. The twentieth round made the
+eight runs again with the staged habit taken off the crystal at each of the 15 zones
+(not committed; run again here, line for line), and a third run then ends otherwise.
+`reactivated_fluorite_vein` washes its fluorite with acid at step 118
+(`data/scenarios.json5:670`), and the etch has a rate for a fluorite whose habit is
+cubic and for no other (`js/44d-physical-dissolution.ts:149`). At the vug, at seed 2, a
+fluorite of 3.37 mm is a hopper cube from step 61 until step 120, on a residue of 4.1 ×
+10⁻¹⁰ µm, and the wash takes nothing off it. With the habit withheld the wash takes 0.26
+µm off it, and a calcite encloses it a step earlier. A wash that etches nothing is no
+rarity in that scenario. In its own cavity the fluorite is a stepped cube by step 118 at
+the three seeds and the wash takes nothing off it (a scratch run, not committed); a test
+pins the stepped cube at seed 42, and the etch's refusal of it
+(`tests-js/etch-overprint.test.ts:48`, `:54`). At the vug, by the twentieth round's run
+(not committed), it is cubic at seed 1 and is etched, and at seed 42 it is a hopper cube
+from an ordinary zone. No search was made for other readers of a habit.
 
 Under the four factors on every engine, a size or the bulk fluid differs from the
 shipped run in 51 of the 492 nudged runs at that setting, at 20 of the 123
@@ -1848,20 +1876,22 @@ crystal the two runs share in another habit, forms or twin.
 
 The eighteenth review round read more of the record in the same runs. Its probe is not
 committed; it was run again here and came back line for line. Of the 53 runs that do not
-part, 12 differ in the number of zones a crystal holds, and 35 end with some zone of
-another thickness. The other 18 end as the shipped run in what that probe reads at the
-end, and ten of the 18 are `wittichen`'s. It reads the fields that a listing of a
-crystal's record shows, and what is nested in them to five levels, numbers to a
-billionth of themselves. It leaves out the wall anchor and, of a zone, everything but
-its thickness. Of the 55 that part, 18 differ in a zone count before the step at which
-they part, none of them before the pocket first reads full. By field, the round's output
-has these differing from the shipped run's in a run that does not part, or before one
-parts: a crystal's zones, in their number or their thickness; its habit, forms and twin;
-its polymorph; its radiation damage; its late-interlocking flag; a film on it; its
-stored volume; its phantom surfaces; and what an enclosure's receipt gives as the
-guest's recent growth. So the step at which a run parts here is the first at which a
-size, a flag or a host shows a difference. It is not the first at which the two runs
-differ.
+part, 12 end with a crystal that holds another number of zones, and 23 more with a zone
+of another thickness in a list of the same length. The other 18 end as the shipped run
+in what that probe reads at the end, and ten of the 18 are `wittichen`'s. It reads the
+fields that a listing of a crystal's record shows, and what is nested in them to five
+levels, numbers to a billionth of themselves. It leaves out the wall anchor and, of a
+zone, everything but its thickness. The twentieth round read those too (not committed;
+run again here, line for line), and 8 of the 18 differ there, each in a zone's
+`_remaining_solid_um`. Of the 55 that part, 18 differ in a zone count before the step at
+which they part, none of them before the pocket first reads full. By field, the
+eighteenth round's output has these differing from the shipped run's in a run that does
+not part, or before one parts: a crystal's zones, in their number or their thickness;
+its habit, forms and twin; its polymorph; its radiation damage; its late-interlocking
+flag; a film on it; its stored volume; the place of a phantom surface among its zones;
+and what an enclosure's receipt gives as the guest's recent growth. So the step at which
+a run parts here is the first at which a size, a flag or a host shows a difference. It
+is not the first at which the two runs differ.
 
 How far apart they end was read on the crystals the two runs share: those born in both
 as the same mineral, at the same step, in the same place, which is the wall or the same
@@ -1919,9 +1949,10 @@ again here, to the same lines). In `radioactive_pegmatite` at seed 2 a residue o
 late-interlocking flag is not the shipped run's in three of the runs that do not part
 and, before the step at which they part, in two of the others. The loop sets that flag
 on a crystal when the clamp has cut its zone and left it positive, and on one that is
-handed a positive zone at a fill of 0.85 or more (`js/85-simulator.ts:979`, `:991`,
-`:1011`). A residue is such a zone. The other fields that round's output names are in
-the list above.
+handed a positive zone at a fill of 0.85 or more while the dampener is under 1, as it is
+there unless the per-cell fill switch is set, and no scenario sets it
+(`js/85-simulator.ts:979`, `:991`, `:1011`). A residue is such a zone. The other fields
+that round's output names are in the list above.
 
 A floor on the host's layer is the change that first suggests itself, and it was not
 previewed in a committed run. By the committed outputs there is room for one in both
@@ -1933,6 +1964,9 @@ the 18, then 5 up to 0.001 µm, 13 up to 0.1, 39 up to 1, and 12 above. The own 
 have four such layers above those under 10⁻⁶ µm, of 0.60 and 1.72 µm. And a floor on the
 host's layer leaves the others open. 17 of the 35 enclosures above are on a host layer
 that is no residue, and of the 53 partings the host's layer is from the last room in 8.
+Nor would a floor on a zone's thickness, set in the loop, tell a residue from the twelve
+zones further under 1, since their sizes overlap (above). In the shipped runs it is the
+fill that tells them apart.
 
 A remedy could sit at one of the tests: the host's (`js/85c-simulator-state.ts:2466`),
 the guest's (`:2562`, `:2569`), or the one that puts an engine's changes on the crystal
@@ -3458,12 +3492,16 @@ without a control (§1 lists them) stays labelled as one.
     them, as getters that a listing of its keys does not show
     (`js/23c-geometry-surface-anchor.ts:222`), and the fault was the report's. Read the
     value, not the list of names. A count that will not fit is a finding to open and not
-    a remainder to explain: a key with no cell of the wall in it had made 75 pairs where the
-    seventeenth round's key made 74 (a scratch run, not committed), and that was the sign.
+    a remainder to explain: a key with no cell of the wall in it had made 75 pairs (a
+    scratch run, not committed) where the seventeenth round's key had made 74 (its own
+    output), and that was the sign.
     The nineteenth version answered a sentence that implied too much with one that denied
     too much. It wrote that no run had followed a habit set by a residue into a fill, of a
     run it had itself made again, whose header says that it reads the fill. Before
-    writing that no run did a thing, read what the runs at hand read.
+    writing that no run did a thing, read what the runs at hand read. The twentieth
+    version then counted what such a habit decides by one of its readers, the volume its
+    zone is stored with, where an etch reads the habit itself. A count made by one route
+    says which route.
 23. **One scenario has no pocket to fill.** `great_salt_plains` authors an open system, and
     the step reads its fill as 0: it is never dampened for fill and never sealed
     (`js/85-simulator.ts:501`). `get_vug_fill` still returns its crystals' volume over the
@@ -3633,12 +3671,13 @@ without a control (§1 lists them) stays labelled as one.
    also changes the habit of ten crystals, nine of which end the run with a habit it
    gave them: a feldspar of 5 mm turns from tabular to prismatic on 1.8 × 10⁻¹² µm. In
    two of the eight shipped runs that hold the ten, the new habit moves the fill at
-   which the next crystal is let through, and another crystal ends otherwise for it (the
-   eighteenth and nineteenth rounds' runs, not committed; §3.4). Four nudges of a part
-   in 10¹³ or less move 51 of 492 runs there, in nine scenarios, in a size or in the
-   bulk fluid. In the eight whose pocket fills, 53 of the 96 nudged runs part from the
-   shipped one at some step, each on a step at which the loop handed out its last room
-   in one run or the other: 23 in a crystal's size alone, 8 in an enclosure by the
+   which the next crystal is let through, and another crystal ends otherwise for it. In
+   a third it keeps `reactivated_fluorite_vein`'s acid wash from etching the fluorite
+   that carries it (three review rounds' runs, not committed; §3.4). Four nudges of a
+   part in 10¹³ or less move 51 of 492 runs there, in nine scenarios, in a size or in
+   the bulk fluid. In the eight whose pocket fills, 53 of the 96 nudged runs part from
+   the shipped one at some step, each on a step at which the loop handed out its last
+   room in one run or the other: 23 in a crystal's size alone, 8 in an enclosure by the
    host's layer, 20 in one by the guest's zones, and 2 in one that a residue withheld.
    The test behind those counts reads sizes, flags and hosts, and runs that it passes
    differ in other things: one ends with a quartz in another habit, twinned (§3.4). The
@@ -4157,18 +4196,23 @@ changed in them. The script that assembles this folder holds each to a copy save
 the edit, comment lines apart. Those copies are not committed, so that the code of these
 five is the code that ran rests on that check and on this sentence. For
 `probe-bound-nudge.mjs` the history shows it too: `git diff 87ec532b HEAD` on that file
-changes its header and nothing else.
+changes its header and nothing else. A sixth, `probe-enclosed-survivors.mjs`, was last
+written after its run and before its first commit, and no copy of it as it ran was kept,
+so what changed in it cannot be shown. The twentieth review round found it by the files'
+times. It was run again on this tree, and its output came back byte for byte. By the
+files' times, no other probe in the folder is newer than the run that made an output of
+its own.
 
 The twelve steps of `npm run ci` that precede the tests pass on this tree, and so does
 `npm run audit:evidence`. They read the tree as it is and say nothing about the changes proposed
 here; §4 says what each change would do to three of them. **The full suite** (`npm run ci` with
 its tests, two hours and more on this machine) is not part of this commit's evidence, and
-it has not been run on this tip. It was last run seven commits back, on `db5dd3df`, and
+it has not been run on this tip. It was last run eight commits back, on `db5dd3df`, and
 passed: 303 test files in 303 batches, one uninterrupted pass under
 `node tools/cold-ci.mjs`, in 9,501 s on a machine that other work shared. It passed the
 same way on `c08c9d47`, in 7,955 s. Both are local results, and a comment on the pull
-request gives each in full. This commit and the six before it, `72c6d7a8`, `87ec532b`,
-`1a6cd00a`, `768c08e2`, `44f94545` and `a51a1686`, change files under `proposals/` only. The
+request gives each in full. This commit and the seven before it, `72c6d7a8`, `87ec532b`,
+`1a6cd00a`, `768c08e2`, `44f94545`, `a51a1686` and `3abbfc80`, change files under `proposals/` only. The
 suite is to be run again on the final tip of the branch, and its verdict recorded in
 another comment there. The repository's chip
 selector (`tools/test-chip-check.mjs`) has none of this change's paths in its authored map, so it
@@ -5143,21 +5187,21 @@ nineteenth review round was limited to those two commits, which changed text and
 header comment. It ran six of the earlier rounds' probes again and got their outputs
 back line for line, re-added the totals, checked the source lines cited, and made
 probes of its own. It found one thing that had to be fixed, one that should be, and
-some smaller things. The corrections below were made after that round, and no round has
-reviewed them.
+some smaller things. The corrections below were made after that round, in commits
+`a51a1686` and `3abbfc80`, which the twentieth round then reviewed (the next block).
 
 - "No run here followed a habit that a residue set into a later zone, a fill or a size"
   was false. The eighteenth round's run reads, for each of the 15 zones, the volume the
   zone is stored with and the fill the loop reads next, and the author had made that run
   again before writing the sentence. Six of the 15 change the habit's aspect ratio and
   are stored with 11.1 times the room the clamp saw, with 0.09 of it or with nothing.
-  The fill the loop reads next is then from one unit under 1 to ten over, and at the
-  step at which a feldspar's residue is stored with nothing an opal is handed the room.
-  The nineteenth round made the eight runs again with each such zone stored under the
-  habit the clamp had read (not committed; run again here, line for line): the opal gets
-  nothing, and an anglesite that a malachite encloses in the shipped run stays free. The
-  text now gives both readings as the rounds' own (§3.4). The message of commit
-  `768c08e2` repeats the sentence and is wrong on it.
+  The fill the loop reads next is then from one unit under 1 to twenty of the same units
+  over, and at the step at which a feldspar's residue is stored with nothing an opal is
+  handed the room. The nineteenth round made the eight runs again with each such zone
+  stored under the habit the clamp had read (not committed; run again here, line for
+  line): the opal gets nothing, and an anglesite that a malachite encloses in the
+  shipped run stays free. The text now gives both readings as the rounds' own (§3.4).
+  The message of commit `768c08e2` repeats the sentence and is wrong on it.
 - "Four probes had comment lines edited after the run that made their committed output"
   was five once `768c08e2` had edited the header of `probe-bound-nudge.mjs` (§8).
 - Smaller: "leaves the other three open" stood after a fifth thing had been named, and
@@ -5172,8 +5216,10 @@ reviewed them.
   two sentences repeated what earlier paragraphs say and are cut (the sizes of the
   twelve zones further under 1, and "no remedy was previewed in a committed run"). From
   the eighteenth round's output the text now also gives 35 and 18: of the 53 runs that
-  do not part, 35 end with some zone of another thickness, and 18 end as the shipped run
-  in what the round's probe reads at the end (§3.4).
+  do not part, 35 end with a crystal's zones not the shipped run's, and 18 end as the
+  shipped run in what the round's probe reads at the end (§3.4). It gave the 35 as
+  ending "with some zone of another thickness", which is more than that probe shows (the
+  next block).
 - These corrections were made in two commits, and the second corrects sentences of the
   first, `a51a1686`, which the author found on reading them against the rounds' outputs
   and the source once more. It said that those 18 "are the shipped run in every field of
@@ -5187,9 +5233,61 @@ reviewed them.
   it (`js/85-simulator.ts:979`; the other is `:991`). And it gave the fill after the
   mimetite's zones as "up to ten units over 1", where one of the five readings is one
   unit under. And the first entry of this list said that six of the 15 zones "are stored
-  with another volume than the room the clamp saw", where a seventh is stored with 0.999
-  of it. The message of `a51a1686` is wrong on the first of these. Decision 7 now
-  carries what a habit does to the fill, which that commit had put in §3.4 alone.
+  with another volume than the room the clamp saw", where the other nine are stored with
+  the room to a thousandth and not exactly. The message of `a51a1686` is wrong on the
+  first of these. Decision 7 now carries what a habit does to the fill, which that
+  commit had put in §3.4 alone.
+
+**Corrections to the twentieth version** (commits `a51a1686` and `3abbfc80`). Its
+twentieth review round was limited to those two commits, which changed text alone. It
+ran two of the earlier rounds' probes and one committed probe again and got their
+outputs back line for line, re-added the totals, checked the source lines cited, and
+made probes of its own. It found nothing that had to be fixed, three things that should
+be, and some smaller things. The corrections below were made after that round, and no
+round has reviewed them.
+
+- "In two of the eight shipped runs" a habit that a residue brings decides another
+  crystal's outcome: that is the count by the volume the zone is stored with, the one
+  thing the nineteenth round's wrapper changes. A habit is also read as a habit. The
+  round took the staged habit off the crystal at each of the 15 zones (not committed;
+  run again here, line for line), and a third run then ends otherwise: in
+  `reactivated_fluorite_vein` at seed 2 the acid wash of step 118 etches a fluorite
+  that the shipped run leaves whole, because the etch has a rate for a cubic fluorite
+  alone and a residue had made this one a hopper cube. The text now says which route
+  the two is counted by, gives the third run, and says that no search was made for
+  other readers of a habit (§3.4; §6, decision 7).
+- "35 end with some zone of another thickness" said more than the eighteenth round's
+  probe shows. It pairs a crystal's zones by their place in the list, so a list that is
+  one zone longer sets that field by itself. By its output 12 of the 35 end with a
+  crystal that holds another number of zones, and the other 23 with a zone of another
+  thickness in a list of the same length, which is what the text now gives. The
+  twentieth round paired the zones by their step (not committed; run again here, line
+  for line): a zone that both runs hold is of another thickness in 28 of the 35, and in
+  the other 7 one run holds zones the other lacks. The message of `a51a1686` has the 35
+  as the text had it.
+- "Five probes had comment lines edited after the run that made their committed output"
+  was six. `probe-enclosed-survivors.mjs` is newer than its run by the files' times,
+  with no copy kept and nothing in the history, since both were first committed
+  together. Every earlier count in that sentence was one short for it. The probe was
+  run again and its output came back byte for byte, so five is now the count, and the
+  script that assembles the folder now holds every probe's time against its runs (§8).
+- Smaller: the fill after the mimetite's zones was given as "one unit under 1 to ten
+  over", in the eighteenth round's print, whose unit over 1 is twice its unit under 1;
+  in one unit it is one under to twenty over. "Stored with nothing" now has its cause,
+  from the round's trace. "Its phantom surfaces", in the list of fields, is the place
+  of a phantom among a crystal's zones. The second line at which the loop sets the
+  late-interlocking flag also asks that the dampener be under 1. "A seventh is stored
+  with 0.999 of it" was the print's three digits (above). Trap 22 gave a scratch run
+  for the seventeenth round's 74 pairs, which are in that round's own output. "On
+  nine" stood sixteen lines under "nine of the ten" and is another nine. §0 cited a
+  round's run without saying that it is not committed. The cut of two sentences on
+  the sizes of the last room's zones had taken an inference with it, that a floor on
+  thickness in the loop cannot tell a residue from the other twelve, and one sentence
+  gives it back. The banner and the ledger did not carry what a habit does. And the
+  message of `3abbfc80` calls a residue a zone "of the second kind", where one that the
+  clamp has cut is of both.
+- Added from the round's runs: of the 18 runs that end as the shipped one in what the
+  eighteenth round's probe reads, 8 differ in what it leaves out (§3.4).
 
 ## References
 
