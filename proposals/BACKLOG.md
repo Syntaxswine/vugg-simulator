@@ -41,7 +41,7 @@ Living list of open work items, captured from session conversations so context s
 > Creative mode's "Radioactive Pegmatite" starter fluid and in Zen runs of the two uraninite
 > scenarios, bulk Pb climbs to 268–286, 621–682 and 1,015–1,035 ppm with every voxel where
 > it started.)
-> **This review has been corrected fourteen times by its own review rounds (the doc's §9 lists each
+> **This review has been corrected fifteen times by its own review rounds (the doc's §9 lists each
 > set): the first version said supply does not bind; the second costed the recommended fixes
 > too lightly; the third said the feldspar clamp loses no species, having counted a
 > dissolved-away crystal's record as presence, and recommended a lead mechanism that cannot
@@ -86,8 +86,13 @@ Living list of open work items, captured from session conversations so context s
 > SHIPPED run of that scenario at seeds 1 and 2; the range of 5 to 9 had been read at the
 > scenario's own shape seed alone; and one sentence still called 7 the loosest value run.
 > Answering it, a run of the whole fleet with every mineral's zones nudged found a second
-> outcome that rounding picks, in `wittichen` at the BASELINE'S seed (below).
-> The corrections made after round 14 have had no review round.**
+> outcome that rounding picks, in `wittichen` at the BASELINE'S seed (below). The fifteenth
+> round reviewed those two commits and found one thing that had to be fixed: how far that
+> enclosure reaches had been counted in each scenario's own cavity and written as the
+> fleet's, and in the 15 mm vug of Simulation mode's form it is in `supergene_oxidation` at
+> all three seeds; it also found zeros under four factors written as absences, and the two
+> new questions of decision 7 put without what the evidence says of their answers.
+> The corrections made after round 15 have had no review round.**
 > **Awaits the boss:** the eight decisions in the doc's §6. SC1: a clamp on the feldspar pair's
 > rate authored on `gem_pegmatite` ALONE (recommended; one baseline changes), which makes topaz
 > appear at all three locality-gate seeds, so the bump must also PROMOTE TOPAZ out of the
@@ -141,21 +146,41 @@ Living list of open work items, captured from session conversations so context s
 > zone's last binary places move a size or the lead in 6 and 9 of 12 runs as shipped at
 > seeds 1 and 2 (lead 126.1–132.5 and 140.9–154.7 ppm where the shipped runs have 127.7 and
 > 147.2), in
-> 4 and 5 under SC2's same constant and in 11 and 12 under three times it; seed 42 moves in
-> no size and no lead, none of 252 nudged runs of the seven other scenarios SC2 moves
-> differs, and of the fleet's 914 enclosures as shipped the five on such a layer are all
-> in this scenario. So every number of `radioactive_pegmatite` at seeds 1 and 2 in its full
-> pocket is one run of several; nothing is proposed, and a floor was not previewed (the
-> doc's §3.4, a sixth note; decision 7). A SECOND OUTCOME THAT ROUNDING PICKS turned up when
-> the whole fleet was put to the nudge (every mineral's zones, four factors, 41 scenarios at
-> three seeds): `wittichen` at seeds 42 and 2, whose pocket is empty. Its weathering epilogue
-> takes the precursor that has released the most (`js/44e-weathering-epilogue.ts:320`); two
-> skutterudites dissolving since the same step have released 0.340428 each and differ by
-> 1.2e-14; and with every zone multiplied by 1 − 1e-13 the erythrite grows on the other one
-> and encloses it. At seed 42, THE BASELINE'S SEED, a safflorite then ends at 572 µm or at
-> 8.5 and the baseline summary differs. `searles_lake` at seed 42 moves by 0.0004 µm of one
-> calcite (the cavity's last room) and `gem_pegmatite` does not move. Nothing is proposed;
-> a tolerance before the crystal id was not previewed (§3.4, a seventh note; decision 7).
+> 4 and 5 under SC2's same constant and in 11 and 12 under three times it; seed 42 moved in
+> no size and no lead under any factor tried, none of 252 nudged runs of the seven other
+> scenarios SC2 moves differs under four factors, and IN EACH SCENARIO'S OWN CAVITY the
+> five on such a layer, of the fleet's 914 enclosures as shipped, are all in this scenario
+> (a probe now reads the loop's fill in every run: each of the five was accepted with the
+> fill one or two units of its last binary place under 1). So every number of
+> `radioactive_pegmatite` at seeds 1 and 2 in its full pocket is one run of several. IT
+> REACHES FURTHER IN THE 15 mm VUG OF SIMULATION MODE'S FORM, where 15 or 16 pockets fill:
+> 18 of 1,285 enclosures are on such a layer, 1 / 3 / 12 of them in `supergene_oxidation`
+> (eleven at step 160 of seed 2, the step of the seal in decision 7) and one each in
+> `radioactive_pegmatite` at seeds 1 and 2; and four nudges of every engine's zones move a
+> size or the bulk fluid in 51 of 492 runs, at 20 of 123 scenario-seeds, in NINE scenarios
+> (11, 5 and three in the own cavities), with a species moved or lost in 17 of the 51.
+> In the eight scenarios whose pocket fills there, every run that moves parts from the
+> shipped one at or after the step the pocket first reads full, at a step on which the
+> loop handed out its last room, and they end up to millimetres apart (`bisbee`, seed 42:
+> a mimetite at 0.9 µm or at 7.3 mm).
+> Nothing is proposed, and a floor was not previewed. In the own cavities a floor has
+> room (no host layer lies between the residues and 0.13 µm); at the vug it has none (the
+> layers the clamp hands out run without a gap from 1e-12 µm to more than 5 µm). The
+> doc's §3.4, a sixth note; decision 7. A SECOND OUTCOME THAT ROUNDING PICKS turned up when
+> the whole fleet was put to the nudge in its own cavities (every growth engine's zones,
+> four factors, 41 scenarios at three seeds): `wittichen` at seeds 42 and 2, whose pocket
+> is empty. Its weathering epilogue takes the precursor that has released the most
+> (`js/44e-weathering-epilogue.ts:320`); when the first erythrite is born each candidate
+> has dissolved for one step and lost the same 15 µm, so two skutterudites have released
+> 0.340428 each and differ by 1.2e-14; and with every zone multiplied by 1 − 1e-13 the
+> erythrite grows on the other one and encloses it. At seed 42, THE BASELINE'S SEED, a
+> safflorite then ends at 572 µm or at 8.5 and the baseline summary differs. It takes a
+> factor of 1e-13 or 1e-12 to turn it (three of twelve at seed 42, one at seed 2, none of
+> the eight within 1e-14 of 1), and the crystal id, the comparison's last key, would leave
+> seed 42's choice as it is and turn seed 2's. `searles_lake` at seed 42 moves by
+> 0.0004 µm of one calcite and `gem_pegmatite` did not move under the four. Nothing is
+> proposed; a tolerance before the crystal id was not previewed (§3.4, a seventh note;
+> decision 7).
 > SC2's constant; at the same constant
 > SC2 shrinks the uraninites, their radiogenic lead falls (`schneeberg`'s bulk handle ends at
 > 111 ppm, not 179), and the CATION GATE (`npm run audit:cations`) must be recommissioned with

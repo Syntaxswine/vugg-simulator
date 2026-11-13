@@ -21,12 +21,22 @@
  *     species over the crystal's negative zones since the epilogue began). The function takes the
  *     candidate with the latest negative zone, then the one that has released the most, then the
  *     lowest crystal id (`candidates.sort`, :320).
+ * Then, for wittichen as shipped at seeds 42, 1 and 2, it prints what that function had to choose
+ * between when the scenario's first product was born on a precursor: every crystal of the product's
+ * parent minerals that had released each required species by then, with the number of its negative
+ * zones since the epilogue began, the step of the latest, the thickness those zones took off and
+ * the release; the crystal the function's three keys put first; and the lower crystal id of the
+ * first two where they are at the same step and within a billionth of each other in release. (The
+ * function also asks each candidate for a local σ of the product above the product's threshold,
+ * :310. This probe does not read that σ: the control below shows the ordering names the receipt's
+ * precursor without it.)
  *
  * PASSIVE: prints to stdout and writes nothing. It exits 0 when it finishes. Imports
  * tools/_harness.mjs and node builtins.
  * Controls: wittichen's and searles_lake's shipped runs at seed 42 are compared with the committed
  * baseline; for each product whose precursor is printed, the release this probe sums for that
- * precursor has to be the one on the simulator's own receipt for the product.
+ * precursor has to be the one on the simulator's own receipt for the product; and in the last
+ * part the crystal the three keys put first has to be the precursor on the product's receipt.
  *
  *   node proposals/evidence/sim-side-2026-11-09/probe-rounding-detail.mjs
  */
@@ -112,8 +122,10 @@ function released(sim, crystal, species, bornAt) {
 console.log(`probe-rounding-detail — SIM ${SIM_VERSION}; time scale ${getSimulationTimeScale()}; each pair is a shipped run and the same run with every growth engine's positive zones multiplied by one factor`);
 let reproduced = 0, receiptsChecked = 0, receiptsHeld = 0;
 const baselines = new Set();
+const shipped = new Map();
 for (const [name, seed, nudge] of PAIRS) {
   const A = run(name, seed), B = run(name, seed, nudge);
+  shipped.set(`${name} ${seed}`, A);
   if (seed === 42 && !baselines.has(name)) { baselines.add(name); if (A.summary === JSON.stringify(BASELINE[name])) reproduced++; }
   console.log(`\n${name}, seed ${seed}, × (${label(nudge)}); ${A.history.length} steps`);
   let first = null;
@@ -154,5 +166,36 @@ for (const [name, seed, nudge] of PAIRS) {
   }
   if (!products) console.log('  no crystal is born on another weathering precursor in the nudged run than in the shipped run');
 }
-console.log(`\ncontrol: at seed 42 the shipped run ${reproduced === baselines.size ? `reproduces the baseline for the ${baselines.size} scenarios read at that seed` : 'DOES NOT REPRODUCE THE BASELINE'}`);
+
+// What the function had to choose between when wittichen's first product was born, as shipped.
+console.log('\nwittichen as shipped, seeds 42 / 1 / 2: the crystals its first product born on a weathering precursor could have been born on');
+let ordered = 0, orderedHeld = 0;
+for (const seed of [42, 1, 2]) {
+  const sim = (shipped.get(`wittichen ${seed}`) ?? run('wittichen', seed)).sim;
+  const product = sim.crystals.filter(c => c.weathering_precursor_receipt).sort((a, b) => a.nucleation_step - b.nucleation_step || a.crystal_id - b.crystal_id)[0];
+  if (!product) { console.log(`  seed ${seed}: no crystal is born on a weathering precursor`); continue; }
+  const receipt = product.weathering_precursor_receipt, config = sim._weatheringEpilogueState.config;
+  const species = Object.keys(receipt.releasedInventory), parents = config.parent_minerals[product.mineral], start = Number(config.start_step);
+  const rows = sim.crystals.filter(c => parents.includes(c.mineral)).map((c) => {
+    const zones = c.zones.filter(z => Number(z.step) >= start && Number(z.step) < product.nucleation_step && Number(z.thickness_um) < 0);
+    const every = species.every(s => zones.reduce((n, z) => n + Math.max(0, Number((z._returned_budget_inventory || {})[s]) || 0), 0) > 0);
+    return { c, zones: zones.length, every, latest: zones.reduce((m, z) => Math.max(m, Number(z.step) || 0), -Infinity), lost: zones.reduce((n, z) => n - Number(z.thickness_um), 0), total: released(sim, c, species, product.nucleation_step) };
+  }).filter(r => r.every);
+  // the function's three keys (`candidates.sort`, :320)
+  rows.sort((a, b) => b.latest - a.latest || b.total - a.total || a.c.crystal_id - b.c.crystal_id);
+  console.log(`  seed ${seed}: ${product.mineral} #${product.crystal_id}, born at step ${product.nucleation_step} on ${receipt.parentMineral} #${receipt.parentCrystalId}; the epilogue began at step ${start}. Of ${parents.join(', ')}, ${rows.length} crystal${rows.length === 1 ? '' : 's'} had released ${species.join(' + ')} by then:`);
+  for (const r of rows) console.log(`    ${r.c.mineral} #${r.c.crystal_id}: ${r.zones} negative zone${r.zones === 1 ? '' : 's'} since the epilogue began, the latest at step ${r.latest}, ${r.lost.toPrecision(6)} µm taken off; released ${r.total.toPrecision(17)}`);
+  ordered++;
+  const first = rows[0], second = rows[1];
+  const held = first && first.c.crystal_id === receipt.parentCrystalId && first.c.mineral === receipt.parentMineral;
+  if (held) orderedHeld++;
+  console.log(`    by the function's three keys the first is ${first ? `${first.c.mineral} #${first.c.crystal_id}` : 'none'}, ${held ? 'the precursor on the receipt' : 'WHICH IS NOT THE PRECURSOR ON THE RECEIPT'}`);
+  if (!second) console.log('    there is one such crystal, and nothing to choose between');
+  else if (first.latest === second.latest && near(first.total, second.total)) {
+    const lower = Math.min(first.c.crystal_id, second.c.crystal_id);
+    console.log(`    the first two are at the same step and ${first.total === second.total ? 'released exactly the same' : `${(first.total - second.total).toExponential(1)} apart in release`}; the lower crystal id of the two is #${lower}, ${lower === first.c.crystal_id ? 'the one the function chose' : 'which is not the one the function chose'}`);
+  } else console.log(`    the first two are ${first.latest === second.latest ? 'at the same step' : `at steps ${first.latest} and ${second.latest}`} and ${(first.total - second.total).toPrecision(3)} apart in release: not a pair that rounding decides`);
+}
+console.log(`\ncontrol: in that last part the crystal the three keys put first is the precursor on the product's receipt at ${orderedHeld} of ${ordered} seeds${orderedHeld === ordered ? '' : ' — THE ORDERING IS NOT THE SIMULATOR\'S'}`);
+console.log(`control: at seed 42 the shipped run ${reproduced === baselines.size ? `reproduces the baseline for the ${baselines.size} scenarios read at that seed` : 'DOES NOT REPRODUCE THE BASELINE'}`);
 console.log(`control: the release this probe sums for a product's precursor is the one on the simulator's receipt for the product in ${receiptsHeld} of ${receiptsChecked} cases${receiptsHeld === receiptsChecked ? '' : ' — THE SUM IS NOT THE SIMULATOR\'S'}`);

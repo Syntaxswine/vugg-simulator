@@ -47,5 +47,27 @@ searles_lake, seed 42, × (1 − 1.0e-14); 300 steps
   enclosures in the nudged run alone: none
   no crystal is born on another weathering precursor in the nudged run than in the shipped run
 
+wittichen as shipped, seeds 42 / 1 / 2: the crystals its first product born on a weathering precursor could have been born on
+  seed 42: erythrite #32, born at step 171 on skutterudite #1; the epilogue began at step 170. Of skutterudite, safflorite, cobaltite, 4 crystals had released Co + As by then:
+    skutterudite #1: 1 negative zone since the epilogue began, the latest at step 170, 15.0000 µm taken off; released 0.34042799999999618
+    skutterudite #2: 1 negative zone since the epilogue began, the latest at step 170, 15.0000 µm taken off; released 0.34042799999998391
+    safflorite #12: 1 negative zone since the epilogue began, the latest at step 170, 15.0000 µm taken off; released 0.25052399999999764
+    safflorite #11: 1 negative zone since the epilogue began, the latest at step 170, 15.0000 µm taken off; released 0.25052399999999608
+    by the function's three keys the first is skutterudite #1, the precursor on the receipt
+    the first two are at the same step and 1.2e-14 apart in release; the lower crystal id of the two is #1, the one the function chose
+  seed 1: erythrite #32, born at step 171 on skutterudite #3; the epilogue began at step 170. Of skutterudite, safflorite, cobaltite, 2 crystals had released Co + As by then:
+    skutterudite #3: 1 negative zone since the epilogue began, the latest at step 170, 15.0000 µm taken off; released 0.34042799999998569
+    safflorite #12: 1 negative zone since the epilogue began, the latest at step 170, 15.0000 µm taken off; released 0.25052399999999697
+    by the function's three keys the first is skutterudite #3, the precursor on the receipt
+    the first two are at the same step and 0.0899 apart in release: not a pair that rounding decides
+  seed 2: erythrite #34, born at step 171 on skutterudite #9; the epilogue began at step 170. Of skutterudite, safflorite, cobaltite, 4 crystals had released Co + As by then:
+    skutterudite #9: 1 negative zone since the epilogue began, the latest at step 170, 15.0000 µm taken off; released 0.34042800000001006
+    skutterudite #2: 1 negative zone since the epilogue began, the latest at step 170, 15.0000 µm taken off; released 0.34042799999999140
+    safflorite #12: 1 negative zone since the epilogue began, the latest at step 170, 15.0000 µm taken off; released 0.25052400000000330
+    safflorite #13: 1 negative zone since the epilogue began, the latest at step 170, 15.0000 µm taken off; released 0.25052399999999497
+    by the function's three keys the first is skutterudite #9, the precursor on the receipt
+    the first two are at the same step and 1.9e-14 apart in release; the lower crystal id of the two is #2, which is not the one the function chose
+
+control: in that last part the crystal the three keys put first is the precursor on the product's receipt at 3 of 3 seeds
 control: at seed 42 the shipped run reproduces the baseline for the 2 scenarios read at that seed
 control: the release this probe sums for a product's precursor is the one on the simulator's receipt for the product in 4 of 4 cases

@@ -171,7 +171,7 @@ sets out and §6 puts to the owner.
   millimetre in a Zen run of the scenario, whose pocket is full by step 200, and one of 21
   to 23 mm in a Zen run of `schneeberg`.
 
-**This document has been corrected fourteen times, each time by its own review round.** The first
+**This document has been corrected fifteen times, each time by its own review round.** The first
 version said supply does not bind. The second costed the recommended fixes too lightly. The third
 counted a crystal that had dissolved away as still present, and recommended a lead mechanism that
 cannot work. The fourth left out a gate that the recommended change trips, and put two coupled
@@ -219,7 +219,12 @@ layer of 10⁻¹¹ µm licenses an enclosure, and it does so in the shipped run 
 scenario at two seeds of three (§3.4). The range of 5 to 9 had been read in the scenario's
 own cavity alone. And one sentence still called 7 the loosest value run. Answering that
 round, a run of the whole fleet found a second outcome that rounding picks, in `wittichen`
-at the baseline's own seed (§3.4). §9 lists every correction.
+at the baseline's own seed (§3.4). The fifteenth round reviewed the two commits that
+answered the fourteenth, and found one thing that had to be fixed. The reach of that
+layer had been read in each scenario's own cavity and was written as the fleet's. In the
+15 mm vug that Simulation mode's form offers it is in `supergene_oxidation` at all three
+seeds, and there a nudge of a part in 10¹³ or less moves runs in nine scenarios (§3.4).
+§9 lists every correction.
 
 ## 1. What was run
 
@@ -307,8 +312,8 @@ prerequisite test, which reads zero in every run, and every cause the `_wallStra
 attribution can name except a missing ingredient; and, within the draw-down reading of §2.1,
 every answer of the one-further-field search except pH.
 
-Twenty-one small probes are committed beside their outputs in
-`proposals/evidence/sim-side-2026-11-09/`. Nineteen carry statements of their own: the range of σ
+Twenty-four small probes are committed beside their outputs in
+`proposals/evidence/sim-side-2026-11-09/`. Twenty-two carry statements of their own: the range of σ
 each scenario's bulk fluid covers for feldspar, albite and quartz (§3.1); the history of a few
 headline crystals across the 258 committed baselines (§3.1, §3.4); whether a wrapped σ method
 stays in force during nucleation (§7); one fluid field on a mineral's own cells against the
@@ -325,8 +330,13 @@ acceptance lines admit, in the scenario's own cavity and at ten other shape seed
 SC1; §6); whether the wrapper that previews SC2 is the
 law its three engines would compute (§4, SC2; §7); what layer of a host licenses an
 enclosure in a pocket that is full, and which runs a rounding then decides (§3.4; §4,
-SC2); which shipped runs of the fleet a change in the last binary places of a zone moves,
-and what differs in them (two probes; §3.4); what
+SC2); how thick the host's layer is in every enclosure of the fleet and what the growth
+loop's fill read when the layer was accepted, in each scenario's own cavity and in the
+form's smallest (§3.4); which shipped runs of the fleet a change of a part in 10¹³ or
+less in every zone moves, in those two cavities, what differs in them, what twelve such
+factors do where four were tried, and where the runs that move in the form's cavity part
+from the shipped ones (four probes more, and the one just named for the form's cavity;
+§3.4); what
 every scenario does, as shipped, in the smallest cavity Simulation mode's form offers (§3.1);
 which of the writes Zen mode's drift makes reach the fluid a crystal grows from, and which
 of Zen's 41 simulators put up the nucleation envelope or grow a uraninite (§3.3); and the
@@ -345,7 +355,7 @@ number was checked against that round's output file, and it cannot be reproduced
 committed tree: a reader has this document's word for it. In §1 to §8 each such statement
 says *not committed* where it stands. §9 lists what each round found, and the runs it
 cites there are the rounds' own unless an entry says a probe here now makes them. They are
-of twelve kinds: copies of the census that over-count
+of thirteen kinds: copies of the census that over-count
 (above; trap 21); copies of the census with a proposed change installed (§4, SC2 and SC3;
 trap 5; §7); a run of the agent API's fluid preset (§3.3); `schneeberg` opened in Creative
 mode (§6, decision 3; §7); a looser clamp tried against an earlier acceptance line for Zen
@@ -353,8 +363,9 @@ mode (§6, decision 3; §7); a looser clamp tried against an earlier acceptance 
 run under a preview (§4, SC1; §7); a trace of how a fill passes 100 % (§3.4); the step at
 which `schneeberg`'s uraninites are first altered (§4, SC3); what the game shows of an
 albite under the two forms of the clamp (§7); two spellings of SC2's law run against
-the probe's (§7); and the fill followed through a step that hands out a layer of
-10⁻¹¹ µm (§3.4). No
+the probe's (§7); the fill followed through a step that hands out the cavity's last
+room (§3.4); and nudges made another way than a probe here makes them, or of a previewed
+bound in the form's vug (§3.4). No
 recommendation of §4 rests on one of them. The predictions of which census controls SC2
 and SC3 flip do, and so does the direct evidence that the walls of v160 held no radiogenic
 lead.
@@ -1287,8 +1298,10 @@ alteration, and twelve nudges of a zone's last binary places move the shipped ru
 29 negative zones over 3 to 15 and 17 to 48, and its lead with them (§3.4, the sixth note).
 So at seeds 1 and 2 the difference between the shipped arm and `pb`, in that column and in
 the bulk Pb, does not measure what carrying the lead to the voxels does. At seed 42 the
-rows compare as they stand, and the pocket held open, 11 to 18 % full, has no last room to
-hand out.
+shipped run moved in no size and in no lead under any factor tried (§3.4). The `pb` and
+`nopb` arms were not themselves put to a nudge at any seed, so that the seed-42 rows
+compare as they stand is a reading from the shipped arm and was not run. The pocket held
+open, 11 to 18 % full, has no last room to hand out.
 
 So the defect is real and at present latent. In `radioactive_pegmatite` the pocket is full by step
 61 at the latest, and the mineral the lead is meant for cannot form at all. The scenario's own
@@ -1517,13 +1530,18 @@ only on a step on which it stored a layer of its own: `_check_enclosure` asks th
 host's growth of the step be above zero (`js/85c-simulator-state.ts:2466`). The test has
 no floor, and a pocket that is full hands out layers that are not layers. The step clamps
 a zone to the room the cavity has left (`js/85-simulator.ts:947`) and drops a positive
-zone once the fill reads 1 or more (`:705`). When the fill reads one unit in the last
-binary place under 1, the next crystal in the loop is let through and is given what is
-left, a layer of about 10⁻¹¹ µm, and that layer passes the test. (How the two lines work
-together at such a step is the fourteenth review round's finding, which followed the fill
-through one; its trace is not committed. What is committed is the layer.) The simulator
-writes the host's layer on its own receipt for each enclosure, and
-`probe-enclosure-floor.txt` reads the receipts.
+zone once the fill reads 1 or more (`:705`). When the fill reads one or two units in its
+last binary place under 1, the next crystal in the loop is let through and is given what
+is left, and that layer passes the test. The fourteenth review round followed the fill
+through one such step (its trace is not committed). `probe-last-room.txt` now follows it
+through every run of the fleet: it reads the loop's fill at the moment each layer is
+accepted, and whether the clamp had cut the layer. On a feldspar of 43 to 47 mm the
+layer comes to 7.1 × 10⁻¹² or 1.4 × 10⁻¹¹ µm. That is one or two units in the last binary
+place of the host's own size in millimetres, the number the clamp computes with: the
+layer is one or two of the smallest steps that size's arithmetic can take. On a smaller
+host the steps are smaller, and the last room's layer is 1.8 × 10⁻¹² µm on a feldspar of
+5 mm (`probe-last-room-vug.txt`). The simulator writes the host's layer on its own receipt
+for each enclosure, and `probe-enclosure-floor.txt` reads the receipts.
 
 It decides something in `radioactive_pegmatite`. That pocket reads full from step 61, 55
 and 59 at seeds 42, 1 and 2. From step 80 the oxidizing fluid takes 20 µm a step off each
@@ -1538,7 +1556,12 @@ count of its negative zones and the lead on the bulk handle. As shipped, at seed
 feldspar encloses all three uraninites at step 80, on a layer of 0.60 µm. At seed 1 a
 feldspar encloses all three at step 81, on a layer of 7.1 × 10⁻¹² µm. At seed 2 an albite
 encloses one at step 80 on 1.72 µm, and two feldspars enclose the others at steps 92 and
-94, each on 1.4 × 10⁻¹¹ µm.
+94, each on 1.4 × 10⁻¹¹ µm. The five residues were accepted with the loop's fill one unit
+under 1 at seed 1 and two units under at seed 2. In the fleet's own cavities nine
+enclosures are on a host layer that the clamp had cut, all in this scenario, three at
+each seed: five layers under 10⁻⁶ µm, three between 0.1 and 1 µm and one between 1 and
+5 µm (`probe-last-room.txt`), which are the sizes of the nine above. So the 0.60 and the
+1.72 µm are also what room the cavity had left, and not what the host's law proposed.
 
 What such a layer decides, rounding decides. The probe multiplies every positive zone of
 the three minerals SC2 moves, of which this scenario grows uraninite, by a number within
@@ -1559,43 +1582,126 @@ differs in 0, 4 and 5 of the twelve at the three seeds, and at three times the c
 0, 11 and 12. At seed 42 no size and no lead moves under any of them. There the host of an
 enclosure alone differs in 4, 3 and 1 of the twelve, under the three kinds of run: in each
 of those eight runs one enclosure has another host at the same step, and in seven of the
-eight the new host's layer of that step is a residue.
+eight the new host's layer of that step is a residue. With the same twelve factors
+applied to every growth engine and not to three minerals', the shipped run differs in a
+size or the bulk fluid in 0, 6 and 11 of the twelve, and at seed 42 in an enclosure alone
+in 6 (`probe-rounding-twelve.txt`).
 
 So what this document reports for `radioactive_pegmatite` at seeds 1 and 2 while its
 pocket is full is in each case one run of several that the last binary place of a zone
-chooses between. That covers the shipped run (the lead of §3.3 at those seeds, and the
-counts of negative zones in §4, SC3) and SC2's preview at either constant (§4, SC2). Seed
-42, which the committed baseline pins, is not of that kind in any size or in its lead.
+chooses between. That covers the shipped run (the lead of §3.3 at those seeds, the
+entries of SC3's table for the pocket as shipped, and the counts of negative zones in §4,
+SC3) and SC2's preview at either constant (§4, SC2). At seed 42, which the committed
+baseline pins, no size and no lead moved under any factor tried here.
 
-How far it reaches was read three ways. As shipped, 5 of the 914 enclosures of the 41
-scenarios at seeds 42, 1 and 2 are on a layer under 10⁻⁶ µm, and they are the five above
-(`probe-enclosure-floor-fleet.txt`). The seven other scenarios SC2 moves were put to
-four of the twelve nudges, as shipped and under SC2's preview at both constants. None of
-the 252 nudged runs differs from its un-nudged run in a size, in the lead or in an
-enclosure, and none of the 63 un-nudged runs has an enclosure on such a layer
-(`probe-enclosure-floor-sc2.txt`; in 12 of the 252 the nudged run is the un-nudged one to
-the last binary place, so the nudge tested nothing there). Two of those pockets read
-full, `roughten_gill`'s at seeds 1 and 2 under three times the constant, and nothing moves
-in them, so a full pocket is not enough by itself. `schneeberg` is among the seven: the
-lead and the share that SC2's bump would commission there (§4) do not turn on a rounding.
+How far it reaches was read four ways, at seeds 42, 1 and 2. Each is a count of what
+was run, under the factors named, and none is a bound.
 
-The third reading is of the whole fleet. `probe-rounding-reach.txt` takes every scenario
-as shipped, at the three seeds, and applies those four nudges to every mineral's zones
-and not to three minerals'. A size or the bulk fluid then differs from the shipped run in
-11 of the 492 nudged runs, at 5 of the 123 scenario-seeds, in three scenarios (in 14 of
-the 492 the nudge changed no binary place). `radioactive_pegmatite` is one, at seeds 1 and
-2 again, in 2 and 4 of the four runs. `searles_lake` at seed 42 is the second, in 3 of the
-four. It is the cavity's last room again, with nothing hanging on it: that pocket fills
-at step 134, the fill then reads 1.0000000000000002 in one run and 1 in the other, one
-calcite's size differs by 0.0005 µm at that step, and it ends 0.0004 µm apart, with the
-same summary and no enclosure changed (`probe-rounding-detail.txt`). `wittichen` at seeds 42 and 2 is the third, and its
-pocket is empty: it is another thing, the next note. `gem_pegmatite`, the third scenario
-whose own pocket fills, does not move at any seed. Not run: other seeds, the other eight
-of the twelve nudges outside `radioactive_pegmatite`, and any previewed change but SC2.
+*In each scenario's own cavity, as shipped.* 5 of the 914 enclosures of the 41 scenarios
+are on a layer under 10⁻⁶ µm, and they are the five above
+(`probe-enclosure-floor-fleet.txt`). Reading the loop's fill gives the same five: they
+are the enclosures whose host layer was accepted with the fill within a billionth of 1
+(`probe-last-room.txt`). Nothing lies between them and the thinnest host layer of the
+other 909, which is 0.13 µm.
+
+*The seven other scenarios SC2 moves*, in their own cavities, were put to four of the
+twelve nudges, as shipped and under SC2's preview at both constants. None of the 252
+nudged runs differs from its un-nudged run in a size, in the lead or in an enclosure, and
+none of the 63 un-nudged runs has an enclosure on such a layer
+(`probe-enclosure-floor-sc2.txt`). In 12 of the 252 the nudged run is the un-nudged one
+to the last binary place, so the nudge tested nothing there. Eleven of the twelve are
+runs under a preview, where the probe multiplies the preview's own factor by the nudge
+and not the zone. (The fifteenth review round nudged the zone in one of those cells and
+reached all four runs; its run, not committed.) Two of those pockets read full,
+`roughten_gill`'s at seeds 1 and 2 under three times the constant, and nothing moved in
+them, so a full pocket is not enough by itself. `schneeberg` is among the seven: the lead
+and the share that SC2's bump would commission there (§4) did not move under these four
+factors.
+
+*The whole fleet in its own cavities.* `probe-rounding-reach.txt` takes every scenario
+as shipped and applies those four factors to every positive zone that a growth engine
+returns, and not to three minerals'. A size or the bulk fluid then differs from the
+shipped run in 11 of the 492 nudged runs, at 5 of the 123 scenario-seeds, in three
+scenarios. (In 14 of the 492 the nudge changed no binary place: 12 of them are
+`marble_contact_metamorphism`, whose baseline holds no crystal, and the others are one
+run each of `cooling` and `tutorial_first_crystal` at seed 2.) `radioactive_pegmatite` is
+one, at seeds 1 and 2 again, in 2 and 4 of the four runs. `searles_lake` at seed 42 is
+the second, in 3 of the four, with nothing hanging on it. The two runs part at step 134,
+at which that pocket first reads full: the fill then reads 1.0000000000000002 in one run
+and 1 in the other, one calcite's size differs by 0.0005 µm at that step, and it ends
+0.0004 µm apart, with the same summary and no enclosure changed
+(`probe-rounding-detail.txt`). (By the fifteenth round's trace, which is not committed,
+that calcite is handed the last room in the shipped run and nothing in the nudged one.)
+`wittichen` at seeds 42 and 2 is the third, and its pocket is empty: it is another thing,
+the next note. `gem_pegmatite`, the third scenario whose own pocket fills, did not move
+at any seed under the four.
+
+Four factors are a sample, and a zero under them is not an absence.
+`probe-rounding-twelve.txt` applies all twelve to every engine in `radioactive_pegmatite`
+and `wittichen`. At `radioactive_pegmatite`'s seed 42, where the four find nothing, six
+of the other eight change an enclosure and nothing else. `wittichen` at seed 2 turns
+under one factor of the twelve, and that one happens to be among the four.
+
+*At the vug setting of Simulation mode's form*, 15 mm, where 15 or 16 pockets fill
+(§3.1), it reaches further. As shipped, 18 of the 1,285 enclosures are on a layer under
+10⁻⁶ µm, each accepted with the fill one unit under 1: 1, 3 and 12 in
+`supergene_oxidation` at the three seeds, and one each in `radioactive_pegmatite` at
+seeds 1 and 2 (`probe-last-room-vug.txt`). Eleven of `supergene_oxidation`'s twelve at
+seed 2 are at step 160, the step of the seal that decision 7 begins with, and three of
+their guests are azurites. Under the four factors on every engine, a size or the bulk
+fluid differs from the shipped run in 51 of the 492 nudged runs, at 20 of the 123
+scenario-seeds, in nine scenarios: `reactivated_fluorite_vein`, `searles_lake`, `bisbee`,
+`supergene_oxidation`, `gem_pegmatite`, `shigar_pegmatite`, `radioactive_pegmatite`,
+`schneeberg` and `wittichen`. In 27 of the 51 the baseline-style summary differs, and in
+17 a species is moved or lost by the A/B tool's test: four species in `bisbee` at seed
+42, and in `searles_lake` at seed 1 the halite is lost under the smallest factor. Eight
+of the nine are pockets that fill there. Only two of the eight have an enclosure on a
+residue in the shipped run. `wittichen`'s two runs are the next note's.
+
+`probe-vug-parting.txt` looks for where those runs part. It makes the nine scenarios'
+runs again, keeps every crystal at every step, and finds the first step at which a
+nudged run differs from the shipped one. 55 of the 108 nudged runs part: the 51 above,
+the two that differ in an enclosure alone, and two in `radioactive_pegmatite` at seed 42
+that part and end with no crystal differing. All but `wittichen`'s two are in a pocket
+that reads full, and of those 53 none parts before the step at which the pocket first
+reads full: 20 part at that step and 33 after it. At the parting step, in every one of
+the 53, the clamp had cut a zone and the loop had accepted a zone in the last room, in
+one run or the other (in the shipped run itself in 35). Such a step is rare. In the 24
+shipped runs whose pocket reads full, the loop accepts a zone in the last room on 95 of
+the 3,626 steps from the first full one on. So the last room is where these runs part,
+in the six scenarios without a residue enclosure as in the two with one. What in its
+arithmetic turns a given run was not followed. How far apart they end runs from nothing
+to millimetres. Of the 53 that end with a crystal differing, the largest difference in a
+crystal's size is under 0.001 µm in 13, under 1 µm in 14 more, under 100 µm in 18 more,
+and 100 µm or more in 8. In `bisbee` at seed 42 a mimetite ends at 0.9 µm in the shipped
+run and at 7.3 mm under three of the four factors, and 68 of the 79 crystals differ.
+
+That bears on what else this document reports at that setting. Which pockets fill
+there, and when (§0; §3.1), are readings of the shipped runs this probe nudged, and
+whether a nudge moves the step at which a pocket fills was not read.
+`gem_pegmatite`'s sizes and fill there under the previewed bound (§4, SC1; §6, decision
+1) were not put to a nudge here. (The fifteenth round put that vug, under the bound at
+7, to the four factors at seed 42, and found nothing that differed; its run, not
+committed.)
+
+Not run: other seeds; the two larger cavities the form offers, and other shape seeds;
+Zen mode, Creative mode and Random Vugg; more than four factors outside the two
+scenarios above; and any previewed change but SC2, which was nudged in its eight
+scenarios' own cavities only.
 
 Nothing is proposed. A floor on the host's layer is the change that suggests itself, and
-it was not previewed. The question goes to the owner with the three values on an edge
-(decision 7), as one more place where an outcome hangs on a last binary place.
+it was not previewed. The committed outputs show where such a floor could sit. In the
+fleet's own cavities there is room for one: no host layer lies between the five residues
+and 0.13 µm. At the vug setting there is not. There 87 enclosures are on a layer the
+clamp had cut, and those layers run without a gap from 10⁻¹² µm to more than 5 µm (18
+under 10⁻⁶ µm, 5 up to 0.001, 13 up to 0.1, 39 up to 1, and 12 above), so no thickness
+separates a residue from a thin layer. The simulator has a smallest resolvable solid of
+its own, 5 µm, which it applies to what a dissolving crystal has left
+(`js/18-constants.ts:110`). 76 of the 914 enclosures in the own cavities and 254 of the
+1,285 at the vug are on a host layer under it. The test is one place a remedy could sit
+(`js/85c-simulator-state.ts:2466`). The loop that stores the layer is the other
+(`js/85-simulator.ts:705`, `:947`). The question goes to the owner with the three values
+on an edge (decision 7), as one more place where an outcome hangs on a last binary place.
 
 **A precursor chosen in the fourteenth digit.** The fleet-wide run just described found a
 second place where rounding picks an outcome, and this one needs no full pocket.
@@ -1604,31 +1710,61 @@ the weathering is dissolving (skutterudite, safflorite or cobaltite,
 `data/scenarios.json5:2935`). Where there are several it takes the one whose latest negative
 zone is the most recent, then the one that has released the most cobalt and arsenic, then
 the lowest crystal id (`weatheringNucleationContext`,
-`js/44e-weathering-epilogue.ts:320`). Two skutterudites that have been dissolving since
-the same step have released the same amount, but for rounding, so the second test is
-decided in the last places of a sum and the third is never reached. At seed 42, when the
-erythrite is born at step 171, the two have released 0.340428 each and differ by
-1.2 × 10⁻¹⁴: the erythrite goes to skutterudite #1. With every zone multiplied by
-1 − 10⁻¹³ they differ by 4.4 × 10⁻¹⁵ the other way, and it goes to #2
-(`probe-rounding-detail.txt`).
+`js/44e-weathering-epilogue.ts:320`). The tie on the first two keys is built in. The
+epilogue begins at step 170 and the erythrite's window opens at step 171
+(`data/scenarios.json5:2930`, `:2925`), so when the first erythrite is born each candidate
+has one negative zone since the epilogue began, and at all three seeds each of those zones
+took off the same 15 µm. A release is the thickness taken off times the mineral's
+inventory per micrometre, summed over the shells it came off
+(`js/19-mineral-stoichiometry.ts:955`). Two crystals of one mineral have then released
+the same amount but for the rounding of that sum, so the second key is decided in its last
+places. The third key was not reached in any of the 39 runs made here: in none are the
+first two candidates' releases exactly equal (`probe-rounding-twelve.txt`). At seed 42
+there are four candidates, two skutterudites that have released 0.340428 and two
+safflorites 0.250524. The skutterudites differ by 1.2 × 10⁻¹⁴ and the erythrite goes to
+#1. With every zone multiplied by 1 − 10⁻¹³ they differ by 4.4 × 10⁻¹⁵ the other way, and
+it goes to #2 (`probe-rounding-detail.txt`).
 
 What follows is not small. The erythrite encloses the skutterudite it sits on at that
 step, on a layer of 192 µm, and later another arsenide: a safflorite at step 180 in the
 shipped run, a nickeline at step 194 in the nudged one. An enclosed arsenide keeps its
-size and the others go on weathering. The two runs end 563 µm apart in that safflorite (572
-against 8.5 µm), 325 µm apart in the nickeline, with the two skutterudites exchanged (the
-enclosed one 60 or 61 µm, the other 8), and with another baseline-style summary. Seed 2 does the same between two
-other skutterudites, and ends 275 µm apart in each of two native arsenics. One of the four
-nudges moves each of those seeds, and none moves seed 1.
+size and the others go on weathering. The two runs end 563 µm apart in that safflorite
+(572 against 8.5 µm), 325 µm apart in the nickeline, with the two skutterudites exchanged
+(the enclosed one 60 or 61 µm, the other 8), and with another baseline-style summary.
+Seed 2 does the same between two other skutterudites, and ends 275 µm apart in each of
+two native arsenics.
+
+It takes more than a last binary place to turn it. Of twelve factors applied to every
+growth engine's zones, three turn seed 42 and one turns seed 2, and each of those is
+10⁻¹³ or 10⁻¹² away from 1. None of the eight within 10⁻¹⁴ of 1 turns either seed
+(`probe-rounding-twelve.txt`). Seed 1 cannot turn this way: its candidates are one
+skutterudite and one safflorite, 0.09 apart.
 
 Seed 42 is the seed the committed baseline pins. The shipped run reproduces that
 baseline, as every probe here checks, and `wittichen`'s entry in it rests on a lead of
-1.2 × 10⁻¹⁴ in a sum of 0.34. A change that reorders the arithmetic of a dissolution's
-returned inventory could turn it. The one size this document quotes from that scenario,
-the erythrite's 8.3 mm, is the same in both runs. Nothing is proposed. Comparing the two
-releases to a tolerance, so that the crystal id settles a pair that is equal in all but
-rounding, is the change that suggests itself, and it was not previewed. It goes to the
-owner with the note above (decision 7).
+1.2 × 10⁻¹⁴ in a sum of 0.34. The entry holds the safflorites' largest size, 572 µm, and
+the skutterudites', 60.2 µm, and both turn with the choice
+(`tests-js/baselines/seed42_v286.json`). The calibration tests compare the entry exactly
+(`tests-js/calibration-shard-*.test.ts`), and the strip digest of the same run is
+compared too (`tests-js/strip-digest-wittichen.test.ts`; what in it would turn was not
+read). The two tests named for the scenario do not hold the choice: one asks for a living
+skutterudite and safflorite, the other for an erythrite on one of the three parent
+minerals (`tests-js/wittichen.test.ts:58`, `tests-js/weathering-epilogues.test.ts:288`).
+What a change to the code would do to those last places was not run. The factors here
+multiply every zone of a run by one number, and an edit does not. The one size this
+document quotes from that scenario, the erythrite's 8.3 mm, is the same in both runs.
+
+Nothing is proposed. Comparing the two releases to a tolerance, so that the crystal id
+settles a pair that is equal in all but rounding, is the change that suggests itself, and
+it was not previewed. By the committed output it would leave seed 42 as it is, where the
+lower id of the pair is the one chosen today, and it would turn seed 2, where it is not.
+Other choices in the simulator are made by a comparison of the same shape, a computed
+number and then an id: todorokite's precursor by its local σ
+(`js/87-nucleation-oxide.ts:192`), the gwindel among the quartz crystals by size
+(`js/45-morphology.ts:641`), and three orderings of the wall's geometry
+(`js/23-geometry-wall-mesh.ts:1029`, `:1048`; `js/23a-geometry-cavity-field.ts:922`).
+None of them was examined. The fleet-wide run would show one only where one of its four
+factors turned it. The question goes to the owner with the note above (decision 7).
 
 ## 4. What I would change, and in what order
 
@@ -2454,7 +2590,7 @@ albite and quartz capped at 8, which leaves it 11 to 18 % full). Three numbers a
 | What it is | The block's increment goes to the bulk handle and to every voxel on every step. | The increment is kept back, and the store is released to the bulk handle and to every voxel on the next step on which a uraninite takes a negative zone. |
 | `radioactive_pegmatite`, pocket as shipped | No species moves; opal gains solid at seed 2. Plumbogummite holds no solid. | No species moves, gains or loses solid. Plumbogummite holds no solid. The lead is released on 1 / 2 / 15 steps from step 80 on, 117 / 98 / 117 ppm in all. |
 | … pocket held open: plumbogummite | ×3 at 0.71 / 0.70 / 0.69 mm | ×3 at 0.71 / 0.70 / 0.69 mm |
-| … galena past σ_crit on the bulk handle | on 33 / 30 / 30 steps | on none |
+| … galena past σ_crit on the bulk handle (pocket as shipped; 33 / 31 / 30 with it held open) | on 33 / 30 / 30 steps | on none |
 | … galena, if licensed | Pocket as shipped: one crystal of 0.16 mm / none / one of 0.04 mm. Pocket held open: four of 5.1 / 5.0 / 4.6 mm, born at steps 47 to 50. | none, in either pocket |
 | `schneeberg` | 3 / 2 / 1 species moved, none lost | 2 / 1 / 1 species moved, none lost |
 | … its two feldspars, 26 to 28 mm: zones that carry the amazonite note (none as shipped) | 213 of 319 zones, 15.4 of 54 mm (214 of 318 and 214 of 317 at seeds 1 and 2) | 144 of 319 zones, 2.1 of 54 mm (144 of 318 and 144 of 317) |
@@ -2464,6 +2600,15 @@ albite and quartz capped at 8, which leaves it 11 to 18 % full). Three numbers a
 | … the body colour the cavity view starts from (`#dcb59e` as shipped) | `#dcb59e` | `#dcb59e` |
 | … pharmacolite at seed 42 (five crystals, the largest 1.09 mm, as shipped) | five, the largest 0.80 mm | five, the largest 0.80 mm |
 | … the cation gate's share at seed 42 (0.581978 commissioned) | 0.582009: off by 62 times the gate's tolerance | 0.581978: the commissioned value |
+
+The table's entries for `radioactive_pegmatite`'s pocket as shipped are of a pocket that
+is full, and at seeds 1 and 2 each is one run of several that rounding chooses between
+(§3.4, the sixth note). The opal that gains solid at seed 2 under the continuous
+timing is one the shipped run itself gains under two of twelve nudges of a zone's last
+places (`probe-enclosure-floor.txt`), so that entry is not shown to be the lead's doing.
+The 2 and 15 steps and the 98 and 117 ppm of the held release at those seeds, and the
+galena of 0.04 mm at seed 2, are of the same kind. No arm of this table was itself put
+to a nudge.
 
 Five things follow.
 
@@ -2536,7 +2681,9 @@ Five things follow.
    named amazonite as shipped, with 1.4 to 4.5 % of their bars in green and 25 / 12 / 19
    such lines returned by its steps, 9 / 4 / 5 of them on steps Simulation mode prints.
    Neither timing changes the name or the bar (the continuous release returns 18 lines at
-   seed 2, and 4 of them are printed).
+   seed 2, and 4 of them are printed). Those counts are of the full pocket, and at seeds 1
+   and 2 each is one run of several that rounding chooses between (§3.4, the sixth note):
+   the 19 against 18 at seed 2 is not shown to be the timing's doing.
 5. *Lead in the cells costs `schneeberg`'s pharmacolite a factor.* Lead is one of the six
    cations that pharmacolite's σ counts as competing for arsenate, and that σ carries a factor
    of 1.3 while calcium's molar share of the six is 0.6 or more
@@ -3015,7 +3162,12 @@ without a control (§1 lists them) stays labelled as one.
     boundary to state. That version also wrote the range, 5 to 9, from runs in the
     scenario's own cavity, when the value it widened, 7, had been held to ten other shape
     seeds. At those ten, 9 fails at two (§4, SC1). A range for a value is read wherever the
-    value was read.
+    value was read. The fifteenth version then counted how far that enclosure reaches in
+    each scenario's own cavity, and wrote the count as the fleet's. In the form's 15 mm
+    vug the layer is in another scenario at all three seeds, and four nudges move 51 runs
+    where in the own cavities they move 11 (§3.4). A count is of the cavities it was made
+    in, which is this trap's own title. That version also read zeros under four factors as
+    absences, and twelve factors find what the four miss.
 23. **One scenario has no pocket to fill.** `great_salt_plains` authors an open system, and
     the step reads its fill as 0: it is never dampened for fill and never sealed
     (`js/85-simulator.ts:501`). `get_vug_fill` still returns its crystals' volume over the
@@ -3169,15 +3321,27 @@ without a control (§1 lists them) stays labelled as one.
    are meant to sit exactly on a threshold. Nothing is proposed for them here. The data review
    of July found a fourth of the kind, `chiastolite_hornfels`'s sodium on albite's floor, and the
    fleet has not been scanned for more. And whether an enclosure should need a host layer of
-   a physical size. Today any layer above zero licenses one, a full pocket hands out layers
-   of 10⁻¹¹ µm, and in `radioactive_pegmatite` at seeds 1 and 2 such a layer sets how long
-   the uraninites are altered, and with that their size and the lead they write. And
-   whether the weathering epilogue should choose between two precursors that have released
+   a physical size. Today any layer above zero licenses one, and a full pocket hands the
+   host whatever room is left, down to 10⁻¹² µm. In the scenarios' own cavities such a
+   layer decides something in `radioactive_pegmatite` at seeds 1 and 2: how long the
+   uraninites are altered, and with that their size and the lead they write. At the vug
+   setting of Simulation mode's form it is in `supergene_oxidation` at all three seeds as
+   well, with eleven enclosures on such a layer at step 160 of seed 2, the step of the seal
+   this decision began with; and four nudges of a part in 10¹³ or less move 51 of 492 runs
+   there, in nine scenarios. In the eight whose pocket fills, every run that moves parts
+   from the shipped one on a step at which the loop handed out its last room, and they
+   end up to millimetres apart: in `bisbee` at seed 42 a mimetite ends at 0.9 µm or at
+   7.3 mm. Where a floor could sit differs between the two: in the own cavities nothing
+   lies between the residues and 0.13 µm, and at the vug the layers the clamp hands out
+   run without a gap from 10⁻¹² µm to more than 5 µm. The test and the loop that stores
+   the layer are the two places a remedy could go. And whether the weathering epilogue
+   should choose between two precursors that have released
    the same amount by the fourteenth digit of a sum, as it does today, or by the crystal
-   id, which is its last key and is never reached: in `wittichen` at seed 42, the
-   baseline's seed, that digit decides which skutterudite the erythrite encloses and
-   whether a safflorite ends at 572 µm or at 8.5. Neither a floor nor a tolerance was
-   previewed, and nothing is proposed for either.
+   id, which is its last key and was reached in no run made here: in `wittichen` at seed
+   42, the baseline's seed, that digit decides which skutterudite the erythrite encloses
+   and whether a safflorite ends at 572 µm or at 8.5. The id would leave that choice as it
+   is and turn seed 2's. Neither a floor nor a tolerance was previewed, and nothing is
+   proposed for either.
 8. **Zen mode, as this review met it.** Three things, none of which this review set out to
    examine, and nothing is proposed for them here. A Zen run of a scenario leaves the
    scenario object behind, and with it the license, the exclusions, the nucleation windows,
@@ -3543,7 +3707,11 @@ node proposals/evidence/sim-side-2026-11-09/probe-enclosure-floor.mjs       # ra
 node proposals/evidence/sim-side-2026-11-09/probe-enclosure-floor.mjs --sc2     # the other seven scenarios SC2 moves under four of the nudges, each scenario in a process of its own, the seven side by side; 26 min, beside the runs above and below
 node proposals/evidence/sim-side-2026-11-09/probe-enclosure-floor.mjs --fleet   # every scenario as shipped at three seeds: the enclosures on a host layer under 10^-6 µm; 40 min, 26 of them beside the two runs above
 node proposals/evidence/sim-side-2026-11-09/probe-rounding-reach.mjs        # every scenario as shipped at three seeds, with every mineral's zones nudged four ways; the scenarios in processes of their own, six at a time; 40 min
-node proposals/evidence/sim-side-2026-11-09/probe-rounding-detail.mjs       # what differs in the three pairs of runs that probe finds outside radioactive_pegmatite; 4 min
+node proposals/evidence/sim-side-2026-11-09/probe-rounding-detail.mjs       # what differs in the three pairs of runs that probe finds outside radioactive_pegmatite, and what wittichen's epilogue has to choose between at each seed; 4 min, beside the three runs below
+node proposals/evidence/sim-side-2026-11-09/probe-rounding-twelve.mjs       # twelve factors on every engine where that probe applies four, in radioactive_pegmatite and wittichen, each scenario-seed in a process of its own; 8 min, beside the two runs below
+node proposals/evidence/sim-side-2026-11-09/probe-last-room.mjs             # every scenario as shipped at three seeds: the host's layer in every enclosure, and the loop's fill when it was accepted; six processes at a time; 18 min, beside the run below and the two above
+node proposals/evidence/sim-side-2026-11-09/probe-last-room.mjs --vug       # the same at the form's 15 mm vug, and there four nudges of every engine's zones; six processes at a time; 43 min, 18 of them beside the run above
+node proposals/evidence/sim-side-2026-11-09/probe-vug-parting.mjs           # the nine scenarios that run finds a nudge to move, made again with every crystal kept at every step: where each nudged run parts from the shipped one, how far apart they end, and how often a full pocket hands out its last room at all; six processes at a time; 12 min at its last run and 10 at the one before, alone
 node proposals/evidence/sim-side-2026-11-09/probe-excess-in-engine.mjs      # the wrapper that previews SC2 beside the law computed by the three engines themselves, 48 pairs of runs, sizes and fill and then the records; 21 min at its last run, alone, and 42 with two other probes on the machine
 node proposals/evidence/sim-side-2026-11-09/probe-form-vug-fleet.mjs        # every scenario at the form's vug setting and in its own cavity, three seeds; 44 min at its last run, with three or four other probes on the machine
 node proposals/evidence/sim-side-2026-11-09/probe-zen-drift.mjs             # which of Zen's drift writes reach a crystal's own cell, then each of the 41 scenarios in Zen's own simulator; about 7 min
@@ -3568,7 +3736,7 @@ npm run audit:evidence         # not a step of `npm run ci`
 
 The five tools write only under `.local-evidence/`, the directory the test identity guard excludes.
 They exit 0 whatever their readings and controls say; they throw on a bad argument, and the
-mutation tool throws if a mutant no longer matches the census. The twenty-one probes print and
+mutation tool throws if a mutant no longer matches the census. The twenty-four probes print and
 write nothing. Four of them call functions of the game's own page code that change the
 page's state.
 `probe-pegmatite-reach.mjs` calls four: Zen mode's constructor, with the clock held still for
@@ -3607,7 +3775,22 @@ for each scenario, runs them side by side and prints their reports in a fixed or
 `probe-rounding-reach.mjs` wraps every growth engine for the length of a run, and starts a
 process of itself for each of the 41 scenarios, six at a time. `probe-rounding-detail.mjs`
 wraps the engines the same way and reads the returned inventory on a crystal's negative
-zones and the simulator's receipt for a weathering precursor. `probe-zen-drift.mjs`
+zones and the simulator's receipt for a weathering precursor, and
+`probe-rounding-twelve.mjs` does both, with a process of itself for each of six
+scenario-seeds. `probe-last-room.mjs` builds every run through Simulation mode's command
+runtime, as `probe-form-vug-fleet.mjs` does, with the form's override for the vug under
+`--vug`, and starts a process of itself for each scenario, six at a time. On each
+simulator it builds it puts a wrapper on two of the simulator's own methods, the one
+that returns the fill to the growth loop and the one that debits a zone's growth budget,
+to read the first's last return when the second is called. The wrappers return what the
+shipped methods return, and at seed 42 the probe makes each scenario's run without them
+and holds the two to the same last binary place. Under `--vug` it has no baseline to
+compare with. Its default mode, which is the same code but for the override, reproduces
+the baseline for all 41 scenarios. `probe-vug-parting.mjs` builds its runs as that
+`--vug` mode does, with the same two wrappers and the same four factors, for nine
+scenarios, and keeps every crystal's size, active flag and host at every step. It has
+no baseline either; the runs it finds to differ at the end are the ones
+`probe-last-room-vug.txt` lists, scenario by scenario and seed by seed. `probe-zen-drift.mjs`
 reads one committed census report, `census-seed-42.json`, for a control.
 Two probes also call functions of the page that only read a crystal: `probe-lead-choices.mjs`
 (`crystalDisplayName`, `crystalColor`, `groupZonesByChemistry`, `resolveBodyColour`,
@@ -3636,13 +3819,14 @@ the code of these four is the code that ran rests on that check and on this sent
 The twelve steps of `npm run ci` that precede the tests pass on this tree, and so does
 `npm run audit:evidence`. They read the tree as it is and say nothing about the changes proposed
 here; §4 says what each change would do to three of them. **The full suite** (`npm run ci` with
-its tests, a little over two hours on this machine) is not part of this commit's evidence, and
-it has not been run on this tip or on the two before it, `ab4b1f87` and `660f8d76`. It was
-run on the tip before those, `c08c9d47`, and passed: 303
-test files in 303 batches, one uninterrupted pass under `node tools/cold-ci.mjs`, a local
-result that a comment on the pull request gives in full. The three commits since change files under
-`proposals/` only. The suite is to be run again on the final tip
-of the branch, and its verdict recorded in another comment there. The repository's chip
+its tests, two hours and more on this machine) is not part of this commit's evidence, and
+it has not been run on this tip. It was run on the tip before it, `db5dd3df`, and
+passed: 303 test files in 303 batches, one uninterrupted pass under
+`node tools/cold-ci.mjs`, in 9,501 s on a machine that other work shared. It passed the
+same way on `c08c9d47`, in 7,955 s. Both are local results, and a comment on the pull
+request gives each in full. This commit changes files under `proposals/` only. The
+suite is to be run again on the final tip of the branch, and its verdict recorded in
+another comment there. The repository's chip
 selector (`tools/test-chip-check.mjs`) has none of this change's paths in its authored map, so it
 offers no bounded test set for it; its own answer for such a change is a full check. No file the
 suite reads is changed, and no test was added.
@@ -4282,8 +4466,8 @@ was limited to that commit, the answer to the thirteenth. It ran the commit's th
 whole and got the committed outputs back byte for byte, added the totals up again from the
 lines they are made of, and found every number the commit added in the committed evidence.
 It found nothing that had to be fixed, three things left short, and some smaller things.
-The corrections below were made after that round, in two commits (`660f8d76` and the one
-after it), and no round has reviewed them.
+The corrections below were made after that round, in two commits (`660f8d76` and
+`db5dd3df`), which the fifteenth round then reviewed (the next block).
 
 - The parting of SC2's two forms in `radioactive_pegmatite` had a cause, which the
   fourteenth version said was not traced, and a boundary, "at three times the constant",
@@ -4305,7 +4489,9 @@ after it), and no round has reviewed them.
   not of a run a rounding away. What holds was run as well: at seed 42 no size and no lead
   moves; in the seven other scenarios SC2 moves, none of 252 nudged runs differs from its
   un-nudged run; and of the fleet's 914 enclosures as shipped, the five on such a layer
-  are all in this scenario (§3.3; §3.4; §4, SC2 and SC3; §6; §7; trap 22).
+  are all in this scenario (§3.3; §3.4; §4, SC2 and SC3; §6; §7; trap 22). That last
+  count is of each scenario's own cavity, which this entry did not say; the next block
+  corrects it.
 - The author then re-read the first of the two commits before any round saw it, and found
   two things in it. Its sentence on seed 42 said that a residue hands one uraninite to
   another host. In one of the eight runs it speaks of, the residue is in the un-nudged
@@ -4339,8 +4525,71 @@ after it), and no round has reviewed them.
   counted short, since seventeen test files hold a budget of 300 s; the nudged third run
   "moves as far" was loose, since at seed 2 it ends farther off than the engine's; and
   "the same sizes and fill" is now defined in §7 as the coarse test it is. The round also
-  ran two spellings a bump could use for SC2's law against the probe's engine form and
-  found them the same run (its runs, not committed; §7).
+  ran two spellings a bump could use for SC2's law against the probe's engine form, and
+  each gave that form's sizes and fill at every step (its runs, not committed; §7).
+
+**Corrections to the fifteenth version** (commits `660f8d76` and `db5dd3df`). Its
+fifteenth review round was limited to those two commits. It ran five of their outputs
+again whole and got them back byte for byte, re-added the totals, checked the source
+lines cited, and made traces of its own. It found one thing that had to be fixed, four
+that should be, and some smaller things. The corrections below were made after that
+round, and no round has reviewed them.
+
+- "Of the fleet's 914 enclosures as shipped, the five on such a layer are all in this
+  scenario" was the reach in each scenario's own cavity, and it was written as the
+  fleet's: in §3.4, in decision 7, in the banner, in the ledger and in the pull request.
+  The round ran the vug setting of Simulation mode's form, where this document itself
+  says 15 or 16 pockets fill. There `supergene_oxidation` has 1, 3 and 12 enclosures on
+  such a layer at the three seeds, and a nudge moves that run. A probe here now runs
+  every scenario at that setting. 18 of the 1,285 enclosures are on such a layer, in
+  `supergene_oxidation` and `radioactive_pegmatite`, and four nudges move 51 of 492 runs,
+  in nine scenarios, where they move 11 in three in the own cavities. Another probe
+  finds where those runs part from the shipped ones: in the eight scenarios whose pocket
+  fills, never before the pocket first reads full, and always on a step at which the
+  loop handed out its last room. The text now says which cavity each count is of, gives
+  the vug's counts as a fourth reading, lists what was not run, and puts
+  `supergene_oxidation` in the vug into decision 7 (§0; §3.4; §6).
+- Decision 7 put both new questions without what the evidence says about their answers.
+  For the precursor: the committed output already showed that the crystal id would leave
+  the baseline seed's choice as it is and turn seed 2's; the tie is built in, since each
+  candidate has dissolved for one step and lost the same 15 µm; seed 1 does not move
+  because it has one skutterudite; and it takes a factor of 10⁻¹³ or 10⁻¹² to turn the
+  choice, where "a change that reorders the arithmetic … could turn it" had been run by
+  no one. For the floor: the evidence counted layers under 10⁻⁶ µm and gave no sizes
+  between. The probes here now print the candidates, the twelve factors, and every host
+  layer's size, and the text says where a floor has room and where it has none, and
+  names the second place a remedy could sit (§3.4; §6).
+- Zeros under four factors were written as absences: "do not turn on a rounding", "does
+  not move at any seed". The round put `radioactive_pegmatite` at seed 42 to 36 factors,
+  and 17 of them change the host of an enclosure, none of them among the four. A probe
+  here now applies twelve, and the text says "under these four factors" where it reports
+  a zero (§3.4).
+- SC3's table carried no word of the caveat. Its entries for `radioactive_pegmatite`'s
+  pocket as shipped at seeds 1 and 2 are each one run of several, and the opal that
+  gains solid at seed 2 under the continuous timing is one the shipped run gains under
+  two of twelve nudges. The same holds for the counts of amazonite lines. "At seed 42 the
+  rows compare as they stand" (§3.3) had not been run for the `pb` arm. All three now say
+  so (§3.3; §4, SC3).
+- The pull request's comment on the suite gave the load during the nearest miss as "49 to
+  88 % for those five minutes". The 49 belongs to the half minute before the batch began.
+  Over the batch the box was at 63 to 88 % for three and a half minutes and at 18 to 40 %
+  for the rest. The comment also called that test the nearest to a wall-clock budget,
+  which the log shows for one-test files only. The comment is corrected.
+- Smaller: the residues were accepted with the fill one unit under 1 at seed 1 and two
+  at seed 2, where the text said one; "a layer of about 10⁻¹¹ µm" is that layer on a
+  feldspar of 43 to 47 mm, and the text now says what sets its size; the mechanism was
+  stated as fact outside §3.4 on a trace that was not committed, and a probe here now
+  follows the fill through every run; `searles_lake`'s "last room again" was in no
+  committed output, and is now attributed to the round's trace; the output for
+  `wittichen` printed the two skutterudites and not the four candidates or the first
+  key; which runs the nudges did not reach was not said; "a change in the last binary
+  places" was loose for `wittichen`, which takes a part in 10¹³; and §9 said the round
+  "found them the same run" of two spellings whose sizes and fill it had compared.
+- Four things the author had already listed for that round, which it confirmed or left
+  as stated: "the third key is never reached" is shown only for the runs made; other
+  comparisons of the same shape exist in the simulator and were not examined; "every
+  mineral's zones" meant every positive zone a growth engine returns; and which tests
+  hold `wittichen`'s seed-42 run had not been checked. The text now gives each (§3.4).
 
 ## References
 
@@ -4644,7 +4893,9 @@ The instruments' outputs are committed unedited in `proposals/evidence/sim-side-
 | `probe-excess-in-engine.txt` | §4 SC2 and §7: the wrapper that previews SC2, beside the law computed by the three engines themselves |
 | `probe-clamp-value.txt`, `probe-clamp-value-shape-seeds.txt` | §4 SC1 and §6: the whole values of the clamp that SC1's acceptance lines admit, and the steps each leaves to spare, in the scenario's own cavity and at ten other shape seeds |
 | `probe-enclosure-floor.txt`, `probe-enclosure-floor-sc2.txt`, `probe-enclosure-floor-fleet.txt` | §3.4, §4 SC2 and §7: the host layer that licenses an enclosure in a full pocket, and which runs a nudge of a zone's last binary places then moves |
-| `probe-rounding-reach.txt`, `probe-rounding-detail.txt` | §3.4: which shipped runs of the fleet a change in the last binary places of every zone moves, and what differs in them |
+| `probe-rounding-reach.txt`, `probe-rounding-detail.txt`, `probe-rounding-twelve.txt` | §3.4: which shipped runs of the fleet, each in its own cavity, a change of a part in 10^13 or less in every zone moves; what differs in them; and what twelve such factors do in two scenarios where four were tried |
+| `probe-last-room.txt`, `probe-last-room-vug.txt` | §3.4 and §6: the host's layer in every enclosure of the fleet and the growth loop's fill when it was accepted, in each scenario's own cavity and at the form's vug setting; at that setting, which runs four nudges of every zone move |
+| `probe-vug-parting.txt` | §3.4 and §6: where the runs that move at the form's vug setting part from the shipped ones, and how far apart they end |
 | `probe-zen-drift.txt` | §3.3 and §6: which of Zen's drift writes reach a crystal's own cell; the envelope and the uraninites in Zen's 41 simulators |
 | `probe-clamp-horizon.txt` | §3.1 and §4 SC1: how many steps the bound buys, in Simulation mode, Creative mode and Zen mode's own loop |
 | `probe-appearance-contract.txt` | §4 SC1, SC2, SC3: the locality gate's tiers |
