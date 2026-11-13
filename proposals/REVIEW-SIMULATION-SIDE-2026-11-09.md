@@ -134,9 +134,9 @@ sets out and §6 puts to the owner.
   pocket passes 0.7 full 27 to 29 steps later and seals at step 304 to 306, on quartz, and
   Creative mode, where the Scenarios menu opens a scenario, has no last step. Simulation
   mode's form lets a player choose the cavity as well as the length. In its smallest
-  cavity, a 15 mm vug, the bounded pocket seals at step 97 to 99, and no bound on the pair
+  cavity, a 15 mm vug, the bounded pocket is full at step 97 to 99, and no bound on the pair
   alone would keep it open: with the pair holding no solid at all, quartz and tourmaline
-  seal that vug at step 174 to 176. That setting fills 15 or 16 of the 40 scenarios that
+  fill that vug by step 174 to 176. That setting fills 15 or 16 of the 40 scenarios that
   have a pocket to fill, as shipped, where three fill in their own cavities (the
   forty-first is authored as an open surface).
 
@@ -171,7 +171,7 @@ sets out and §6 puts to the owner.
   millimetre in a Zen run of the scenario, whose pocket is full by step 200, and one of 21
   to 23 mm in a Zen run of `schneeberg`.
 
-**This document has been corrected seventeen times, each time by its own review round.** The first
+**This document has been corrected eighteen times, each time by its own review round.** The first
 version said supply does not bind. The second costed the recommended fixes too lightly. The third
 counted a crystal that had dissolved away as still present, and recommended a lead mechanism that
 cannot work. The fourth left out a gate that the recommended change trips, and put two coupled
@@ -239,6 +239,12 @@ and not hundreds of micrometres. And the "three roads" by which it said such a z
 reaches an outcome were the three things its own probe compared. A zone that is not
 exactly nothing also puts on its crystal the habit, forms or twin the engine wrote with
 it, and at that vug ten crystals of the shipped runs change habit on such a zone.
+The eighteenth round reviewed the commit that answered the seventeenth, and found one
+thing that had to be fixed, which that commit had added on its own account. It reported
+a second fault in the pairing key, two fields that a wall anchor was said not to have,
+and the anchor has them. The round also found that the commit's count of runs that
+differ in a habit read a crystal's habit, forms and twin, and none of the other fields
+an engine stages.
 §9 lists every correction.
 
 ## 1. What was run
@@ -374,7 +380,7 @@ number was checked against that round's output file, and it cannot be reproduced
 committed tree: a reader has this document's word for it. In §1 to §8 each such statement
 says *not committed* where it stands. §9 lists what each round found, and the runs it
 cites there are the rounds' own unless an entry says a probe here now makes them. They are
-of sixteen kinds: copies of the census that over-count
+of eighteen kinds: copies of the census that over-count
 (above; trap 21); copies of the census with a proposed change installed (§4, SC2 and SC3;
 trap 5; §7); a run of the agent API's fluid preset (§3.3); `schneeberg` opened in Creative
 mode (§6, decision 3; §7); a looser clamp tried against an earlier acceptance line for Zen
@@ -383,11 +389,13 @@ run under a preview (§4, SC1; §7); a trace of how a fill passes 100 % (§3.4);
 which `schneeberg`'s uraninites are first altered (§4, SC3); what the game shows of an
 albite under the two forms of the clamp (§7); two spellings of SC2's law run against
 the probe's (§7); the fill followed through a step that hands out the cavity's last
-room (§3.4); nudges made another way than a probe here makes them (§3.4); a floor
-put on the host's layer of an enclosure by a wrapper (§3.4); the cavity's fill read as
+room (§3.4); nudges made another way than a probe here makes them (§3.4); the cavity's
+fill read as
 1 within a billionth of it, by the growth loop alone and by every reader of it, by
-wrappers (§3.4); and what the engines of two crystals read on their cells at one step
-(§3.4). No
+wrappers (§3.4); what the engines of two crystals read on their cells at one step
+(§3.4); more of a crystal's record than a probe here reads, compared between a nudged
+run and the shipped one (§3.4); a film that a residue clears in one nudged run (§3.4);
+and two runs' crystals paired by a key with no place in it (trap 22). No
 recommendation of §4 rests on one of them. The predictions of which census controls SC2
 and SC3 flip do, and so does the direct evidence that the walls of v160 held no radiogenic
 lead.
@@ -1528,7 +1536,11 @@ by accumulated radiation damage" (`js/85-simulator.ts:1283`, `:1591`, `:1597`). 
 at seed 42, 71 of the 74 crystals that hold solid are past that threshold
 (`probe-cation-gate.txt`). Whether a feldspar or a carbonate beside a uraninite should read as
 metamict is a question for the sources. This was read in one run, on the way to following what
-SC2 moves (§4), and nothing is proposed for it.
+SC2 moves (§4), and nothing is proposed for it. The eighteenth review round found one thing
+more on the way, and it was not followed: where a wall doses its quartz, the quartz engine
+writes a quartz's damage as at most 0.7 with each zone of it that is accepted
+(`js/59-engines-silicate.ts:44`), and this block adds to it with no cap, so what a quartz's
+damage reads depends on when it last grew.
 
 **A fill above 100 %.** The step clamps a zone to the room the cavity has left
 (`js/85-simulator.ts:947`), and two readings here pass 100 % all the same. They are not one
@@ -1554,15 +1566,18 @@ that it have three zones and that its last three add up to under 3 µm, which is
 reads a crystal as slowing (`:2562`, `:2569`). And when the growth loop accepts a zone
 whose final thickness is not zero, the simulator puts on the crystal what the engine had
 written there while it proposed the zone: a habit, forms, a twin
-(`js/85b-simulator-nucleate.ts:89`). None of these asks that a zone be of
+(`js/85b-simulator-nucleate.ts:89`; a zone of no thickness that the engine marked as a
+change of state is accepted too). None of these asks that a zone be of
 any size before it counts, and a pocket that is full hands out zones that are not zones.
 The step clamps a zone to the
 room the cavity has left (`js/85-simulator.ts:947`) and drops a positive zone once the
 fill reads 1 or more (`:705`). At any fill under 1 the next crystal in the loop is let
 through and is given what is left. Once a zone has taken the room, that is little or
 nothing. In the shipped runs the loop then let the next crystal through with the fill
-one to nine units of its last binary place under 1 (below), and cut its zone to that
-residue, or to exactly nothing. The crystal stores it either way
+one to nine units of its last binary place under 1 (below), and cut its zone to what was
+left, or to exactly nothing. This note calls a positive zone that was accepted with the
+fill so few units under 1 a residue, whatever its thickness. The crystal stores a
+residue, and a zone cut to nothing as well
 (`js/27-geometry-crystal.ts:442`). A residue is a layer for the host's test, and it
 carries the engine's changes onto the crystal. A residue or a zone cut to nothing is one
 of the last three for the guest's.
@@ -1574,10 +1589,9 @@ and whether the clamp had cut the zone. They call a zone "in the last room" when
 then read under 1 by a billionth or less. In the scenarios' own cavities the 123 runs
 have 27 such zones. Each was accepted with the fill one to five units under 1; two were
 cut to nothing and the others are 7 × 10⁻¹² to 5 × 10⁻⁴ µm thick. No other positive zone
-was accepted with the fill nearer to 1 than 1 − 2.7 × 10⁻⁶. Below, a residue is a
-positive zone accepted with the fill within nine units of 1, whatever its thickness:
-the 25 positive ones here are residues. (The probes' outputs print "on a residue" for an
-enclosure whose host layer is under 10⁻⁶ µm. This note writes that out.)
+was accepted with the fill nearer to 1 than 1 − 2.7 × 10⁻⁶. The 25 positive ones are
+residues. (The probes' outputs print "on a residue" for an enclosure whose host layer is
+under 10⁻⁶ µm. This note writes that out.)
 
 On a feldspar of 43 to 47 mm the residue comes to 7.1 × 10⁻¹² or 1.4 × 10⁻¹¹ µm. That is
 one or two units in the last binary place of the host's own size in millimetres. The
@@ -1699,10 +1713,11 @@ under one factor of the twelve, and that one happens to be among the four.
 *At the vug setting of Simulation mode's form*, 15 mm, where 15 or 16 pockets fill
 (§3.1), it reaches further, and by more than the host's layer. The 123 shipped runs
 there have 163 zones in the last room. 151 were accepted with the fill one to nine
-units under 1: 12 of them cut to nothing, the others from 9 × 10⁻¹³ µm on a feldspar of
-7.7 mm to 0.15 µm on a crystal with no size yet. The other 12, in `supergene_oxidation`
-and `schneeberg` at seed 2, were accepted with the fill between 1 − 1.6 × 10⁻¹¹ and
-1 − 8.4 × 10⁻¹⁰ and are 4 × 10⁻⁶ to 3.2 µm thick. What opened those rooms was not read.
+units under 1: 12 of them cut to nothing, and 139 residues, from 9 × 10⁻¹³ µm on a
+feldspar of 7.7 mm to 0.15 µm on a crystal with no size yet. The other 12, in
+`supergene_oxidation` and `schneeberg` at seed 2, were accepted with the fill between
+1 − 1.6 × 10⁻¹¹ and 1 − 8.4 × 10⁻¹⁰. They are positive, 4 × 10⁻⁶ to 3.2 µm thick, and
+this note does not call them residues. What opened those rooms was not read.
 They stand apart from the residues: no zone was accepted with the fill between 9 and
 142,307 units under 1. The billionth itself is not in a gap at this setting, since the
 nearest fill outside it is 1 − 1.3 × 10⁻⁹ (`probe-last-room-routes-vug.txt`).
@@ -1733,8 +1748,9 @@ last three zones it had when the pocket filled, and reads as slowing or not by t
 crystal that is handed a residue reads as slowing after one to three of them. Which of
 the two a crystal gets is the residue's doing.
 
-A residue also carries what the engine had written on the crystal with it. Of the 151
-positive zones in the last room there, 20 carried such fields, and the crystal holds
+A residue also carries what the engine had written on the crystal with it. The last
+room there has 151 positive zones, the 139 residues and the 12 further under 1. Of the
+151, 20 carried such fields, all 20 of them residues, and the crystal holds
 them after the call in all 20: forms on 18, a habit on 15, radiation damage on 3, a
 diagenesis stage on 2, and a twin, a polymorph and a display name on one each. The
 crystal's habit is another after the call on 15 of them, on ten crystals, and nine of
@@ -1749,9 +1765,11 @@ tabular at three steps at which the engine had written prismatic
 (`probe-last-room-routes-vug.txt`; the law of the quartz's twin is in
 `probe-vug-parting.txt`). In the own cavities 3 of the 25 residues carried a
 field, radiation damage each time, and no habit moved (`probe-last-room-routes.txt`).
-The habit is what the crystal's description gives (`js/27-geometry-crystal.ts:528`), and
-the clamp and the crystal take the volume of every later zone from it
-(`js/85-simulator.ts:956`; `js/27-geometry-crystal.ts:450`).
+The habit is what the crystal's description gives (`js/27-geometry-crystal.ts:528`). The
+clamp sizes a zone under the habit the crystal has (`js/85-simulator.ts:956`), and the
+crystal stores it under the habit the zone brings (`js/27-geometry-crystal.ts:450`),
+which is the order behind the overshoot of the note before this one. No run here
+followed a habit that a residue set into a later zone, a fill or a size.
 
 Under the four factors on every engine, a size or the bulk fluid differs from the
 shipped run in 51 of the 492 nudged runs at that setting, at 20 of the 123
@@ -1778,24 +1796,16 @@ the step at which the pocket first reads full: 20 part at that step and 33 after
 At the parting step the probe compares the calls the growth loop makes on a zone in the
 two runs. In 51 of the 53, every call that differs was made in the last room, with the
 fill 13 units under 1 at the furthest. In the other two, both in `supergene_oxidation`
-at seed 1, a zone the clamp had cut at a fill of 1 − 4.2 × 10⁻⁶ differs as well. How
-rare such a step is depends on which step, and on the scenario. The 24 runs counted
-here are the shipped runs of the eight scenarios the probe makes whose pocket reads
-full, and not the 46 that fill at that setting. The first full step has a zone in the
-last room in 19 of the 24, so the 20 partings at that
-step fall where such a zone is the rule: 17 of them at a step where the shipped run
-has one. After it such a zone is rare in most. 76 of the 3,602 later steps of those 24
-runs have one, 46 of them among the 266 later steps of `supergene_oxidation`, and of
-the 33 later partings 18 are on one in the shipped run and all 33 on
-one in one run or the other.
+at seed 1, a zone the clamp had cut at a fill of 1 − 4.2 × 10⁻⁶ differs as well. At
+each of the 53 parting steps one run or the other has a zone accepted in the last
+room, and the shipped run has one at 35 of them.
 
 What differs at the parting step, by that test, is a size or an enclosure. In 23 of
 the 53 it is a
 crystal's size alone: a crystal is handed a residue in one run and nothing, or another
-residue, in the other. Each of the 23 is on a crystal of 24 µm or less, and in five of
-them the crystal has no size in one of the runs. On a larger crystal a residue can be
-under the billionth: the quartz of 1.78 mm above takes 1.5 × 10⁻¹⁰ µm, and its run does
-not part. In 30 it is an enclosure. In 8 of the 30 the host's layer was
+residue, in the other. In each of the 23 the crystal that differs most at that step is
+24 µm or less, and in five of them it has no size in one of the runs. In 30 it is an
+enclosure. In 8 of the 30 the host's layer was
 accepted in the last room (in 3 of them the guest's zones decide as well). In 20 the
 host's layer is an ordinary one, and the guest passes its two tests only for the zones
 it was handed in the last room. The last two are `searles_lake` at seed 42, and there
@@ -1808,8 +1818,11 @@ enclosed (`:2621`, `:2627`). The nearer thenardite is enclosed at that step in b
 runs, and its number is the lower. So the calcite is left out: the function does not go
 back to the host it had passed over. The last room is where these runs part.
 
-The test does not read a crystal's habit, its forms or its twin, and the probe reads
-them beside it. Of the 53 nudged runs that do not part, one differs in them. In
+The test does not read the rest of a crystal's record. Beside it the probe reads three
+things more of that record, a crystal's habit, its forms and its twin, and no others:
+not its radiation damage or the other fields an engine stages, not the number of zones
+it holds, not a film on it. Of the 108 nudged runs 53 do not part, and one of those
+differs in the three. In
 `radioactive_pegmatite` at seed 1, under 1 − 10⁻¹⁴, the quartz above is handed its
 residue in the shipped run and nothing in the nudged one. It ends a Tessin-habit twin
 in one and an untwinned bipyramid in the other, at the same size. Of the 55 that part,
@@ -1818,16 +1831,26 @@ where an acanthite of 1.24 mm is handed a residue five steps earlier in the nudg
 runs, and one of `radioactive_pegmatite`'s. And 18 of the 55 end with a crystal the two
 runs share in another habit, forms or twin.
 
+The eighteenth review round read more of the record in the same runs. Its probe is not
+committed; it was run again here and came back line for line. Of the 53 runs that do
+not part, 12 differ in the number of zones a crystal holds. Of the 55 that part, 18
+differ in a zone count before the step at which they part, none of them before the
+pocket first reads full. So the step at which a run parts here is the first at which a
+size, a flag or a host shows a difference. It is not the first at which the two runs
+differ.
+
 How far apart they end was read on the crystals the two runs share: those born in both
 as the same mineral, at the same step, in the same place, which is the wall or the same
 host, in the same cell of the wall. The number a crystal carries is no part of that.
 Runs that have parted number their crystals apart, so one number can name two crystals
 and one crystal can carry two numbers. Of the 2,911 pairs in the 55 runs that part, 120
 carry another number in the nudged run, in six runs, and every pair's anchor is the
-same point of the wall to the last digit. Of the 55, 2 end with no shared crystal
+same point of the wall to the last digit. A pair is compared in size, active flag and
+host. It is paired by the mineral it was born as, and the comparison of a pair does not
+read the mineral a crystal has become by the end. Of the 55, 2 end with no shared crystal
 differing in size, flag or host; one of the two ends with a quartz in another habit,
 twinned. In the
-other 53 the largest difference in a shared crystal's size is under 0.001 µm in 13,
+other 53 of the 55 the largest difference in a shared crystal's size is under 0.001 µm in 13,
 under 1 µm in 14 more, under 100 µm in 17 more, and 100 µm or more in 9, two of which
 are `wittichen`'s. In 13 runs a crystal of one run has no counterpart in the other. In
 `bisbee` at seed 42, under three of the four factors, 63 of the 74 crystals the two
@@ -1850,15 +1873,14 @@ first passes 0.7, 0.999 or 1 to a billionth (`probe-bound-nudge.txt`). That prob
 the end of a run and those three steps. It does not read every step, as the parting
 probe does, or a habit. Under the bound the own cavity does not fill. The vug passes
 0.999 at step 97, 99 and 99, and first reads 1 to a billionth at step 98, 100 and 99.
-The first is the step this document gives where it says that vug is full, or seals
-(§0; §4; §6); the simulator's own seal asks for a fill of 1
-(`js/85-simulator.ts:508`).
+The first is the step this document gives wherever it says that the bounded vug is
+full; the simulator's own seal asks for a fill of 1 (`js/85-simulator.ts:508`).
 
 Not run: other seeds; the two larger cavities the form offers, and other shape seeds;
 Zen mode, Creative mode and Random Vugg; more than four factors on a shipped run at the
 vug, or in the own cavities outside the two scenarios above; a crystal's habit, forms
-or twin under a nudge, in the own cavities and in the 32 scenarios the parting probe
-does not make; and any previewed change
+or twin, or the rest of its record, under a nudge, in the own cavities and in the 32
+scenarios the parting probe does not make; and any previewed change
 but SC1's bound in `gem_pegmatite` and SC2, which was nudged in its eight scenarios' own
 cavities only.
 
@@ -1866,10 +1888,15 @@ Nothing is proposed. Four things that a zone from the last room decides were fol
 here: the host's test, the guest's two tests, the size of the crystal that is handed it
 or is not, and the habit, forms or twin the engine had written with it. They are the
 ones this note looked for. No search was made for others, and every reader of a
-crystal's zone list, or of a field that an accepted zone sets, is a candidate.
+crystal's zone list, or of a field that an accepted zone sets, is a candidate. The
+eighteenth review round found a fifth in a nudged run (not committed; run again here,
+to the same lines): in `radioactive_pegmatite` at seed 2 a residue of 5.5 × 10⁻⁹ µm
+clears a lepidolite film from a spodumene of 0.29 mm
+(`js/85b-simulator-nucleate.ts:98`), which the shipped run keeps to the end.
 
 A floor on the host's layer is the change that first suggests itself, and it was
-not previewed. By the committed outputs there is room for one in both settings, in the
+not previewed in a committed run. By the committed outputs there is room for one in
+both settings, in the
 shipped runs; nudged runs were not read for it. No host
 layer lies between those under 10⁻⁶ µm and 0.13 µm in the own cavities, or between them
 and 4 × 10⁻⁵ µm at the vug, where the 18 are 1.8 × 10⁻¹² to 1.2 × 10⁻¹¹ µm.
@@ -1878,15 +1905,10 @@ the clamp had cut: the 18, then 5 up to 0.001 µm, 13 up to 0.1, 39 up to 1, and
 above. The own cavities have four such layers above those under 10⁻⁶ µm, of 0.60 and
 1.72 µm. And a floor on the host's layer leaves the other three open. 17 of the 35
 enclosures above are on a host layer that is no residue, and of the 53 partings the
-host's layer is from the last room in 8. (The sixteenth review round put a floor of
-10⁻⁶ µm on the host's layer by a wrapper, in two scenario-seeds at the vug, and the
-nudged runs parted at the same steps as without it; its run, not committed.) Nor does a
+host's layer is from the last room in 8. Nor does a
 thickness sort the zones themselves: the residues at the vug run from 10⁻¹² to 0.15 µm,
 and the other twelve zones of the last room from 4 × 10⁻⁶ to 3.2 µm. In the shipped
 runs the fill does sort them, at one to nine units under 1 against 142,307 or more.
-The simulator has a smallest resolvable solid of its own, 5 µm, which it applies to
-what a dissolving crystal has left (`js/18-constants.ts:110`). 76 of the 914 enclosures
-in the own cavities and 254 of the 1,285 at the vug are on a host layer under it.
 
 A remedy could sit at one of the tests: the host's (`js/85c-simulator-state.ts:2466`),
 the guest's (`:2562`, `:2569`), or the one that puts an engine's changes on the crystal
@@ -1904,9 +1926,11 @@ un-nudged run, each by a crystal born in one run and not in the other. In the fo
 traced, nucleation is handed a fill of exactly 1 in one run and one to nine units under
 1 in the other at the step they part. With every reader given that reading, none of
 the 96 parts, by the test of size, flag and host. That cut is not proposed either. It
-was run in those eight scenarios and in `radioactive_pegmatite`'s own cavity, where it
-changes the shipped run at seeds 1 and 2: the lead ends at 148.0 and 164.5 ppm, against
-127.7 and 147.2. The question goes to the owner with the three values on an edge
+was run in those eight scenarios and in `radioactive_pegmatite`'s own cavity, and it
+changes shipped runs in both. At the vug `supergene_oxidation` has 33, 32 and 36
+enclosures under it, against 40, 35 and 45. In the own cavity the lead ends at 148.0
+and 164.5 ppm at seeds 1 and 2, against 127.7 and 147.2. The question goes to the owner
+with the three values on an edge
 (decision 7), as one more place where an outcome hangs on a last binary place.
 
 **A precursor chosen in the fourteenth digit.** The fleet-wide run just described found a
@@ -2340,8 +2364,8 @@ Five things follow.
 
 So the bound is not a cure, in any mode. It gives the scenario's own run, in the scenario's
 own cavity, an open pocket. It gives a longer run a later seal. In the form's smallest
-cavity it seals the pocket at step 97 to 99, 75 to 77 steps before quartz and tourmaline
-would by themselves, and no bound on the pair alone would prevent that seal.
+cavity the pocket is full at step 97 to 99, 75 to 77 steps before quartz and tourmaline
+would fill it by themselves, and no bound on the pair alone would prevent that.
 That is S2 read forward (§2.2): a crystal that is still growing on a run's last
 step goes on growing if the run does. The recommendation stands on the first of those: for
 230 steps all eight events fire into an open pocket and four species grow to millimetres.
@@ -3351,7 +3375,7 @@ without a control (§1 lists them) stays labelled as one.
     long as the run goes on, and the pocket it grows into may be another size. Under the
     recommended bound `gem_pegmatite` is 41 to 42 % full at its last step, passes 0.7 full 28
     or 29 steps later and seals at step 305 or 306. In the smallest cavity Simulation mode
-    offers it seals at step 97 to 99, inside the scenario's own length. Simulation mode's
+    offers it is full at step 97 to 99, inside the scenario's own length. Simulation mode's
     Time Steps box can lengthen a run, Creative mode has no last step, and Zen has no end.
     The seventh version of this document read the clamp at 230 steps and at 400, and wrote
     "cure" and "never fills". The eighth read it in one cavity. An acceptance line for such a
@@ -3402,13 +3426,17 @@ without a control (§1 lists them) stays labelled as one.
     once the runs have parted, and it read "no gap" from bins when all of one bin sat at
     its bottom. Pair things by what they are, and look inside a bin before saying what
     lies between two of them. The seventeenth version paired the crystals again, by
-    number and birth, and so left out every crystal the two runs number apart. The part
-    of its key that was to name the place read two fields the anchor does not have, so
-    no place was compared at all: print a key's parts once and read them. It also wrote
+    number and birth, and so left out every crystal the two runs number apart. It also wrote
     "three roads" for the three things its own test compares, when a zone that is
     accepted sets a fourth, the crystal's habit. A list of the ways a thing can happen
     says that there are no others. Say what was followed, and beside every count name
-    what the test that made it cannot see.
+    what the test that made it cannot see. The eighteenth version reported a second
+    fault in that key: two fields that its anchor was said not to have. The anchor has
+    them, as getters that a listing of its keys does not show
+    (`js/23c-geometry-surface-anchor.ts:222`), and the fault was the report's. Read the
+    value, not the list of names. A count that will not fit is a finding to open and not
+    a remainder to explain: a key with no place in it had made 75 pairs where the
+    round's own key made 74 (a scratch run, not committed), and that was the sign.
 23. **One scenario has no pocket to fill.** `great_salt_plains` authors an open system, and
     the step reads its fill as 0: it is never dampened for fill and never sealed
     (`js/85-simulator.ts:501`). `get_vug_fill` still returns its crystals' volume over the
@@ -3563,11 +3591,11 @@ without a control (§1 lists them) stays labelled as one.
    of July found a fourth of the kind, `chiastolite_hornfels`'s sodium on albite's floor, and the
    fleet has not been scanned for more. And what a full pocket should hand the next
    crystal. Today the growth loop lets a crystal through at any fill under 1 and cuts its
-   zone to the room left, down to 10⁻¹² µm or to nothing, and the crystal stores it. Such
-   a zone licenses its crystal to enclose a neighbour, since any layer above zero does.
-   It counts among a guest's last three zones, by which a guest reads as slowing. And
-   unless it is exactly nothing it puts on the crystal the habit, forms or twin that its
-   engine had written. In
+   zone to the room left, down to 10⁻¹² µm or to nothing, and the crystal stores it. A
+   zone above nothing licenses its crystal to enclose a neighbour, since any layer above
+   zero does, and it puts on the crystal the habit, forms or twin that its engine had
+   written. Either kind counts among a guest's last three zones, by which a guest reads
+   as slowing. In
    the scenarios' own cavities it decides something in `radioactive_pegmatite` at seeds 1
    and 2, through the host: how long the uraninites are altered, and with that their size
    and the lead they write. At the vug setting of Simulation mode's form it decides 35 of
@@ -3581,9 +3609,11 @@ without a control (§1 lists them) stays labelled as one.
    the eight whose pocket fills, 53 of the 96 nudged runs
    part from the shipped one at some step, each on a step at which the loop handed out
    its
-   last room: 23 in a crystal's size alone, 8 in an enclosure by the host's layer, 20 in
-   one by the guest's zones, and 2 in one that a residue withheld. One run more ends
-   with a quartz in another habit, twinned, with no size moved. The runs that part end
+   last room in one run or the other: 23 in a crystal's size alone, 8 in an enclosure by
+   the host's layer, 20 in
+   one by the guest's zones, and 2 in one that a residue withheld. The test behind those
+   counts reads sizes, flags and hosts, and runs that it passes differ in other things:
+   one ends with a quartz in another habit, twinned (§3.4). The runs that part end
    up to millimetres apart in the crystals they share: in `bisbee` at seed 42 an
    atacamite ends at 1.07 mm or at 7.33. A floor on the host's layer has room in both
    settings, in the shipped runs, since in the own cavities nothing lies between the
@@ -3592,15 +3622,16 @@ without a control (§1 lists them) stays labelled as one.
    sizes and the habits as they are. A remedy could sit at one of the tests or in the
    loop that stores the zone, and the loop is not the only reader of the fill.
    Nucleation reads it too: a cut tried in the loop alone left 30 of 96 runs parting,
-   where a cut for every reader left none (the seventeenth round's runs, not committed;
-   §3.4). Neither is proposed. And whether the weathering epilogue
+   where a cut for every reader left none by that test, under the same four nudges (the
+   seventeenth round's runs, not committed; §3.4). Neither is proposed. And whether the
+   weathering epilogue
    should choose between two precursors that have released
    the same amount by the fourteenth digit of a sum, as it does today, or by the crystal
    id, which is its last key and was reached in no run made here: in `wittichen` at seed
    42, the baseline's seed, that digit decides which skutterudite the erythrite encloses
    and whether a safflorite ends at 572 µm or at 8.5. The id would leave that choice as it
-   is and turn seed 2's. Neither a floor nor a tolerance was previewed, and nothing is
-   proposed for either.
+   is and turn seed 2's. Neither a floor nor a tolerance was previewed in a committed
+   run, and nothing is proposed for either.
 8. **Zen mode, as this review met it.** Three things, none of which this review set out to
    examine, and nothing is proposed for them here. A Zen run of a scenario leaves the
    scenario object behind, and with it the license, the exclusions, the nucleation windows,
@@ -3972,7 +4003,7 @@ node proposals/evidence/sim-side-2026-11-09/probe-rounding-twelve.mjs       # tw
 node proposals/evidence/sim-side-2026-11-09/probe-last-room.mjs             # every scenario as shipped at three seeds: the host's layer in every enclosure, and the loop's fill when it was accepted; six processes at a time; 18 min, beside the run below and the two above
 node proposals/evidence/sim-side-2026-11-09/probe-last-room.mjs --vug       # the same at the form's 15 mm vug, and there four nudges of every engine's zones; six processes at a time; 43 min, 18 of them beside the run above
 node proposals/evidence/sim-side-2026-11-09/probe-last-room-routes.mjs      # every scenario as shipped at three seeds: every zone the loop accepts in the last room, the enclosures such a zone decides through the host's layer or the guest's last three zones, and what the engine had staged on the crystal with it; six processes at a time; 15 min, beside the run below, the parting probe and one other
-node proposals/evidence/sim-side-2026-11-09/probe-last-room-routes.mjs --vug  # the same at the form's 15 mm vug; 13 min, beside the run above and one other (21 and 20 min at an earlier run of the two)
+node proposals/evidence/sim-side-2026-11-09/probe-last-room-routes.mjs --vug  # the same at the form's 15 mm vug; 13 min, beside the run above, one other, and the parting probe for its last two and a half minutes (21 and 20 min at an earlier run of the two)
 node proposals/evidence/sim-side-2026-11-09/probe-vug-parting.mjs           # the nine scenarios that run finds a nudge to move, made again with every crystal kept at every step: where each nudged run parts from the shipped one, what differs there, how far apart they end in the crystals they share, how often a full pocket hands out its last room at all, and each crystal's habit, forms and twin; six processes at a time; 11 min, beside the two runs above and one other
 node proposals/evidence/sim-side-2026-11-09/probe-bound-nudge.mjs           # gem_pegmatite under SC1's bound, in its own cavity and the form's vug, with twelve nudges of every engine's zones; each cavity and seed in a process of its own; 8 min, beside three other probes
 node proposals/evidence/sim-side-2026-11-09/probe-excess-in-engine.mjs      # the wrapper that previews SC2 beside the law computed by the three engines themselves, 48 pairs of runs, sizes and fill and then the records; 21 min at its last run, alone, and 42 with two other probes on the machine
@@ -4103,12 +4134,12 @@ The twelve steps of `npm run ci` that precede the tests pass on this tree, and s
 `npm run audit:evidence`. They read the tree as it is and say nothing about the changes proposed
 here; §4 says what each change would do to three of them. **The full suite** (`npm run ci` with
 its tests, two hours and more on this machine) is not part of this commit's evidence, and
-it has not been run on this tip. It was last run three commits back, on `db5dd3df`, and
+it has not been run on this tip. It was last run four commits back, on `db5dd3df`, and
 passed: 303 test files in 303 batches, one uninterrupted pass under
 `node tools/cold-ci.mjs`, in 9,501 s on a machine that other work shared. It passed the
 same way on `c08c9d47`, in 7,955 s. Both are local results, and a comment on the pull
-request gives each in full. This commit and the two before it, `72c6d7a8` and
-`87ec532b`, change files under `proposals/` only. The
+request gives each in full. This commit and the three before it, `72c6d7a8`, `87ec532b`
+and `1a6cd00a`, change files under `proposals/` only. The
 suite is to be run again on the final tip of the branch, and its verdict recorded in
 another comment there. The repository's chip
 selector (`tools/test-chip-check.mjs`) has none of this change's paths in its authored map, so it
@@ -4954,8 +4985,8 @@ which the seventeenth round then reviewed (the next block).
 round was limited to that commit. It ran four of its probes again whole and got their
 outputs back byte for byte, re-added the totals, checked the source lines cited, and
 made probes of its own. It found two things that had to be fixed, two that should be,
-and some smaller things. The corrections below were made after that round, and no round
-has reviewed them.
+and some smaller things. The corrections below were made after that round, in commit
+`1a6cd00a`, which the eighteenth round then reviewed (the next block).
 
 - The end comparison paired a crystal of one run with the crystal of the other that
   carried the same number and the same birth, and called every other crystal one "with
@@ -4968,12 +4999,10 @@ has reviewed them.
   by birth alone, reads a host by its birth, and prints both numbers and the largest
   crystals with no counterpart. The four bands of how far the runs end apart came out
   as they were (§3.4; §6).
-- Answering that turned up a second fault in the same key, which the round's copy of the
-  probe shared. The part that was to name the place read `phi` and `theta` off the
-  crystal's wall anchor. The anchor has no such fields, so the key compared the text of
-  the place ("vug wall") and nothing of where on the wall. The key now reads the cell of
-  the wall the anchor is filed under, and the output counts the pairs whose anchors are
-  the same point to the last digit: all 2,911 (§3.4).
+- The key's place is now the cell of the wall the anchor is filed under, and the output
+  counts the pairs whose anchors are the same point to the last digit: all 2,911
+  (§3.4). The entry that stood here gave a reason for that change which was false. The
+  next block withdraws it.
 - "A zone from the last room reaches an outcome by three roads" listed the three things
   the parting probe compares. A zone that is accepted with a thickness other than zero
   also puts on the crystal what its engine had written there
@@ -5014,6 +5043,68 @@ has reviewed them.
   sections do not mention; and the round followed the two idle crystals of the seventh
   note to the oxygen on their cells. The message of commit `87ec532b` says the detail
   probe's first 71 lines came back byte for byte. It is 70.
+
+**Corrections to the eighteenth version** (commit `1a6cd00a`). Its eighteenth review
+round was limited to that commit. It ran the parting probe and one mode of the routes
+probe again whole and got their outputs back byte for byte, re-added the totals, checked
+the source lines cited, and made probes of its own. It found one thing that had to be
+fixed, two that should be, and some smaller things. The corrections below were made
+after that round, and no round has reviewed them.
+
+- That version reported "a second fault" in the pairing key of the version before it:
+  that the part naming the place read `phi` and `theta` off a crystal's wall anchor,
+  that the anchor has no such fields, and that no place had been compared, in the probe
+  and in the seventeenth round's copy of it. None of that is so. The anchor carries both
+  as getters that are not enumerable (`js/23c-geometry-surface-anchor.ts:208` to `:227`),
+  so a listing of its keys shows neither, and the author had read the listing and not
+  the value. In the round's nine runs both are finite numbers on every crystal and name
+  the wall cell one to one, and the old key and the round's copy did compare the place.
+  The entry is
+  withdrawn from the block above and from trap 22, and the message of commit `1a6cd00a`,
+  which reports the fault too, is wrong on it. No count changes. The key that commit put
+  in its place reads the same cell, and "all 2,911 pairs at the same point" stands (§5,
+  trap 22).
+- "Of the 53 nudged runs that do not part, one differs" counted a crystal's habit, forms
+  and twin, and none of the other fields the routes probe finds staged (radiation
+  damage, a polymorph, a display name, a diagenesis stage), and the text did not say so.
+  The round read more of a crystal's record in the same
+  runs (not committed; run again here, line for line). Of the 53, 12 differ in a
+  crystal's number of zones, 3 in its late-interlocking flag and 2 in its radiation
+  damage. Of the 55 that part, 18 differ in a zone count before the step at which they
+  part, none of them before the pocket first reads full. It also found a fifth thing
+  that a residue decides, in a nudged run: it clears a film. The text now says what the
+  probe reads and what it does not, gives the round's counts as the round's, and says
+  that the step at which a run parts is not the first at which the two runs differ
+  (§3.4; §6).
+- "The clamp and the crystal take the volume of every later zone from it" was true of
+  the lines it cited and implied an effect that no run shows. The round measured it (not
+  committed): the habit's aspect ratio is another on two of the ten crystals, and after
+  its first such zone neither of the two grows by more than 5 × 10⁻⁸ µm. What the order
+  of the code does is size the residue under the old habit and store it under the new,
+  as in the fifth note's overshoot. The text now says that, and that no run followed a
+  habit into a later zone (§3.4).
+- Cut, as the round suggested: the paragraph of rates (how often a full pocket hands out
+  its last room at its first full step and after it), which the probe still prints and
+  decision 7 does not use; the sentences on the simulator's 5 µm floor; and the
+  sixteenth round's floor by a wrapper, which its own block above records (§3.4).
+- Smaller: the banner still said "the enclosure test that has no floor"; the bounded
+  vug "seals at step 97 to 99" stood in three places, where 97 to 99 is the first step
+  at a fill of 0.999 and the round found the seal latching a step later at two seeds
+  (its run, not committed), so those now say "is full"; in decision 7 "such a zone
+  licenses" followed "or to nothing", "each on a step at which the loop handed out its
+  last room" is in one run or the other (the shipped run has such a zone at 35 of the
+  53), and "left none" had lost its test and its four factors; "was not previewed"
+  stood without "in a committed run" in two places; three counts of 53 stood within
+  sixty lines and two of 151, which are now told apart (139 of the 151 positive zones
+  of the last room are residues); "residue" was used before it was defined, and its
+  nine units are the shipped runs'; "each of the 23 is on a crystal of 24 µm or less"
+  is of the crystal that differs most; the comparison of a pair does not read the
+  mineral a crystal has become; the acceptance test also takes a zone of no thickness
+  that marks a change of state; the bound probe's header cited two sections that do not
+  cite it; and the timing given for the `--vug` run left out a probe it overlapped. The
+  round also found, outside this commit, that the quartz engine caps a quartz's
+  radiation damage where the block that adds to it does not (§3.4, the note on metamict
+  crystals).
 
 ## References
 

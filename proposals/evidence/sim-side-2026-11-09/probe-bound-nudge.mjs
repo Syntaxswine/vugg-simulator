@@ -2,7 +2,8 @@
 /**
  * probe-bound-nudge.mjs — SC1's previewed bound under a nudge, in gem_pegmatite's own cavity and
  * at the vug setting of Simulation mode's form
- * (proposals/REVIEW-SIMULATION-SIDE-2026-11-09.md §3.4, the sixth note; §4, SC1; §6, decision 1).
+ * (proposals/REVIEW-SIMULATION-SIDE-2026-11-09.md §3.4, the sixth note, which cites it; the
+ * readings it puts to a nudge are those of §4, SC1 and §6, decision 1).
  *
  * The sixth note of §3.4 finds that a pocket which is full hands the next crystal whatever room is
  * left, and that a nudge of one part in 10^13 can then move a run. The readings this document
