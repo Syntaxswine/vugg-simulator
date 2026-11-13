@@ -395,7 +395,7 @@ fill read as
 wrappers (§3.4); what the engines of two crystals read on their cells at one step
 (§3.4); more of a crystal's record than a probe here reads, compared between a nudged
 run and the shipped one (§3.4); a film that a residue clears in one nudged run (§3.4);
-and two runs' crystals paired by a key with no place in it (trap 22). No
+and two runs' crystals paired by a key with no cell of the wall in it (trap 22). No
 recommendation of §4 rests on one of them. The predictions of which census controls SC2
 and SC3 flip do, and so does the direct evidence that the walls of v160 held no radiogenic
 lead.
@@ -3435,7 +3435,7 @@ without a control (§1 lists them) stays labelled as one.
     them, as getters that a listing of its keys does not show
     (`js/23c-geometry-surface-anchor.ts:222`), and the fault was the report's. Read the
     value, not the list of names. A count that will not fit is a finding to open and not
-    a remainder to explain: a key with no place in it had made 75 pairs where the
+    a remainder to explain: a key with no cell of the wall in it had made 75 pairs where the
     round's own key made 74 (a scratch run, not committed), and that was the sign.
 23. **One scenario has no pocket to fill.** `great_salt_plains` authors an open system, and
     the step reads its fill as 0: it is never dampened for fill and never sealed
@@ -4134,12 +4134,12 @@ The twelve steps of `npm run ci` that precede the tests pass on this tree, and s
 `npm run audit:evidence`. They read the tree as it is and say nothing about the changes proposed
 here; §4 says what each change would do to three of them. **The full suite** (`npm run ci` with
 its tests, two hours and more on this machine) is not part of this commit's evidence, and
-it has not been run on this tip. It was last run four commits back, on `db5dd3df`, and
+it has not been run on this tip. It was last run five commits back, on `db5dd3df`, and
 passed: 303 test files in 303 batches, one uninterrupted pass under
 `node tools/cold-ci.mjs`, in 9,501 s on a machine that other work shared. It passed the
 same way on `c08c9d47`, in 7,955 s. Both are local results, and a comment on the pull
-request gives each in full. This commit and the three before it, `72c6d7a8`, `87ec532b`
-and `1a6cd00a`, change files under `proposals/` only. The
+request gives each in full. This commit and the four before it, `72c6d7a8`, `87ec532b`,
+`1a6cd00a` and `768c08e2`, change files under `proposals/` only. The
 suite is to be run again on the final tip of the branch, and its verdict recorded in
 another comment there. The repository's chip
 selector (`tools/test-chip-check.mjs`) has none of this change's paths in its authored map, so it
