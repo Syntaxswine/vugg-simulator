@@ -171,7 +171,7 @@ sets out and §6 puts to the owner.
   millimetre in a Zen run of the scenario, whose pocket is full by step 200, and one of 21
   to 23 mm in a Zen run of `schneeberg`.
 
-**This document has been corrected twenty times, each time by its own review round.** The first
+**This document has been corrected twenty-one times, each time by its own review round.** The first
 version said supply does not bind. The second costed the recommended fixes too lightly. The third
 counted a crystal that had dissolved away as still present, and recommended a lead mechanism that
 cannot work. The fourth left out a gate that the recommended change trips, and put two coupled
@@ -253,6 +253,11 @@ The twentieth round reviewed the two commits that answered the nineteenth, and f
 nothing that had to be fixed. It found three counts that should be: one given by one
 route where a habit has another, one that said more than its test shows, and one of
 edited probes that was one short.
+The twenty-first round reviewed the two commits that answered the twentieth, and found
+nothing that had to be fixed. It found three things that should be: a case given without
+its cause, where the cause was a zone that a full pocket had dropped; differences
+counted that are far under this document's own measure of one; and sentences left on the
+pull request that the document had withdrawn.
 §9 lists every correction.
 
 ## 1. What was run
@@ -388,7 +393,7 @@ number was checked against that round's output file, and it cannot be reproduced
 committed tree: a reader has this document's word for it. In §1 to §8 each such statement
 says *not committed* where it stands. §9 lists what each round found, and the runs it
 cites there are the rounds' own unless an entry says a probe here now makes them. They are
-of twenty-two kinds: copies of the census that over-count
+of twenty-four kinds: copies of the census that over-count
 (above; trap 21); copies of the census with a proposed change installed (§4, SC2 and SC3;
 trap 5; §7); a run of the agent API's fluid preset (§3.3); `schneeberg` opened in Creative
 mode (§6, decision 3; §7); a looser clamp tried against an earlier acceptance line for Zen
@@ -407,8 +412,11 @@ two runs' crystals paired by a key with no cell of the wall in it (trap 22); the
 that a zone which changes a habit is stored with, and the fill read after it (§3.4); the
 same runs with such a zone stored under the habit the clamp had read, or with that habit
 withheld (§3.4); what the simulator's log says of an acid wash, in those runs and in the
-scenario's own cavity (§3.4); and two runs' zones paired by their step, with what a
-listing of a crystal's record leaves out (§3.4). No recommendation of §4 rests on one of
+scenario's own cavity (§3.4); two runs' zones paired by their step, with what a listing
+of a crystal's record leaves out (§3.4); the sizes of what differs there, and the wall's
+dissolved depths in a nudged run against the shipped one (§3.4); and a fluorite followed
+step by step through a full pocket, with what its engine wrote at each step and whether
+the crystal took it (§3.4). No recommendation of §4 rests on one of
 them. The predictions of which census controls SC2 and SC3 flip do, and so does the direct
 evidence that the walls of v160 held no radiogenic lead.
 
@@ -1801,20 +1809,37 @@ feldspar's zone and the opal's were both accepted with the fill one unit under 1
 
 That two is the count by the volume a zone is stored with, which is all the nineteenth
 round's wrapper changes. A habit is also read as a habit. The twentieth round made the
-eight runs again with the staged habit taken off the crystal at each of the 15 zones
-(not committed; run again here, line for line), and by the test of size, flag and host a
-third run then ends otherwise. `reactivated_fluorite_vein` washes its fluorite with acid
-at step 118 (`data/scenarios.json5:670`), and the etch has a rate for a fluorite whose
-habit is cubic and for no other (`js/44d-physical-dissolution.ts:149`). At the vug, at
-seed 2, a fluorite of 3.37 mm is a hopper cube from step 61 until step 120, on a residue
-of 4.1 × 10⁻¹⁰ µm, and the wash takes nothing off it. With the habit withheld the wash
-takes 0.26 µm off it, and a calcite encloses it a step earlier. A wash that etches
-nothing is no rarity in that scenario. In its own cavity the fluorite is a stepped cube
-by step 118 at the three seeds and the wash takes nothing off it (a scratch run, not
-committed); a test pins the stepped cube at seed 42, and the etch's refusal of it
-(`tests-js/etch-overprint.test.ts:48`, `:54`). At the vug, by the twentieth round's run
-(not committed), it is cubic at seed 1 and is etched, and at seed 42 it is a hopper cube
-from an ordinary zone. No search was made for other readers of a habit.
+eight runs again with the staged habit taken off the crystal at each such zone, 13 in
+those runs (not committed; run again here, line for line), and by the test of size, flag
+and host a third run then ends otherwise. `reactivated_fluorite_vein` washes its
+fluorite with acid at step 118 (`data/scenarios.json5:670`), and the etch has a rate for
+a fluorite whose habit is cubic and for no other, on purpose: the rate was measured on a
+flat face (`js/44d-physical-dissolution.ts:146`, `:149`). At the vug, at seed 2, a
+fluorite of 3.37 mm is a hopper cube from step 61 until step 120, on a residue of 4.1 ×
+10⁻¹⁰ µm, and the wash takes nothing off it. With the habit withheld the wash takes 0.26
+µm off it, and a calcite encloses it a step earlier.
+
+A wash that etches nothing is no rarity in that scenario, and no fault of it. In its own
+cavity the fluorite is a stepped cube by step 118 at the three seeds and the wash takes
+nothing off it (a scratch run, not committed). The scenario's notes say so of seed 42
+(`data/scenarios.json5:606`), and a test pins it there
+(`tests-js/etch-overprint.test.ts:144`, `:145`). What the vug adds is the step at which
+the pocket fills. The twenty-first review round followed the fluorite step by step at
+the three seeds (not committed; run again here, line for line). The scenario's second
+pulse is at step 60, and at the vug the engine writes a hopper cube on the fluorite with
+each zone it proposes from step 61 to step 117 (`js/53-engines-halide.ts:91`). The
+crystal takes what an engine writes only with a zone that is accepted
+(`js/85b-simulator-nucleate.ts:89`). At seed 42 the pocket reads full from step 63, and
+the habit came at step 61 with an ordinary zone of 10.1 µm. At seed 2 it reads full from
+step 62, and the habit came with the residue. At seed 1 it reads full from step 61: the
+loop hands the fluorite nothing at each of those 57 steps (`js/85-simulator.ts:705`),
+the habit never reaches it, and the wash takes 0.26 µm off the cube that is left. So in
+a shipped run a zone that was dropped decides the same wash, the other way, and the
+counts of this note do not hold it: the probes here read the zones that the loop accepts
+or cuts under a fill of 1, and not the ones it drops at a fill of 1. The withheld habit
+rests on the same thing. In that run the engine writes the habit again at each of the 56
+steps from 62 to 117, and the full pocket drops it each time. No count was made of what
+a full pocket drops elsewhere, and no search for other readers of a habit.
 
 Under the four factors on every engine, a size or the bulk fluid differs from the
 shipped run in 51 of the 492 nudged runs at that setting, at 20 of the 123
@@ -1884,17 +1909,29 @@ levels, numbers to a billionth of themselves. It leaves out the wall anchor and,
 zone, everything but its thickness, and a listing does not show every field a crystal
 holds. The twentieth round read those too (not committed; run again here, line for
 line): a zone's other fields, the anchor, and the one field it found that no listing
-shows, a quartz's history of its forms. 8 of the 18 differ there, each in a zone's
-`_remaining_solid_um`, and one of the 8, `bisbee`'s, also in the signatures of the wall
-that nine of its crystals' anchors carry. Of the 55 that part, 18 differ in a zone count
-before the step at which they part, none of them before the pocket first reads full. By
-field, the eighteenth round's output has these differing from the shipped run's in a run
-that does not part, or before one parts: a crystal's zones, in their number or their
-thickness; its habit, forms and twin; its polymorph; its radiation damage; its
-late-interlocking flag; a film on it; its stored volume; the place of a phantom surface
-among its zones; and what an enclosure's receipt gives as the guest's recent growth. So
-the step at which a run parts here is the first at which a size, a flag or a host shows
-a difference. It is not the first at which the two runs differ.
+shows, a quartz's history of its forms. 8 of the 18 differ there, and the twenty-first
+round sized what differs (not committed; run again here, line for line). It is 17 zones'
+record of the solid left to them, `_remaining_solid_um`, each on a crystal that has
+dissolved away in both runs. The values are nothing to 1.6 × 10⁻¹³ µm, on zones 5.5 to
+67 µm thick, and they count as differing because the comparison is to a billionth of the
+value itself. In `bisbee`'s run of the 8, nine crystals' anchors also carry another
+digest of the wall's dissolved depths
+(`js/23d-geometry-cavity-production-authority.ts:222`). Those depths differ from the
+shipped run's from the second step on, by 2 × 10⁻¹⁶ mm at most at the end of the run,
+and the anchors' points are the same. Set against the zone's thickness and the wall's
+depth, both are far under the billionth by which this note counts a size as differing.
+The thicknesses that differ are small as well: of the 84,323 zones that the 53 runs hold
+at the same step as the shipped run, 30 are of another thickness, the thickest 3.5 ×
+10⁻⁹ µm, and 22 zones are held by one run alone (the twentieth round's count). Of the 55
+that part, 18 differ in a zone count before the step at which they part, none of them
+before the pocket first reads full. By field, the eighteenth round's output has these
+differing from the shipped run's in a run that does not part, or before one parts: a
+crystal's zones, in their number or their thickness; its habit, forms and twin; its
+polymorph; its radiation damage; its late-interlocking flag; a film on it; its stored
+volume; the place of a phantom surface among its zones; and what an enclosure's receipt
+gives as the guest's recent growth. So the step at which a run parts here is the first
+at which a size, a flag or a host shows a difference. It is not the first at which the
+two runs differ.
 
 How far apart they end was read on the crystals the two runs share: those born in both
 as the same mineral, at the same step, in the same place, which is the wall or the same
@@ -3497,7 +3534,8 @@ without a control (§1 lists them) stays labelled as one.
     value, not the list of names. A count that will not fit is a finding to open and not
     a remainder to explain: a key with no cell of the wall in it had made 75 pairs (a
     scratch run, not committed) where the seventeenth round's key had made 74 (its own
-    output), and that was the sign.
+    output, not committed either; `probe-vug-parting.txt` has the same 74), and that was
+    the sign.
     The nineteenth version answered a sentence that implied too much with one that denied
     too much. It wrote that no run had followed a habit set by a residue into a fill, of a
     run it had itself made again, whose header says that it reads the fill. Before
@@ -3676,7 +3714,9 @@ without a control (§1 lists them) stays labelled as one.
    two of the eight shipped runs that hold the ten, the new habit moves the fill at
    which the next crystal is let through, and another crystal ends otherwise for it. In
    a third it keeps `reactivated_fluorite_vein`'s acid wash from etching the fluorite
-   that carries it (three review rounds' runs, not committed; §3.4). Four nudges of a
+   that carries it. At seed 1 of that scenario the pocket fills a step sooner, the same
+   habit reaches no zone, and the wash does etch: a zone that a full pocket drops
+   decides it as well (four review rounds' runs, not committed; §3.4). Four nudges of a
    part in 10¹³ or less move 51 of 492 runs there, in nine scenarios, in a size or in
    the bulk fluid. In the eight whose pocket fills, 53 of the 96 nudged runs part from
    the shipped one at some step, each on a step at which the loop handed out its last
@@ -4205,24 +4245,26 @@ so what changed in it cannot be shown. The twentieth review round found it by th
 times. It was run again on this tree, and its output came back byte for byte. By the
 files' times, no other probe in the folder is newer than the run that made an output of
 its own, where a run's time is the last write of its log, or of its output where no log
-was kept.
+was kept. Neither the logs nor the files' times are in the tree.
 
 The twelve steps of `npm run ci` that precede the tests pass on this tree, and so does `npm run
 audit:evidence`. They read the tree as it is and say nothing about the changes proposed here; §4
 says what each change would do to three of them. **The full suite** (`npm run ci` with its tests,
 two hours and more on this machine) is not part of this commit's evidence, and it has not been run
-on this tip. It was last run one commit back, on `346dd818`, and passed: 303 test files in 303
+on this tip. It was last run two commits back, on `346dd818`, and passed: 303 test files in 303
 batches, one uninterrupted pass under `node tools/cold-ci.mjs`, in 7,585 s. It passed the same way
 on `db5dd3df`, in 9,501 s on a machine that other work shared, and on `c08c9d47`, in 7,955 s. All
-three are local results, and a comment on the pull request gives each in full. This commit changes
-files under `proposals/` only, as did the eight that followed `db5dd3df`, the last of them
-`346dd818`. The suite is to be run again on the final tip of the branch, and its verdict recorded in
-another comment there. The repository's chip selector (`tools/test-chip-check.mjs`) has none of this
-change's paths in its authored map, so it offers no bounded test set for it; its own answer for such
-a change is a full check. Nothing under `js/`, `data/` or `tests-js/` is changed, and no test was
-added. No test names the three documents, the five scripts or the evidence folder of this change, by
-a search of `tests-js/`. The suite does fingerprint the tree it ran on, `proposals/` and `tools/`
-included (`tools/test-workflow.mjs:67`, `:105`), so these files are in that fingerprint.
+three are local results, and a comment on the pull request gives each in full. This commit and the
+one before it, `b4ff9849`, change files under `proposals/` only, as did the eight that followed
+`db5dd3df`, the last of them `346dd818`. The suite is to be run again on the final tip of the
+branch, and its verdict recorded in another comment there. The repository's chip selector
+(`tools/test-chip-check.mjs`) has none of this change's paths in its authored map, so it offers no
+bounded test set for it; its own answer for such a change is a full check. Nothing under `js/`,
+`data/` or `tests-js/` is changed, and no test was added. No test names the three documents, the
+five scripts or the evidence folder of this change, by a search of `tests-js/`; one test lists the
+tree's files by name and opens none of them (`tests-js/test-workflow.test.ts:113`). The suite itself
+reads every file of the tree, but for seven folders and its own stamp, to fingerprint the tree it
+ran on (`tools/test-workflow.mjs:67`, `:119`), so these files are in that fingerprint.
 
 ## 9. Corrections to earlier versions
 
@@ -5248,8 +5290,9 @@ twentieth review round was limited to those two commits, which changed text alon
 ran two of the earlier rounds' probes and one committed probe again and got their
 outputs back line for line, re-added the totals, checked the source lines cited, and
 made probes of its own. It found nothing that had to be fixed, three things that should
-be, and some smaller things. The corrections below were made after that round, and no
-round has reviewed them.
+be, and some smaller things. The corrections below were made after that round, in
+commits `346dd818` and `b4ff9849`, which the twenty-first round then reviewed (the next
+block).
 
 - "In two of the eight shipped runs" a habit that a residue brings decides another
   crystal's outcome: that is the count by the volume the zone is stored with, the one
@@ -5259,8 +5302,8 @@ round has reviewed them.
   `reactivated_fluorite_vein` at seed 2 the acid wash of step 118 etches a fluorite
   that the shipped run leaves whole, because the etch has a rate for a cubic fluorite
   alone and a residue had made this one a hopper cube. The text now says which route
-  the two is counted by, gives the third run, and says that no search was made for
-  other readers of a habit (§3.4; §6, decision 7).
+  the two is counted by and gives the third run (§3.4; §6, decision 7), and says that no
+  search was made for other readers of a habit (§3.4).
 - "35 end with some zone of another thickness" said more than the eighteenth round's
   probe shows. It pairs a crystal's zones by their place in the list, so a list that is
   one zone longer sets that field by itself. By its output 12 of the 35 end with a
@@ -5307,11 +5350,61 @@ round has reviewed them.
   size, flag and host; in the habit itself all eight end otherwise, the habit being what
   was withheld. It gave the files' times without saying what a run's time is. The third
   entry above said "was six" of probes whose comment lines had been edited, where what
-  was edited in the sixth cannot be shown. And §8 said "No file the suite reads is
-  changed", as the document had since its first commit: the suite fingerprints the whole
-  tree it ran on, and what holds is that nothing under `js/`, `data/` or `tests-js/` is
-  changed and that no test names a document, a script or the evidence folder of this
-  change.
+  was edited in the sixth cannot be shown. The message of `346dd818` says "was six" too.
+  Two wordings of the entry on smaller things were put right as well: the loop has two
+  tests that lead to the one line that sets the flag, and it takes two sentences to give
+  the inference back. And §8 said "No file the suite reads is changed", as the document
+  had since its first commit: the suite fingerprints the tree it ran on, all but seven
+  folders and its stamp, and what holds is that nothing under `js/`, `data/` or
+  `tests-js/` is changed and that no test names a document, a script or the evidence
+  folder of this change.
+
+**Corrections to the twenty-first version** (commits `346dd818` and `b4ff9849`). Its
+twenty-first review round was limited to those two commits, which changed text alone. It
+ran two of the twentieth round's probes whole, a third for three of its nine scenarios,
+and one committed probe again and got their outputs back line for line, re-added the
+totals, checked the source lines cited, and made probes of its own. It found nothing
+that had to be fixed, three things that should be, and some smaller things. The
+corrections below were made after that round, and no round has reviewed them.
+
+- "At the vug ... it is cubic at seed 1 and is etched, and at seed 42 it is a hopper cube
+  from an ordinary zone" gave the etch at seed 1 without its cause, and the cause
+  belongs to this note. The round followed the fluorite step by step (not committed; run
+  again here, line for line). At the vug the engine writes a hopper cube with each zone
+  it proposes from step 61 to step 117. At seed 1 the pocket reads full from step 61,
+  the loop drops the zone at each of those 57 steps, the habit never reaches the
+  crystal, and the wash etches a cube. The run with the habit withheld rests on the same
+  thing: the engine writes the habit again at each of the 56 steps from 62 to 117, and
+  the full pocket drops it. So a zone that is dropped decides that wash as well, in a
+  shipped run that is not among the eight, and no count of this note holds it. The text
+  now says so (§3.4; §6, decision 7).
+- "8 of the 18 differ there, each in a zone's `_remaining_solid_um`, and one of the 8,
+  `bisbee`'s, also in the signatures of the wall" counted differences that are far under
+  the billionth by which this note counts a size as differing. The round sized them (not
+  committed; run again here, line for line): 17 zones on crystals that have dissolved
+  away in both runs, with values of nothing to 1.6 × 10⁻¹³ µm, and a digest of wall
+  depths that differ by 2 × 10⁻¹⁶ mm. The text now gives the sizes and why they count,
+  and the size of the thicknesses that differ, which the twentieth round had given and
+  the text had not taken (§3.4).
+- The pull request's comments and description carried sentences that the commit before
+  this one had withdrawn from the document, among them "No file the suite reads is
+  changed" in both earlier comments on the suite. They are corrected there.
+- Smaller: "at each of the 15 zones" is 13 in the runs with the habit withheld, which
+  differ from the shipped runs after the first such zone and have other such zones. The
+  etch's refusal of a hopper cube is on purpose, which the text did not say. The test
+  lines cited for the stepped cube were a directive that the test calls by hand at step
+  117, and the lines now cited are the scenario's own wash at step 118. §8 did not say
+  that neither the logs nor the files' times are in the tree, or that one test lists the
+  tree's files by name, and the block above said "the whole tree" of a fingerprint that
+  leaves out seven folders and the stamp. Trap 22 gave the seventeenth round's 74 pairs
+  as its own output without saying that it is not committed. The first entry of the
+  block above cited decision 7 for a sentence that §3.4 alone has. The last entry of
+  that block left out two wordings it had changed, and that the message of `346dd818`
+  repeats "was six".
+- Not taken up: a count of the habits that a full pocket drops in the other scenarios;
+  and a comment in `data/scenarios.json5` (lines 613 to 615), which says that the broth
+  keeps seed 42 off a stepped surface, where the scenario's own note (line 606) and the
+  test say that it does not. That file is not this change's to edit.
 
 ## References
 
