@@ -1,0 +1,87 @@
+[scenarios] loaded 41 from ./data/scenarios.json5
+[spec] loaded 184 minerals from ./data/minerals.json
+[thermo] loaded 15 carbonate entries from ./data/thermo-carbonates.json
+[thermo] loaded 4 sulfate entries from ./data/thermo-sulfates.json
+[narratives] loaded 94 species
+probe-appearance-contract — SIM 286; the locality gate's four tiers on the seed panel 1, 2, 42, read from the A/B outputs in this folder
+
+ab-clamp-values-13-scenarios.json
+  rclamp=11                gem_pegmatite            introduces: aspirational topaz appears in 3 of 3 seeds
+  rclamp=23                gem_pegmatite            introduces: aspirational topaz appears in 3 of 3 seeds
+  rclamp=47                no tier clash introduced, changed or removed in any of its 13 scenarios
+
+ab-feldspar-13-scenarios.json
+  cap=8                    gem_pegmatite            introduces: aspirational topaz appears in 3 of 3 seeds
+  rclamp=7                 gem_pegmatite            introduces: aspirational topaz appears in 3 of 3 seeds
+  fcap=2                   chiastolite_hornfels     introduces: deterministic feldspar appears in 0 of 3 seeds; deterministic albite appears in 0 of 3 seeds
+  fcap=2                   deccan_zeolite           introduces: deterministic feldspar appears in 0 of 3 seeds
+  fcap=2                   gem_pegmatite            introduces: aspirational topaz appears in 3 of 3 seeds
+  fcap=2                   grimsel_alpine_cleft     introduces: deterministic feldspar appears in 0 of 3 seeds; deterministic albite appears in 0 of 3 seeds
+  root=3                   gem_pegmatite            introduces: aspirational topaz appears in 3 of 3 seeds
+
+ab-gem-boron.json
+  mul=B:10                 no tier clash introduced, changed or removed in gem_pegmatite
+  mul=B:0.5                no tier clash introduced, changed or removed in gem_pegmatite
+  mul=B:0.25               no tier clash introduced, changed or removed in gem_pegmatite
+  cap=8,mul=B:10           gem_pegmatite            introduces: aspirational topaz appears in 3 of 3 seeds
+  cap=8,mul=B:0.5          gem_pegmatite            introduces: aspirational topaz appears in 3 of 3 seeds
+
+ab-gem-broth.json
+  mul=SiO2:0.1,mul=Al:0.15 gem_pegmatite            introduces: aspirational topaz appears in 3 of 3 seeds
+  mul=SiO2:0.15,mul=Al:0.15 gem_pegmatite            introduces: aspirational topaz appears in 3 of 3 seeds
+
+ab-gem-clamp-sensitivity.json
+  rclamp=3                 gem_pegmatite            introduces: aspirational topaz appears in 3 of 3 seeds
+  rclamp=7                 gem_pegmatite            introduces: aspirational topaz appears in 3 of 3 seeds
+  rclamp=11                gem_pegmatite            introduces: aspirational topaz appears in 3 of 3 seeds
+  rclamp=15                gem_pegmatite            introduces: aspirational topaz appears in 3 of 3 seeds
+  rclamp=23                gem_pegmatite            introduces: aspirational topaz appears in 3 of 3 seeds
+  rclamp=47                no tier clash introduced, changed or removed in gem_pegmatite
+  cap=4                    gem_pegmatite            introduces: aspirational topaz appears in 3 of 3 seeds
+  cap=8                    gem_pegmatite            introduces: aspirational topaz appears in 3 of 3 seeds
+  cap=12                   gem_pegmatite            introduces: aspirational topaz appears in 3 of 3 seeds
+  cap=16                   gem_pegmatite            introduces: aspirational topaz appears in 3 of 3 seeds
+  cap=24                   gem_pegmatite            introduces: aspirational topaz appears in 3 of 3 seeds
+  cap=48                   no tier clash introduced, changed or removed in gem_pegmatite
+
+ab-gem-factor-caps-root.json
+  fcap=2                   gem_pegmatite            introduces: aspirational topaz appears in 3 of 3 seeds
+  root=3                   gem_pegmatite            introduces: aspirational topaz appears in 3 of 3 seeds
+
+ab-pegmatites-rind-clamp.json
+  rind=5000                gem_pegmatite            introduces: aspirational topaz appears in 3 of 3 seeds
+  cap=8                    gem_pegmatite            introduces: aspirational topaz appears in 3 of 3 seeds
+  rclamp=7                 gem_pegmatite            introduces: aspirational topaz appears in 3 of 3 seeds
+
+ab-quartz-also-clamped.json
+  cap=8                    radioactive_pegmatite    introduces: aspirational autunite appears in 3 of 3 seeds
+  cap=8                    gem_pegmatite            introduces: aspirational topaz appears in 3 of 3 seeds
+
+ab-radiogenic-lead-open-pocket.json
+  cap=8                    radioactive_pegmatite    introduces: aspirational autunite appears in 3 of 3 seeds
+  cap=8,pb                 radioactive_pegmatite    introduces: aspirational autunite appears in 3 of 3 seeds
+  cap=8,nopb               radioactive_pegmatite    introduces: aspirational autunite appears in 3 of 3 seeds
+
+ab-radiogenic-lead.json
+  pb                       no tier clash introduced, changed or removed in any of its 2 scenarios
+  nopb                     no tier clash introduced, changed or removed in any of its 2 scenarios
+
+ab-rate-on-excess.json
+  excess=1                 no tier clash introduced, changed or removed in any of its 8 scenarios
+  excess=3                 roughten_gill            introduces: deterministic mottramite appears in 2 of 3 seeds
+
+ab-reactive-wall-trace.json
+  excess=1                 no tier clash introduced, changed or removed in reactive_wall
+
+ab-refund-seed-1.json — run at one seed: skipped
+
+ab-refund-seed-2.json — run at one seed: skipped
+
+ab-refund-seed-42.json — run at one seed: skipped
+
+ab-rind-13-scenarios.json
+  rind=5000                gem_pegmatite            introduces: aspirational topaz appears in 3 of 3 seeds
+
+arms read: 44; arms that introduce, change or remove no tier clash: 13
+products that no tier and no exclusion of their scenario names, under any arm or as shipped: none
+tier clashes this reading finds in the SHIPPED arm (the gate passes today, so each is something a record at run end cannot show): bisbee: deterministic argentite appears in 0 of 3 seeds; porphyry: deterministic argentite appears in 0 of 3 seeds; schneeberg: deterministic argentite appears in 0 of 3 seeds; schneeberg: deterministic torbernite appears in 0 of 3 seeds; schneeberg: deterministic zeunerite appears in 1 of 3 seeds

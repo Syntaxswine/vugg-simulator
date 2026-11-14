@@ -1,0 +1,45 @@
+sim-side A/B — SIM 286; arms cap=8 | cap=8,pb | cap=8,nopb; minerals feldspar, albite, quartz; seeds 42, 1, 2
+self-check on schneeberg, seed 42: shipped arm reproduces the baseline; neutral knobs — rind=Infinity ok; cap=Infinity ok; rclamp=Infinity ok; root=1 ok; mul=Ca:1 ok; refund=0 ok
+
+### radioactive_pegmatite — 120 steps — events: 20 Pegmatite Crystallization | 50 Deep Time | 80 Oxidizing Fluids | 100 Final Cooling
+seed 42 (shipped arm reproduces the baseline)
+  A shipped        fill 100.0 % (largest 100.0 % at step 61; first >= 0.7 at step 37)  full at step  61  last growth at step  80  Pb bulk 146.8 / voxel mean 30.00  uraninite negative zones 3
+      albite ×2 @ 61.4 (→61), feldspar ×2 @ 50.2 (→80), morganite ×4 @ 14.3 (→61), quartz ×3 @ 11.2 (→80), uraninite ×3 @ 6.9 (→61), tourmaline ×8 @ 2.6 (→49), spodumene ×4 @ 2.0 (→49), lepidolite ×6 @ 0.883 (→49), topaz ×3 @ 0.175 (→49), cassiterite ×5 @ 0.141 (→47)
+      no solid left: opal (5 records), plumbogummite (2 records)
+  B cap=8          fill  12.7 % (largest 12.7 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120  Pb bulk 312.6 / voxel mean 30.00  uraninite negative zones 123
+      morganite ×4 @ 23.4 (→79), quartz ×3 @ 17.9 (→93), albite ×2 @ 16.9 (→120), feldspar ×2 @ 12.3 (→120), uraninite ×3 @ 11.5 (→79), tourmaline ×8 @ 2.9 (→49), spodumene ×4 @ 2.1 (→49), opal ×5 @ 1.8 (→120), lepidolite ×4 @ 1.1 (→49), topaz ×4 @ 0.237 (→49), cassiterite ×5 @ 0.159 (→49), autunite ×4 @ 0.061 (→120), plumbogummite ×3 @ 0.006 (→111)
+      against A: 13 species present in either arm; moved 7 (albite, feldspar, lepidolite, morganite, quartz, topaz, uraninite); gained autunite, opal, plumbogummite; lost none; the baseline summary differs
+  B cap=8,pb       fill  12.7 % (largest 12.7 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120  Pb bulk 312.5 / voxel mean 312.47  uraninite negative zones 123
+      morganite ×4 @ 23.3 (→79), quartz ×3 @ 17.9 (→93), albite ×2 @ 17.1 (→120), feldspar ×2 @ 12.2 (→120), uraninite ×3 @ 11.5 (→79), tourmaline ×8 @ 2.9 (→49), spodumene ×4 @ 2.1 (→49), opal ×5 @ 1.8 (→120), lepidolite ×4 @ 1.1 (→49), plumbogummite ×3 @ 0.710 (→120), topaz ×4 @ 0.237 (→49), cassiterite ×5 @ 0.159 (→49), autunite ×4 @ 0.056 (→120)
+      against A: 13 species present in either arm; moved 7 (albite, feldspar, lepidolite, morganite, quartz, topaz, uraninite); gained autunite, opal, plumbogummite; lost none; the baseline summary differs
+  B cap=8,nopb     fill  12.7 % (largest 12.7 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120  Pb bulk 30.0 / voxel mean 30.00  uraninite negative zones 123
+      morganite ×4 @ 23.4 (→79), quartz ×3 @ 17.9 (→93), albite ×2 @ 17.0 (→120), feldspar ×2 @ 12.2 (→120), uraninite ×3 @ 11.5 (→79), tourmaline ×8 @ 2.9 (→49), spodumene ×4 @ 2.1 (→49), opal ×5 @ 1.8 (→120), lepidolite ×4 @ 1.1 (→49), topaz ×4 @ 0.237 (→49), cassiterite ×5 @ 0.159 (→49), autunite ×4 @ 0.059 (→120), plumbogummite ×1 @ 0.006 (→107)
+      against A: 13 species present in either arm; moved 7 (albite, feldspar, lepidolite, morganite, quartz, topaz, uraninite); gained autunite, opal, plumbogummite; lost none; the baseline summary differs
+seed 1
+  A shipped        fill 100.0 % (largest 100.0 % at step 82; first >= 0.7 at step 31)  full at step  55  last growth at step  82  Pb bulk 127.7 / voxel mean 30.00  uraninite negative zones 6
+      feldspar ×2 @ 51.2 (→82), albite ×2 @ 49.5 (→82), morganite ×4 @ 16.8 (→55), quartz ×3 @ 9.8 (→82), uraninite ×3 @ 5.7 (→55), tourmaline ×9 @ 2.2 (→49), spodumene ×4 @ 1.5 (→49), lepidolite ×4 @ 0.537 (→49), cassiterite ×6 @ 0.145 (→43), topaz ×1 @ 0.077 (→39)
+      no solid left: opal (5 records), plumbogummite (3 records)
+  B cap=8          fill  11.3 % (largest 11.3 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120  Pb bulk 299.2 / voxel mean 30.00  uraninite negative zones 123
+      morganite ×4 @ 26.5 (→79), quartz ×3 @ 18.3 (→93), albite ×2 @ 16.8 (→120), feldspar ×2 @ 13.0 (→120), uraninite ×3 @ 11.1 (→79), tourmaline ×8 @ 2.8 (→49), spodumene ×4 @ 2.2 (→49), opal ×5 @ 1.8 (→120), lepidolite ×4 @ 0.921 (→49), topaz ×3 @ 0.291 (→49), cassiterite ×6 @ 0.182 (→49), autunite ×1 @ 0.047 (→120), plumbogummite ×3 @ 0.005 (→119)
+      against A: 13 species present in either arm; moved 10 (albite, cassiterite, feldspar, lepidolite, morganite, quartz, spodumene, topaz, tourmaline, uraninite); gained autunite, opal, plumbogummite; lost none; the baseline summary differs
+  B cap=8,pb       fill  11.2 % (largest 11.2 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120  Pb bulk 299.1 / voxel mean 299.12  uraninite negative zones 123
+      morganite ×4 @ 26.5 (→79), quartz ×3 @ 18.3 (→93), albite ×2 @ 16.7 (→120), feldspar ×2 @ 12.8 (→120), uraninite ×3 @ 11.1 (→79), tourmaline ×8 @ 2.8 (→49), spodumene ×4 @ 2.2 (→49), opal ×5 @ 1.8 (→120), lepidolite ×4 @ 0.921 (→49), plumbogummite ×3 @ 0.699 (→120), topaz ×3 @ 0.291 (→49), cassiterite ×6 @ 0.182 (→49), autunite ×1 @ 0.047 (→120)
+      against A: 13 species present in either arm; moved 10 (albite, cassiterite, feldspar, lepidolite, morganite, quartz, spodumene, topaz, tourmaline, uraninite); gained autunite, opal, plumbogummite; lost none; the baseline summary differs
+  B cap=8,nopb     fill  11.3 % (largest 11.3 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120  Pb bulk 30.0 / voxel mean 30.00  uraninite negative zones 123
+      morganite ×4 @ 26.5 (→79), quartz ×3 @ 18.3 (→93), albite ×2 @ 16.8 (→120), feldspar ×2 @ 13.0 (→120), uraninite ×3 @ 11.1 (→79), tourmaline ×8 @ 2.8 (→49), spodumene ×4 @ 2.2 (→49), opal ×5 @ 1.8 (→120), lepidolite ×4 @ 0.921 (→49), topaz ×3 @ 0.291 (→49), cassiterite ×6 @ 0.182 (→49), autunite ×1 @ 0.044 (→120), plumbogummite ×1 @ 0.003 (→107)
+      against A: 13 species present in either arm; moved 10 (albite, cassiterite, feldspar, lepidolite, morganite, quartz, spodumene, topaz, tourmaline, uraninite); gained autunite, opal, plumbogummite; lost none; the baseline summary differs
+seed 2
+  A shipped        fill 100.0 % (largest 100.0 % at step 59; first >= 0.7 at step 36)  full at step  59  last growth at step  94  Pb bulk 147.2 / voxel mean 30.00  uraninite negative zones 29
+      albite ×2 @ 59.9 (→94), feldspar ×2 @ 47.2 (→94), morganite ×4 @ 19.5 (→59), quartz ×3 @ 11.0 (→93), uraninite ×3 @ 6.6 (→59), tourmaline ×8 @ 2.0 (→49), spodumene ×4 @ 2.0 (→49), lepidolite ×6 @ 0.798 (→49), topaz ×4 @ 0.388 (→50), cassiterite ×5 @ 0.139 (→49)
+      no solid left: opal (5 records), plumbogummite (3 records)
+  B cap=8          fill  17.8 % (largest 17.8 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120  Pb bulk 287.9 / voxel mean 30.00  uraninite negative zones 123
+      morganite ×4 @ 27.5 (→79), quartz ×3 @ 18.6 (→93), albite ×2 @ 16.7 (→120), feldspar ×2 @ 12.0 (→120), uraninite ×3 @ 11.2 (→79), tourmaline ×8 @ 2.4 (→49), spodumene ×4 @ 2.2 (→49), opal ×5 @ 1.8 (→120), lepidolite ×4 @ 1.0 (→49), topaz ×4 @ 0.532 (→50), cassiterite ×4 @ 0.162 (→49), autunite ×3 @ 0.054 (→120), plumbogummite ×3 @ 0.005 (→117)
+      against A: 13 species present in either arm; moved 8 (albite, cassiterite, feldspar, lepidolite, morganite, quartz, topaz, uraninite); gained autunite, opal, plumbogummite; lost none; the baseline summary differs
+  B cap=8,pb       fill  17.8 % (largest 17.8 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120  Pb bulk 287.8 / voxel mean 287.82  uraninite negative zones 123
+      morganite ×4 @ 27.5 (→79), quartz ×3 @ 18.6 (→93), albite ×2 @ 16.7 (→120), feldspar ×2 @ 12.1 (→120), uraninite ×3 @ 11.2 (→79), tourmaline ×8 @ 2.4 (→49), spodumene ×4 @ 2.1 (→49), opal ×5 @ 1.8 (→120), lepidolite ×4 @ 1.0 (→49), plumbogummite ×3 @ 0.686 (→120), topaz ×4 @ 0.532 (→50), cassiterite ×4 @ 0.161 (→49), autunite ×3 @ 0.040 (→120)
+      against A: 13 species present in either arm; moved 8 (albite, cassiterite, feldspar, lepidolite, morganite, quartz, topaz, uraninite); gained autunite, opal, plumbogummite; lost none; the baseline summary differs
+  B cap=8,nopb     fill  17.8 % (largest 17.8 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120  Pb bulk 30.0 / voxel mean 30.00  uraninite negative zones 123
+      morganite ×4 @ 27.5 (→79), quartz ×3 @ 18.6 (→93), albite ×2 @ 16.7 (→120), feldspar ×2 @ 12.0 (→120), uraninite ×3 @ 11.2 (→79), tourmaline ×8 @ 2.4 (→49), spodumene ×4 @ 2.2 (→49), opal ×5 @ 1.8 (→120), lepidolite ×4 @ 1.0 (→49), topaz ×4 @ 0.532 (→50), cassiterite ×4 @ 0.162 (→49), autunite ×3 @ 0.056 (→120), plumbogummite ×1 @ 0.004 (→107)
+      against A: 13 species present in either arm; moved 8 (albite, cassiterite, feldspar, lepidolite, morganite, quartz, topaz, uraninite); gained autunite, opal, plumbogummite; lost none; the baseline summary differs
+
+audits: every arm run reads the simulator's audits as the shipped arm does

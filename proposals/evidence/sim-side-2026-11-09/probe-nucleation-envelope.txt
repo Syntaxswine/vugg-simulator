@@ -1,0 +1,50 @@
+[scenarios] loaded 41 from ./data/scenarios.json5
+[spec] loaded 184 minerals from ./data/minerals.json
+[thermo] loaded 15 carbonate entries from ./data/thermo-carbonates.json
+[thermo] loaded 4 sulfate entries from ./data/thermo-sulfates.json
+[narratives] loaded 94 species
+localized-nucleation envelope, SIM 286, seed 42 — pass-through wrappers on supersaturation_{feldspar, albite, quartz, galena, uraninite, molybdenite}
+scenario                               per-vertex  thermal field  passes with the envelope / steps   wrapped calls: under the envelope / envelope bypassed / no envelope
+amethyst_geode                              false          false             0 / 240                        0 /     194 /      843
+asbestos_hills_crack_seal                   false          false             0 / 110                        0 /      31 /      200
+asbestos_hills_surficial_alteration         false          false             0 / 120                        0 /      31 /      210
+bisbee                                      false          false             0 / 340                        0 /       8 /     2089
+chiastolite_hornfels                        false          false             0 / 120                        0 /     242 /      841
+colorado_plateau                            false          false             0 / 180                        0 /       0 /        0
+cooling                                     false          false             0 / 100                        0 /      89 /      364
+deccan_zeolite                              false          false             0 / 200                        0 /      65 /     1705
+elmwood                                     false          false             0 / 200                        0 /       0 /      200
+epithermal_telluride                        false          false             0 / 180                        0 /      73 /     2795
+gem_pegmatite                               false          false             0 / 230                        0 /      16 /     3901
+great_salt_plains                           false          false             0 / 250                        0 /       0 /        0
+grimsel_alpine_cleft                        false          false             0 / 200                        0 /      59 /     2619
+jeffrey_mine                                false          false             0 / 200                        0 /       5 /      443
+marble_contact_metamorphism                 false          false             0 / 180                        0 /       0 /        0
+mvt                                         false          false             0 / 120                        0 /     116 /      796
+naica_geothermal                             true          false            61 / 320                        0 /       0 /        0
+ouro_preto                                  false          false             0 / 260                        0 /      38 /     3437
+porphyry                                    false          false             0 / 120                        0 /      66 /     2187
+pulse                                       false          false             0 / 100                        0 /      11 /      149
+radioactive_pegmatite                       false          false             0 / 120                        0 /      23 /     2470
+reactivated_fluorite_vein                   false          false             0 / 160                        0 /      99 /      497
+reactive_wall                               false          false             0 / 120                        0 /      82 /      333
+roughten_gill                               false          false             0 / 240                        0 /      74 /     1829
+sabkha_dolomitization                       false          false             0 / 260                        0 /       0 /        0
+schneeberg                                  false          false             0 / 160                        0 /      19 /     2214
+searles_lake                                false          false             0 / 300                        0 /       0 /        0
+shigar_pegmatite                            false          false             0 / 70                         0 /      16 /     1174
+sicily_solfifera                            false          false             0 / 200                        0 /       0 /        0
+stalactite_demo                              true          false           100 / 100                        0 /       0 /        0
+sulphur_bank                                false          false             0 / 200                        0 /       0 /        0
+sunnyside_american_tunnel                   false          false             0 / 200                        0 /      59 /     1992
+supergene_oxidation                         false          false             0 / 200                        0 /       0 /        0
+tn457_barite_pulses                         false          false             0 / 110                        0 /       0 /        0
+tormiq_alpine_cleft                         false          false             0 / 200                        0 /      12 /     2209
+tutorial_first_crystal                      false          false             0 / 30                         0 /       8 /       51
+tutorial_mn_calcite                         false          false             0 / 30                         0 /       2 /       33
+tutorial_travertine                         false          false             0 / 60                         0 /       0 /        0
+ultramafic_supergene                        false          false             0 / 200                        0 /       0 /      200
+wittichen                                    true          false            51 / 220                        0 /       0 /        0
+zoned_dripstone_cave                         true          false           150 / 150                        0 /       0 /        0
+scenarios that installed the envelope: naica_geothermal, stalactite_demo, wittichen, zoned_dripstone_cave
+integrity: 41 of 41 runs reproduce tests-js/baselines/seed42_v286.json with the wrappers attached

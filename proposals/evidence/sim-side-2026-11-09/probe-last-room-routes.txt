@@ -1,0 +1,88 @@
+[scenarios] loaded 41 from ./data/scenarios.json5
+[spec] loaded 184 minerals from ./data/minerals.json
+[thermo] loaded 15 carbonate entries from ./data/thermo-carbonates.json
+[thermo] loaded 4 sulfate entries from ./data/thermo-sulfates.json
+[narratives] loaded 94 species
+probe-last-room-routes — SIM 286; 41 scenarios as shipped, each in its own cavity; seeds 42 / 1 / 2; time scale 5
+each line gives the three seeds. A zone is "in the last room" when the loop accepted it while its fill read under 1 by 1e-9 or less. "host" is an enclosure whose host layer of that step is under 0.000001 µm; "guest" one in which one or more of the guest's last three zones is from the last room and, those zones set aside, the guest has fewer than three zones or its last three add up to 3 µm or more
+each scenario is run in a process of its own, this probe started with --one and the scenario's name, 6 at a time
+
+  cooling                              first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 0 / 0 / 0, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  pulse                                first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 0 / 0 / 0, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  mvt                                  first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 34 / 48 / 50, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  elmwood                              first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 0 / 0 / 0, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  reactivated_fluorite_vein            first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 5 / 0 / 1, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  porphyry                             first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 3 / 9 / 4, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  marble_contact_metamorphism          first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 0 / 0 / 0, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  chiastolite_hornfels                 first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 0 / 0 / 0, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  reactive_wall                        first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 1 / 1 / 1, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  sabkha_dolomitization                first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 77 / 26 / 100, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  naica_geothermal                     first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 0 / 0 / 0, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  searles_lake                         first 1 to a billionth at step 134 / 186 / 189; zones in the last room 4 / 2 / 2, of them cut to nothing 0 / 0 / 0; enclosures 10 / 15 / 19, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  great_salt_plains                    first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 11 / 5 / 10, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  bisbee                               first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 56 / 60 / 50, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  supergene_oxidation                  first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 20 / 22 / 21, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  gem_pegmatite                        first 1 to a billionth at step 9 / 10 / 10; zones in the last room 1 / 1 / 1, of them cut to nothing 0 / 0 / 0; enclosures 1 / 1 / 1, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  shigar_pegmatite                     first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 0 / 0 / 0, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  ouro_preto                           first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 4 / 5 / 3, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  deccan_zeolite                       first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 2 / 2 / 5, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  radioactive_pegmatite                first 1 to a billionth at step 61 / 55 / 59; zones in the last room 1 / 8 / 7, of them cut to nothing 0 / 1 / 1; enclosures 19 / 14 / 18, host 0 / 3 / 2, with a last-room zone among the guest's last three 0 / 1 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  schneeberg                           first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 22 / 6 / 15, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  wittichen                            first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 3 / 4 / 2, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  tormiq_alpine_cleft                  first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 1 / 2 / 3, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  grimsel_alpine_cleft                 first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 10 / 4 / 5, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  colorado_plateau                     first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 0 / 0 / 0, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  tutorial_first_crystal               first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 0 / 0 / 0, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  tutorial_mn_calcite                  first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 0 / 0 / 0, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  tutorial_travertine                  first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 0 / 0 / 0, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  epithermal_telluride                 first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 1 / 4 / 1, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  ultramafic_supergene                 first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 3 / 0 / 2, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  stalactite_demo                      first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 0 / 0 / 0, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  zoned_dripstone_cave                 first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 0 / 0 / 0, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  sulphur_bank                         first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 0 / 3 / 7, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  sicily_solfifera                     first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 1 / 0 / 0, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  sunnyside_american_tunnel            first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 8 / 5 / 7, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  roughten_gill                        first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 11 / 14 / 12, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  jeffrey_mine                         first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 8 / 6 / 2, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  tn457_barite_pulses                  first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 0 / 0 / 0, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  amethyst_geode                       first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 0 / 0 / 0, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  asbestos_hills_crack_seal            first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 1 / 1 / 2, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+  asbestos_hills_surficial_alteration  first 1 to a billionth at step — / — / —; zones in the last room 0 / 0 / 0, of them cut to nothing 0 / 0 / 0; enclosures 1 / 2 / 1, host 0 / 0 / 0, with a last-room zone among the guest's last three 0 / 0 / 0, guest 0 / 0 / 0, host and guest 0 / 0 / 0
+
+914 enclosures in the 123 runs (313 / 259 / 342 at the three seeds)
+  host — on a host layer under 0.000001 µm: 5 (0 / 3 / 2), in radioactive_pegmatite (0 / 3 / 2)
+  with a last-room zone among the guest's last three: 1 (0 / 1 / 0), in radioactive_pegmatite (0 / 1 / 0)
+  guest — and the guest passes the simulator's two tests of its zones only for those: 0 (0 / 0 / 0), in none
+  guest, counting only zones accepted with the fill fewer than 100 units of its last binary place under 1: 0 (0 / 0 / 0), in none; of the 0 above, 0 have no other last-room zone among the guest's last three
+  host and guest: 0 (0 / 0 / 0); host or guest: 5 (0 / 3 / 2), in radioactive_pegmatite (0 / 3 / 2)
+  guest and not host: 0
+
+the 0 enclosures by the guest's zones:
+
+the 5 enclosures on a host layer under 0.000001 µm, the layer in units of the last binary place of the host's size in millimetres before it — 1: 3; 2: 2
+  radioactive_pegmatite, seed 1, step 81: feldspar #4 (43.01 mm) encloses uraninite #1 on 7.11e-12 µm, 1.000 units; the fill read 1 unit under 1
+  radioactive_pegmatite, seed 1, step 81: feldspar #4 (43.01 mm) encloses uraninite #12 on 7.11e-12 µm, 1.000 units; the fill read 1 unit under 1
+  radioactive_pegmatite, seed 1, step 81: feldspar #4 (43.01 mm) encloses uraninite #21 on 7.11e-12 µm, 1.000 units; the fill read 1 unit under 1
+  radioactive_pegmatite, seed 2, step 92: feldspar #3 (47.21 mm) encloses uraninite #22 on 1.42e-11 µm, 2.000 units; the fill read 2 units under 1
+  radioactive_pegmatite, seed 2, step 94: feldspar #10 (46.97 mm) encloses uraninite #1 on 1.42e-11 µm, 2.000 units; the fill read 2 units under 1
+
+27 zones accepted in the last room in the 123 runs: 25 positive, 2 cut to exactly nothing by the clamp; 27 of the 27 are in a crystal's zone list at the end (2 of the 2 cut to nothing); the clamp had cut 27
+  the positive ones, µm — under 1e-9: 21; 1e-9 to 1e-6: 1; 1e-6 to 0.001: 3; 0.001 to 0.1: 0; 0.1 to 1: 0; 1 or more: 0
+  thinnest 7.11e-12 µm (searles_lake, seed 42, step 184, thenardite #22, 4.335e+4 µm before); thickest 5.35e-4 µm (searles_lake, seed 42, step 134, calcite #25, 6.382 µm before)
+  how far under 1 the fill read when each of the 27 was accepted, in units of the last binary place (1.11e-16) — 1 or 2: 17; 3 to 9: 10; 10 to 99: 0; 100 or more: 0
+  the furthest under 1: 5 units, 1 − 5.55e-16 (searles_lake, seed 1, step 186, thenardite #37, a zone of 3.48e-10 µm)
+  the 27 accepted fewer than 100 units under 1: the fill read 1 to 5 units under 1; 2 of them were cut to nothing, and the positive zones are 7.11e-12 µm to 5.35e-4 µm (the thickest on calcite #25, 6.382 µm before, in searles_lake at seed 42)
+  outside the last room: the nearest the fill came to 1 when the loop accepted a positive zone is 1 − 2.73e-6 (radioactive_pegmatite, seed 1, step 82, quartz #3, a zone of 4.584 µm, cut by the clamp); zones the clamp cut to exactly nothing outside the last room: 0
+
+what the engine had written on the crystal with each of those zones, which the simulator stages on the zone and puts on the crystal when the zone's final thickness is not zero (js/85b-simulator-nucleate.ts:147–149, :89–97):
+  of the 25 positive zones, 3 carried staged fields, and after the call the crystal holds them in 3 — radiation_damage: 3
+  the crystal's habit is another after the call than before it on 0 of them, on 0 crystals; 0 of those crystals end the run with a habit such a zone gave them
+  of the 2 cut to exactly nothing, 0 carried staged fields, and after the call the crystal holds them in 0
+  radioactive_pegmatite, seed 1, step 81: quartz #10 (9753 µm before) is handed 1.83e-10 µm with the fill 1 unit under 1; staged: radiation_damage; its habit stays Tessin
+  radioactive_pegmatite, seed 2, step 80: quartz #28 (6291 µm before) is handed 4.43e-10 µm with the fill 1 unit under 1; staged: radiation_damage; its habit stays Tessin
+  radioactive_pegmatite, seed 2, step 91: quartz #28 (6291 µm before) is handed 4.43e-10 µm with the fill 1 unit under 1; staged: radiation_damage; its habit stays Tessin
+
+control: the guest's last three zones, as this probe sums them at the end of the step, are the guest_recent_growth_um on the simulator's receipt in 914 of 914 enclosures
+control: the host's positive zones of the step, as this probe keeps them, add up to the layer on the simulator's receipt in 914 of 914 enclosures
+control: at seed 42 a run without the two wrappers is the wrapped run, to the last binary place of every size, the fill, the bulk fluid and every enclosure's layer, and in every crystal's habit, for all 41 scenarios
+control: at seed 42 the run reproduces the baseline for all 41 scenarios

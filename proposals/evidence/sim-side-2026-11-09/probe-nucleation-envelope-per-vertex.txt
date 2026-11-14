@@ -1,0 +1,12 @@
+[scenarios] loaded 41 from ./data/scenarios.json5
+[spec] loaded 184 minerals from ./data/minerals.json
+[thermo] loaded 15 carbonate entries from ./data/thermo-carbonates.json
+[thermo] loaded 4 sulfate entries from ./data/thermo-sulfates.json
+[narratives] loaded 94 species
+localized-nucleation envelope, SIM 286, seed 42 — pass-through wrappers on supersaturation_{selenite, celestine, calcite, aragonite, anhydrite}
+scenario                               per-vertex  thermal field  passes with the envelope / steps   wrapped calls: under the envelope / envelope bypassed / no envelope
+naica_geothermal                             true          false            61 / 320                   234240 /     366 /     7101
+stalactite_demo                              true          false           100 / 100                   192000 /    3844 /      550
+zoned_dripstone_cave                         true          false           150 / 150                   576000 /   21136 /     2652
+scenarios that installed the envelope: naica_geothermal, stalactite_demo, zoned_dripstone_cave
+integrity: 3 of 3 runs reproduce tests-js/baselines/seed42_v286.json with the wrappers attached

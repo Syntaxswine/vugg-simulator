@@ -1,0 +1,26 @@
+sim-side A/B — SIM 286; arms excess=1; minerals galena; seeds 42, 1, 2
+self-check on schneeberg, seed 42: shipped arm reproduces the baseline; neutral knobs — rind=Infinity ok; cap=Infinity ok; rclamp=Infinity ok; root=1 ok; mul=Ca:1 ok; refund=0 ok
+
+### reactive_wall — 120 steps — events: 15 First Acid Pulse | 40 Second Acid Pulse | 70 Third Acid Pulse | 90 Fracture Seal
+seed 42 (shipped arm reproduces the baseline)
+  A shipped        fill   0.1 % (largest 0.1 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120  galena sigma, median over 81 steps: bulk 1.121, own cell 1.005
+      sphalerite ×1 @ 6.6 (→120), galena ×1 @ 3.9 (→120), pyrite ×2 @ 0.468 (→120), anhydrite ×4 @ 0.131 (→92)
+      no solid left: marcasite (1 record)
+  B excess=1       fill   0.1 % (largest 0.1 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120  galena sigma, median over 81 steps: bulk 1.121, own cell 1.098
+      sphalerite ×1 @ 6.7 (→120), galena ×1 @ 0.742 (→120), pyrite ×2 @ 0.464 (→120), anhydrite ×4 @ 0.133 (→92)
+      no solid left: marcasite (1 record)
+      against A: 4 species present in either arm; moved 1 (galena); gained none; lost none; the baseline summary differs
+seed 1
+  A shipped        fill   0.1 % (largest 0.1 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120  galena sigma, median over 81 steps: bulk 1.121, own cell 1.085
+      sphalerite ×1 @ 6.5 (→120), galena ×1 @ 1.1 (→120), pyrite ×2 @ 0.458 (→120), anhydrite ×6 @ 0.129 (→92), marcasite ×1 @ 0.002 (→70)
+  B excess=1       fill   0.1 % (largest 0.1 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120  galena sigma, median over 81 steps: bulk 1.121, own cell 1.115
+      sphalerite ×1 @ 6.3 (→120), galena ×2 @ 0.720 (→120), pyrite ×2 @ 0.461 (→120), anhydrite ×6 @ 0.129 (→92), marcasite ×1 @ 0.003 (→70)
+      against A: 5 species present in either arm; moved 2 (galena, marcasite); gained none; lost none; the baseline summary differs
+seed 2
+  A shipped        fill   0.1 % (largest 0.1 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120  galena sigma, median over 81 steps: bulk 1.122, own cell 1.085
+      sphalerite ×1 @ 6.4 (→120), pyrite ×1 @ 2.8 (→120), galena ×1 @ 1.1 (→120), anhydrite ×6 @ 0.115 (→92), marcasite ×2 @ 0.007 (→70)
+  B excess=1       fill   0.1 % (largest 0.1 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120  galena sigma, median over 81 steps: bulk 1.122, own cell 1.115
+      sphalerite ×1 @ 6.4 (→120), pyrite ×1 @ 2.9 (→120), galena ×2 @ 0.693 (→120), anhydrite ×6 @ 0.119 (→92), marcasite ×2 @ 0.007 (→70)
+      against A: 5 species present in either arm; moved 1 (galena); gained none; lost none; the baseline summary differs
+
+audits: every arm run reads the simulator's audits as the shipped arm does

@@ -7,6 +7,237 @@
 
 Living list of open work items, captured from session conversations so context survives compaction. Each item has enough detail that someone picking it up cold can act without re-discovering the rationale.
 
+> ## ⏳ SIMULATION-SIDE REVIEW — WHAT ENDS A CRYSTAL'S GROWTH (2026-11-09) — **`REVIEW-SIMULATION-SIDE-2026-11-09.md`**
+>
+> Boss ask: "take a look at vugg simulator and see if you see any improvements of the simulation
+> side of things." A review at SIM 286 (`e86ba58a`) with five passive instruments
+> (`tools/sim-side-census.mjs` and its `-mutations` check, `sim-side-ab.mjs`,
+> `rate-at-saturation-census.mjs`, `seed-variety-census.mjs`) and their outputs in
+> `proposals/evidence/sim-side-2026-11-09/`; nothing in `js/`, `data/` or a baseline changes. **The reading:**
+> supply binds at the crystal's own cell and nowhere above it. A crystal debits the one voxel it
+> sits on and diffusion refills it: returning every debit moves 26 of the 41 scenarios and changes
+> the baseline of 38 (Shigar's pocket plugs at step 23). Above the cell nothing binds: the cavity's
+> inventory is never dented, the bulk handle is never debited, and `flow_rate` (authored 103 times)
+> feeds nothing. So a slowed crystal is seldom stopped; it ends with the run, the cavity, an event
+> or burial. It builds on earlier work, cited in the doc: the roadmap's rung C1 (the local-σ
+> depletion field, 2026-07-07), whose probe showed that the rate reads the cell; the wallet law
+> of 2026-07-08 (Shigar's aquamarine); the owner's report of 2026-05-06 of a pegmatite feldspar
+> filling its vug; and the high-fill research of 2026-05-16, which had the two pegmatites
+> sealing early. Its own proposed changes are numbered SC1–SC5, so as not to collide with the
+> roadmap's C rungs.
+> **Three defects, each with an A/B:** F1 the pegmatite pocket plugs (`gem_pegmatite` is
+> full at step 9–10 of 230; with feldspar and albite bounded, tourmaline reaches 12 mm and topaz
+> appears; boron is NOT the lever — tourmaline's boron factor is at its cap, so do not test
+> story-pocket WP8(b) on it; the same fluid plugs a Zen run of the scenario, and in Random Vugg
+> a pegmatite's fluid fills 3 of 8 cavities of the pocket size class, all 8 of the vug class
+> and 4 of 8 at the size setting that page opens on); F2 galena, molybdenite and uraninite propose growth at
+> saturation (k·σ where 171 other engines vanish at σ = 1); F3 radiogenic Pb is written to the
+> bulk handle only (`js/85-simulator.ts:1276`), and `radioactive_pegmatite` does not license the
+> galena that its description, its notes and the narration of its last event promise. (That
+> galena was on record, with no growth, in every baseline from v70 to v159; v160's
+> strangulation gate removed it and its note put that down to depleted walls. The walls were
+> never supplied. `schneeberg`'s galena, anglesite, duftite and plumbogummite have the same
+> history. The write is in the simulator's step, so it is not confined to the scenarios: in
+> Creative mode's "Radioactive Pegmatite" starter fluid and in Zen runs of the two uraninite
+> scenarios, bulk Pb climbs to 268–286, 621–682 and 1,015–1,035 ppm with every voxel where
+> it started.)
+> **This review has been corrected fifteen times by its own review rounds (the doc's §9 lists each
+> set): the first version said supply does not bind; the second costed the recommended fixes
+> too lightly; the third said the feldspar clamp loses no species, having counted a
+> dissolved-away crystal's record as presence, and recommended a lead mechanism that cannot
+> work; the fourth left out the locality gate, which the recommended clamp trips, and put two
+> coupled choices to the owner as independent; the fifth counted the galena's places short and
+> gave as a reason for one lead timing a difference measured on one reader of three; the sixth
+> measured Zen mode on another mode's clock, counted the galena's places short again, and said
+> a save has to carry state that a save does not hold; the seventh read a bound on a rate at
+> one run length and called it a cure in modes that have no last step, and said the two lead
+> timings differ in one view when they differ wherever the game lists zones; the eighth read
+> that bound in the scenario's own cavity when Simulation mode's form offers three others, and
+> counted step-log lines that Simulation mode prints only in part; the ninth called the bound
+> too loose for the form's smallest cavity and left the owner another value to choose, when no
+> bound on the pair keeps that cavity open, and counted Random Vugg's plugs in one of its
+> three size classes; the tenth said no course holds that cavity either, having run each
+> alone, when two together do at a price, said of a size class what it had run on eight
+> cavities, and read all of Zen's drift as a write to the bulk handle when its pressure
+> write is not; the eleventh counted an open surface (`great_salt_plains`, which the game
+> never seals) among the pockets that fill in the form's vug, said the preview could not
+> stand for the one pair of changes that holds that vug when a clamp written into the engine
+> gives the same result, and carried a count of four scenarios from Simulation mode into
+> Zen, where it is two. From the fourth round to the tenth
+> the measured numbers held and the source lines cited were the lines; the errors were in
+> what it says its own proposals cost and reach, and in one reading. In the eleventh a
+> headline count was one too high as well, through a probe that counted pockets by a fill
+> the game does not use. The twelfth round found nothing that had to be fixed, and three
+> statements wider than what stood behind them: the preview's wrapper and a clamp written
+> into the engine were called one run where their sizes and fill had been compared (albite's
+> zones record another trace Al); SC2's preview, a wrapper too, had not been run against the
+> law in the engine (it is another run in one scenario at one seed); and SC1's acceptance
+> lines refused no bound that is too tight. The thirteenth round reviewed the one commit
+> that answered the twelfth: the rule it gave for the bound's value ("the loosest that
+> keeps the pocket open for its run") does not give 7, since the lines admit every whole
+> value from 5 to 9; its probe for SC2 had refused the preview's zones where a reading of
+> the engines said the engine would, and had not made an engine compute the law; and a
+> sentence on what differs between the two forms of the clamp was contradicted by the
+> probe's own output. The fourteenth round reviewed the commit that answered the thirteenth
+> and again found nothing that had to be fixed, and three things left short: that commit
+> reported that SC2's two forms part in `radioactive_pegmatite` by rounding alone, said the
+> cause was not traced and still bounded it ("at three times the constant"), and the cause
+> is an enclosure that a host layer of 10⁻¹¹ µm licenses in a full pocket, at work in the
+> SHIPPED run of that scenario at seeds 1 and 2; the range of 5 to 9 had been read at the
+> scenario's own shape seed alone; and one sentence still called 7 the loosest value run.
+> Answering it, a run of the whole fleet with every mineral's zones nudged found a second
+> outcome that rounding picks, in `wittichen` at the BASELINE'S seed (below). The fifteenth
+> round reviewed those two commits and found one thing that had to be fixed: how far that
+> enclosure reaches had been counted in each scenario's own cavity and written as the
+> fleet's, and in the 15 mm vug of Simulation mode's form it is in `supergene_oxidation` at
+> all three seeds; it also found zeros under four factors written as absences, and the two
+> new questions of decision 7 put without what the evidence says of their answers.
+> The corrections made after round 15 have had no review round.**
+> **Awaits the boss:** the eight decisions in the doc's §6. SC1: a clamp on the feldspar pair's
+> rate authored on `gem_pegmatite` ALONE (recommended; one baseline changes), which makes topaz
+> appear at all three locality-gate seeds, so the bump must also PROMOTE TOPAZ out of the
+> aspirational tier and rewrite its rationale by hand (the gate does not check that sentence).
+> ITS VALUE IS A CHOICE IN A RANGE: the bump's acceptance lines are met by every whole value
+> from 5 to 9 and pick none (5: feldspar 17 mm, 37–38 steps to spare; 9: feldspar 31 mm, 3–5
+> steps; the gems are the same throughout). That range is in the scenario's own cavity. At
+> ten other shape seeds of it, which the form's Shape Seed box draws (63–78 cm³ against its
+> own 69), 5 to 8 hold at all ten and 9 lets the pocket pass 0.7 inside the run at two; the
+> acceptance as written names no other shape seed, so it passes 9, and it asks the bump to
+> report that read. The review recommends 7, the value its other
+> previews were made at (28–29 steps to spare); another value needs those previews made again.
+> It is a bound on a RATE, so it BUYS STEPS, NOT AN END. Where Simulation mode, Quick Play and
+> Creative mode start the scenario it keeps the pocket under 0.7 full for the scenario's own
+> 230 steps and 27–29 more; a run that goes on (the Steps box, or Wait in Creative mode, where
+> the Scenarios menu opens a scenario and there is no last step) SEALS at step 304–306, on
+> quartz, and a bound seven times tighter seals 4–5 steps later. How many steps it buys depends
+> on the cavity: Simulation mode's form has a CAVITY SIZE select, and in its 15 mm vug
+> the bounded pocket is full at step 97–99 (its two larger cavities stay open). NO VALUE ALONE
+> MENDS THE VUG: with the pair holding no solid at all, quartz and tourmaline fill it by step
+> 174–176, and no other course of the doc's §4 keeps it open alone. Of eight pairs of changes
+> run there, one does (the changed broth with the pair clamped at 1, by the preview's wrapper
+> or by a clamp written into the engine), at the price of the pocket's quartz. AND THE VUG
+> SETTING IS HARD ON THE FLEET: one of the 41 scenarios is an open surface with no pocket to
+> fill, and of the other 40, as shipped, 15–16 fill in it, where 3 do in their own cavities.
+> The recommendation does not hold that size; the doc gives an open list of what could be
+> done about it, and would accept it in SC1's bump and put the question to SC4's pilot. It does not
+> reach Zen mode,
+> which drops the scenario object and runs at a fifth of the time scale (its `gem_pegmatite`
+> plugs at step 32–33), or Random Vugg's pegmatite archetype, where the boss first reported
+> the plug, which has no scenario at all. Against it: the same
+> clamp in the engines for every scenario, which reaches those too, though in Random Vugg it
+> keeps the eight pockets run from filling completely while ten of the 23 smallest pockets
+> and six of eight vugs still fill (eight baselines change; it
+> empties Shigar's pocket and leaves `schneeberg` without solid native arsenic and native
+> bismuth at seeds 1 and 2, and cobaltite at seed 1, all three of them species it expects); the
+> tree's own `per_cell_local_fill` switch, which keeps the pocket open at 5 seeds of 11 where
+> the clamp does at 11; a change to the broth, which costs the pocket its quartz; or no bound
+> until SC4. NOT factor caps, which delete both feldspars from the Grimsel cleft. The field SC1
+> authors also needs a class in the Creative lever audit. THE PREVIEWS OF SC1 AND SC2 ARE
+> WRAPPERS ROUND THE ENGINES, and both were run beside the change made in the engine itself:
+> SC1's clamp gives the same sizes and fill at 2 and above and other trace-Al values on
+> albite (up to 14 % apart; the step log prints them), and SC2's law, computed by the
+> engines, is another run in `sunnyside_american_tunnel` at seed 42 at the same constant
+> (86.5 % full against 83.1 %), and in `radioactive_pegmatite` at seeds 1 and 2 at three
+> times the constant, by rounding alone (the same species moved in all 48 pairs). THAT
+> PARTING'S CAUSE IS NOT SC2'S, AND IT IS IN THE SHIPPED RUN: `_check_enclosure`
+> (`js/85c-simulator-state.ts:2466`) licenses an enclosure on any host layer above zero, a
+> full pocket hands its last room to the next crystal as a layer of 10⁻¹¹ µm, and an
+> enclosed uraninite is altered no further and writes no more lead. Twelve nudges of a
+> zone's last binary places move a size or the lead in 6 and 9 of 12 runs as shipped at
+> seeds 1 and 2 (lead 126.1–132.5 and 140.9–154.7 ppm where the shipped runs have 127.7 and
+> 147.2), in
+> 4 and 5 under SC2's same constant and in 11 and 12 under three times it; seed 42 moved in
+> no size and no lead under any factor tried, none of 252 nudged runs of the seven other
+> scenarios SC2 moves differs under four factors, and IN EACH SCENARIO'S OWN CAVITY the
+> five on such a layer, of the fleet's 914 enclosures as shipped, are all in this scenario
+> (a probe now reads the loop's fill in every run: each of the five was accepted with the
+> fill one or two units of its last binary place under 1). So every number of
+> `radioactive_pegmatite` at seeds 1 and 2 in its full pocket is one run of several. IT
+> REACHES FURTHER IN THE 15 mm VUG OF SIMULATION MODE'S FORM, where 15 or 16 pockets fill,
+> AND BY MORE THAN THE HOST'S LAYER: the same function reads a guest as slowing by its
+> last three zones (`:2562`, `:2569`), and a zone from the last room is one of them.
+> 18 of 1,285 enclosures are on such a layer, 1 / 3 / 12 of them in `supergene_oxidation`
+> (eleven at step 160 of seed 2, the step of the seal in decision 7) and one each in
+> `radioactive_pegmatite` at seeds 1 and 2; in 24 the guest passes only for its zones
+> from the last room (in none of the 914 of the own cavities); 35 enclosures in all, in
+> four scenarios. A ZONE OF THE LAST ROOM THAT IS NOT EXACTLY NOTHING ALSO PUTS ON ITS
+> CRYSTAL WHAT THE ENGINE HAD WRITTEN (`js/85b-simulator-nucleate.ts:89`): at the vug 20
+> of the 151 such zones carried a field of the engine's (forms on 18, a habit on 15), and
+> ten crystals change habit on one, nine of which end the run with a habit such a zone
+> gave them (a 5 mm feldspar goes prismatic on 1.8e-12 µm). In three of the eight runs
+> that hold the ten, that habit decides something more: twice the fill at which the next
+> crystal is let through, once whether `reactivated_fluorite_vein`'s acid wash etches a
+> fluorite (review rounds' runs, not committed). Four nudges of every engine's zones
+> move a size or the bulk fluid in 51 of 492 runs, at 20 of 123 scenario-seeds, in NINE
+> scenarios (11, 5 and three in the own cavities), with a species moved or lost in 17 of
+> the 51. In the eight scenarios whose pocket fills there, 53 of 96 nudged runs part
+> from the shipped one at or after the step the pocket first reads full, at a step on
+> which the loop handed out its last room in one run or the other: 23 in a crystal's
+> size alone, 8 in an enclosure by the host's layer, 20 in one by the guest's zones, 2
+> in one that a residue withheld. That test reads sizes, flags and hosts; a run it
+> passes ends with a quartz in another habit, twinned. The runs that part end up to
+> millimetres apart in the crystals they share (`bisbee`, seed 42: an atacamite at 1.07
+> mm or at 7.33).
+> Nothing is proposed, and no remedy was previewed in a committed run. A floor on the
+> host's layer has room in both settings in the shipped runs (no host layer lies between
+> those under 1e-6 µm and 0.13 µm in the own cavities, or 4e-5 µm at the vug), and it
+> would leave the guest's side, the sizes, the habits and whatever else such a zone sets
+> as they are (the doc lists what it followed, and searched for no more). The loop is
+> not the only reader of the fill: nucleation reads it too. The
+> doc's §3.4, a sixth note; decision 7. A SECOND OUTCOME THAT ROUNDING PICKS turned up when
+> the whole fleet was put to the nudge in its own cavities (every growth engine's zones,
+> four factors, 41 scenarios at three seeds): `wittichen` at seeds 42 and 2, whose pocket
+> is empty. Its weathering epilogue takes the precursor that has released the most
+> (`js/44e-weathering-epilogue.ts:320`); when the first erythrite is born each candidate
+> has dissolved for one step and lost the same 15 µm, so two skutterudites have released
+> 0.340428 each and differ by 1.2e-14, which is what their shells had booked when they
+> grew; and with every zone multiplied by 1 − 1e-13 the
+> erythrite grows on the other one and encloses it. At seed 42, THE BASELINE'S SEED, a
+> safflorite then ends at 572 µm or at 8.5 and the baseline summary differs. It takes a
+> factor of 1e-13 or 1e-12 to turn it (three of twelve at seed 42, one at seed 2, none of
+> the eight within 1e-14 of 1), and the crystal id, the comparison's last key, would leave
+> seed 42's choice as it is and turn seed 2's. `searles_lake` at seed 42 moves by
+> 0.0004 µm of one calcite and `gem_pegmatite` did not move under the four. Nothing is
+> proposed; a tolerance before the crystal id was not previewed (§3.4, a seventh note;
+> decision 7).
+> SC2's constant; at the same constant
+> SC2 shrinks the uraninites, their radiogenic lead falls (`schneeberg`'s bulk handle ends at
+> 111 ppm, not 179), and the CATION GATE (`npm run audit:cations`) must be recommissioned with
+> a new Ca share (0.630, not 0.582). SC3: hold the radiogenic lead until a uraninite is altered
+> and release it to the bulk handle and the voxels alike (recommended), and take the galena out
+> of the scenario's OWN TEXTS (the description, the notes, and the step-100 narration in
+> `js/70d-pegmatite-radioactive.ts`, which is code), because under that timing no license can
+> produce galena; other places tie galena to the scenario too and are found by a search of the
+> tree, not counted (the Library's scenario list, a generated copy of it and three docs pages,
+> a test that counts the scenario among galena's six and passes at exactly four, the agent
+> API); or keep today's timing and license
+> galena, with a source. The held release leaves the cation gate's numbers as commissioned and
+> adds one field to the simulator (saves replay a run and need no new field); the continuous
+> one moves the gate's share. THE TIMINGS ALSO PART WHERE THE GAME GROWS A URANINITE WITH NO
+> EVENT TO ALTER IT (Creative mode's starter fluid of that broth, Zen runs of the two
+> uraninite scenarios; no license in any): left to itself such a run does not alter its
+> uraninite, so the held release releases nothing (a Drain or an Evaporate by the player in
+> Creative mode releases what is held by then), and the continuous one grows a galena of
+> 8–10 mm in the starter fluid, half a millimetre in a Zen run of `radioactive_pegmatite`
+> whose pocket is full by step 200, and 21–23 mm in a Zen run of `schneeberg`.
+> UNDER EITHER TIMING `schneeberg`'s two largest crystals are
+> NAMED amazonite on their cards where they are named microcline today; the cavity view draws
+> them as before; and wherever the game shows them zone by zone the timings differ: their
+> zone-history bars turn 28 % green under the continuous release and 4 % under the held one,
+> and the step log names 213 of their zones amazonite against 144 (103 against 74 on the
+> steps Simulation mode prints). SC2 and SC3 meet
+> in `schneeberg`'s pharmacolite, so
+> the second to land is previewed on the tree the first leaves. Whether to pilot a supply with a
+> scale above the cell, SC4. Whether the census joins the SIM-bump routine, SC5. The order
+> against the open ladders. Three authored values that sit exactly on a σ threshold, one of
+> which starts four of `supergene_oxidation`'s azurites dissolving at its last event, and
+> with them two outcomes that rounding picks: what a full pocket hands the next crystal
+> and the weathering epilogue's choice of precursor (above). And Zen
+> mode as the review met it: no scenario object (an emerald in its `gem_pegmatite`), and a
+> drift whose species and pH writes stay on the bulk handle, the fluid that births read in
+> 39 of Zen's 41 simulators and not the one that crystals grow from (its temperature write
+> is undone by the next step; its pressure write does reach the crystals).
+
 > ## 📷 HOSTILE REVIEW — VISUAL REALISM (2026-09-04) — **`PROPOSAL-HOSTILE-REVIEW-VISUAL-REALISM-2026-09-04.md`**
 >
 > Boss ask: how true to life do the rendered crystals look (10 = a photograph; target 7)?
