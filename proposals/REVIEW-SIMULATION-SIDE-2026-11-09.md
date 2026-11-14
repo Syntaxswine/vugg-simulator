@@ -1802,16 +1802,16 @@ feldspar's zone and the opal's were both accepted with the fill one unit under 1
 That two is the count by the volume a zone is stored with, which is all the nineteenth
 round's wrapper changes. A habit is also read as a habit. The twentieth round made the
 eight runs again with the staged habit taken off the crystal at each of the 15 zones
-(not committed; run again here, line for line), and a third run then ends otherwise.
-`reactivated_fluorite_vein` washes its fluorite with acid at step 118
-(`data/scenarios.json5:670`), and the etch has a rate for a fluorite whose habit is
-cubic and for no other (`js/44d-physical-dissolution.ts:149`). At the vug, at seed 2, a
-fluorite of 3.37 mm is a hopper cube from step 61 until step 120, on a residue of 4.1 ×
-10⁻¹⁰ µm, and the wash takes nothing off it. With the habit withheld the wash takes 0.26
-µm off it, and a calcite encloses it a step earlier. A wash that etches nothing is no
-rarity in that scenario. In its own cavity the fluorite is a stepped cube by step 118 at
-the three seeds and the wash takes nothing off it (a scratch run, not committed); a test
-pins the stepped cube at seed 42, and the etch's refusal of it
+(not committed; run again here, line for line), and by the test of size, flag and host a
+third run then ends otherwise. `reactivated_fluorite_vein` washes its fluorite with acid
+at step 118 (`data/scenarios.json5:670`), and the etch has a rate for a fluorite whose
+habit is cubic and for no other (`js/44d-physical-dissolution.ts:149`). At the vug, at
+seed 2, a fluorite of 3.37 mm is a hopper cube from step 61 until step 120, on a residue
+of 4.1 × 10⁻¹⁰ µm, and the wash takes nothing off it. With the habit withheld the wash
+takes 0.26 µm off it, and a calcite encloses it a step earlier. A wash that etches
+nothing is no rarity in that scenario. In its own cavity the fluorite is a stepped cube
+by step 118 at the three seeds and the wash takes nothing off it (a scratch run, not
+committed); a test pins the stepped cube at seed 42, and the etch's refusal of it
 (`tests-js/etch-overprint.test.ts:48`, `:54`). At the vug, by the twentieth round's run
 (not committed), it is cubic at seed 1 and is etched, and at seed 42 it is a hopper cube
 from an ordinary zone. No search was made for other readers of a habit.
@@ -1881,17 +1881,20 @@ of another thickness in a list of the same length. The other 18 end as the shipp
 in what that probe reads at the end, and ten of the 18 are `wittichen`'s. It reads the
 fields that a listing of a crystal's record shows, and what is nested in them to five
 levels, numbers to a billionth of themselves. It leaves out the wall anchor and, of a
-zone, everything but its thickness. The twentieth round read those too (not committed;
-run again here, line for line), and 8 of the 18 differ there, each in a zone's
-`_remaining_solid_um`. Of the 55 that part, 18 differ in a zone count before the step at
-which they part, none of them before the pocket first reads full. By field, the
-eighteenth round's output has these differing from the shipped run's in a run that does
-not part, or before one parts: a crystal's zones, in their number or their thickness;
-its habit, forms and twin; its polymorph; its radiation damage; its late-interlocking
-flag; a film on it; its stored volume; the place of a phantom surface among its zones;
-and what an enclosure's receipt gives as the guest's recent growth. So the step at which
-a run parts here is the first at which a size, a flag or a host shows a difference. It
-is not the first at which the two runs differ.
+zone, everything but its thickness, and a listing does not show every field a crystal
+holds. The twentieth round read those too (not committed; run again here, line for
+line): a zone's other fields, the anchor, and the one field it found that no listing
+shows, a quartz's history of its forms. 8 of the 18 differ there, each in a zone's
+`_remaining_solid_um`, and one of the 8, `bisbee`'s, also in the signatures of the wall
+that nine of its crystals' anchors carry. Of the 55 that part, 18 differ in a zone count
+before the step at which they part, none of them before the pocket first reads full. By
+field, the eighteenth round's output has these differing from the shipped run's in a run
+that does not part, or before one parts: a crystal's zones, in their number or their
+thickness; its habit, forms and twin; its polymorph; its radiation damage; its
+late-interlocking flag; a film on it; its stored volume; the place of a phantom surface
+among its zones; and what an enclosure's receipt gives as the guest's recent growth. So
+the step at which a run parts here is the first at which a size, a flag or a host shows
+a difference. It is not the first at which the two runs differ.
 
 How far apart they end was read on the crystals the two runs share: those born in both
 as the same mineral, at the same step, in the same place, which is the wall or the same
@@ -4201,23 +4204,25 @@ written after its run and before its first commit, and no copy of it as it ran w
 so what changed in it cannot be shown. The twentieth review round found it by the files'
 times. It was run again on this tree, and its output came back byte for byte. By the
 files' times, no other probe in the folder is newer than the run that made an output of
-its own.
+its own, where a run's time is the last write of its log, or of its output where no log
+was kept.
 
-The twelve steps of `npm run ci` that precede the tests pass on this tree, and so does
-`npm run audit:evidence`. They read the tree as it is and say nothing about the changes proposed
-here; §4 says what each change would do to three of them. **The full suite** (`npm run ci` with
-its tests, two hours and more on this machine) is not part of this commit's evidence, and
-it has not been run on this tip. It was last run eight commits back, on `db5dd3df`, and
-passed: 303 test files in 303 batches, one uninterrupted pass under
-`node tools/cold-ci.mjs`, in 9,501 s on a machine that other work shared. It passed the
-same way on `c08c9d47`, in 7,955 s. Both are local results, and a comment on the pull
-request gives each in full. This commit and the seven before it, `72c6d7a8`, `87ec532b`,
-`1a6cd00a`, `768c08e2`, `44f94545`, `a51a1686` and `3abbfc80`, change files under `proposals/` only. The
-suite is to be run again on the final tip of the branch, and its verdict recorded in
-another comment there. The repository's chip
-selector (`tools/test-chip-check.mjs`) has none of this change's paths in its authored map, so it
-offers no bounded test set for it; its own answer for such a change is a full check. No file the
-suite reads is changed, and no test was added.
+The twelve steps of `npm run ci` that precede the tests pass on this tree, and so does `npm run
+audit:evidence`. They read the tree as it is and say nothing about the changes proposed here; §4
+says what each change would do to three of them. **The full suite** (`npm run ci` with its tests,
+two hours and more on this machine) is not part of this commit's evidence, and it has not been run
+on this tip. It was last run one commit back, on `346dd818`, and passed: 303 test files in 303
+batches, one uninterrupted pass under `node tools/cold-ci.mjs`, in 7,585 s. It passed the same way
+on `db5dd3df`, in 9,501 s on a machine that other work shared, and on `c08c9d47`, in 7,955 s. All
+three are local results, and a comment on the pull request gives each in full. This commit changes
+files under `proposals/` only, as did the eight that followed `db5dd3df`, the last of them
+`346dd818`. The suite is to be run again on the final tip of the branch, and its verdict recorded in
+another comment there. The repository's chip selector (`tools/test-chip-check.mjs`) has none of this
+change's paths in its authored map, so it offers no bounded test set for it; its own answer for such
+a change is a full check. Nothing under `js/`, `data/` or `tests-js/` is changed, and no test was
+added. No test names the three documents, the five scripts or the evidence folder of this change, by
+a search of `tests-js/`. The suite does fingerprint the tree it ran on, `proposals/` and `tools/`
+included (`tools/test-workflow.mjs:67`, `:105`), so these files are in that fingerprint.
 
 ## 9. Corrections to earlier versions
 
@@ -5266,28 +5271,47 @@ round has reviewed them.
   the other 7 one run holds zones the other lacks. The message of `a51a1686` has the 35
   as the text had it.
 - "Five probes had comment lines edited after the run that made their committed output"
-  was six. `probe-enclosed-survivors.mjs` is newer than its run by the files' times,
-  with no copy kept and nothing in the history, since both were first committed
-  together. Every earlier count in that sentence was one short for it. The probe was
-  run again and its output came back byte for byte, so five is now the count, and the
-  script that assembles the folder now holds every probe's time against its runs (§8).
+  counted five where six probes were newer than that run. `probe-enclosed-survivors.mjs`
+  is newer than its run by the files' times, with no copy kept and nothing in the
+  history, since both were first committed together, so that what was edited in it
+  cannot be shown. Every earlier count in that sentence was one short for it. The probe
+  was run again and its output came back byte for byte, so five probes are now newer
+  than the run behind their output, and the script that assembles the folder now holds
+  every probe's time against its runs (§8).
 - Smaller: the fill after the mimetite's zones was given as "one unit under 1 to ten
   over", in the eighteenth round's print, whose unit over 1 is twice its unit under 1;
   in one unit it is one under to twenty over. "Stored with nothing" now has its cause,
-  from the round's trace. "Its phantom surfaces", in the list of fields, is the place
-  of a phantom among a crystal's zones. The second line at which the loop sets the
-  late-interlocking flag also asks that the dampener be under 1. "A seventh is stored
-  with 0.999 of it" was the print's three digits (above). Trap 22 gave a scratch run
-  for the seventeenth round's 74 pairs, which are in that round's own output. "On
+  from the round's trace. "Its phantom surfaces", in the list of fields, is the place of
+  a phantom among a crystal's zones. The second of the two tests that lead the loop to
+  set the late-interlocking flag also asks that the dampener be under 1. "A seventh is
+  stored with 0.999 of it" was the print's three digits (above). Trap 22 gave a scratch
+  run for the seventeenth round's 74 pairs, which are in that round's own output. "On
   nine" stood sixteen lines under "nine of the ten" and is another nine. §0 cited a
-  round's run without saying that it is not committed. The cut of two sentences on
-  the sizes of the last room's zones had taken an inference with it, that a floor on
-  thickness in the loop cannot tell a residue from the other twelve, and one sentence
-  gives it back. The banner and the ledger did not carry what a habit does. And the
+  round's run without saying that it is not committed. The cut of two sentences on the
+  sizes of the last room's zones had taken an inference with it, that a floor on
+  thickness in the loop cannot tell a residue from the other twelve, and two sentences
+  give it back. The banner and the ledger did not carry what a habit does. And the
   message of `3abbfc80` calls a residue a zone "of the second kind", where one that the
   clamp has cut is of both.
 - Added from the round's runs: of the 18 runs that end as the shipped one in what the
   eighteenth round's probe reads, 8 differ in what it leaves out (§3.4).
+- These corrections were made in two commits, and the second corrects sentences of the
+  first, `346dd818`, which the author found on reading them against the round's outputs
+  once more. Between the two the full suite was run on `346dd818` and passed (§8). The
+  first said that the eighteenth round's listing leaves out "the wall anchor and, of a
+  zone, everything but its thickness", where a listing also does not show every field a
+  crystal holds, and the twentieth round had found one that none shows. It said that 8
+  of the 18 differ in what the listing leaves out, "each in a zone's
+  `_remaining_solid_um`", where one of the 8 also differs in its anchors' signatures of
+  the wall. It gave "a third run then ends otherwise" without its test, which is that of
+  size, flag and host; in the habit itself all eight end otherwise, the habit being what
+  was withheld. It gave the files' times without saying what a run's time is. The third
+  entry above said "was six" of probes whose comment lines had been edited, where what
+  was edited in the sixth cannot be shown. And §8 said "No file the suite reads is
+  changed", as the document had since its first commit: the suite fingerprints the whole
+  tree it ran on, and what holds is that nothing under `js/`, `data/` or `tests-js/` is
+  changed and that no test names a document, a script or the evidence folder of this
+  change.
 
 ## References
 
