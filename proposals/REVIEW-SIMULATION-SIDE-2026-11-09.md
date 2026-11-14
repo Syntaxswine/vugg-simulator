@@ -416,9 +416,10 @@ scenario's own cavity (§3.4); two runs' zones paired by their step, with what a
 of a crystal's record leaves out (§3.4); the sizes of what differs there, and the wall's
 dissolved depths in a nudged run against the shipped one (§3.4); and a fluorite followed
 step by step through a full pocket, with what its engine wrote at each step and whether
-the crystal took it (§3.4). No recommendation of §4 rests on one of
-them. The predictions of which census controls SC2 and SC3 flip do, and so does the direct
-evidence that the walls of v160 held no radiogenic lead.
+the crystal took it, and the same run with a dropped habit given to the crystal (§3.4). No
+recommendation of §4 rests on one of them. The predictions of which census controls SC2
+and SC3 flip do, and so does the direct evidence that the walls of v160 held no radiogenic
+lead.
 
 ## 2. The structural reading
 
@@ -1829,17 +1830,20 @@ the three seeds (not committed; run again here, line for line). The scenario's s
 pulse is at step 60, and at the vug the engine writes a hopper cube on the fluorite with
 each zone it proposes from step 61 to step 117 (`js/53-engines-halide.ts:91`). The
 crystal takes what an engine writes only with a zone that is accepted
-(`js/85b-simulator-nucleate.ts:89`). At seed 42 the pocket reads full from step 63, and
-the habit came at step 61 with an ordinary zone of 10.1 µm. At seed 2 it reads full from
-step 62, and the habit came with the residue. At seed 1 it reads full from step 61: the
-loop hands the fluorite nothing at each of those 57 steps (`js/85-simulator.ts:705`),
-the habit never reaches it, and the wash takes 0.26 µm off the cube that is left. So in
-a shipped run a zone that was dropped decides the same wash, the other way, and the
-counts of this note do not hold it: the probes here read the zones that the loop accepts
-or cuts under a fill of 1, and not the ones it drops at a fill of 1. The withheld habit
-rests on the same thing. In that run the engine writes the habit again at each of the 56
-steps from 62 to 117, and the full pocket drops it each time. No count was made of what
-a full pocket drops elsewhere, and no search for other readers of a habit.
+(`js/85b-simulator-nucleate.ts:89`). The pocket first reads full at step 62, 61 and 60
+at seeds 42, 2 and 1 (`probe-vug-parting.txt`). At seed 42 the habit came the step
+before, with an ordinary zone of 10.1 µm. At seed 2 it came at that step, with the
+residue. At seed 1 the pocket was full a step before the engine turned to the hopper
+cube: the loop hands the fluorite nothing at each of the 57 steps from 61 to 117
+(`js/85-simulator.ts:705`), the habit never reaches it, and the wash takes 0.26 µm off
+the cube that is left. With that habit given to it after step 61 and no zone, the wash
+takes nothing off it (a scratch run, not committed). So in a shipped run a zone that was
+dropped decides the same wash, the other way, and the counts of this note do not hold
+it: the probes here read the zones that the loop accepts or cuts under a fill of 1, and
+not the ones it drops at a fill of 1. The withheld habit rests on the same thing. In
+that run the engine writes the habit again at each of the 56 steps from 62 to 117, and
+the full pocket drops it each time. No count was made of what a full pocket drops
+elsewhere, and no search for other readers of a habit.
 
 Under the four factors on every engine, a size or the bulk fluid differs from the
 shipped run in 51 of the 492 nudged runs at that setting, at 20 of the 123
@@ -1917,21 +1921,22 @@ dissolved away in both runs. The values are nothing to 1.6 × 10⁻¹³ µm, on 
 value itself. In `bisbee`'s run of the 8, nine crystals' anchors also carry another
 digest of the wall's dissolved depths
 (`js/23d-geometry-cavity-production-authority.ts:222`). Those depths differ from the
-shipped run's from the second step on, by 2 × 10⁻¹⁶ mm at most at the end of the run,
-and the anchors' points are the same. Set against the zone's thickness and the wall's
-depth, both are far under the billionth by which this note counts a size as differing.
-The thicknesses that differ are small as well: of the 84,323 zones that the 53 runs hold
-at the same step as the shipped run, 30 are of another thickness, the thickest 3.5 ×
-10⁻⁹ µm, and 22 zones are held by one run alone (the twentieth round's count). Of the 55
-that part, 18 differ in a zone count before the step at which they part, none of them
-before the pocket first reads full. By field, the eighteenth round's output has these
-differing from the shipped run's in a run that does not part, or before one parts: a
-crystal's zones, in their number or their thickness; its habit, forms and twin; its
-polymorph; its radiation damage; its late-interlocking flag; a film on it; its stored
-volume; the place of a phantom surface among its zones; and what an enclosure's receipt
-gives as the guest's recent growth. So the step at which a run parts here is the first
-at which a size, a flag or a host shows a difference. It is not the first at which the
-two runs differ.
+shipped run's from the second step on, by 1 × 10⁻¹⁶ mm at most at the end of that step
+and by 2 × 10⁻¹⁶ mm at most at the end of the run, and the anchors' points are the same.
+Set against the zone's thickness and the wall's depth, both are far under the billionth
+by which this note counts a size as differing. The thicknesses that differ are small as
+well: of the 84,323 zones that the 53 runs hold at the same step as the shipped run, 30
+are of another thickness, the thickest 3.5 × 10⁻⁹ µm, and 22 zones are held by one run
+alone (the twentieth round's count; its output gives the size of 20 of them, 2 × 10⁻⁹ µm
+at most). Of the 55 that part, 18 differ in a zone count before the step at which they
+part, none of them before the pocket first reads full. By field, the eighteenth round's
+output has these differing from the shipped run's in a run that does not part, or before
+one parts: a crystal's zones, in their number or their thickness; its habit, forms and
+twin; its polymorph; its radiation damage; its late-interlocking flag; a film on it; its
+stored volume; the place of a phantom surface among its zones; and what an enclosure's
+receipt gives as the guest's recent growth. So the step at which a run parts here is the
+first at which a size, a flag or a host shows a difference. It is not the first at which
+the two runs differ.
 
 How far apart they end was read on the crystals the two runs share: those born in both
 as the same mineral, at the same step, in the same place, which is the wall or the same
@@ -3714,14 +3719,15 @@ without a control (§1 lists them) stays labelled as one.
    two of the eight shipped runs that hold the ten, the new habit moves the fill at
    which the next crystal is let through, and another crystal ends otherwise for it. In
    a third it keeps `reactivated_fluorite_vein`'s acid wash from etching the fluorite
-   that carries it. At seed 1 of that scenario the pocket fills a step sooner, the same
-   habit reaches no zone, and the wash does etch: a zone that a full pocket drops
-   decides it as well (four review rounds' runs, not committed; §3.4). Four nudges of a
-   part in 10¹³ or less move 51 of 492 runs there, in nine scenarios, in a size or in
-   the bulk fluid. In the eight whose pocket fills, 53 of the 96 nudged runs part from
-   the shipped one at some step, each on a step at which the loop handed out its last
-   room in one run or the other: 23 in a crystal's size alone, 8 in an enclosure by the
-   host's layer, 20 in one by the guest's zones, and 2 in one that a residue withheld.
+   that carries it. At seed 1 of that scenario the pocket fills a step sooner, no zone
+   is accepted to carry the same habit, and the wash does etch: a zone that a full
+   pocket drops decides it as well (four review rounds' runs and a scratch run, not
+   committed; §3.4). Four nudges of a part in 10¹³ or less move 51 of 492 runs there, in
+   nine scenarios, in a size or in the bulk fluid. In the eight whose pocket fills, 53
+   of the 96 nudged runs part from the shipped one at some step, each on a step at which
+   the loop handed out its last room in one run or the other: 23 in a crystal's size
+   alone, 8 in an enclosure by the host's layer, 20 in one by the guest's zones, and 2
+   in one that a residue withheld.
    The test behind those counts reads sizes, flags and hosts, and runs that it passes
    differ in other things: one ends with a quartz in another habit, twinned (§3.4). The
    runs that part end up to millimetres apart in the crystals they share: in `bisbee` at
@@ -4251,11 +4257,12 @@ The twelve steps of `npm run ci` that precede the tests pass on this tree, and s
 audit:evidence`. They read the tree as it is and say nothing about the changes proposed here; §4
 says what each change would do to three of them. **The full suite** (`npm run ci` with its tests,
 two hours and more on this machine) is not part of this commit's evidence, and it has not been run
-on this tip. It was last run two commits back, on `346dd818`, and passed: 303 test files in 303
-batches, one uninterrupted pass under `node tools/cold-ci.mjs`, in 7,585 s. It passed the same way
-on `db5dd3df`, in 9,501 s on a machine that other work shared, and on `c08c9d47`, in 7,955 s. All
-three are local results, and a comment on the pull request gives each in full. This commit and the
-one before it, `b4ff9849`, change files under `proposals/` only, as did the eight that followed
+on this tip. It was last run one commit back, on `f422564f`, and passed: 303 test files in 303
+batches, one uninterrupted pass under `node tools/cold-ci.mjs`, in 9,683 s on a machine that other
+work shared. It passed the same way on `346dd818`, in 7,585 s, on `db5dd3df`, in 9,501 s on a
+machine that other work shared, and on `c08c9d47`, in 7,955 s. All four are local results, and a
+comment on the pull request gives each in full. This commit changes files under `proposals/` only,
+as did the two that followed `346dd818`, the last of them `f422564f`, and the eight that followed
 `db5dd3df`, the last of them `346dd818`. The suite is to be run again on the final tip of the
 branch, and its verdict recorded in another comment there. The repository's chip selector
 (`tools/test-chip-check.mjs`) has none of this change's paths in its authored map, so it offers no
@@ -5367,17 +5374,17 @@ totals, checked the source lines cited, and made probes of its own. It found not
 that had to be fixed, three things that should be, and some smaller things. The
 corrections below were made after that round, and no round has reviewed them.
 
-- "At the vug ... it is cubic at seed 1 and is etched, and at seed 42 it is a hopper cube
-  from an ordinary zone" gave the etch at seed 1 without its cause, and the cause
+- "At the vug ... it is cubic at seed 1 and is etched, and at seed 42 it is a hopper
+  cube from an ordinary zone" gave the etch at seed 1 without its cause, and the cause
   belongs to this note. The round followed the fluorite step by step (not committed; run
   again here, line for line). At the vug the engine writes a hopper cube with each zone
-  it proposes from step 61 to step 117. At seed 1 the pocket reads full from step 61,
-  the loop drops the zone at each of those 57 steps, the habit never reaches the
-  crystal, and the wash etches a cube. The run with the habit withheld rests on the same
-  thing: the engine writes the habit again at each of the 56 steps from 62 to 117, and
-  the full pocket drops it. So a zone that is dropped decides that wash as well, in a
-  shipped run that is not among the eight, and no count of this note holds it. The text
-  now says so (§3.4; §6, decision 7).
+  it proposes from step 61 to step 117. At seed 1 the pocket first reads full at step
+  60, the loop drops the zone at each of the 57 steps from 61 to 117, the habit never
+  reaches the crystal, and the wash etches a cube. The run with the habit withheld rests
+  on the same thing: the engine writes the habit again at each of the 56 steps from 62
+  to 117, and the full pocket drops it. So a zone that is dropped decides that wash as
+  well, in a shipped run that is not among the eight, and no count of this note holds
+  it. The text now says so (§3.4; §6, decision 7).
 - "8 of the 18 differ there, each in a zone's `_remaining_solid_um`, and one of the 8,
   `bisbee`'s, also in the signatures of the wall" counted differences that are far under
   the billionth by which this note counts a size as differing. The round sized them (not
@@ -5405,6 +5412,18 @@ corrections below were made after that round, and no round has reviewed them.
   and a comment in `data/scenarios.json5` (lines 613 to 615), which says that the broth
   keeps seed 42 off a stepped surface, where the scenario's own note (line 606) and the
   test say that it does not. That file is not this change's to edit.
+- These corrections were made in two commits, and the second corrects sentences of the
+  first, `f422564f`, which the author found on reading them against the outputs again,
+  before any round had. The first gave the step from which the pocket "reads full" as
+  63, 62 and 61 at seeds 42, 2 and 1, which is the first step that starts full. This
+  note's "first reads full" is the committed probe's, the step by whose end the fill
+  reads 1, and by it the steps are 62, 61 and 60. It gave the wall's depths as differing
+  "by 2 × 10⁻¹⁶ mm at most at the end of the run" and not what the round's run has for
+  the second step. It gave no size for the 22 zones that one run holds alone. Decision 7
+  said "the same habit reaches no zone" of a habit that no accepted zone carries. And
+  the dropped zone at seed 1 stood on a trace and the source: a scratch run now gives
+  that fluorite the habit after step 61, with no zone, and the wash takes nothing off it
+  (not committed). Between the two the full suite was run on `f422564f` and passed (§8).
 
 ## References
 
