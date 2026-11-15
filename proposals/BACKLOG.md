@@ -41,58 +41,8 @@ Living list of open work items, captured from session conversations so context s
 > Creative mode's "Radioactive Pegmatite" starter fluid and in Zen runs of the two uraninite
 > scenarios, bulk Pb climbs to 268–286, 621–682 and 1,015–1,035 ppm with every voxel where
 > it started.)
-> **This review has been corrected fifteen times by its own review rounds (the doc's §9 lists each
-> set): the first version said supply does not bind; the second costed the recommended fixes
-> too lightly; the third said the feldspar clamp loses no species, having counted a
-> dissolved-away crystal's record as presence, and recommended a lead mechanism that cannot
-> work; the fourth left out the locality gate, which the recommended clamp trips, and put two
-> coupled choices to the owner as independent; the fifth counted the galena's places short and
-> gave as a reason for one lead timing a difference measured on one reader of three; the sixth
-> measured Zen mode on another mode's clock, counted the galena's places short again, and said
-> a save has to carry state that a save does not hold; the seventh read a bound on a rate at
-> one run length and called it a cure in modes that have no last step, and said the two lead
-> timings differ in one view when they differ wherever the game lists zones; the eighth read
-> that bound in the scenario's own cavity when Simulation mode's form offers three others, and
-> counted step-log lines that Simulation mode prints only in part; the ninth called the bound
-> too loose for the form's smallest cavity and left the owner another value to choose, when no
-> bound on the pair keeps that cavity open, and counted Random Vugg's plugs in one of its
-> three size classes; the tenth said no course holds that cavity either, having run each
-> alone, when two together do at a price, said of a size class what it had run on eight
-> cavities, and read all of Zen's drift as a write to the bulk handle when its pressure
-> write is not; the eleventh counted an open surface (`great_salt_plains`, which the game
-> never seals) among the pockets that fill in the form's vug, said the preview could not
-> stand for the one pair of changes that holds that vug when a clamp written into the engine
-> gives the same result, and carried a count of four scenarios from Simulation mode into
-> Zen, where it is two. From the fourth round to the tenth
-> the measured numbers held and the source lines cited were the lines; the errors were in
-> what it says its own proposals cost and reach, and in one reading. In the eleventh a
-> headline count was one too high as well, through a probe that counted pockets by a fill
-> the game does not use. The twelfth round found nothing that had to be fixed, and three
-> statements wider than what stood behind them: the preview's wrapper and a clamp written
-> into the engine were called one run where their sizes and fill had been compared (albite's
-> zones record another trace Al); SC2's preview, a wrapper too, had not been run against the
-> law in the engine (it is another run in one scenario at one seed); and SC1's acceptance
-> lines refused no bound that is too tight. The thirteenth round reviewed the one commit
-> that answered the twelfth: the rule it gave for the bound's value ("the loosest that
-> keeps the pocket open for its run") does not give 7, since the lines admit every whole
-> value from 5 to 9; its probe for SC2 had refused the preview's zones where a reading of
-> the engines said the engine would, and had not made an engine compute the law; and a
-> sentence on what differs between the two forms of the clamp was contradicted by the
-> probe's own output. The fourteenth round reviewed the commit that answered the thirteenth
-> and again found nothing that had to be fixed, and three things left short: that commit
-> reported that SC2's two forms part in `radioactive_pegmatite` by rounding alone, said the
-> cause was not traced and still bounded it ("at three times the constant"), and the cause
-> is an enclosure that a host layer of 10⁻¹¹ µm licenses in a full pocket, at work in the
-> SHIPPED run of that scenario at seeds 1 and 2; the range of 5 to 9 had been read at the
-> scenario's own shape seed alone; and one sentence still called 7 the loosest value run.
-> Answering it, a run of the whole fleet with every mineral's zones nudged found a second
-> outcome that rounding picks, in `wittichen` at the BASELINE'S seed (below). The fifteenth
-> round reviewed those two commits and found one thing that had to be fixed: how far that
-> enclosure reaches had been counted in each scenario's own cavity and written as the
-> fleet's, and in the 15 mm vug of Simulation mode's form it is in `supergene_oxidation` at
-> all three seeds; it also found zeros under four factors written as absences, and the two
-> new questions of decision 7 put without what the evidence says of their answers.
-> The corrections made after round 15 have had no review round.**
+> **This review has been corrected by each of its review rounds. The doc's §0 says how many times
+> and what each round found, and its §9 lists every correction.**
 > **Awaits the boss:** the eight decisions in the doc's §6. SC1: a clamp on the feldspar pair's
 > rate authored on `gem_pegmatite` ALONE (recommended; one baseline changes), which makes topaz
 > appear at all three locality-gate seeds, so the bump must also PROMOTE TOPAZ out of the
@@ -167,17 +117,19 @@ Living list of open work items, captured from session conversations so context s
 > gave them (a 5 mm feldspar goes prismatic on 1.8e-12 µm). In three of the eight runs
 > that hold the ten, that habit decides something more: twice the fill at which the next
 > crystal is let through, once whether `reactivated_fluorite_vein`'s acid wash etches a
-> fluorite (review rounds' runs, not committed). Four nudges of every engine's zones
-> move a size or the bulk fluid in 51 of 492 runs, at 20 of 123 scenario-seeds, in NINE
-> scenarios (11, 5 and three in the own cavities), with a species moved or lost in 17 of
-> the 51. In the eight scenarios whose pocket fills there, 53 of 96 nudged runs part
-> from the shipped one at or after the step the pocket first reads full, at a step on
-> which the loop handed out its last room in one run or the other: 23 in a crystal's
-> size alone, 8 in an enclosure by the host's layer, 20 in one by the guest's zones, 2
-> in one that a residue withheld. That test reads sizes, flags and hosts; a run it
+> fluorite (review rounds' runs, not committed). A full pocket also drops what an engine
+> wrote for a crystal, and that side is the larger: at the vug 262 crystals end without the
+> habit their engine last wrote (a review round's count, not committed). Four nudges of
+> every engine's zones move a size or the bulk fluid in 51 of 492 runs, at 20 of 123
+> scenario-seeds, in NINE scenarios (11, 5 and three in the own cavities), with a species
+> moved or lost in 17 of the 51. In the eight scenarios whose pocket fills there, 53 of 96
+> nudged runs part from the shipped one at or after the step the pocket first reads full, at
+> a step on which the loop handed out its last room in one run or the other: 23 in a
+> crystal's size alone, 8 in an enclosure by the host's layer, 20 in one by the guest's
+> zones, 2 in one that a residue withheld. That test reads sizes, flags and hosts; a run it
 > passes ends with a quartz in another habit, twinned. The runs that part end up to
-> millimetres apart in the crystals they share (`bisbee`, seed 42: an atacamite at 1.07
-> mm or at 7.33).
+> millimetres apart in the crystals they share (`bisbee`, seed 42: an atacamite at 1.07 mm
+> or at 7.33).
 > Nothing is proposed, and no remedy was previewed in a committed run. A floor on the
 > host's layer has room in both settings in the shipped runs (no host layer lies between
 > those under 1e-6 µm and 0.13 µm in the own cavities, or 4e-5 µm at the vug), and it
