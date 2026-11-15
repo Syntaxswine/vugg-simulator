@@ -222,14 +222,15 @@ single execution ledger for the science-first AAA completion branch.
     hold the ten, that habit decides something more: twice the fill at which the next
     crystal is let through, once whether `reactivated_fluorite_vein`'s acid wash etches
     a fluorite (review rounds' runs, not committed). A full pocket also drops what an engine
-    wrote for a crystal, and that side is the larger: at the vug 262 crystals end without
-    the habit their engine last wrote (a review round's count, not committed). No remedy was
-    previewed in a committed run, and no change is proposed. The outputs give every host
-    layer's size: a floor on the host's layer has room in both settings in the shipped runs
-    (nothing between the layers under 1e-6 µm and 0.13 µm in the own cavities, or 4e-5 µm at
-    the vug), and it would leave the guest's side, the crystals' sizes, their habits and
-    whatever else such a zone sets as they are. The loop comes before those tests, and it is
-    not the only reader of the fill: nucleation reads it too (`js/85-simulator.ts:657`).
+    wrote for a crystal, and that side is the larger: at the vug 262 crystals, 81 of them
+    with solid, end without the habit their engine last wrote (a review round's count, not
+    committed). No remedy was previewed in a committed run, and no change is proposed. The
+    outputs give every host layer's size: a floor on the host's layer has room in both
+    settings in the shipped runs (nothing between the layers under 1e-6 µm and 0.13 µm in
+    the own cavities, or 4e-5 µm at the vug), and it would leave the guest's side, the
+    crystals' sizes, their habits and whatever else such a zone sets as they are. The loop
+    comes before those tests, and it is not the only reader of the fill: nucleation reads it
+    too (`js/85-simulator.ts:657`).
   - [ ] Rule on the weathering epilogue's choice of precursor (the doc's §3.4, its seventh
     note; decision 7). `weatheringNucleationContext` (`js/44e-weathering-epilogue.ts:320`)
     sorts the candidates by their latest negative zone, then by what they have released,

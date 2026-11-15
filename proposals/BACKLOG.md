@@ -118,18 +118,18 @@ Living list of open work items, captured from session conversations so context s
 > that hold the ten, that habit decides something more: twice the fill at which the next
 > crystal is let through, once whether `reactivated_fluorite_vein`'s acid wash etches a
 > fluorite (review rounds' runs, not committed). A full pocket also drops what an engine
-> wrote for a crystal, and that side is the larger: at the vug 262 crystals end without the
-> habit their engine last wrote (a review round's count, not committed). Four nudges of
-> every engine's zones move a size or the bulk fluid in 51 of 492 runs, at 20 of 123
-> scenario-seeds, in NINE scenarios (11, 5 and three in the own cavities), with a species
-> moved or lost in 17 of the 51. In the eight scenarios whose pocket fills there, 53 of 96
-> nudged runs part from the shipped one at or after the step the pocket first reads full, at
-> a step on which the loop handed out its last room in one run or the other: 23 in a
-> crystal's size alone, 8 in an enclosure by the host's layer, 20 in one by the guest's
-> zones, 2 in one that a residue withheld. That test reads sizes, flags and hosts; a run it
-> passes ends with a quartz in another habit, twinned. The runs that part end up to
-> millimetres apart in the crystals they share (`bisbee`, seed 42: an atacamite at 1.07 mm
-> or at 7.33).
+> wrote for a crystal, and that side is the larger: at the vug 262 crystals, 81 of them with
+> solid, end without the habit their engine last wrote (a review round's count, not
+> committed). Four nudges of every engine's zones move a size or the bulk fluid in 51 of 492
+> runs, at 20 of 123 scenario-seeds, in NINE scenarios (11, 5 and three in the own
+> cavities), with a species moved or lost in 17 of the 51. In the eight scenarios whose
+> pocket fills there, 53 of 96 nudged runs part from the shipped one at or after the step
+> the pocket first reads full, at a step on which the loop handed out its last room in one
+> run or the other: 23 in a crystal's size alone, 8 in an enclosure by the host's layer, 20
+> in one by the guest's zones, 2 in one that a residue withheld. That test reads sizes,
+> flags and hosts; a run it passes ends with a quartz in another habit, twinned. The runs
+> that part end up to millimetres apart in the crystals they share (`bisbee`, seed 42: an
+> atacamite at 1.07 mm or at 7.33).
 > Nothing is proposed, and no remedy was previewed in a committed run. A floor on the
 > host's layer has room in both settings in the shipped runs (no host layer lies between
 > those under 1e-6 µm and 0.13 µm in the own cavities, or 4e-5 µm at the vug), and it
