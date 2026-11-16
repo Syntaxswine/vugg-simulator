@@ -33,6 +33,11 @@ dist/
 # scenarios); the COMMITTED record is proposals/DATA-HOSTILE-REVIEW-*.json
 .review-cards/
 
+# Inverse-design run directories (proposals/PROPOSAL-INVERSE-DESIGN-*): raw
+# runs, checkpoints and models stay local; reviewed summaries are committed to
+# proposals/evidence/. Ignored so Phase 0's clean-tree check holds during a run.
+experiments/inverse-design/
+
 # Resumable long-running local evidence checkpoints. Final receipts remain in
 # tests-js/baselines and archive/; these files only prevent restart/timeout
 # loss during commissioning sweeps.
