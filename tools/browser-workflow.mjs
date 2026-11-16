@@ -2684,6 +2684,124 @@ async function runWorkflow(driver, diagnostics) {
     assert.deepEqual(setup.undersized, [], 'Creative setup has touch targets below 44px');
   });
 
+  await check('shows generated seeds and reconstructs recorded MVT fluorite colour in both viewers', async () => {
+    await driver.setViewport(1280, 850, false);
+    await driver.setSafeAreaInsets();
+    await driver.navigate(`${baseUrl}/?v=${SIM_VERSION}&browser_qa=fluorite-seeds`);
+    await driver.evaluate("switchMode('legends')");
+    await driver.setValue('#scenario', 'mvt');
+    await driver.setValue('#seed', '');
+    await driver.setValue('#shape-seed', '');
+    await driver.setValue('#steps', 2);
+    await driver.click('#btn-grow');
+    await driver.waitFor(`window.vugg.legendsSim?.step === 2 && !document.querySelector('.simulation-precompute')`, 'random-seed completion', 30_000);
+    const randomRun = await driver.evaluate(`(() => {
+      const sim = window.vugg.legendsSim;
+      return {meta: sim._agentRunMeta, input: document.querySelector('#seed').value,
+        shape: sim.conditions.wall.shape_seed, text: document.querySelector('[data-run-seeds]')?.textContent};
+    })()`);
+    assert.ok(Number.isSafeInteger(randomRun.meta.seed));
+    assert.equal(randomRun.input, '');
+    assert.equal(randomRun.meta.shape_seed, randomRun.shape);
+    assert.equal(randomRun.text, `Growth seed: ${randomRun.meta.seed} · Shape seed: ${randomRun.shape}`);
+
+    await driver.navigate(`${baseUrl}/?v=${SIM_VERSION}&browser_qa=fluorite-colour`);
+    await driver.evaluate("switchMode('legends')");
+    // Growth commissioning does not need to compete with WebGL frames. Both
+    // viewers are exercised from the completed, fingerprinted specimen below.
+    await driver.evaluate('topoSetThreeRendererEnabled(false, false)');
+    await driver.setValue('#scenario', 'mvt');
+    await driver.setValue('#seed', 42);
+    await driver.setValue('#steps', 120);
+    await driver.click('#btn-grow');
+    try {
+      // The local 60 s probe reached step 119/120 without an exception; allow
+      // the completed-history/strip boundary its own bounded headroom.
+      await driver.waitFor(`window.vugg.legendsSim?.step === 120 && !document.querySelector('.simulation-precompute')`, 'MVT fluorite completion', 120_000);
+    } catch (error) {
+      const state = await driver.evaluate(`({step: window.vugg.legendsSim?.step,
+        progress: document.querySelector('.simulation-precompute')?.textContent,
+        running, mode: currentGameMode})`);
+      throw new Error(`${error.message}: ${JSON.stringify(state)}; exceptions=${JSON.stringify(diagnostics.runtime_exceptions)}`, {cause: error});
+    }
+    const rock = await driver.evaluate(`(() => {
+      cancelSimulationPlayback(); topoRender();
+      const sim = window.vugg.legendsSim;
+      const c = sim.crystals.find(c => c.mineral === 'fluorite' && c.crystal_id === 2);
+      if (!c) throw new Error('MVT fluorite #2 absent');
+      const before = simulationStateFingerprint(sim);
+      topoSetThreeRendererEnabled(true, false); topoRender();
+      const meshes = [];
+      _topoThreeState?.crystals?.traverse(mesh => {
+        if (mesh.userData?.crystal_id === c.crystal_id && mesh.material?.userData?.optics)
+          meshes.push({body: mesh.material.userData.optics.body});
+      });
+      showZoneHistory(c);
+      const title = document.querySelector('#zone-modal-title').textContent;
+      closeZoneModal();
+      const body = _localCrystalColor(c, MINERAL_SPEC.fluorite);
+      const name = crystalDisplayName(c), colour = crystalColor(c);
+      const notes = [...new Set(c.zones.filter(z => z.thickness_um > 0).map(z => z.note))];
+      topoSetThreeRendererEnabled(false, false); topoRender();
+      return {name, colour, title, notes, meshes, expectedBody: body.getHex(),
+        before, after: simulationStateFingerprint(sim),
+        seeds: document.querySelector('[data-run-seeds]')?.textContent,
+        flatVisible: getComputedStyle(document.querySelector('#topo-canvas')).visibility !== 'hidden'};
+    })()`);
+    assert.equal(rock.name, 'fluorite (green)');
+    assert.equal(rock.colour, '#44bb88');
+    assert.match(rock.title, /Fluorite \(green\) #2/);
+    assert.ok(rock.notes.every(note => note.startsWith('color zone: green')));
+    assert.ok(rock.meshes.length > 0, 'owned WebGL viewer did not construct the fluorite material');
+    assert.ok(rock.meshes.every(mesh => mesh.body === rock.expectedBody));
+    assert.equal(rock.before, rock.after, 'viewer changes mutated scientific state');
+    assert.equal(rock.flatVisible, true);
+    assert.match(rock.seeds, /^Growth seed: 42 · Shape seed: /);
+    process.stdout.write(`[fluorite-seed-proof] ${JSON.stringify({randomRun, rock})}\n`);
+    await mkdir(path.join(ROOT, '.local-evidence/fluorite-seed'), {recursive: true});
+    await writeFile(path.join(ROOT, '.local-evidence/fluorite-seed/browser-proof.json'),
+      JSON.stringify({randomRun, rock}, null, 2) + '\n');
+    for (const [name, expression] of [
+      ['wall', 'topoSetThreeRendererEnabled(true, false); topoRender();'],
+      ['zone', "showZoneHistory(window.vugg.legendsSim.crystals.find(c => c.mineral === 'fluorite' && c.crystal_id === 2));"],
+    ]) {
+      await driver.evaluate(expression);
+      const shot = await driver.client.send('Page.captureScreenshot', {format: 'png'});
+      await writeFile(path.join(ROOT, `.local-evidence/fluorite-seed/${name}.png`), Buffer.from(shot.data, 'base64'));
+    }
+    await driver.evaluate('closeZoneModal()');
+
+    // Exercise an actual failed WebGL acquisition, not just the flat-view toggle.
+    const script = await driver.client.send('Page.addScriptToEvaluateOnNewDocument', {source: `
+      const original = HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext = function(kind, ...args) {
+        if (String(kind).toLowerCase().includes('webgl')) return null;
+        return original.call(this, kind, ...args);
+      };
+    `});
+    try {
+      await driver.navigate(`${baseUrl}/?v=${SIM_VERSION}&browser_qa=seed-no-webgl`);
+      await driver.evaluate("switchMode('legends')");
+      await driver.setValue('#scenario', 'mvt');
+      await driver.setValue('#seed', 0);
+      await driver.setValue('#steps', 2);
+      await driver.click('#btn-grow');
+      await driver.waitFor(`window.vugg.legendsSim?.step === 2 && !document.querySelector('.simulation-precompute')`, 'non-WebGL seed completion', 30_000);
+      const fallback = await driver.evaluate(`(() => {
+        cancelSimulationPlayback(); topoRender();
+        const canvas = document.querySelector('#topo-canvas');
+        return {text: document.querySelector('[data-run-seeds]')?.textContent,
+          visible: getComputedStyle(canvas).visibility !== 'hidden',
+          flatReceipt: canvas._cavityFieldCrossSectionReceipt?.schema};
+      })()`);
+      assert.match(fallback.text, /^Growth seed: 0 · Shape seed: /);
+      assert.equal(fallback.visible, true);
+      assert.equal(fallback.flatReceipt, 'cavity-field-cross-section-v1');
+    } finally {
+      await driver.client.send('Page.removeScriptToEvaluateOnNewDocument', {identifier: script.identifier});
+    }
+  });
+
   if (recipeIdentityProof) {
     assert.equal(recipeIdentityProof.observations.length, 8);
     assert.ok(recipeIdentityProof.download);

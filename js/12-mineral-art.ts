@@ -45,6 +45,44 @@ const MINERAL_GAME_COLORS = {
   tyuyamunite: '#e0c838'                         // Round 9e — canary-yellow uranyl vanadate (Ca-cation, FL weak yellow-green)
 };
 
+// Fluorite's growth engine already records its colour assignment in each
+// accepted zone. Read that testimony before the legacy trace-only display
+// heuristic. This is a growth-length-weighted display summary, not a new
+// chemistry rule or a physical mass/absorption calculation.
+function fluoriteZoneColour(zone: any): { name: string; hex: string } | null {
+  const match = String(zone?.note || '').match(/^color zone:\s*(.*)/i);
+  if (!match) return null;
+  const colour = match[1].toLowerCase();
+  if (/^purple\b/.test(colour)) return { name: 'purple', hex: '#b088dd' };
+  if (/^(?:green\b|rich grass-green\b)/.test(colour)) return { name: 'green', hex: '#44bb88' };
+  if (/^pale yellow-green\b/.test(colour)) return { name: 'pale yellow-green', hex: '#c2d089' };
+  if (/^blue-violet\b/.test(colour)) return { name: 'blue-violet', hex: '#8e8acb' };
+  if (/^colorless\b/.test(colour)) return { name: 'colorless', hex: '#edf0f3' };
+  return null;
+}
+function fluoriteRecordedColour(crystal: any): { name: string; hex: string } | null {
+  if (!crystal || crystal.mineral !== 'fluorite') return null;
+  // Preserve the existing post-growth radiation display override.
+  if (Number(crystal.radiation_damage) > 0.1) return { name: 'purple', hex: '#b088dd' };
+  const choices = new Map<string, { name: string; hex: string; weight: number }>();
+  for (const zone of crystal.zones || []) {
+    const grown = Number(zone?.thickness_um);
+    if (!(grown > 0)) continue;
+    const remaining = zone._remaining_solid_um;
+    const weight = Number.isFinite(remaining) ? Math.max(0, remaining) : grown;
+    if (!(weight > 0)) continue;
+    const recorded = fluoriteZoneColour(zone);
+    if (!recorded) return null; // incomplete/legacy records retain their existing fallback
+    const { name, hex } = recorded;
+    const previous = choices.get(name);
+    if (previous) previous.weight += weight;
+    else choices.set(name, { name, hex, weight });
+  }
+  let dominant: { name: string; hex: string; weight: number } | null = null;
+  for (const choice of choices.values()) if (!dominant || choice.weight > dominant.weight) dominant = choice;
+  return dominant ? { name: dominant.name, hex: dominant.hex } : null;
+}
+
 // Derive crystal color from its growth history and chemistry
 function crystalColor(crystal) {
   if (!crystal || !crystal.zones || !crystal.zones.length) {
@@ -132,6 +170,8 @@ function crystalColor(crystal) {
       return '#d09898';                                   // pale pink (low-Mn variant)
 
     case 'fluorite':
+      const recorded = fluoriteRecordedColour(crystal);
+      if (recorded) return recorded.hex;
       // Purple: Mn or radiation-induced color centers
       if (avgMn > 1 || radDmg > 0.1) return '#b088dd';
       // Green: REE (approximate via low Fe + moderate Ca environment)
@@ -285,8 +325,10 @@ function crystalDisplayName(crystal) {
   }
   
   if (crystal.mineral === 'fluorite') {
+    const recorded = fluoriteRecordedColour(crystal);
     const color = crystalColor(crystal);
-    if (color === '#44bb88') name = 'fluorite (green)';
+    if (recorded) name = `fluorite (${recorded.name})`;
+    else if (color === '#44bb88') name = 'fluorite (green)';
     else if (color === '#ddcc44') name = 'fluorite (yellow)';
     else if (color === '#88aadd') name = 'fluorite (blue)';
     else name = 'fluorite (purple)';

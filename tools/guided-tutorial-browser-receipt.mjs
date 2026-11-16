@@ -150,15 +150,15 @@ const EXPECTED_FLAT_TOPOLOGY_PRODUCT = Object.freeze({
   surface_buffer_digest: 'cavity-surface-buffers-v2|Float32Array:228984:c2f1c90decc829bd|Float32Array:228984:397f58f553a99011|Float32Array:228984:3229382bd3a42621|Float32Array:152656:7bc3efc07d1af0da|Uint16Array:228960:d79e8c331c16b28b|',
   receipt_digest: 'be479746fe0dc8ba',
 });
-// ENVIRONMENT PIN — Chrome auto-updated 152.0.7977.83 → 155.0.8059.41 on
-// the canonical box. Re-attested the actual DevTools port owner's chrome.exe
-// for the 2026-10-16 rendering rebake; live ownership attestation remains required.
+// ENVIRONMENT PIN — Chrome auto-updated 155.0.8059.41 → 156.0.8078.80 on
+// the commissioning box. Re-attested the actual DevTools port owner's chrome.exe
+// for the 2026-11-15 fluorite/seed rebake; live ownership attestation remains required.
 // This is a host fact, not a game change; the next Chrome update moves it again.
 const EXPECTED_BROWSER_RUNTIME = Object.freeze({
   schema: 'vugg-owned-devtools-browser-runtime-v2',
   executable_name: 'chrome.exe',
-  executable_sha256: '9ca2beaa7a9fd1109f01e562788c22e045a01cec0f6015ade689325af7f8a521',
-  devtools_browser_product: 'Chrome/155.0.8059.41',
+  executable_sha256: '46461accbdc87dc88a5bdd6d611be095dd6147db009863d794f742ca90662efa',
+  devtools_browser_product: 'Chrome/156.0.8078.80',
   devtools_protocol_version: '1.3',
 });
 

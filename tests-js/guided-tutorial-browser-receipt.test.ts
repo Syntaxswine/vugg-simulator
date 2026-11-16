@@ -152,6 +152,14 @@ describe('authenticated public-control guided tutorial journeys', () => {
     expect(() => verifyGuidedTutorialBrowserReceipt(ROOT, rehash(receipt, clone => {
       clone.payload.browser_runtime.executable_name = 'fabricated-browser';
     }), { simVersion: SIM_VERSION })).toThrow(/identity mismatch/);
+    // A plausible, self-rehashed alternative binary/version is still not
+    // the exact owned executable commissioned by the browser workflow.
+    expect(() => verifyGuidedTutorialBrowserReceipt(ROOT, rehash(receipt, clone => {
+      clone.payload.browser_runtime.executable_sha256 = '0'.repeat(64);
+    }), { simVersion: SIM_VERSION })).toThrow(/identity mismatch/);
+    expect(() => verifyGuidedTutorialBrowserReceipt(ROOT, rehash(receipt, clone => {
+      clone.payload.browser_runtime.devtools_browser_product = 'Chrome/0.0.0.0';
+    }), { simVersion: SIM_VERSION })).toThrow(/identity mismatch/);
   });
 
   it('rejects coordinated self-rehashed player-surface forgeries', () => {

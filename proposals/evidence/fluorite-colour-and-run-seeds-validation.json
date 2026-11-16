@@ -1,0 +1,637 @@
+{
+  "schema": "fluorite-colour-and-run-seeds-validation-v1",
+  "trust": "local-commissioned-host-test-evidence-not-independent-science-validation",
+  "base": "e86ba58a945f05ac37f0c41d6816e18f1611cbf1",
+  "environment": {
+    "schema": "vugg-evidence-node-runtime-v1",
+    "node": "24.15.0",
+    "v8": "13.6.233.17-node.48",
+    "platform": "win32",
+    "arch": "x64",
+    "icu": "78.2",
+    "locale": "en-US"
+  },
+  "producerChildEnvironment": {
+    "NODE_OPTIONS": "--max-old-space-size=1536"
+  },
+  "runtimeExecutionDigest": "a6ef202b28e5f5cef0e1b71c23df268e7f188e3b3c0db08d33d40271e914fbde",
+  "browserBundleDigest": "99e9e73d743205370f5e5d4c85ba83e7547fb1b0ee85f814fca2f1491d5f3001",
+  "sourceHashes": {
+    "js/12-mineral-art.ts": "a93934cd892f90aa11711a9ef0abb1c1115295eaf313fd85e66696b750e8bb1a",
+    "js/12a-colour-lexicon.ts": "8cea97ff762d664660545e97c884b77afdc74886a0844a0afed10da0681d841d",
+    "js/98c-ui-zone-bars.ts": "2d39e077f2a5c2ddfbbd876d5e74c69bae95950c8f74cb4d271ba6d825cd7521",
+    "js/98d-ui-zone-shape.ts": "dc827bbbf76a9fd4230204daea8def0546ea6801db94afa7310d5fd1a0695a20",
+    "js/99b-renderer-topo-2d.ts": "2c3bea81be5d508fea769422e0c8348b1d9e64b3742f08deeacedf2e98f85c57",
+    "tools/browser-workflow.mjs": "368221c0e31dc26ccdfbf9b478ff39e2819c376e704bb6067b51f167c9d37a60",
+    "tools/guided-tutorial-browser-receipt.mjs": "ddcaef74f5fd86293f43ebe0b355e575cc45863920f94009955f9d7a253ca2d0",
+    "tests-js/fluorite-appearance.test.ts": "72f32d7064f0e06787d3bb05afca818417c39643a85780eb9c7aaabedf4edafb",
+    "tests-js/run-seed-notice.test.ts": "e0588718828e4afd348daef22226e0e415e3e47ee61281dc4bde96ffee901e03",
+    "tests-js/guided-tutorial-browser-receipt.test.ts": "93d6f62d58aab5a9283a548b530a5a40facb1ee34679f4aa14b919e358b6cbb7",
+    ".github/workflows/ci.yml": "86625ac2fc731f2ec2c2cd24f858dd22f817fcaadf78443002bf02bc1f355e2c",
+    "pilots/finite-reservoir-authority/audit.mjs": "7a2d2da9dd97c2dcbee6c8d0183d897e6b069b12520912e8b4699ebecb41e66c"
+  },
+  "mvtControlledReproduction": {
+    "seed": 42,
+    "steps": 120,
+    "beforeFingerprint": "d99496bad8b56dea01847d16a01dbe109dc1ed7d994b3affd6f2497d69ae0822",
+    "afterFingerprint": "d99496bad8b56dea01847d16a01dbe109dc1ed7d994b3affd6f2497d69ae0822",
+    "oldDisplayName": "fluorite (purple)",
+    "displayName": "fluorite (green)",
+    "oldBody": "#edf0f3",
+    "body": "#44bb88",
+    "growthUm": 12931.461138859095,
+    "zoneNotes": [
+      [
+        "color zone: green (Fe-bearing — different mechanism from Y-yttrofluorite green)",
+        101
+      ]
+    ]
+  },
+  "browser": {
+    "checks": 19,
+    "proof": {
+      "randomRun": {
+        "meta": {
+          "scenario": "mvt",
+          "seed": 73695008,
+          "shape_seed": 3
+        },
+        "input": "",
+        "shape": 3,
+        "text": "Growth seed: 73695008 · Shape seed: 3"
+      },
+      "rock": {
+        "name": "fluorite (green)",
+        "colour": "#44bb88",
+        "title": "Fluorite (green) #2 — Zone History",
+        "notes": [
+          "color zone: green (Fe-bearing — different mechanism from Y-yttrofluorite green)"
+        ],
+        "meshes": [
+          {
+            "body": 3514476
+          },
+          {
+            "body": 3514476
+          },
+          {
+            "body": 3514476
+          },
+          {
+            "body": 3514476
+          },
+          {
+            "body": 3514476
+          },
+          {
+            "body": 3514476
+          },
+          {
+            "body": 3514476
+          }
+        ],
+        "expectedBody": 3514476,
+        "before": "5eaaa46c7664de274e8bff95bd2395e715c3586803c3600d6c571cdce4f7d2c8",
+        "after": "5eaaa46c7664de274e8bff95bd2395e715c3586803c3600d6c571cdce4f7d2c8",
+        "seeds": "Growth seed: 42 · Shape seed: 3",
+        "flatVisible": true
+      }
+    },
+    "receiptSha256": "d3bbc9e5b7b39358f99abc18443491471eb5f6e2f497fde485c76e5bb3aa390b",
+    "nonWebGL": "actual failed WebGL acquisition tested in full owned-browser run; seed 0 and flat cross-section asserted",
+    "screenshots": "local ignored QA outputs .local-evidence/fluorite-seed/wall.png and zone.png"
+  },
+  "commissioning": {
+    "base": "e86ba58a945f05ac37f0c41d6816e18f1611cbf1",
+    "started": "2026-11-16T02:00:32.525Z",
+    "ended": "2026-11-16T02:57:38.281Z",
+    "environment": {
+      "schema": "vugg-evidence-node-runtime-v1",
+      "node": "24.15.0",
+      "v8": "13.6.233.17-node.48",
+      "platform": "win32",
+      "arch": "x64",
+      "icu": "78.2",
+      "locale": "en-US"
+    },
+    "executionDigest": "a6ef202b28e5f5cef0e1b71c23df268e7f188e3b3c0db08d33d40271e914fbde",
+    "commands": [
+      {
+        "command": [
+          "node",
+          "tools/science-workflow.mjs",
+          "--rebake"
+        ],
+        "exit": 0,
+        "elapsedMs": 2905642
+      },
+      {
+        "command": [
+          "node",
+          "pilots/calcite/census.mjs",
+          "--output",
+          "pilots/calcite/volume-census.json"
+        ],
+        "exit": 0,
+        "elapsedMs": 493142
+      },
+      {
+        "command": [
+          "node",
+          "pilots/calcite/record.mjs"
+        ],
+        "exit": 0,
+        "elapsedMs": 8817
+      },
+      {
+        "command": [
+          "node",
+          "pilots/calcite/factor-report.mjs"
+        ],
+        "exit": 0,
+        "elapsedMs": 1758
+      },
+      {
+        "command": [
+          "node",
+          "pilots/finite-reservoir-authority/audit.mjs",
+          "--write"
+        ],
+        "exit": 0,
+        "elapsedMs": 1381
+      },
+      {
+        "command": [
+          "node",
+          "pilots/finite-reservoir-authority/audit.mjs",
+          "--wall-census",
+          "--write"
+        ],
+        "exit": 0,
+        "elapsedMs": 1663
+      },
+      {
+        "command": [
+          "node",
+          "pilots/physical-reservoir-mapping/receipt.mjs",
+          "--write"
+        ],
+        "exit": 0,
+        "elapsedMs": 1708
+      },
+      {
+        "command": [
+          "node",
+          "pilots/reservoir-reference-preflight/receipt.mjs",
+          "--write"
+        ],
+        "exit": 0,
+        "elapsedMs": 2828
+      },
+      {
+        "command": [
+          "node",
+          "pilots/mvt-prehistory/receipt.mjs",
+          "--write"
+        ],
+        "exit": 0,
+        "elapsedMs": 1530
+      },
+      {
+        "command": [
+          "node",
+          "tools/release-audit.mjs",
+          "--write"
+        ],
+        "exit": 0,
+        "elapsedMs": 1839
+      }
+    ],
+    "comparison": {
+      "numericalBaselinesUnchanged": [
+        "tests-js/baselines/seed42_v286.json",
+        "tests-js/baselines/locality_frequency_v286.json",
+        "tests-js/baselines/strip_digest_v286.json"
+      ],
+      "seed42StripStoriesUnchanged": 41,
+      "calciteCensusRowsUnchanged": 41
+    },
+    "productionCalciteAuthority": false,
+    "productionLocalReactions": false,
+    "productionTransport": false
+  },
+  "authorityHashCascade": {
+    "base": "e86ba58a945f05ac37f0c41d6816e18f1611cbf1",
+    "guidedJourneyPayloadUnchanged": true,
+    "mechanismPayloadOnlyBrowserAuthorityHashChanged": true,
+    "claimCardsOnlyMechanismAuthorityHashChanged": {
+      "json": 41,
+      "markdown": 41
+    },
+    "oldMechanismPayload": "02502a63938fbcffe2872b52adfef74fd5c449bc5c327d3755920306fc49f225",
+    "mechanismPayload": "66a76239dd9343605dc98d708383e083d6a18588dcff81fc4bcb0c8526fabfa5"
+  },
+  "finalChecks": {
+    "initialAffected": {
+      "tests": 143,
+      "files": 8
+    },
+    "science": {
+      "tests": 55,
+      "files": 7
+    },
+    "freshReceiptAndFeatureRegressions": {
+      "tests": 225,
+      "files": 9
+    },
+    "serialAudits": [
+      {
+        "command": [
+          "node",
+          "node_modules/typescript/bin/tsc",
+          "-p",
+          "tsconfig.json",
+          "--noEmit"
+        ],
+        "exit": 0,
+        "elapsedMs": 3579
+      },
+      {
+        "command": [
+          "node",
+          "tools/build-all.mjs",
+          "--check"
+        ],
+        "exit": 0,
+        "elapsedMs": 5779
+      },
+      {
+        "command": [
+          "node",
+          "tools/check-evidence-runtime.mjs"
+        ],
+        "exit": 0,
+        "elapsedMs": 191
+      },
+      {
+        "command": [
+          "node",
+          "tools/gen-science-provenance-manifest.mjs",
+          "--check"
+        ],
+        "exit": 0,
+        "elapsedMs": 2777
+      },
+      {
+        "command": [
+          "node",
+          "tools/science-evidence-receipt.mjs",
+          "--check"
+        ],
+        "exit": 0,
+        "elapsedMs": 3933
+      },
+      {
+        "command": [
+          "node",
+          "tools/release-audit.mjs",
+          "--check"
+        ],
+        "exit": 0,
+        "elapsedMs": 1815
+      },
+      {
+        "command": [
+          "node",
+          "tools/locality-envelope-audit.mjs",
+          "--check"
+        ],
+        "exit": 0,
+        "elapsedMs": 467
+      },
+      {
+        "command": [
+          "node",
+          "tools/scenario-authoring.mjs",
+          "--check"
+        ],
+        "exit": 0,
+        "elapsedMs": 1453
+      },
+      {
+        "command": [
+          "node",
+          "tools/narrative-workflow.mjs",
+          "--check"
+        ],
+        "exit": 0,
+        "elapsedMs": 341
+      },
+      {
+        "command": [
+          "node",
+          "tools/tutorial-lint.mjs",
+          "--quiet"
+        ],
+        "exit": 0,
+        "elapsedMs": 105
+      },
+      {
+        "command": [
+          "node",
+          "tools/accessibility-audit.mjs"
+        ],
+        "exit": 0,
+        "elapsedMs": 99
+      },
+      {
+        "command": [
+          "node",
+          "tools/creative-lever-audit.mjs"
+        ],
+        "exit": 0,
+        "elapsedMs": 23651
+      },
+      {
+        "command": [
+          "node",
+          "tools/asbestos-hills-observe.mjs",
+          "--check"
+        ],
+        "exit": 0,
+        "elapsedMs": 7759
+      },
+      {
+        "command": [
+          "node",
+          "tools/cation-sink-audit.mjs",
+          "schneeberg",
+          "42",
+          "--check"
+        ],
+        "exit": 0,
+        "elapsedMs": 7631
+      },
+      {
+        "command": [
+          "node",
+          "tools/check-guided-tutorial-browser-receipt.mjs"
+        ],
+        "exit": 0,
+        "elapsedMs": 1506
+      },
+      {
+        "command": [
+          "node",
+          "pilots/finite-reservoir-authority/audit.mjs",
+          "--check"
+        ],
+        "exit": 0,
+        "elapsedMs": 1393
+      },
+      {
+        "command": [
+          "node",
+          "pilots/finite-reservoir-authority/audit.mjs",
+          "--wall-census",
+          "--check"
+        ],
+        "exit": 0,
+        "elapsedMs": 1713
+      },
+      {
+        "command": [
+          "node",
+          "pilots/physical-reservoir-mapping/receipt.mjs",
+          "--check"
+        ],
+        "exit": 0,
+        "elapsedMs": 1711
+      },
+      {
+        "command": [
+          "node",
+          "pilots/reservoir-reference-preflight/receipt.mjs",
+          "--check"
+        ],
+        "exit": 0,
+        "elapsedMs": 2792
+      },
+      {
+        "command": [
+          "node",
+          "pilots/mvt-prehistory/receipt.mjs",
+          "--check"
+        ],
+        "exit": 0,
+        "elapsedMs": 1474
+      }
+    ]
+  },
+  "receiptDifferences": [
+    {
+      "file": "archive/evidence/guided-tutorial-browser-v286.json",
+      "changedPaths": [
+        "browser_bundle_sha256",
+        "execution_set_sha256",
+        "producer_contract_sha256",
+        "payload.browser_runtime.executable_sha256",
+        "payload.browser_runtime.devtools_browser_product",
+        "payload_sha256"
+      ]
+    },
+    {
+      "file": "archive/evidence/mechanism-witnesses-v286.json",
+      "changedPaths": [
+        "browser_bundle_sha256",
+        "execution_set_sha256",
+        "producer_contract_sha256",
+        "payload.guided_tutorial.interaction_products.capable_browser_authority.payload_sha256",
+        "payload_sha256"
+      ]
+    },
+    {
+      "file": "archive/evidence/v286.json",
+      "changedPaths": [
+        "browser_bundle_sha256",
+        "execution_set_sha256",
+        "producer_contracts.claim-cards",
+        "producer_contracts.mechanism-witnesses",
+        "producer_contracts.science-provenance",
+        "producer_contracts.science-receipt",
+        "producer_contracts.guided-tutorial-browser",
+        "artifacts.archive/claim-cards/v286/amethyst_geode.json",
+        "artifacts.archive/claim-cards/v286/amethyst_geode.md",
+        "artifacts.archive/claim-cards/v286/asbestos_hills_crack_seal.json",
+        "artifacts.archive/claim-cards/v286/asbestos_hills_crack_seal.md",
+        "artifacts.archive/claim-cards/v286/asbestos_hills_surficial_alteration.json",
+        "artifacts.archive/claim-cards/v286/asbestos_hills_surficial_alteration.md",
+        "artifacts.archive/claim-cards/v286/bisbee.json",
+        "artifacts.archive/claim-cards/v286/bisbee.md",
+        "artifacts.archive/claim-cards/v286/chiastolite_hornfels.json",
+        "artifacts.archive/claim-cards/v286/chiastolite_hornfels.md",
+        "artifacts.archive/claim-cards/v286/colorado_plateau.json",
+        "artifacts.archive/claim-cards/v286/colorado_plateau.md",
+        "artifacts.archive/claim-cards/v286/cooling.json",
+        "artifacts.archive/claim-cards/v286/cooling.md",
+        "artifacts.archive/claim-cards/v286/deccan_zeolite.json",
+        "artifacts.archive/claim-cards/v286/deccan_zeolite.md",
+        "artifacts.archive/claim-cards/v286/elmwood.json",
+        "artifacts.archive/claim-cards/v286/elmwood.md",
+        "artifacts.archive/claim-cards/v286/epithermal_telluride.json",
+        "artifacts.archive/claim-cards/v286/epithermal_telluride.md",
+        "artifacts.archive/claim-cards/v286/gem_pegmatite.json",
+        "artifacts.archive/claim-cards/v286/gem_pegmatite.md",
+        "artifacts.archive/claim-cards/v286/great_salt_plains.json",
+        "artifacts.archive/claim-cards/v286/great_salt_plains.md",
+        "artifacts.archive/claim-cards/v286/grimsel_alpine_cleft.json",
+        "artifacts.archive/claim-cards/v286/grimsel_alpine_cleft.md",
+        "artifacts.archive/claim-cards/v286/jeffrey_mine.json",
+        "artifacts.archive/claim-cards/v286/jeffrey_mine.md",
+        "artifacts.archive/claim-cards/v286/marble_contact_metamorphism.json",
+        "artifacts.archive/claim-cards/v286/marble_contact_metamorphism.md",
+        "artifacts.archive/claim-cards/v286/mvt.json",
+        "artifacts.archive/claim-cards/v286/mvt.md",
+        "artifacts.archive/claim-cards/v286/naica_geothermal.json",
+        "artifacts.archive/claim-cards/v286/naica_geothermal.md",
+        "artifacts.archive/claim-cards/v286/ouro_preto.json",
+        "artifacts.archive/claim-cards/v286/ouro_preto.md",
+        "artifacts.archive/claim-cards/v286/porphyry.json",
+        "artifacts.archive/claim-cards/v286/porphyry.md",
+        "artifacts.archive/claim-cards/v286/pulse.json",
+        "artifacts.archive/claim-cards/v286/pulse.md",
+        "artifacts.archive/claim-cards/v286/radioactive_pegmatite.json",
+        "artifacts.archive/claim-cards/v286/radioactive_pegmatite.md",
+        "artifacts.archive/claim-cards/v286/reactivated_fluorite_vein.json",
+        "artifacts.archive/claim-cards/v286/reactivated_fluorite_vein.md",
+        "artifacts.archive/claim-cards/v286/reactive_wall.json",
+        "artifacts.archive/claim-cards/v286/reactive_wall.md",
+        "artifacts.archive/claim-cards/v286/roughten_gill.json",
+        "artifacts.archive/claim-cards/v286/roughten_gill.md",
+        "artifacts.archive/claim-cards/v286/sabkha_dolomitization.json",
+        "artifacts.archive/claim-cards/v286/sabkha_dolomitization.md",
+        "artifacts.archive/claim-cards/v286/schneeberg.json",
+        "artifacts.archive/claim-cards/v286/schneeberg.md",
+        "artifacts.archive/claim-cards/v286/searles_lake.json",
+        "artifacts.archive/claim-cards/v286/searles_lake.md",
+        "artifacts.archive/claim-cards/v286/shigar_pegmatite.json",
+        "artifacts.archive/claim-cards/v286/shigar_pegmatite.md",
+        "artifacts.archive/claim-cards/v286/sicily_solfifera.json",
+        "artifacts.archive/claim-cards/v286/sicily_solfifera.md",
+        "artifacts.archive/claim-cards/v286/stalactite_demo.json",
+        "artifacts.archive/claim-cards/v286/stalactite_demo.md",
+        "artifacts.archive/claim-cards/v286/sulphur_bank.json",
+        "artifacts.archive/claim-cards/v286/sulphur_bank.md",
+        "artifacts.archive/claim-cards/v286/sunnyside_american_tunnel.json",
+        "artifacts.archive/claim-cards/v286/sunnyside_american_tunnel.md",
+        "artifacts.archive/claim-cards/v286/supergene_oxidation.json",
+        "artifacts.archive/claim-cards/v286/supergene_oxidation.md",
+        "artifacts.archive/claim-cards/v286/tn457_barite_pulses.json",
+        "artifacts.archive/claim-cards/v286/tn457_barite_pulses.md",
+        "artifacts.archive/claim-cards/v286/tormiq_alpine_cleft.json",
+        "artifacts.archive/claim-cards/v286/tormiq_alpine_cleft.md",
+        "artifacts.archive/claim-cards/v286/tutorial_first_crystal.json",
+        "artifacts.archive/claim-cards/v286/tutorial_first_crystal.md",
+        "artifacts.archive/claim-cards/v286/tutorial_mn_calcite.json",
+        "artifacts.archive/claim-cards/v286/tutorial_mn_calcite.md",
+        "artifacts.archive/claim-cards/v286/tutorial_travertine.json",
+        "artifacts.archive/claim-cards/v286/tutorial_travertine.md",
+        "artifacts.archive/claim-cards/v286/ultramafic_supergene.json",
+        "artifacts.archive/claim-cards/v286/ultramafic_supergene.md",
+        "artifacts.archive/claim-cards/v286/wittichen.json",
+        "artifacts.archive/claim-cards/v286/wittichen.md",
+        "artifacts.archive/claim-cards/v286/zoned_dripstone_cave.json",
+        "artifacts.archive/claim-cards/v286/zoned_dripstone_cave.md",
+        "artifacts.archive/evidence/guided-tutorial-browser-v286.json",
+        "artifacts.archive/evidence/mechanism-witnesses-v286.json"
+      ]
+    },
+    {
+      "file": "data/generated/science-provenance-manifest.json",
+      "changedPaths": [
+        "science_evidence.sha256",
+        "science_evidence.browser_bundle_sha256",
+        "science_evidence.execution_set_sha256",
+        "science_evidence.producer_contracts.claim-cards",
+        "science_evidence.producer_contracts.mechanism-witnesses",
+        "science_evidence.producer_contracts.science-provenance",
+        "science_evidence.producer_contracts.science-receipt",
+        "science_evidence.producer_contracts.guided-tutorial-browser"
+      ]
+    },
+    {
+      "file": "pilots/calcite/volume-census.json",
+      "changedPaths": [
+        "runtimeDigest"
+      ]
+    },
+    {
+      "file": "pilots/calcite/factor-coverage.json",
+      "changedPaths": [
+        "runtimeDigest",
+        "fleetReceiptSha256",
+        "examples.elmwood.specimenSha256",
+        "examples.elmwood.audit.model.runtimeDigest"
+      ]
+    },
+    {
+      "file": "pilots/finite-reservoir-authority/source-audit.json",
+      "changedPaths": [
+        "productionExecutionDigest",
+        "producerContracts.claim-cards",
+        "producerContracts.mechanism-witnesses",
+        "producerContracts.science-provenance",
+        "producerContracts.science-receipt",
+        "producerContracts.guided-tutorial-browser",
+        "sourceHashes.pilots/finite-reservoir-authority/audit.mjs"
+      ]
+    },
+    {
+      "file": "pilots/finite-reservoir-authority/wall-reference-census.json",
+      "changedPaths": [
+        "productionExecutionDigest",
+        "sourceHashes.pilots/finite-reservoir-authority/audit.mjs",
+        "sourceAuditSha256"
+      ]
+    },
+    {
+      "file": "pilots/physical-reservoir-mapping/receipt.json",
+      "changedPaths": [
+        "productionExecutionDigest",
+        "productionSourceHashes.pilots/finite-reservoir-authority/audit.mjs"
+      ]
+    },
+    {
+      "file": "pilots/reservoir-reference-preflight/receipt.json",
+      "changedPaths": [
+        "productionExecutionDigest",
+        "productionSourceHashes.pilots/finite-reservoir-authority/audit.mjs"
+      ]
+    },
+    {
+      "file": "pilots/mvt-prehistory/receipt.json",
+      "changedPaths": [
+        "productionExecutionDigest",
+        "productionSourceHashes.pilots/finite-reservoir-authority/audit.mjs",
+        "sourceHashes..github/workflows/ci.yml",
+        "actualMvt.sourceHashes.pilots/reservoir-reference-preflight/receipt.json"
+      ]
+    },
+    {
+      "file": "release/content-pack-manifest.json",
+      "changedPaths": [
+        "packs.0.browser_bundle_sha256",
+        "packs.0.runtime_execution_sha256",
+        "catalog_sha256"
+      ]
+    }
+  ],
+  "boundaries": [
+    "Original user random seed unavailable; seed 42 reproduces the contradiction.",
+    "Recorded fluorite colour classification is existing model testimony, not independent proof of physical MVT colour.",
+    "Dominant surviving growth-length palette is a display summary, not an absorption spectrum or mass/volume rule.",
+    "Legacy/incomplete colour notes retain the existing heuristic; missing original seeds are not inferred.",
+    "No new time-resolved whole-body optical or radiation-history model is claimed.",
+    "Calcite physical-solid authority and production local reactions/transport remain withheld."
+  ]
+}

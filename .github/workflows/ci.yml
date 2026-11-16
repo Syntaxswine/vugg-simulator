@@ -82,6 +82,8 @@ jobs:
           --file tests-js/fortress-saves.test.ts
           --file tests-js/collection-player-names.test.ts
           --file tests-js/guided-tutorial-browser-receipt.test.ts
+          --file tests-js/fluorite-appearance.test.ts
+          --file tests-js/run-seed-notice.test.ts
 
       # These cleanup regressions protect the engineering benchmarks. Ordinary
       # calibration CI does not otherwise execute their focused test files.

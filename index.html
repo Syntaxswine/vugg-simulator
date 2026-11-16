@@ -6105,6 +6105,58 @@ const MINERAL_GAME_COLORS = {
     uranospinite: '#e8d850', // Round 9e — yellow uranyl arsenate (Ca-cation, FL bright yellow-green)
     tyuyamunite: '#e0c838' // Round 9e — canary-yellow uranyl vanadate (Ca-cation, FL weak yellow-green)
 };
+// Fluorite's growth engine already records its colour assignment in each
+// accepted zone. Read that testimony before the legacy trace-only display
+// heuristic. This is a growth-length-weighted display summary, not a new
+// chemistry rule or a physical mass/absorption calculation.
+function fluoriteZoneColour(zone) {
+    const match = String(zone?.note || '').match(/^color zone:\s*(.*)/i);
+    if (!match)
+        return null;
+    const colour = match[1].toLowerCase();
+    if (/^purple\b/.test(colour))
+        return { name: 'purple', hex: '#b088dd' };
+    if (/^(?:green\b|rich grass-green\b)/.test(colour))
+        return { name: 'green', hex: '#44bb88' };
+    if (/^pale yellow-green\b/.test(colour))
+        return { name: 'pale yellow-green', hex: '#c2d089' };
+    if (/^blue-violet\b/.test(colour))
+        return { name: 'blue-violet', hex: '#8e8acb' };
+    if (/^colorless\b/.test(colour))
+        return { name: 'colorless', hex: '#edf0f3' };
+    return null;
+}
+function fluoriteRecordedColour(crystal) {
+    if (!crystal || crystal.mineral !== 'fluorite')
+        return null;
+    // Preserve the existing post-growth radiation display override.
+    if (Number(crystal.radiation_damage) > 0.1)
+        return { name: 'purple', hex: '#b088dd' };
+    const choices = new Map();
+    for (const zone of crystal.zones || []) {
+        const grown = Number(zone?.thickness_um);
+        if (!(grown > 0))
+            continue;
+        const remaining = zone._remaining_solid_um;
+        const weight = Number.isFinite(remaining) ? Math.max(0, remaining) : grown;
+        if (!(weight > 0))
+            continue;
+        const recorded = fluoriteZoneColour(zone);
+        if (!recorded)
+            return null; // incomplete/legacy records retain their existing fallback
+        const { name, hex } = recorded;
+        const previous = choices.get(name);
+        if (previous)
+            previous.weight += weight;
+        else
+            choices.set(name, { name, hex, weight });
+    }
+    let dominant = null;
+    for (const choice of choices.values())
+        if (!dominant || choice.weight > dominant.weight)
+            dominant = choice;
+    return dominant ? { name: dominant.name, hex: dominant.hex } : null;
+}
 // Derive crystal color from its growth history and chemistry
 function crystalColor(crystal) {
     if (!crystal || !crystal.zones || !crystal.zones.length) {
@@ -6204,6 +6256,9 @@ function crystalColor(crystal) {
                 return '#a86060'; // brown-shifted (Fe-substituted)
             return '#d09898'; // pale pink (low-Mn variant)
         case 'fluorite':
+            const recorded = fluoriteRecordedColour(crystal);
+            if (recorded)
+                return recorded.hex;
             // Purple: Mn or radiation-induced color centers
             if (avgMn > 1 || radDmg > 0.1)
                 return '#b088dd';
@@ -6372,8 +6427,11 @@ function crystalDisplayName(crystal) {
             name = 'quartz (rock crystal)';
     }
     if (crystal.mineral === 'fluorite') {
+        const recorded = fluoriteRecordedColour(crystal);
         const color = crystalColor(crystal);
-        if (color === '#44bb88')
+        if (recorded)
+            name = `fluorite (${recorded.name})`;
+        else if (color === '#44bb88')
             name = 'fluorite (green)';
         else if (color === '#ddcc44')
             name = 'fluorite (yellow)';
@@ -6664,6 +6722,12 @@ function _chemistryVariant(crystal, spec) {
 // Resolve a crystal's body colour. D1b chemistry variant (if one fires) wins;
 // then the D1a chain: per-species override → named default → class_color fallback.
 function resolveBodyColour(crystal, spec) {
+    // Fluorite has an existing accepted-zone appearance record and legacy
+    // display fallback. Use the same interpretation as its name and colour bar;
+    // prose color_rules triggers cannot recover those assignments numerically.
+    if (crystal?.mineral === 'fluorite'
+        && crystal.zones?.some((z) => Number(z?.thickness_um) > 0))
+        return crystalColor(crystal);
     const cv = _chemistryVariant(crystal, spec);
     if (cv && COLOUR_LEXICON[cv])
         return COLOUR_LEXICON[cv];
@@ -105540,6 +105604,14 @@ function idleRecordHistory() {
 // Same color logic the existing crystalColor() uses, just per-zone.
 // ─────────────────────────────────────────────────────────────────────────
 function zoneColor(zone, mineral, crystal) {
+    // This is a historical strip, including material subsequently dissolved.
+    // Do not make an exhausted zone lose its original growth assignment.
+    if (mineral === 'fluorite' && zone?.thickness_um > 0
+        && !(Number(crystal?.radiation_damage) > 0.1)) {
+        const recorded = fluoriteZoneColour(zone);
+        if (recorded)
+            return recorded.hex;
+    }
     // Per-zone color via the existing per-mineral crystalColor() switch
     // statement — by building a single-zone fake-crystal and reusing the
     // ~80 lines of mineral-specific color logic. Whole-crystal attributes
@@ -106160,7 +106232,10 @@ function renderZoneShape_equant(canvas, crystal, opts = {}) {
             outerR = prevR + minBandFrac * maxR;
         }
         // Fill this ring. Draw outer hexagon filled, then punch out inner.
-        ctx.fillStyle = zoneTemperatureColor(z);
+        // Fluorite's specimen preview shares its recorded chromophore colours
+        // with the zone bar and wall view. Temperature remains a separate plot.
+        ctx.fillStyle = crystal.mineral === 'fluorite'
+            ? zoneColor(z, crystal.mineral, crystal) : zoneTemperatureColor(z);
         ctx.beginPath();
         for (let v = 0; v < 6; v++) {
             const [vx, vy] = hexVertex(v * 60, outerR);
@@ -108185,6 +108260,33 @@ function _topoCelestineNotice(panel, sim) {
     notice.textContent = view?.celestine_disclosure || '';
     notice.hidden = !view;
 }
+// Read-only identity of the vug actually shown in this panel. Inputs remain
+// untouched: blank still requests fresh randomness on the next run.
+function _topoRunSeedNotice(panel, sim) {
+    let note = panel.querySelector('[data-run-seeds]');
+    if (!sim) {
+        if (note)
+            note.remove();
+        return;
+    }
+    const meta = sim._agentRunMeta;
+    const format = (value) => Number.isSafeInteger(value) ? String(value) : 'not recorded';
+    const text = `Growth seed: ${format(meta?.seed)} · Shape seed: ${format(meta?.shape_seed)}`;
+    if (!note) {
+        note = document.createElement('div');
+        note.dataset.runSeeds = '';
+        note.setAttribute('role', 'status');
+        note.setAttribute('aria-live', 'polite');
+        note.style.cssText = 'font-size:0.75rem;line-height:1.5;color:#c0a848;margin:0.3rem 0;overflow-wrap:anywhere;user-select:text';
+        const header = panel.querySelector('.topo-header');
+        if (header)
+            header.insertAdjacentElement('afterend', note);
+        else
+            panel.prepend(note);
+    }
+    if (note.textContent !== text)
+        note.textContent = text;
+}
 function topoRender(optOverrideSnap) {
     const canvas = document.getElementById('topo-canvas');
     const panel = document.getElementById('topo-panel');
@@ -108204,6 +108306,7 @@ function topoRender(optOverrideSnap) {
     }
     const sim = topoActiveSim();
     const wall = sim ? sim.wall_state : null;
+    _topoRunSeedNotice(panel, sim);
     _topoCelestineNotice(panel, celestinePresentationSim(sim, optOverrideSnap?.step ?? Infinity));
     // Authenticate historical payloads before aggregation or empty-state
     // handling so malformed replay can never borrow today's live wall.
