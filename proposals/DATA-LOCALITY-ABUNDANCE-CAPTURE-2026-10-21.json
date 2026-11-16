@@ -1,0 +1,662 @@
+{
+ "_about": "The two compact captures made in a real browser session on 2026-10-21, exactly as the page hashed them, and the key map that assembled proposals/DATA-LOCALITY-ABUNDANCE-2026-10-21.json from them. Capture keys are the capture-time names (scenario-flavoured, e.g. porphyry_bingham); some captured keys were not used by any data locality. Listing titles themselves were classified inside the page and were not saved. tools/locality-abundance-compare.mjs recomputes both hashes and checks every data-file count against these captures before it compares anything.",
+ "recipes": {
+  "mineralienatlas": "sha256 of Object.keys(mineralienatlas).sort().map(k => k + '\\n' + mineralienatlas[k].p + '\\n').join('')",
+  "ebay": "sha256 of JSON.stringify(ebay)"
+ },
+ "hashes": {
+  "mineralienatlas": "b56cf6387e184017e21d37a933f3bfbaa04be05191c2ec68c3ffc4aca7cd5604",
+  "ebay": "cbb9cb8beeb9c2814cbd5c8c4278b2a265ba25d707bbf1946ae2725ec4bdf497"
+ },
+ "keymap": {
+  "amethyst_geode": {
+   "mineralienatlas": "amethyst_geode",
+   "ebay": "amethyst_geode"
+  },
+  "asbestos_hills": {
+   "mineralienatlas": "asbestos_hills",
+   "ebay": "asbestos_hills"
+  },
+  "bisbee": {
+   "mineralienatlas": "bisbee",
+   "ebay": "bisbee"
+  },
+  "chiastolite_hornfels": {
+   "mineralienatlas": "chiastolite_hornfels",
+   "ebay": "chiastolite_hornfels"
+  },
+  "colorado_plateau": {
+   "mineralienatlas": "uravan_district",
+   "ebay": "colorado_plateau"
+  },
+  "herkimer": {
+   "mineralienatlas": "cooling_herkimer",
+   "ebay": "cooling_herkimer"
+  },
+  "deccan": {
+   "mineralienatlas": "deccan_zeolite",
+   "ebay": "deccan_zeolite"
+  },
+  "elmwood": {
+   "mineralienatlas": "elmwood",
+   "ebay": "elmwood"
+  },
+  "cripple_creek": {
+   "mineralienatlas": "epithermal_telluride",
+   "ebay": "epithermal_telluride"
+  },
+  "cruzeiro": {
+   "mineralienatlas": "gem_pegmatite_cruzeiro",
+   "ebay": "gem_pegmatite_cruzeiro"
+  },
+  "great_salt_plains": {
+   "mineralienatlas": "great_salt_plains",
+   "ebay": "great_salt_plains"
+  },
+  "grimsel": {
+   "mineralienatlas": "grimsel_alpine_cleft",
+   "ebay": "grimsel_alpine_cleft"
+  },
+  "jeffrey_mine": {
+   "mineralienatlas": "jeffrey_mine",
+   "ebay": "jeffrey_mine"
+  },
+  "marlborough": {
+   "mineralienatlas": "marlborough_chrysoprase",
+   "ebay": "marlborough_chrysoprase"
+  },
+  "mogok": {
+   "mineralienatlas": "mogok_marble",
+   "ebay": "mogok_marble"
+  },
+  "tri_state_picher": {
+   "mineralienatlas": "mvt_tristate",
+   "ebay": "mvt_tristate"
+  },
+  "naica": {
+   "mineralienatlas": "naica_geothermal",
+   "ebay": "naica_geothermal"
+  },
+  "north_pennines": {
+   "mineralienatlas": "north_pennines",
+   "ebay": "north_pennines"
+  },
+  "cumbria": {
+   "mineralienatlas": null,
+   "ebay": "cumbria"
+  },
+  "ouro_preto": {
+   "mineralienatlas": "ouro_preto",
+   "ebay": "ouro_preto"
+  },
+  "bingham": {
+   "mineralienatlas": "porphyry_bingham",
+   "ebay": "porphyry_bingham"
+  },
+  "viburnum": {
+   "mineralienatlas": "reactive_wall_viburnum",
+   "ebay": "reactive_wall_viburnum"
+  },
+  "roughton_gill": {
+   "mineralienatlas": "roughten_gill",
+   "ebay": "roughten_gill"
+  },
+  "schneeberg": {
+   "mineralienatlas": "schneeberg",
+   "ebay": "schneeberg"
+  },
+  "searles_lake": {
+   "mineralienatlas": "searles_lake",
+   "ebay": "searles_lake"
+  },
+  "shigar": {
+   "mineralienatlas": "shigar_pegmatite",
+   "ebay": "shigar_pegmatite"
+  },
+  "skardu": {
+   "mineralienatlas": null,
+   "ebay": "skardu_district"
+  },
+  "sicily": {
+   "mineralienatlas": "sicily_solfifera",
+   "ebay": "sicily_solfifera"
+  },
+  "sulphur_bank": {
+   "mineralienatlas": "sulphur_bank",
+   "ebay": "sulphur_bank"
+  },
+  "sunnyside": {
+   "mineralienatlas": "sunnyside",
+   "ebay": "sunnyside"
+  },
+  "tormiq": {
+   "mineralienatlas": "tormiq",
+   "ebay": "tormiq"
+  },
+  "haramosh": {
+   "mineralienatlas": null,
+   "ebay": "haramosh"
+  },
+  "tsumeb": {
+   "mineralienatlas": "tsumeb",
+   "ebay": "tsumeb"
+  },
+  "wittichen": {
+   "mineralienatlas": "wittichen",
+   "ebay": "wittichen"
+  }
+ },
+ "mineralienatlas": {
+  "amethyst_geode": {
+   "ids": [
+    13283
+   ],
+   "p": "Calcite=3;Amethyst=1;Cristobalite=1;Gypsum=1"
+  },
+  "asbestos_hills": {
+   "ids": [
+    14644,
+    8856
+   ],
+   "p": "Tigers Eye=15;Falcon's Eye=6;Agate=2;Crocidolite=1;Jasper=1"
+  },
+  "bisbee": {
+   "ids": [
+    3229
+   ],
+   "p": "Copper=24;Azurite=22;Malachite=22;Cuprite=20;Calcite=13;Hetaerolite=6;Aragonite=3;Bornite=3;Brochantite=3;Cerussite=3;Aurichalcite=2;Chalcotrichite=2;Chrysocolla=2;Claringbullite=2;Connellite=2;Delafossite=2;Eddavidite=2;Hoganite=2;Kiddcreekite=2;Alunogen=1;Antlerite=1;Bogdanovite=1;Carbonatecyanotrichite=1;Chalcoalumite=1;Chalcophanite=1;Chalcopyrite=1;Conichalcite=1;Goethite=1;Gold=1;Graemite=1;Kostovite=1;Kuramite=1;Leadhillite=1;Murdochite=1;Nekrasovite=1;Paramelaconite=1;Quartz=1;Sengierite=1;Shattuckite=1;Sphärosiderite=1;Tenorite=1;Variscite=1;Zincobotryogen=1"
+  },
+  "chiastolite_hornfels": {
+   "ids": [
+    11016
+   ],
+   "p": "Chiastolite=3"
+  },
+  "colorado_plateau": {
+   "ids": [
+    62576
+   ],
+   "p": "Pascoite=8;Hughesite=7;Hewettite=2;Metahewettite=2;Metamunirite=2;Rakovanite=2;Ammoniolasalite=1;Ammoniomathesiusite=1;Calciodelrioite=1;Corvusite=1;Fernandinite=1;Fulbrightite=1;Hummerite=1;Morrisonite=1;Rauvite=1;Rossite=1;Schindlerite=1;Simplotite=1;Trebiskyite=1;Uroxite=1;Vanarsite=1;Wernerbaurite=1"
+  },
+  "cooling_herkimer": {
+   "ids": [
+    6096
+   ],
+   "p": "Herkimer Quartz=16;Quartz=10;Pyrobitumen=1;Rock Crystal=1;Smoky Quartz=1"
+  },
+  "deccan_zeolite": {
+   "ids": [
+    696
+   ],
+   "p": "Apophyllit-Gruppe=112;Cavansite=94;Stilbite series=85;Fluorapophyllite-(K)=64;Heulandite series=55;Calcite=52;Okenite=48;Gyrolite=42;Scolecite=41;Fluorite=40;Pentagonite=37;Mesolite=36;Prehnite=24;Quartz=21;Laumontite=17;Powellite=17;Chalcedony=16;Mordenite=14;Stilbite-Ca=13;Epistilbite=12;Goosecreekite=12;Stellerite=10;Babingtonite=9;Hydroxyapophyllite-(K)=8;Thomsonite=8;Amethyst=6;Heulandite-Ca=5;Yugawaralite=5;Julgoldite-(Fe2+)=4;Chabazite series=3;Fluorapophyllite-(Na)=3;Celadonite=2;Natrolite=2;Calcite group=1;Goethite=1;Jasper=1;Julgoldite=1;Nontronite=1;Opal=1"
+  },
+  "elmwood": {
+   "ids": [
+    1420,
+    1421
+   ],
+   "p": "Fluorite=88;Calcite=44;Sphalerite=38;Galena=11;Baryte=6;Dolomite=3;Bitumen=2;Quartz=1"
+  },
+  "epithermal_telluride": {
+   "ids": [
+    6156
+   ],
+   "p": "Calaverite=27;Gold=14;Fluorite=9;Sylvanite=8;Melonite=4;Tellurium=2;Amethyst=1;Baryte=1;Krennerite=1;Petzite=1;Stibnite=1"
+  },
+  "gem_pegmatite_cruzeiro": {
+   "ids": [
+    14413
+   ],
+   "p": "Elbaite=28;Tourmaline supergroup=15;Rubellite=5;Quartz=4;Muscovite=2;Indicolite=1;Schorl=1;Torbernite=1;Verdelite=1"
+  },
+  "great_salt_plains": {
+   "ids": [
+    22484
+   ],
+   "p": "Gypsum=2"
+  },
+  "grimsel_alpine_cleft": {
+   "ids": [
+    34129
+   ],
+   "p": "Smoky Quartz=56;Fluorite=43;Pink fluorite=19;Twisted Quartz=13;Quartz=10;Rock Crystal=9;Sceptre Quartz=6;Epidote=4;Phantom quartz=4;Rutile=4;Anatase=3;Iron rose=3;Senaite=3;Titanite=3;Adularia=2;Amethyst=2;Grimselite=2;Milarite=2;Morion=2;Zircon=2;Actinolite=1;Apatite group=1;Asbestos=1;Byssolite=1;Chlorite group=1;Fadenquartz=1;Goethite=1;Molybdenite=1;Pyrrhotite=1;Scheelite=1;Schröckingerite=1;Xenotime-(Y)=1"
+  },
+  "jeffrey_mine": {
+   "ids": [
+    4927
+   ],
+   "p": "Grossular=77;Vesuvianite=20;Pectolite=14;Diopside=12;Hessonite=11;Chrome-bearing Grossular=4;Prehnite=4;Clinochlore=3;Chrysotile=2;Vesuvianite group=2;Allanite group=1;Alumovesuvianite=1;Apophyllit-Gruppe=1;Brucite=1;Demantoid=1;Heazlewoodite=1;Okenite=1;Topazolite=1;Tremolite=1"
+  },
+  "marlborough_chrysoprase": {
+   "ids": [
+    3795
+   ],
+   "p": "Chrysoprase=10"
+  },
+  "mogok_marble": {
+   "ids": [
+    1664
+   ],
+   "p": "Spinel=59;Painite=24;Ruby=12;Phenakite=7;Topaz=6;Tourmaline supergroup=6;Actinolite=3;Amazonite=3;Aquamarine=3;Petalite=3;Corundum=2;Elbaite=2;Goshenite=2;Johachidolite=2;Johnkoivulaite-(Cs)=2;Magnesiotaaffeite-2N'2S=2;Serendibite=2;Zircon=2;Agate=1;Betafite (of Hogarth 1977)=1;Brockite=1;Enstatite=1;Ferrohögbomite-2N2S=1;Fluorapatite=1;Fluorite=1;Fluoro-edenite=1;Forsterite=1;Orthoclase=1;Phlogopite=1;Pollucite=1;Poudretteite=1;Sapphire=1;Sinhalite=1;Spodumene=1;Thorite=1;Thortveitite=1;Uvite=1;Xenotime-(Y)=1;Zirconolite-3T=1"
+  },
+  "mvt_tristate": {
+   "ids": [
+    2853
+   ],
+   "p": "Galena=25;Sphalerite=13;Calcite=4;Chalcopyrite=3;Dolomite=3;Marcasite=2;Baryte=1"
+  },
+  "naica_geothermal": {
+   "ids": [
+    913
+   ],
+   "p": "Fluorite=49;Gypsum=18;Anhydrite=11;Galena=11;Sphalerite=9;Calcite=7;Pyrite=5;Selenite (Gypsum)=4;Andradite=3;Baryte=2;Chalcopyrite=2;Quartz=2;Amethyst=1;Ankerite=1;Arsenopyrite=1;Dolomite=1;Hemimorphite=1;Jamesonite=1;Manganese-bearing Calcite=1;Pyrrhotite=1;Sklodowskite=1;Smithsonite=1;Wollastonite-1A=1"
+  },
+  "north_pennines": {
+   "ids": [
+    1340,
+    1339
+   ],
+   "p": "Fluorite=220;Galena=49;Calcite=23;Sphalerite=17;Quartz=10;Witherite=9;Barytocalcite=8;Erythrite=6;Siderite=5;Ankerite=4;Aragonite=4;Gypsum=4;Alstonite=3;Chalcopyrite=3;Dolomite=3;Pyrite=3;Baryte=2;Cerussite=2;Cobaltocalcite=2;Hydrocerussite=2;Pyrrhotite=2;Serpierite=2;Sulphur=2;Anglesite=1;Beudantite=1;Brianyoungite=1;Devilline=1;Limonite=1;Marmatite=1"
+  },
+  "ouro_preto": {
+   "ids": [
+    80
+   ],
+   "p": "Topaz=23;Hematite=10;Euclase=4;Iron rose=3;Gibbsite=1;Gold=1;Leucosphenite=1;Malachite=1;Rock Crystal=1;Rutile=1"
+  },
+  "ouro_preto_capao": {
+   "ids": [
+    29879
+   ],
+   "p": ""
+  },
+  "porphyry_bingham": {
+   "ids": [
+    6236
+   ],
+   "p": "Faustite=5;Okenite=3;Pyrite=3;Tetrahedrite series=3;Wavellite=3;Arseniosiderite=2;Galena=2;Molybdenite=2;Albite=1;Azurite=1;Brochantite=1;Copper=1;Gypsum=1;Quartz=1;unidentified=1"
+  },
+  "reactive_wall_viburnum": {
+   "ids": [
+    1393
+   ],
+   "p": "Calcite=43;Galena=36;Chalcopyrite=12;Siegenite=5;Marcasite=3;Pyrite=2;Blister Copper=1;Dolomite=1"
+  },
+  "roughten_gill": {
+   "ids": [
+    6071
+   ],
+   "p": "Pyromorphite=12;Hemimorphite=7;Caledonite=4;Cerussite=4;Linarite=4;Mimetite=4;Plumbogummite=4;Leadhillite=3;Baryte=2;Corkite=2;Rosasite=2;Alunite supergroup=1;Anglesite=1;Brochantite=1;Calcite=1;Chalcopyrite=1;Chrysocolla=1;Cuprite=1;Galena=1;Goethite=1;Hydrocerussite=1;Hydrozincite=1;Lepidocrocite=1;Malachite=1;Mattheddleite=1;Mottramite=1;Pharmacosiderite=1;Phosphohedyphane=1;Serpierite=1;Smithsonite=1;Sphalerite=1;Susannite=1"
+  },
+  "schneeberg": {
+   "ids": [
+    561
+   ],
+   "p": "Erythrite=103;Pucherite=47;Eulytine=44;Silver=44;Walpurgite=41;Roselite=37;Torbernite=33;Bismuth=29;Zeunerite=29;Calcite=28;Schumacherite=23;Cobaltkoritnigite=22;Skutterudite=21;Bismutoferrite=18;Nickelskutterudite=16;Petitjeanite=16;Quartz=16;Neustädtelite=15;Chalcedony=14;Proustite=14;Brendelite=13;Galena=13;Bismutite=12;Acanthite=11;Baryte=11;Chlorargyrite=11;Nickeline=11;Parsonsite=11;Preisingerite=11;Atelestite=10;Cobaltneustädtelite=10;Safflorite=10;Parasymplesite=9;Pyromorphite=9;Trögerite=9;Uraninite=9;Beyerite=8;Cerussite=8;Hematite=8;Koechlinite=8;Metarauchite=8;Mixite=8;unidentified=8;Bariopharmacosiderite=7;Fluorite=7;Spherocobaltite=7;Argentite=6;Bismite=6;Hinsdalite=6;Köttigite=6;Metatorbernite=6;Pitchblende=6;Romanèchite=6;Wolframite=6;Beudantite=5;Carbonate-hydroxylapatite=5;Hydronováčekite=5;Hydroxylapatite=5;Lithiophorite=5;Nickellotharmeyerite=5;Olivenite=5;Rappoldite=5;Arseniosiderite=4;Asbolane=4;Bismuthinite=4;Chalcopyrite=4;Chloanthite=4;Cobaltaustinite=4;Corkite=4;Dolomite=4;Emplectite=4;Metazeunerite=4;Mimetite=4;Protasite=4;Siderite=4;Sillénite=4;Stibnite=4;Waylandite=4;Adamite=3;Arsenic=3;Autunite=3;Bassetite=3;Coffinite=3;Ferrilotharmeyerite=3;Goethite=3;Pharmacolite=3;Pyrargyrite=3;Smoky Quartz=3;Stephanite=3;Tsumcorite=3;Uranospinite=3;Aragonite=2;Asselbornite=2;Austinite=2;Chenevixite=2;Chernikovite=2;Cobaltite=2;Corundum=2;Fluorapatite=2;Garnet supergroup=2;Pharmacosiderite=2;Phurcalite=2;Pyrite=2;Realgar=2;Russellite=2;Schneebergite=2;Scorodite=2;Abernathyite=1;Albite=1;Amethyst=1;Anatase=1;Apatite group=1;Argentopyrite=1;Arsenolite=1;Arsenopyrite=1;Arsenovanmeersscheite=1;Bornite=1;Carnelian=1;Chalcocite=1;Chrysocolla=1;Cobaltlotharmeyerite=1;Cobaltoan Adamite=1;Cobalttsumcorite=1;Dreyerite=1;Duftite=1;Dussertite=1;Eisenkiesel=1;Francevillite=1;Gypsum=1;Heinrichite=1;Ianbruceite=1;Johannite=1;Kintoreite=1;Lavendulan=1;Limonite=1;Lotharmeyerite=1;Manganese Oxides=1;Manganese-bearing Calcite=1;Molybdenite=1;Morion=1;Muscovite=1;Namibite=1;Nováčekite series=1;Pararammelsbergite=1;Picropharmacolite=1;Polybasite=1;Prehnite=1;Pseudomalachite=1;Quartz-beta=1;Rammelsbergite=1;Rhagite=1;Rhodochrosite=1;Rock Crystal=1;Rösslerite=1;Rutile=1;Saléeite=1;Saponite=1;Segnitite=1;Skutterudite subgroup=1;Sternbergite=1;Strengite=1;Talc=1;Wad=1;Weilite=1;Xanthoconite=1"
+  },
+  "searles_lake": {
+   "ids": [
+    1377
+   ],
+   "p": "Halite=13;Hanksite=13;Burkeite=4;Gaylussite=3;Northupite=3;Pirssonite=3;Sulphohalite=3;Aphthitalite=1;Borax=1;Galeite=1;Nahcolite=1;Trona=1;Tychite=1"
+  },
+  "shigar_pegmatite": {
+   "ids": [
+    6502
+   ],
+   "p": "Aquamarine=49;Topaz=45;Spessartine=24;Epidote=22;Clinozoisite=18;Beryl=15;Vesuvianite=12;Quartz=10;Titanite=10;Zoisite=10;Actinolite=5;Diopside=5;Rutile=5;Smoky Quartz=5;Albite=4;Chromian Diopside=4;Cleavelandite=4;Fluorite=4;Adularia=3;Byssolite=3;Calcite=3;Orthoclase=3;Schorl=3;Fluornatromicrolite=2;Grossular=2;Herderite=2;Hydroxylherderite=2;Lepidolite=2;Microcline=2;Muscovite=2;Tantalite-(Mn)=2;Andradite=1;Apatite group=1;Axinite-(Fe)=1;Beryllonite=1;Blue Quartz=1;Elbaite=1;Ferro-actinolite=1;Fluorapatite=1;Goshenite=1;Indicolite=1;Morganite=1;Pollucite=1;Rock Crystal=1;Sagenite=1;Sceptre Quartz=1;Tourmaline supergroup=1;Triplite=1;Zircon=1"
+  },
+  "sicily_solfifera": {
+   "ids": [
+    3927,
+    10598
+   ],
+   "p": "Sulphur=68;Celestine=20;Aragonite=11;Calcite=6;Alunite=2;Gypsum=2;Halite=2;Amber=1;Kalinite=1;Melanophlogite=1"
+  },
+  "sulphur_bank": {
+   "ids": [
+    12886
+   ],
+   "p": "Metacinnabar=1;Stibnite=1"
+  },
+  "sunnyside": {
+   "ids": [
+    5416,
+    15343
+   ],
+   "p": "Rhodochrosite=23;Fluorite=15;Quartz=3;Gold=2;Pyroxmangite=2;Chalcopyrite=1;Hessite=1;Hübnerite=1;Pyrite=1;Rhodonite=1;Selenite (Gypsum)=1"
+  },
+  "tormiq": {
+   "ids": [
+    5699
+   ],
+   "p": "Titanite=12;Epidote=8;Clinozoisite=7;Ilmenite=7;Chromian Diopside=2;Epidote group=2;Orthoclase=2;Albite=1;Andradite=1;Augite=1;Calcite=1;Diopside=1;Fluorite=1;Hedenbergite=1;Rutile=1;Siderite=1"
+  },
+  "tsumeb": {
+   "ids": [
+    969
+   ],
+   "p": "Smithsonite=110;Cerussite=96;Azurite=89;Dioptase=75;Mimetite=66;Cuprite=58;Calcite=56;Wulfenite=54;Malachite=50;Copper=39;Duftite=29;Mottramite=26;Tennantite series=23;Ludlockite=20;Willemite=19;Descloizite=15;Leiteite=15;Chalcocite=13;Anglesite=12;Bayldonite=12;Aragonite=11;Arsentsumebite=11;Cuprian Adamite=11;Dolomite=10;Tsumcorite=8;Adamite=7;Beudantite=7;Galena=7;Germanite=7;Hydrocerussite=7;Olivenite=7;Plumboan Aragonite=7;Minrecordite=6;Scorodite=6;Chalcotrichite=5;Eugenite=5;Goethite=5;Quartz=5;Söhngeite=5;Jamesite=4;Lukrahnite=4;Silver=4;Tsumebite=4;Biehlite=3;Carminite=3;Cobaltoan Smithsonite=3;Conichalcite=3;Cuprian Smithsonite=3;Gallite=3;Greenockite=3;Keyite=3;Leadhillite=3;Otavite=3;Plancheite=3;Rosasite=3;Schneiderhöhnite=3;Schulténite=3;Siderite=3;Stottite=3;Andyrobertsite=2;Antlerite=2;Baryte=2;Betpakdalite-CaMg=2;Briartite=2;Brochantite=2;Brunogeierite=2;Calcioandyrobertsite-1M=2;Chalcanthite=2;Covellite=2;Dundasite=2;Ferrilotharmeyerite=2;Fleischerite=2;Gartrellite=2;Gerdtremmelite=2;Gypsum=2;Linarite=2;Melanotekite=2;Molybdofornacite=2;Posnjakite=2;Pyrite=2;Renierite=2;Schaurteite=2;Sidpietersite=2;Stranskiite=2;Troostite=2;unidentified=2;Yancowinnaite=2;Adularia=1;Agardite-(Ce)=1;Alamosite=1;Albite=1;Amethyst=1;Apatite group=1;Arsenbrackebuschite=1;Arsendescloizite=1;Aurichalcite=1;Austinite=1;Bartelkeite=1;Betpakdalite=1;Betpakdalite-CaCa=1;Bornite=1;Cadsulfohite=1;Calvertite=1;Chalcopyrite=1;Chrysocolla=1;Cobaltoan Dolomite=1;Cobaltocalcite=1;Conichalcite-Duftite Series=1;Coronadite=1;Devilline=1;Edwardsite=1;Ekatite=1;Erikapohlite=1;Fahleite=1;Fraipontite=1;Furutobeite=1;Gaitite=1;Heterogenite=1;Heterogenite-2H=1;Hidalgoite=1;Hydroxylpyromorphite=1;Hydrozincite=1;Jarosite=1;Kegelite=1;Krieselite=1;Lavendulan=1;Lazaridisite=1;Lepidocrocite=1;Mathewrogersite=1;Molybdenite=1;Niedermayrite=1;Ojuelaite=1;Otjisumeite=1;Ovamboite=1;Plumbojarosite=1;Pyromorphite=1;Reinerite=1;Serpierite=1;Sewardite=1;Sphalerite=1;Stibioclaudetit=1;Stibnite=1;Tenorite=1;Tsumgallite=1;Vanackerite=1;Vanadinite=1;Velikite=1;W-bearing Wulfenite=1;Warikahnite=1;Wilhelmkleinite=1;Zincgartrellite=1;Zincolivenite=1;Zincostottite=1"
+  },
+  "uravan_district": {
+   "ids": [
+    65929
+   ],
+   "p": "Pascoite=9;Hughesite=7;Dickthomssenite=6;Lasalite=6;Magnesiopascoite=6;Hewettite=4;Martyite=3;Tyuyamunite=3;Metahewettite=2;Metamunirite=2;Navajoite=2;Postite=2;Rakovanite=2;Rossite=2;Ammoniolasalite=1;Ammoniomathesiusite=1;Azurite=1;Barnesite=1;Calciodelrioite=1;Calcite=1;Carnotite=1;Chalcomenite=1;Corvusite=1;Fernandinite=1;Finchite=1;Fulbrightite=1;Hummerite=1;Meitnerite=1;Morrisonite=1;Okieite=1;Pandoraite-Ba=1;Rauvite=1;Schindlerite=1;Sherwoodite=1;Simplotite=1;Trebiskyite=1;Uroxite=1;Vanarsite=1;Wernerbaurite=1"
+  },
+  "wittichen": {
+   "ids": [
+    241
+   ],
+   "p": "Erythrite=142;Zeunerite=61;Heinrichite=59;Fluorite=47;Atelestite=45;Walpurgite=42;Mixite=36;Silver=36;Bismutite=23;Arseniosiderite=22;Cobaltkoritnigite=19;Picropharmacolite=19;Bariopharmacosiderite=17;Bismuthinite=16;Baryte=15;Safflorite=15;Uraninite=15;Lavendulan=14;Bismuth=13;Parasymplesite=13;Skutterudite=13;Hematite=12;Arsenolite=10;Wittichenite=10;Emplectite=9;Hydronováčekite=9;Malachite=9;Metazeunerite=9;Calcite=8;Anatase=7;Chalcopyrite=7;Pitchblende=7;Preisingerite=6;Uranospinite=6;Acanthite=5;Proustite=5;Moorhouseite=4;Pharmacolite=4;Uranophane=4;Aragonite=3;Azurite=3;Bismutoferrite=3;Chlorargyrite=3;Chrysocolla=3;Cobaltocalcite=3;Goethite=3;Nickeline=3;Olivenite=3;Pyrite=3;Quartz=3;Sainfeldite=3;unidentified=3;Arsenic=2;Chalcanthite=2;Coffinite=2;Conichalcite=2;Copper=2;Ferrisymplesite=2;Galena=2;Heterogenite=2;Metanováčekite=2;Mimetite=2;Nováčekite series=2;Rooseveltite=2;Seelite=2;Tennantite-(Zn)=2;Xanthoconite=2;Acanthite (Argentite) group=1;Alacránite=1;Ankerite=1;Annabergite=1;Argentite=1;Arsenuranospathite=1;Asbolane=1;Chalcedony=1;Chalcotrichite=1;Covellite=1;Cuprite=1;Dolomite=1;Enargite=1;Eulytine=1;Ferrarisite=1;Hallimondite=1;Heterogenite-2H=1;Hexahydrite=1;Hörnesite=1;Langite=1;Laumontite=1;Lautite=1;Machatschkiite=1;Manganohörnesite=1;Medenbachite=1;Metakahlerite=1;Metatorbernite=1;Monohydrocalcite=1;Orpiment=1;Orthowalpurgite=1;Phaunouxite=1;Pradetite=1;Rauenthalite=1;Realgar=1;Richelsdorfite=1;Roselite=1;Scorodite=1;Segnitite=1;Siderite=1;Siderogel=1;Torbernite=1;Vivianite=1;Wölsendorfite=1"
+  }
+ },
+ "ebay": {
+  "amethyst_geode": {
+   "q": "ametista do sul",
+   "L": 64,
+   "F": 42,
+   "lapF": 1,
+   "unclF": 0,
+   "mF": "quartz:39 chalcedony:16 calcite:11 goethite:3 x:celadonite:1",
+   "lF": "quartz:22 chalcedony:14 calcite:5"
+  },
+  "asbestos_hills": {
+   "q": "griqualand|prieska|asbestos hills",
+   "L": 109,
+   "F": 46,
+   "lapF": 0,
+   "unclF": 19,
+   "mF": "tigers_eye:23 x:jasper:2 crocidolite:2 quartz:1 amosite:1",
+   "lF": "tigers_eye:23 x:jasper:2 crocidolite:1 amosite:1"
+  },
+  "bisbee": {
+   "q": "bisbee",
+   "L": 955,
+   "F": 655,
+   "lapF": 48,
+   "unclF": 43,
+   "mF": "malachite:189 azurite:145 native_copper:74 calcite:68 turquoise:61 cuprite:50 chrysocolla:28 aragonite:19 quartz:16 shattuckite:15 bornite:13 brochantite:11 chalcocite:8 aurichalcite:8 chalcopyrite:7 x:limonite:6 goethite:6 x:delafossite:6 pyrite:5 hematite:5 cerussite:5 native_gold:5 x:connellite:4 x:spangolite:4 sphalerite:3 vanadinite:3 siderite:3 native_silver:3 x:fossil:3 x:chlorargyrite:2 x:tenorite:2 scheelite:2 selenite:2 fluorite:2 bismuthinite:1 x:ilmenite:1 rosasite:1 x:variscite:1 hemimorphite:1 magnetite:1 antlerite:1 chalcedony:1 willemite:1 wulfenite:1 opal:1 galena:1 native_bismuth:1",
+   "lF": "azurite:120 malachite:100 turquoise:61 native_copper:59 calcite:50 cuprite:28 chrysocolla:22 aragonite:17 shattuckite:14 bornite:8 brochantite:6 chalcocite:6 aurichalcite:6 quartz:5 x:delafossite:5 pyrite:4 cerussite:4 x:connellite:3 hematite:3 native_gold:3 goethite:3 chalcopyrite:3 vanadinite:3 siderite:3 x:fossil:3 x:chlorargyrite:2 x:limonite:2 sphalerite:2 x:spangolite:2 scheelite:2 fluorite:2 native_silver:2 bismuthinite:1 x:tenorite:1 rosasite:1 x:variscite:1 hemimorphite:1 magnetite:1 chalcedony:1 willemite:1 wulfenite:1 selenite:1 galena:1"
+  },
+  "chiastolite_hornfels": {
+   "q": "bimbowrie|chiastolite",
+   "L": 181,
+   "F": 129,
+   "lapF": 63,
+   "unclF": 6,
+   "mF": "andalusite:57 quartz:3 chalcedony:2 tourmaline:1 feldspar:1",
+   "lF": "andalusite:56 quartz:3 chalcedony:1"
+  },
+  "colorado_plateau": {
+   "q": "uravan|montrose county",
+   "L": 15,
+   "F": 10,
+   "lapF": 0,
+   "unclF": 0,
+   "mF": "x:hummerite:4 x:pintadoite:3 barite:2 calcite:2 x:pascoite:1 chalcocite:1 covellite:1 native_silver:1 siderite:1 native_copper:1 malachite:1",
+   "lF": "x:hummerite:4 calcite:2 x:pascoite:1 chalcocite:1 native_silver:1 native_copper:1"
+  },
+  "cooling_herkimer": {
+   "q": "herkimer",
+   "L": 1314,
+   "F": 779,
+   "lapF": 38,
+   "unclF": 44,
+   "mF": "quartz:686 x:bitumen:33 calcite:14 dolomite:5 barite:2 chalcedony:2 apophyllite:1 x:kyanite:1 x:garnet:1 hematite:1 rutile:1 azurite:1",
+   "lF": "quartz:678 x:bitumen:8 calcite:4 chalcedony:2 barite:1 dolomite:1 apophyllite:1 hematite:1 rutile:1"
+  },
+  "cumbria": {
+   "q": "cumbria",
+   "L": 738,
+   "F": 636,
+   "lapF": 0,
+   "unclF": 10,
+   "mF": "hematite:223 quartz:193 calcite:139 fluorite:75 barite:68 dolomite:62 sphalerite:57 mimetite:49 pyromorphite:34 galena:25 pyrite:14 aragonite:11 chalcopyrite:9 x:ankerite:8 siderite:7 witherite:5 x:barytocalcite:5 malachite:4 cerussite:4 scheelite:4 x:alstonite:3 plumbogummite:2 smithsonite:2 x:limonite:2 hemimorphite:2 marcasite:2 selenite:2 romanechite:2 anhydrite:2 x:fossil:2 x:garnet:1 caledonite:1 tremolite:1 x:zircon:1 wolframite:1 leadhillite:1 mottramite:1 x:epistilbite:1 hydrozincite:1 azurite:1 cuprite:1 bismuthinite:1 anglesite:1 goethite:1 linarite:1 x:anatase:1 x:brookite:1 feldspar:1 bayldonite:1 adamite:1 chrysocolla:1 x:pharmacosiderite:1 arsenopyrite:1",
+   "lF": "quartz:119 hematite:109 calcite:84 fluorite:64 sphalerite:48 mimetite:45 barite:44 pyromorphite:32 aragonite:11 galena:9 dolomite:7 witherite:5 x:barytocalcite:5 cerussite:4 pyrite:4 scheelite:3 x:ankerite:3 plumbogummite:2 chalcopyrite:2 selenite:2 anhydrite:2 x:fossil:2 x:garnet:1 smithsonite:1 caledonite:1 tremolite:1 wolframite:1 leadhillite:1 mottramite:1 x:epistilbite:1 siderite:1 azurite:1 bismuthinite:1 anglesite:1 linarite:1 x:anatase:1 bayldonite:1 adamite:1 chrysocolla:1 hemimorphite:1 x:pharmacosiderite:1 arsenopyrite:1"
+  },
+  "deccan_zeolite": {
+   "q": "pune|nashik|jalgaon|poona|aurangabad|maharashtra|deccan",
+   "L": 2209,
+   "F": 1454,
+   "lapF": 7,
+   "unclF": 50,
+   "mF": "stilbite:612 apophyllite:599 chalcedony:225 heulandite:204 calcite:123 scolecite:97 quartz:96 x:cavansite:77 x:fossil:77 x:okenite:70 x:mordenite:45 prehnite:27 thomsonite:27 x:gyrolite:24 fluorite:21 x:celadonite:14 mesolite:13 x:pentagonite:10 x:stellerite:10 powellite:9 barite:9 hematite:7 x:chlorite:6 x:natrolite:4 x:laumontite:4 x:babingtonite:3 native_silver:2 atacamite:2 pyrite:2 aragonite:2 aquamarine:1 stibnite:1 chalcopyrite:1 native_copper:1 chabazite:1 x:bitumen:1 x:jasper:1",
+   "lF": "apophyllite:492 stilbite:277 heulandite:96 x:cavansite:75 calcite:74 scolecite:73 chalcedony:66 x:okenite:50 quartz:31 thomsonite:25 x:mordenite:20 fluorite:20 x:gyrolite:17 prehnite:10 mesolite:10 powellite:9 x:stellerite:9 x:pentagonite:7 barite:6 hematite:5 x:fossil:4 x:celadonite:4 x:natrolite:3 native_silver:2 atacamite:2 pyrite:2 x:laumontite:2 x:babingtonite:2 stibnite:1 chabazite:1 x:bitumen:1 x:jasper:1"
+  },
+  "elmwood": {
+   "q": "elmwood mine|elmwood tennessee|gordonsville|elmwood",
+   "L": 589,
+   "F": 466,
+   "lapF": 4,
+   "unclF": 1,
+   "mF": "sphalerite:249 calcite:231 fluorite:180 barite:54 dolomite:45 galena:22 quartz:21 marcasite:2 x:bitumen:2 x:mordenite:2 pyrite:2 x:fossil:2 native_gold:2 celestine:1 siderite:1 x:anatase:1 strontianite:1 chalcopyrite:1 pyromorphite:1 dioptase:1 tourmaline:1",
+   "lF": "calcite:187 fluorite:160 sphalerite:71 galena:15 barite:11 quartz:7 dolomite:2 x:mordenite:2 x:fossil:2 celestine:1 marcasite:1 strontianite:1 native_gold:1"
+  },
+  "epithermal_telluride": {
+   "q": "cripple creek",
+   "L": 183,
+   "F": 137,
+   "lapF": 31,
+   "unclF": 1,
+   "mF": "calaverite:40 native_gold:25 fluorite:19 quartz:19 sylvanite:11 turquoise:10 x:laumontite:9 chalcedony:9 x:jasper:5 barite:4 native_silver:3 x:fossil:2 rhodochrosite:1 calcite:1 galena:1 sphalerite:1 native_tellurium:1 x:kaolinite:1 native_copper:1 apatite:1 x:petzite:1 pyrite:1",
+   "lF": "calaverite:38 native_gold:12 fluorite:11 turquoise:10 quartz:10 sylvanite:9 x:jasper:5 chalcedony:5 rhodochrosite:1 calcite:1 galena:1 native_tellurium:1 x:petzite:1"
+  },
+  "gem_pegmatite_cruzeiro": {
+   "q": "cruzeiro",
+   "L": 233,
+   "F": 120,
+   "lapF": 0,
+   "unclF": 0,
+   "mF": "tourmaline:119 quartz:13 lepidolite:10 albite:4 x:muscovite:2 x:garnet:1 native_gold:1 calcite:1 feldspar:1 emerald:1",
+   "lF": "tourmaline:115 quartz:3 lepidolite:1 native_gold:1"
+  },
+  "great_salt_plains": {
+   "q": "great salt plains|salt plains|jet oklahoma",
+   "L": 46,
+   "F": 13,
+   "lapF": 0,
+   "unclF": 0,
+   "mF": "selenite:13",
+   "lF": "selenite:13"
+  },
+  "grimsel_alpine_cleft": {
+   "q": "grimsel",
+   "L": 5,
+   "F": 4,
+   "lapF": 0,
+   "unclF": 0,
+   "mF": "quartz:3 fluorite:1",
+   "lF": "quartz:3 fluorite:1"
+  },
+  "haramosh": {
+   "q": "haramosh",
+   "L": 107,
+   "F": 73,
+   "lapF": 0,
+   "unclF": 0,
+   "mF": "aquamarine:33 tourmaline:22 albite:12 quartz:11 x:muscovite:9 epidote:5 titanite:5 beryl:4 x:garnet:3 apatite:2 feldspar:2 x:chlorite:1 topaz:1 x:hambergite:1 emerald:1 x:vayrynenite:1",
+   "lF": "aquamarine:31 tourmaline:19 epidote:5 titanite:5 beryl:3 apatite:2 x:garnet:2 quartz:2 topaz:1 x:hambergite:1 emerald:1 x:vayrynenite:1"
+  },
+  "jeffrey_mine": {
+   "q": "jeffrey mine|asbestos quebec|val-des-sources",
+   "L": 352,
+   "F": 264,
+   "lapF": 2,
+   "unclF": 2,
+   "mF": "grossular:119 vesuvianite:109 x:garnet:96 diopside:37 pectolite:15 prehnite:9 quartz:5 apophyllite:5 x:chlorite:4 emerald:3 albite:2 aragonite:2 x:zoisite:2 x:clinozoisite:1 wollastonite:1 titanite:1 x:serpentine:1 pyromorphite:1 scheelite:1",
+   "lF": "grossular:100 vesuvianite:97 x:garnet:17 pectolite:9 diopside:9 prehnite:8 apophyllite:5 quartz:4 emerald:3 x:chlorite:2 x:clinozoisite:1 wollastonite:1 titanite:1 x:serpentine:1 pyromorphite:1 x:zoisite:1"
+  },
+  "marlborough_chrysoprase": {
+   "q": "marlborough queensland|marlborough chrysoprase",
+   "L": 53,
+   "F": 31,
+   "lapF": 6,
+   "unclF": 0,
+   "mF": "chrysoprase:24 chalcedony:1",
+   "lF": "chrysoprase:24 chalcedony:1"
+  },
+  "mogok_marble": {
+   "q": "mogok",
+   "L": 918,
+   "F": 234,
+   "lapF": 29,
+   "unclF": 42,
+   "mF": "x:spinel:38 sapphire:30 ruby:29 tourmaline:14 x:painite:8 x:phenakite:8 x:garnet:8 quartz:7 topaz:6 x:sodalite:3 aquamarine:3 x:chondrodite:2 x:pargasite:2 calcite:2 apatite:2 corundum:2 fluorite:2 x:poudretteite:1 x:davyne:1 andalusite:1 x:chrysoberyl:1 x:zircon:1 x:hambergite:1 beryl:1 rutile:1 x:danburite:1 x:olivine:1 emerald:1 tremolite:1",
+   "lF": "x:spinel:38 sapphire:28 ruby:25 tourmaline:13 x:painite:8 x:phenakite:8 x:garnet:7 topaz:6 quartz:5 x:sodalite:3 x:pargasite:2 apatite:2 corundum:2 aquamarine:2 fluorite:2 x:poudretteite:1 x:davyne:1 andalusite:1 x:chrysoberyl:1 x:zircon:1 x:hambergite:1 beryl:1 rutile:1 x:danburite:1 x:chondrodite:1 x:olivine:1 tremolite:1"
+  },
+  "mvt_tristate": {
+   "q": "picher|tristate|tri state|joplin|treece|baxter springs",
+   "L": 288,
+   "F": 265,
+   "lapF": 4,
+   "unclF": 7,
+   "mF": "sphalerite:132 galena:93 calcite:75 chalcopyrite:65 dolomite:37 marcasite:19 quartz:14 pyrite:13 x:jasper:12 chalcedony:5 barite:4 fluorite:2 tourmaline:2 tetrahedrite:1 smithsonite:1 malachite:1 hematite:1 arsenopyrite:1",
+   "lF": "galena:79 sphalerite:74 calcite:47 chalcopyrite:27 marcasite:9 chalcedony:4 dolomite:3 quartz:3 x:jasper:2 barite:2 tourmaline:2 smithsonite:1 fluorite:1"
+  },
+  "naica_geothermal": {
+   "q": "naica",
+   "L": 238,
+   "F": 210,
+   "lapF": 3,
+   "unclF": 1,
+   "mF": "fluorite:77 selenite:68 calcite:51 galena:37 sphalerite:34 pyrite:28 quartz:21 anhydrite:12 chalcopyrite:10 dolomite:7 x:pyrrhotite:2 aurichalcite:1 x:lazurite:1 arsenopyrite:1 x:jamesonite:1 epidote:1 barite:1 aragonite:1 x:fossil:1 tourmaline:1",
+   "lF": "fluorite:74 selenite:67 calcite:18 anhydrite:12 sphalerite:9 galena:7 quartz:6 dolomite:3 pyrite:3 chalcopyrite:2 arsenopyrite:1 x:jamesonite:1 barite:1 aragonite:1 tourmaline:1"
+  },
+  "north_pennines": {
+   "q": "weardale|alston|north pennines",
+   "L": 471,
+   "F": 313,
+   "lapF": 1,
+   "unclF": 7,
+   "mF": "fluorite:265 quartz:48 galena:26 calcite:22 sphalerite:9 siderite:9 barite:6 witherite:6 x:barytocalcite:3 chalcedony:2 pyrite:2 aragonite:2 smithsonite:2 cerussite:1 molybdenite:1 marcasite:1 aquamarine:1 chrysocolla:1 x:fossil:1 grossular:1 x:garnet:1 goethite:1 hematite:1 pyrolusite:1 x:ankerite:1 wolframite:1 x:magnesite:1 cassiterite:1 dolomite:1 x:alstonite:1",
+   "lF": "fluorite:244 quartz:21 calcite:7 galena:6 witherite:6 sphalerite:5 barite:3 x:barytocalcite:3 smithsonite:2 cerussite:1 molybdenite:1 aquamarine:1 x:fossil:1 grossular:1 aragonite:1 wolframite:1 pyrite:1"
+  },
+  "ouro_preto": {
+   "q": "ouro preto",
+   "L": 112,
+   "F": 85,
+   "lapF": 3,
+   "unclF": 0,
+   "mF": "topaz:66 x:euclase:7 hematite:6 goethite:2 native_gold:1 quartz:1 dolomite:1",
+   "lF": "topaz:65 x:euclase:7 hematite:6 goethite:2 native_gold:1 quartz:1"
+  },
+  "porphyry_bingham": {
+   "q": "bingham canyon|bingham utah",
+   "L": 59,
+   "F": 35,
+   "lapF": 0,
+   "unclF": 3,
+   "mF": "pyrite:14 calcite:4 galena:4 tetrahedrite:4 quartz:3 chalcopyrite:3 x:vivianite:2 enargite:2 native_copper:2 chalcocite:2 sphalerite:2 x:zircon:1 vanadinite:1 apophyllite:1 apatite:1 x:wavellite:1 selenite:1 fluorite:1 magnetite:1 turquoise:1 molybdenite:1",
+   "lF": "pyrite:11 calcite:4 tetrahedrite:3 x:vivianite:2 enargite:2 native_copper:2 galena:2 apophyllite:1 apatite:1 x:wavellite:1 sphalerite:1 fluorite:1 chalcopyrite:1"
+  },
+  "reactive_wall_viburnum": {
+   "q": "viburnum|sweetwater mine|reynolds county",
+   "L": 680,
+   "F": 362,
+   "lapF": 3,
+   "unclF": 5,
+   "mF": "calcite:193 galena:135 chalcopyrite:105 dolomite:69 pyrite:35 marcasite:34 x:siegenite:11 quartz:8 sphalerite:4 covellite:3 x:searlesite:1 native_silver:1 anhydrite:1 siderite:1 turquoise:1 wulfenite:1",
+   "lF": "calcite:178 galena:100 chalcopyrite:31 pyrite:17 marcasite:12 x:siegenite:8 covellite:3 x:searlesite:1 dolomite:1 sphalerite:1 siderite:1 wulfenite:1"
+  },
+  "roughten_gill": {
+   "q": "roughton gill|roughten gill|caldbeck",
+   "L": 101,
+   "F": 96,
+   "lapF": 0,
+   "unclF": 2,
+   "mF": "mimetite:36 pyromorphite:28 quartz:23 calcite:4 arsenopyrite:4 scheelite:4 cerussite:3 plumbogummite:2 hemimorphite:2 linarite:2 mottramite:2 x:muscovite:2 romanechite:2 leadhillite:1 caledonite:1 vanadinite:1 malachite:1 barite:1 galena:1 x:agardite:1 aurichalcite:1 x:alstonite:1 adamite:1 x:ankerite:1 pyrite:1",
+   "lF": "mimetite:33 pyromorphite:27 quartz:13 scheelite:3 arsenopyrite:3 plumbogummite:2 linarite:2 cerussite:2 leadhillite:1 caledonite:1 vanadinite:1 hemimorphite:1 galena:1 mottramite:1 x:agardite:1 adamite:1 x:muscovite:1"
+  },
+  "schneeberg": {
+   "q": "schneeberg",
+   "L": 15,
+   "F": 12,
+   "lapF": 0,
+   "unclF": 2,
+   "mF": "x:schneebergite:2 calcite:2 native_bismuth:2 x:pucherite:1 proustite:1 siderite:1 x:bismutite:1 skutterudite:1 erythrite:1 diopside:1",
+   "lF": "x:schneebergite:2 x:pucherite:1 proustite:1 x:bismutite:1 skutterudite:1 native_bismuth:1 erythrite:1 calcite:1 diopside:1"
+  },
+  "searles_lake": {
+   "q": "searles|trona california",
+   "L": 211,
+   "F": 118,
+   "lapF": 0,
+   "unclF": 5,
+   "mF": "halite:66 x:hanksite:24 x:trona:17 x:sulfohalite:9 x:gaylussite:4 x:pirssonite:4 x:burkeite:3 borax:2 x:coloradoite:1 thenardite:1 feldspar:1 loellingite:1 quartz:1",
+   "lF": "halite:66 x:hanksite:23 x:sulfohalite:8 x:gaylussite:4 x:pirssonite:4 x:trona:2 x:coloradoite:1 thenardite:1 feldspar:1 loellingite:1 quartz:1 x:burkeite:1"
+  },
+  "shigar_pegmatite": {
+   "q": "shigar",
+   "L": 1408,
+   "F": 926,
+   "lapF": 4,
+   "unclF": 17,
+   "mF": "aquamarine:509 tourmaline:170 quartz:145 x:muscovite:109 albite:77 x:garnet:69 topaz:65 feldspar:49 beryl:38 apatite:36 fluorite:20 x:phenakite:15 hematite:13 epidote:12 rutile:11 morganite:9 x:beryllonite:7 x:chlorite:5 vesuvianite:5 calcite:5 titanite:4 x:zoisite:4 x:microlite:4 spodumene:3 x:columbite:3 x:axinite:3 grossular:3 x:clinozoisite:3 x:herderite:3 diopside:3 siderite:2 x:ilmenite:1 actinolite:1 lepidolite:1 x:hedenbergite:1 pyrite:1 cassiterite:1 x:brookite:1 heliodor:1 x:zircon:1 x:vayrynenite:1 rhodochrosite:1",
+   "lF": "aquamarine:489 tourmaline:81 topaz:56 x:garnet:55 quartz:46 apatite:30 beryl:27 x:phenakite:15 fluorite:14 epidote:10 hematite:9 morganite:8 rutile:8 x:beryllonite:7 vesuvianite:5 x:zoisite:4 x:muscovite:4 spodumene:3 titanite:3 x:axinite:3 grossular:3 x:herderite:3 diopside:3 x:microlite:3 calcite:3 feldspar:2 albite:2 x:ilmenite:1 x:hedenbergite:1 x:chlorite:1 pyrite:1 cassiterite:1 siderite:1 x:zircon:1 x:vayrynenite:1 rhodochrosite:1"
+  },
+  "sicily_solfifera": {
+   "q": "sicily|agrigento|caltanissetta|cianciana|sicilia",
+   "L": 640,
+   "F": 141,
+   "lapF": 4,
+   "unclF": 14,
+   "mF": "native_sulfur:93 aragonite:39 celestine:23 calcite:15 selenite:3 quartz:2 fluorite:2 hematite:2 pyrite:2 native_gold:1 barite:1",
+   "lF": "native_sulfur:67 celestine:21 aragonite:20 calcite:7 fluorite:2 pyrite:2 selenite:2 hematite:1 native_gold:1"
+  },
+  "skardu_district": {
+   "q": "skardu",
+   "L": 1368,
+   "F": 950,
+   "lapF": 7,
+   "unclF": 30,
+   "mF": "tourmaline:186 aquamarine:185 quartz:183 topaz:118 x:garnet:95 x:muscovite:73 feldspar:59 albite:50 apatite:47 beryl:22 x:zircon:21 epidote:19 x:herderite:18 fluorite:18 titanite:17 morganite:17 x:axinite:17 rutile:17 hematite:12 calcite:11 diopside:9 heliodor:7 x:vayrynenite:7 x:pollucite:6 x:beryllonite:5 siderite:5 magnetite:5 rhodochrosite:5 x:chlorite:5 scheelite:5 x:olivine:5 x:columbite:5 x:pargasite:4 pyrite:4 x:hambergite:3 x:spinel:3 x:zoisite:3 lepidolite:3 emerald:3 x:kyanite:3 aragonite:2 crocidolite:2 vesuvianite:2 x:microlite:2 ruby:2 cassiterite:2 grossular:2 x:phenakite:2 x:phlogopite:2 x:clinozoisite:1 x:ilmenite:1 azurite:1 malachite:1 x:anatase:1 actinolite:1 selenite:1 x:scapolite:1",
+   "lF": "aquamarine:176 tourmaline:137 topaz:113 quartz:89 x:garnet:84 apatite:40 x:zircon:21 x:herderite:18 titanite:17 morganite:17 beryl:17 x:axinite:17 epidote:15 rutile:15 fluorite:14 diopside:7 albite:7 x:vayrynenite:7 x:pollucite:6 calcite:6 hematite:6 x:beryllonite:5 rhodochrosite:5 feldspar:5 scheelite:5 x:pargasite:4 x:chlorite:4 x:olivine:4 x:hambergite:3 x:spinel:3 magnetite:3 x:zoisite:3 pyrite:3 siderite:3 x:columbite:3 emerald:3 heliodor:2 aragonite:2 crocidolite:2 vesuvianite:2 x:muscovite:2 x:microlite:2 ruby:2 cassiterite:2 grossular:2 x:phenakite:2 x:kyanite:2 x:clinozoisite:1 x:ilmenite:1 azurite:1 x:anatase:1 selenite:1 x:scapolite:1"
+  },
+  "sulphur_bank": {
+   "q": "sulphur bank|sulfur bank",
+   "L": 2,
+   "F": 2,
+   "lapF": 0,
+   "unclF": 1,
+   "mF": "native_sulfur:1",
+   "lF": "native_sulfur:1"
+  },
+  "sunnyside": {
+   "q": "sunnyside|american tunnel|silverton colorado",
+   "L": 172,
+   "F": 131,
+   "lapF": 5,
+   "unclF": 1,
+   "mF": "quartz:60 rhodochrosite:59 fluorite:24 native_gold:16 sphalerite:9 wolframite:9 pyrite:7 calcite:6 galena:5 chalcopyrite:4 x:rhodonite:2 native_silver:2 barite:2 x:fossil:1 brochantite:1 scheelite:1 sylvanite:1 selenite:1 bornite:1 native_copper:1 epidote:1 x:polybasite:1 x:vivianite:1 anhydrite:1 cerussite:1",
+   "lF": "rhodochrosite:57 fluorite:14 native_gold:13 quartz:13 wolframite:9 sphalerite:4 calcite:2 x:fossil:1 brochantite:1 galena:1 sylvanite:1 selenite:1 bornite:1 epidote:1 native_silver:1 x:polybasite:1 barite:1 chalcopyrite:1 x:rhodonite:1 cerussite:1"
+  },
+  "tormiq": {
+   "q": "tormiq",
+   "L": 95,
+   "F": 90,
+   "lapF": 0,
+   "unclF": 0,
+   "mF": "quartz:28 titanite:22 hematite:18 epidote:16 apatite:8 rutile:6 albite:6 crocidolite:3 feldspar:3 calcite:3 x:muscovite:3 x:chlorite:2 x:hedenbergite:2 actinolite:2 x:axinite:2 x:ilmenite:1 tourmaline:1 dolomite:1 x:clinozoisite:1 beryl:1",
+   "lF": "quartz:20 titanite:19 hematite:17 epidote:12 apatite:8 crocidolite:3 rutile:3 x:hedenbergite:2 x:axinite:2 calcite:1 x:clinozoisite:1 beryl:1 x:muscovite:1"
+  },
+  "tsumeb": {
+   "q": "tsumeb",
+   "L": 1252,
+   "F": 987,
+   "lapF": 16,
+   "unclF": 36,
+   "mF": "calcite:182 smithsonite:153 cerussite:143 malachite:138 azurite:138 dioptase:96 mimetite:79 dolomite:74 duftite:63 cuprite:45 wulfenite:44 quartz:38 mottramite:35 native_copper:30 willemite:29 tennantite:26 galena:23 rosasite:17 chalcocite:12 hematite:11 conichalcite:10 aragonite:10 anglesite:9 adamite:8 olivenite:8 descloizite:7 pyrite:6 x:tsumcorite:5 x:leiteite:4 x:ludlockite:3 bayldonite:3 goethite:3 x:plancheite:3 x:beudantite:3 chalcanthite:2 bornite:2 x:hydrocerussite:2 enargite:2 pyromorphite:2 x:limonite:2 sphalerite:2 linarite:2 x:djurleite:2 siderite:1 scorodite:1 x:tsumebite:1 x:otavite:1 jarosite:1 greenockite:1 emerald:1 x:germanite:1 brochantite:1 hemimorphite:1 tetrahedrite:1 chrysocolla:1",
+   "lF": "smithsonite:131 cerussite:108 calcite:104 azurite:94 dioptase:87 malachite:82 mimetite:55 wulfenite:33 dolomite:26 cuprite:26 willemite:23 duftite:20 mottramite:16 native_copper:12 quartz:9 aragonite:9 tennantite:8 galena:8 conichalcite:7 rosasite:7 adamite:7 olivenite:6 anglesite:6 descloizite:5 chalcocite:4 x:leiteite:4 pyrite:4 x:tsumcorite:4 x:ludlockite:3 chalcanthite:2 bornite:2 x:hydrocerussite:2 hematite:2 pyromorphite:2 x:beudantite:2 x:djurleite:2 scorodite:1 bayldonite:1 x:otavite:1 enargite:1 goethite:1 x:plancheite:1 greenockite:1 x:germanite:1 brochantite:1 hemimorphite:1 tetrahedrite:1 linarite:1 chrysocolla:1"
+  },
+  "wittichen": {
+   "q": "wittichen",
+   "L": 7,
+   "F": 6,
+   "lapF": 0,
+   "unclF": 1,
+   "mF": "x:koritnigite:1 x:kahlerite:1 safflorite:1 skutterudite:1 erythrite:1 x:bismutite:1",
+   "lF": "x:koritnigite:1 x:kahlerite:1 safflorite:1 skutterudite:1 x:bismutite:1"
+  }
+ }
+}
