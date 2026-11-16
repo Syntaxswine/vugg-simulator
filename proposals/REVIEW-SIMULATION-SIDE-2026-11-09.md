@@ -2,8 +2,13 @@
 
 **Status:** a review and five passive instruments. Nothing under `js/`, `data/` or `tests-js/`
 changes, no baseline or receipt moves, and SIM stays 286.
-**Base:** `origin/main` `e86ba58a`. `canonical/main` (`915ed33a`) is a merge whose tree is identical
-to that of `c2651d4f`, an ancestor of this base, so it holds no change this base lacks.
+**Base:** `e86ba58a`, which was `origin/main` until 2026-11-16. Main has since taken `da1d0b9e`, the
+merge of pull request 49. It changes none of this change's files and leaves SIM at 286 and the
+seed-42 baseline as they are; it adds two test files, and it changes three files under `js/` that
+this document cites by line (`js/12-mineral-art.ts`, `js/12a-colour-lexicon.ts`,
+`js/98c-ui-zone-bars.ts`). Every line and every number here was read on the base, and nothing was
+read again on main. `canonical/main` (`915ed33a`) is a merge whose tree is identical to that of
+`c2651d4f`, an ancestor of this base, so it holds no change this base lacks.
 **Asked by the boss, 2026-11-09:** "take a look at vugg simulator and see if you see any improvements
 of the simulation side of things."
 **Awaits the boss:** the eight decisions in §6. No fix is applied here. SC1, SC2 and SC3 are each a
@@ -171,10 +176,10 @@ sets out and §6 puts to the owner.
   millimetre in a Zen run of the scenario, whose pocket is full by step 200, and one of 21
   to 23 mm in a Zen run of `schneeberg`.
 
-**This document has been corrected twenty-two times, each time by its own review round.** The first
-version said supply does not bind. The second costed the recommended fixes too lightly. The third
-counted a crystal that had dissolved away as still present, and recommended a lead mechanism that
-cannot work. The fourth left out a gate that the recommended change trips, and put two coupled
+**This document has been corrected twenty-three times, each time by its own review round.** The
+first version said supply does not bind. The second costed the recommended fixes too lightly. The
+third counted a crystal that had dissolved away as still present, and recommended a lead mechanism
+that cannot work. The fourth left out a gate that the recommended change trips, and put two coupled
 choices to the owner as if they were independent. The fifth counted two places where the galena
 is promised, and gave as a reason for one timing a difference it had measured on one reader of
 three. The sixth measured Zen mode on another mode's clock, counted the galena's places short
@@ -265,6 +270,13 @@ step after the wash it missed; what a full pocket drops left uncounted, where it
 larger side; what the two cuts that were tried do to that wash; a failed hosted check on
 the pull request that nothing mentioned; and a history in the backlog's banner that was
 six rounds old.
+The twenty-third round reviewed the two commits that answered the twenty-second, and
+found nothing that had to be fixed. It found five things that should be: a dropped field
+that does reach what a player is shown, a quartz's dose, where the text had said that no
+such reader was followed; "17 scenarios whose pocket fills", which were 16 and the open
+surface once more; a count of what engines proposed given as what the loop drops; the
+reading of a regime left out of the note's counts; and comments on the pull request that
+put the suite's two red runs down to a cause its logs do not show.
 §9 lists every correction.
 
 ## 1. What was run
@@ -399,8 +411,8 @@ Where this document cites one ("the sixth round ran", "by the seventh round's ru
 number was checked against that round's output file, and it cannot be reproduced from the
 committed tree: a reader has this document's word for it. In §1 to §8 each such statement
 says *not committed* where it stands. §9 lists what each round found, and the runs it
-cites there are the rounds' own unless an entry says a probe here now makes them. They are
-of twenty-five kinds: copies of the census that over-count
+cites there are the rounds' own unless an entry says a probe here now makes them. They are of
+twenty-six kinds: copies of the census that over-count
 (above; trap 21); copies of the census with a proposed change installed (§4, SC2 and SC3;
 trap 5; §7); a run of the agent API's fluid preset (§3.3); `schneeberg` opened in Creative
 mode (§6, decision 3; §7); a looser clamp tried against an earlier acceptance line for Zen
@@ -424,10 +436,15 @@ with what a listing of a crystal's record leaves out (§3.4); the sizes of what 
 there, and the wall's dissolved depths in a nudged run against the shipped one (§3.4); a
 fluorite followed step by step through a full pocket, with what its engine wrote at each
 step, the regime it wrote from and whether the crystal took it, and the same run with a
-dropped habit given to the crystal (§3.4); and what a full pocket drops, counted at the
-vug and in three own cavities, with what one quartz's engine wrote there (§3.4). No
-recommendation of §4 rests on one of them. The predictions of which census controls SC2
-and SC3 flip do, and so does the direct evidence that the walls of v160 held no radiogenic
+dropped habit given to the crystal (§3.4); what a full pocket drops, counted at the vug
+and in three own cavities by what the engines proposed and again by what the loop was
+handed, with what one quartz's engine wrote there, the doses it drops put back on the
+quartz, and the regime read on the zones of the last room (§3.4); and `gem_pegmatite`'s
+quartz under SC1's clamp, read for its dose and for the name and colour the game gives
+it (§4, SC1). No recommendation of §4 rests on one of them. The predictions of which
+census controls SC2 and SC3 flip do, so does what SC1's bound does to the name of the
+pocket's quartz, and so does the direct evidence that the walls of v160 held no
+radiogenic
 lead.
 
 ## 2. The structural reading
@@ -1599,7 +1616,7 @@ engine had written there while it proposed the zone: a habit, forms, a twin
 (`js/85b-simulator-nucleate.ts:89`; a zone of no thickness that the engine marked as a
 change of state is accepted too). For the eight minerals whose growth regime the
 simulator classifies, a positive zone that is stored also has that regime read anew at
-the end of the step, and their engines write the next steps' habits from that reading
+the end of the step, and their engines read it when they write the next steps' habits
 (`js/45-morphology.ts:1612`, `:1617`). None of these asks that a zone be of any size
 before it counts, and a pocket that is full hands out zones that are not zones. The step
 clamps a zone to the room the cavity has left (`js/85-simulator.ts:947`) and drops a
@@ -1870,28 +1887,44 @@ writes the habit again at each of the 56 steps from 62 to 117, and the full pock
 it each time.
 
 The twenty-second round counted what a full pocket drops, in the runs as shipped at the
-three seeds (not committed; run again here, the same but for the seconds it prints). At
-the vug, in the 17 scenarios whose pocket reaches a fill of 1 at some seed, the loop
-drops 49,289 positive zones in 46 of the 51 runs. 20,844 of them carried something their
-engine had written for the crystal, for 472 crystals: forms or a habit most often, and
-among the rest a twin, a polymorph, a display name or radiation damage. 262 crystals, in
-16 of the scenarios, end the run without the habit their engine last wrote, and 81 of
-them, in 11 scenarios, have solid at the end. In the three scenarios whose own cavity
-fills the loop drops 12,799 in the nine runs, 8,919 of them carrying such a field, and
-49 crystals end without that habit. The 19 of them with solid at the end are all in
-`gem_pegmatite`, whose pocket is full from step 9 or 10 (F1, §3.1). At seed 42 there,
-the baseline's seed, a quartz of 1.7 mm last grew at 614 °C and ends the run at 276 °C
-under the habit and the name it had then, "β-quartz bipyramidal (paramorphic)" and
-"quartz (β→α)", untwinned, with β-quartz as its stored polymorph. At each of the 201
-steps from 30 to 230 its engine writes the habit and the polymorph of α-quartz, at 138
-of them the Dauphiné twin of the inversion, and the pocket drops each (the round's
-count, and a scratch run for the twin; not committed). By the engine's own comment that
-twin comes of the cooling through 573 °C in a crystal that grew as β-quartz
-(`js/59-engines-silicate.ts:136`), which this one did. Beyond that wash, the count does
-not show that any of this changes a size, a flag or a host. It followed no reader of
-those fields but the etch, and it did not run the 24 scenarios whose pocket does not
-fill at the vug. The ten crystals whose habit a zone of the last room changes stand
-against it: a remedy that takes the last room away puts them on this side.
+three seeds, and the twenty-third counted it again by what the loop is handed (not
+committed; both run again here, the same but for the seconds they print). At the vug the
+simulator seals the pocket in 46 runs of 16 scenarios (§3.1). In those runs the loop is
+handed 48,186 positive zones at a fill of 1 or more, and drops each. 20,510 of them
+carried something their engine had written for the crystal, a habit in 15,049 of them,
+for 454 crystals. 251 crystals end the run without the habit their engine last wrote,
+some in each of the 16 scenarios, and 81 of them, in 11 scenarios, have solid at the
+end. (At such a fill engines proposed 1,103 more positive zones that the loop was never
+handed, on crystals at their authored size cap or rationed to nothing, and no fill
+decides those: `js/85b-simulator-nucleate.ts:1681`, `:1851`.) In the three scenarios
+whose own cavity fills the loop drops 12,799 in the nine runs, 8,919 of them carrying
+such a field, and 49 crystals end without that habit. The 19 of them with solid at the
+end are all in `gem_pegmatite`, whose pocket is full from step 9 or 10 (F1, §3.1). At
+seed 42 there, the baseline's seed, a quartz of 1.7 mm last grew at 614 °C and ends the
+run at 276 °C under the habit and the name it had then, "β-quartz bipyramidal
+(paramorphic)" and "quartz (β→α)", untwinned, with β-quartz as its stored polymorph. At
+each of the 201 steps from 30 to 230 its engine writes the habit and the polymorph of
+α-quartz, and at 138 of them the Dauphiné twin of the inversion, which is one draw of
+seven in ten made again at each step (`js/59-engines-silicate.ts:143`), and the pocket
+drops each (the round's count, and a scratch run for the twin; not committed).
+
+One dropped field is a sum, and it reaches what a player is shown. The quartz engine
+adds the wall's dose to a quartz's radiation damage at each call made while the fluid
+holds more than 1 ppm of Al (`js/59-engines-silicate.ts:42`, `:44`), and the crystal
+takes the sum only with a zone that is accepted. The twenty-third round put each dropped
+dose on its crystal, and nothing else (not committed; run again here, the same but for
+the seconds it prints). In `gem_pegmatite`'s own cavity the eight quartz with solid then
+end at the engine's cap of 0.7, where they end at 0.03 to 0.07 as shipped, and the game
+names and colours each of them smoky quartz, where it shows rock crystal or milky quartz
+now (`js/12-mineral-art.ts:66`, `:280`). In `radioactive_pegmatite`'s own cavity the
+nine quartz are named smoky quartz either way. At the vug, in the seven scenarios the
+simulator seals whose wall doses its quartz, the name changes for 12 of the 43 quartz
+with solid whose engine wrote a dose (the round ran six of the seven; `porphyry`, run
+here with its script, has no such quartz). Each of those 27 runs ends as shipped in
+every crystal's size, flag, host and habit. The form the game draws for a quartz reads
+its habit, twin and polymorph as well (`js/46m-quartz-form-display.ts:39`), and what it
+draws for these was not run. No other reader of a dropped field was followed, and the 24
+scenarios whose pocket does not fill at the vug were not run.
 
 Under the four factors on every engine, a size or the bulk fluid differs from the
 shipped run in 51 of the 492 nudged runs at that setting, at 20 of the 123
@@ -2034,19 +2067,23 @@ cavities only.
 Nothing is proposed. Four things that a zone from the last room decides were followed
 here: the host's test, the guest's two tests, the size of the crystal that is handed it
 or is not, and the habit, forms or twin the engine had written with it. They are the
-ones this note looked for. No search was made for others, and every reader of a
-crystal's zone list, or of a field that an accepted zone sets, is a candidate. The
-eighteenth review round's runs show some of them in nudged runs (not committed; run
-again here, to the same lines). In `radioactive_pegmatite` at seed 2 a residue of 5.5 ×
-10⁻⁹ µm clears a lepidolite film from a spodumene of 0.29 mm
-(`js/85b-simulator-nucleate.ts:98`), which the shipped run keeps to the end. A crystal's
-late-interlocking flag is not the shipped run's in three of the runs that do not part
-and, before the step at which they part, in two of the others. The loop sets that flag
-on a crystal when the clamp has cut its zone and left it positive, and on one that is
-handed a positive zone at a fill of 0.85 or more while the dampener is under 1, as it is
-there unless the per-cell fill switch is set, and no scenario sets it
-(`js/85-simulator.ts:979`, `:991`, `:1011`). A residue is such a zone. The other fields
-that round's output names are in the list above.
+ones this note looked for. The regime that such a zone has read anew is a fifth, and the
+counts above do not hold it. The twenty-third round counted it (not committed; run again
+here, the same but for the seconds it prints): 13 of the vug's 151 zones are on one of
+the eight minerals, and on four of them the reading changed the regime, on the fluorite
+above, on a halite and on two calcites; in the own cavities 3 of the 25 are, and none
+changed it. No search was made for others, and every reader of a crystal's zone list, or
+of a field that an accepted zone sets, is a candidate. The eighteenth review round's
+runs show some of them in nudged runs (not committed; run again here, to the same
+lines). In `radioactive_pegmatite` at seed 2 a residue of 5.5 × 10⁻⁹ µm clears a
+lepidolite film from a spodumene of 0.29 mm (`js/85b-simulator-nucleate.ts:98`), which
+the shipped run keeps to the end. A crystal's late-interlocking flag is not the shipped
+run's in three of the runs that do not part and, before the step at which they part, in
+two of the others. The loop sets that flag on a crystal when the clamp has cut its zone
+and left it positive, and on one that is handed a positive zone at a fill of 0.85 or
+more while the dampener is under 1, as it is there unless the per-cell fill switch is
+set, and no scenario sets it (`js/85-simulator.ts:979`, `:991`, `:1011`). A residue is
+such a zone. The other fields that round's output names are in the list above.
 
 A floor on the host's layer is the change that first suggests itself, and it was not
 previewed in a committed run. By the committed outputs there is room for one in both
@@ -2546,6 +2583,17 @@ What it costs.
   entry would pass with that sentence still on it. The ruling binds what comes after: once topaz
   is promised at every seed, a later change that loses it fails the same gate, and SC4's pilot
   with the bound lifted is such a change.
+- *The pocket's quartz is shown as smoky quartz.* A quartz takes its wall's dose with each zone that
+  is accepted (§3.4; `js/59-engines-silicate.ts:44`). As shipped the dose stops where the pocket
+  fills, at step 9 or 10: the eight quartz that hold solid at the three seeds end with a damage of
+  0.03 to 0.07, and the game shows them as rock crystal or milky quartz. In a run with the clamp
+  written in the two engines at 7 the quartz go on growing to the last step, all nine end at the
+  engine's cap of 0.7, and the game names each smoky quartz and gives it the darker of its two smoky
+  colours (`js/12-mineral-art.ts:66`, `:280`; the twenty-third review round's run, not committed;
+  §3.4). The backlog's entry on that dose, "SMOKY/MORION", says "granite/pegmatite quartz now
+  smoky". The narrator's sentence for such a quartz names a uraninite and leaves its placeholders
+  unfilled, as it does in shipped runs today (`js/92i-narrators-silicate.ts:68`;
+  `narratives/quartz.md:49`); that fault is the narrator's, and it was not followed.
 - *The new field needs a class.* The Creative lever audit fails on a scenario field it holds no
   class for. `tiger_eye_stage` is classed there as a process input, not a Creative control, and
   the bound would be classed the same way in the same commit.
@@ -3614,12 +3662,15 @@ without a control (§1 lists them) stays labelled as one.
 ## 6. Decisions for the boss
 
 1. **SC1: whether to bound the feldspar pair now, where the bound lives, its value, and topaz's
-   tier.** Recommended: a clamp on the rate authored on `gem_pegmatite` alone, at E = 7. It
-   changes one baseline and leaves every other scenario as it is, Shigar's 270 mm albite and
-   `radioactive_pegmatite`'s plug included. It is a calibration constant on one scenario, and SC4
-   is what would remove the need for it. It comes with a ruling: topaz, aspirational in that
-   scenario today, appears at all three of the locality gate's seeds, so the bump has to promote
-   it and rewrite its rationale, and a promoted topaz binds later changes.
+   tier.** Recommended: a clamp on the rate authored on `gem_pegmatite` alone, at E = 7. It changes
+   one baseline and leaves every other scenario as it is, Shigar's 270 mm albite and
+   `radioactive_pegmatite`'s plug included. It is a calibration constant on one scenario, and SC4 is
+   what would remove the need for it. It comes with a ruling: topaz, aspirational in that scenario
+   today, appears at all three of the locality gate's seeds, so the bump has to promote it and
+   rewrite its rationale, and a promoted topaz binds later changes. It also changes what the
+   pocket's quartz is shown as: with the pocket open the quartz takes the wall's dose to the end of
+   the run, and the game names it smoky quartz where it shows rock crystal or milky quartz today
+   (§4, SC1; a review round's run, not committed).
 
    The value is a choice inside a range. In the scenario's own cavity the acceptance lines
    of §4 are met by every whole value from 5 to 9, and they pick none. At 5 the pocket has
@@ -3760,10 +3811,10 @@ without a control (§1 lists them) stays labelled as one.
    zone above nothing licenses its crystal to enclose a neighbour, since any layer above
    zero does, and it puts on the crystal the habit, forms or twin that its engine had
    written, and, for the eight minerals whose growth regime the simulator classifies,
-   has that regime read anew, from which the engine writes the next habits. Either kind
-   counts among a guest's last three zones, by which a guest reads as slowing. Those are
-   what this review followed, and it made no search for more (§3.4). In the scenarios'
-   own cavities such a zone decides something in
+   has that regime read anew, which the engine reads when it writes the next habits.
+   Either kind counts among a guest's last three zones, by which a guest reads as
+   slowing. Those are what this review followed, and it made no search for more (§3.4).
+   In the scenarios' own cavities such a zone decides something in
    `radioactive_pegmatite` at seeds 1 and 2, through the host: how long the uraninites
    are altered, and with that their size and the lead they write. At the vug setting of
    Simulation mode's form it decides 35 of the 1,285 enclosures of the shipped runs, in
@@ -3779,11 +3830,14 @@ without a control (§1 lists them) stays labelled as one.
    is accepted to carry the same habit before the wash, and the wash does etch: a zone
    that a full pocket drops decides it as well (four review rounds' runs and a scratch
    run, not committed; §3.4). The dropped side is the larger. At the vug the loop drops
-   49,289 positive zones at a fill of 1 in the shipped runs of the 17 scenarios whose
-   pocket fills, 20,844 of them with something their engine wrote for the crystal, and
-   262 crystals end without the habit their engine last wrote, 81 of them with solid,
-   where nine end with one from a zone of the last room (the twenty-second round's
-   count, not committed; §3.4). Four nudges of a part in 10¹³ or less move 51 of 492
+   48,186 positive zones at a fill of 1 in the shipped runs of the 16 scenarios whose
+   pocket the simulator seals, 20,510 of them with something their engine wrote for the
+   crystal, and 251 crystals end without the habit their engine last wrote, 81 of them
+   with solid, where nine end with one from a zone of the last room. One dropped field
+   reaches what a player is shown: a quartz takes its wall's dose only with a zone, and
+   with the doses a full pocket drops `gem_pegmatite`'s quartz would be shown as smoky
+   quartz, which it is not today (two review rounds' counts, not committed; §3.4). Four
+   nudges of a part in 10¹³ or less move 51 of 492
    runs there, in nine scenarios, in a size or in the bulk fluid. In the eight whose
    pocket fills, 53 of the 96 nudged runs part from the shipped one at some step, each
    on a step at which the loop handed out its last room in one run or the other: 23 in a
@@ -4321,29 +4375,29 @@ The twelve steps of `npm run ci` that precede the tests pass on this tree, and s
 audit:evidence`. They read the tree as it is and say nothing about the changes proposed here; §4
 says what each change would do to three of them. **The full suite** (`npm run ci` with its tests,
 two hours and more on this machine) is not part of this commit's evidence, and it has not been run
-on this tip. It was run twice one commit back, on `4500240f`, and both runs stopped at batch 153 of
+on this tip. It was run twice two commits back, on `4500240f`, and both runs stopped at batch 153 of
 303 on one wall-clock budget: a rebuild that `tests-js/marching-cubes-performance.test.ts` allows
 150 ms (`:38`, `:278`) took 151.9 and 169.8 ms, where the four green runs had 89 to 125 ms. Run
-alone five times between the two, that file passed three times and failed twice. The same tree gave
-both verdicts, and that commit changed three documents; what the two runs leave is the 150 files
-after that batch, which have not been run on it. The suite's last full pass is three commits back,
-on `f422564f`: 303 test files in 303 batches, one uninterrupted pass under `node tools/cold-ci.mjs`,
-in 9,683 s. It passed the same way on `346dd818`, in 7,585 s, on `db5dd3df`, in 9,501 s, and on
-`c08c9d47`, in 7,955 s. Other work shared the machine during each of those four runs but the one on
-`346dd818`. All six are local results, and a comment on the pull request gives each in full. The
-repository's hosted workflow, which runs a part of the suite on each push to the pull request, is no
-part of this evidence; its runs are on the pull request's page. This commit and the two before it,
-`207dc2da` and `4500240f`, change files under `proposals/` only, as did the two that followed
-`346dd818`, the last of them `f422564f`, and the eight that followed `db5dd3df`, the last of them
-`346dd818`. The suite is to be run again on the final tip of the branch, and its verdict recorded in
-another comment there. The repository's chip selector (`tools/test-chip-check.mjs`) has none of this
-change's paths in its authored map, so it offers no bounded test set for it; its own answer for such
-a change is a full check. Nothing under `js/`, `data/` or `tests-js/` is changed, and no test was
-added. No test names the three documents, the five scripts or the evidence folder of this change, by
-a search of `tests-js/`; one test lists the tree's files by name and opens none of them
-(`tests-js/test-workflow.test.ts:113`). The suite itself reads every file of the tree, but for
-folders of seven names and its own stamp, to fingerprint the tree it ran on
-(`tools/test-workflow.mjs:67`, `:119`), so these files are in that fingerprint.
+alone five times between the two, that file passed three times and failed twice, on that one tree,
+and that commit changed three documents. On it the 150 files after that batch have not been run, and
+the suite's stamp, which is not in the tree, is red. The suite's last full pass is four commits
+back, on `f422564f`: 303 test files in 303 batches, one uninterrupted pass under `node
+tools/cold-ci.mjs`, in 9,683 s. It passed the same way on `346dd818`, in 7,585 s, on `db5dd3df`, in
+9,501 s, and on `c08c9d47`, in 7,955 s. Other work shared the machine during each of those four runs
+but the one on `346dd818`. All six are local results, and a comment on the pull request gives each
+in full. The repository's hosted workflow, which runs a part of the suite on each push to the pull
+request, is no part of this evidence; its runs are on the pull request's page. This commit and the
+three before it, `207dc2da`, `4500240f` and `56d9f479`, change files under `proposals/` only, as did
+the two that followed `346dd818`, the last of them `f422564f`, and the eight that followed
+`db5dd3df`, the last of them `346dd818`. The suite is to be run again on the final tip of the
+branch, and its verdict recorded in another comment there. The repository's chip selector
+(`tools/test-chip-check.mjs`) has none of this change's paths in its authored map, so it offers no
+bounded test set for it; its own answer for such a change is a full check. Nothing under `js/`,
+`data/` or `tests-js/` is changed, and no test was added. No test names the three documents, the
+five scripts or the evidence folder of this change, by a search of `tests-js/`; one test lists the
+tree's files by name and opens none of them (`tests-js/test-workflow.test.ts:113`). The suite itself
+reads every file of the tree, but for folders of seven names and its own stamp, to fingerprint the
+tree it ran on (`tools/test-workflow.mjs:67`, `:119`), so these files are in that fingerprint.
 
 ## 9. Corrections to earlier versions
 
@@ -5504,7 +5558,8 @@ It ran both of the twenty-first round's traces and the author's scratch run agai
 got their outputs back line for line, checked the source lines cited and the pull
 request's text, and made probes of its own. It found nothing that had to be fixed, six
 things that should be, and some smaller things. The corrections below were made after
-that round, and no round has reviewed them.
+that round, in commits `4500240f` and `56d9f479`, which the twenty-third round then
+reviewed (the next block).
 
 - "At the vug the engine writes a hopper cube on the fluorite with each zone it proposes
   from step 61 to step 117" gave the engine's habit without its cause, and the cause
@@ -5561,6 +5616,65 @@ that round, and no round has reviewed them.
   (β→α)". And "either cut changes the acid wash" is so at seed 2. Between the two
   commits the full suite was run twice on `4500240f`, and both runs stopped at one
   wall-clock budget (§8).
+
+**Corrections to the twenty-third version** (commits `4500240f` and `56d9f479`). Its
+twenty-third review round was limited to those two commits, which changed text alone. It
+read the twenty-second round's outputs and the author's re-runs of them against the text
+and the source, read the pull request's text and its comments against the suite's logs,
+and made probes of its own, one of them a recount of the twenty-second round's count. It
+found nothing that had to be fixed, five things that should be, and some smaller things.
+The corrections below were made after that round, and no round has reviewed them.
+
+- "Beyond that wash, the count does not show that any of this changes a size, a flag or
+  a host. It followed no reader of those fields but the etch" stopped one reader short
+  of an answer. One of the dropped fields is a sum, a quartz's dose from its wall, and a
+  dose that is dropped does not come back with the next zone, as a habit does. The round
+  put the dropped doses on their crystals (not committed; run again here):
+  `gem_pegmatite`'s eight quartz, and some of the quartz at the vug, are then named and
+  coloured smoky quartz, and nothing that this note's tests read changes. The text now
+  says so (§3.4; decision 7). The round's count at the vug was of six scenarios;
+  `porphyry`, the seventh there whose wall doses its quartz, was run here with the
+  round's script, and the text gives the seven.
+- That finding bears on decision 1. Under SC1's bound the pocket stays open, its quartz
+  goes on taking the dose to the last step, and the game shows all nine as smoky quartz
+  (the round's run with the clamp written in the engines, not committed). §4 lists that
+  among what SC1 brings, and decision 1 names it; neither had.
+- "The 17 scenarios whose pocket reaches a fill of 1 at some seed" were 16 and the open
+  surface, `great_salt_plains`, which the simulator never seals: the eleventh round's
+  miscount made again, and the author's check held the text to it, by the column of the
+  fleet probe's output that counts a fill by volume (trap 23). Its three runs drop
+  nothing, so no count moved. The text now gives the 46 runs of 16 scenarios that the
+  simulator seals.
+- "The loop drops 49,289 positive zones" counted what engines proposed. 1,103 of those
+  were never handed to the loop: 802 on crystals at their authored size cap and 301
+  rationed to nothing, at a fill of 1 or more and not because of it. By what the loop
+  was handed the figures are 48,186 zones, 20,510 carrying a field, 454 crystals, and
+  251 that end without their engine's last habit where the text had 262 (the round's
+  recount, not committed; run again here). The text, decision 7, the banner and the
+  ledger now give those. The 81 with solid and their 11 scenarios stand, and so do the
+  own cavities' figures.
+- The regime that a stored zone has read anew had been added to the list of what such a
+  zone does and not to the note's counts. The round counted it, and the text now gives
+  the count (§3.4).
+- The pull request's two comments on the suite's red runs put them down to the machine
+  that evening. The suite's logs do not show that: the eleven readings of the rebuild
+  fall in two groups with nothing between them, the test file's own comments name a
+  pause as what such a reading may hold, and the second red run had a near miss in the
+  same file that its comment did not report. Both comments now carry a dated note. §8
+  said "the same tree gave both verdicts", which is so of the file run alone and not of
+  the suite, and it left out the stamp; it now says both.
+- Smaller: "their engines write the next steps' habits from that reading" is now "read
+  it when they write", since three of the eight engines weigh it with other things; "a
+  remedy that takes the last room away puts them on this side" was from no run and is
+  cut; the quartz's twin is one draw made again at each step, which the text now says;
+  and the sentence on the engine's comment about that twin is cut, since the code under
+  that comment acts only in a call that proposes growth.
+- Not taken up: a stale regime's habit that lands in an own cavity (a halite of
+  `searles_lake` at seed 2, by the twenty-second round's output); what the form drawn
+  for a quartz does with a dropped habit, twin or polymorph; readers of the other
+  dropped fields; a split of the fluorite's paragraph and a table for the count, which
+  the round suggested; and the narrator's smoky and morion sentences, a fault of the
+  shipped narrator and outside this change.
 
 ## References
 

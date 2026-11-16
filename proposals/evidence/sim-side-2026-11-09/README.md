@@ -3,7 +3,7 @@
 Outputs of the review's passive instruments, copied byte for byte from `.local-evidence/`, twenty-six
 small probes with their outputs, and the output of one earlier probe of the repository's own, run
 unchanged on this tree. Runtime: Windows x64, Node 24.15.0. SIM 286. No file under `js/` or
-`data/` differs from `origin/main` `e86ba58a`, and `dist/` is built from it. The input digest each
+`data/` differs from the base, `e86ba58a`, and `dist/` is built from it. The input digest each
 census report prints (`ccb0db2bfa2c…` at seed 42; each seed has its own) covers the seed, the runtime, `dist/`,
 `js/`, `data/`, the harness, the lockfile, the seed-42 baseline and the text of the code that produces
 a census row. The census reports and the mutation report name the sha256 of `tools/sim-side-census.mjs`

@@ -118,8 +118,8 @@ Living list of open work items, captured from session conversations so context s
 > that hold the ten, that habit decides something more: twice the fill at which the next
 > crystal is let through, once whether `reactivated_fluorite_vein`'s acid wash etches a
 > fluorite (review rounds' runs, not committed). A full pocket also drops what an engine
-> wrote for a crystal, and that side is the larger: at the vug 262 crystals, 81 of them with
-> solid, end without the habit their engine last wrote (a review round's count, not
+> wrote for a crystal, and that side is the larger: at the vug 251 crystals, 81 of them with
+> solid, end without the habit their engine last wrote (review rounds' counts, not
 > committed). Four nudges of every engine's zones move a size or the bulk fluid in 51 of 492
 > runs, at 20 of 123 scenario-seeds, in NINE scenarios (11, 5 and three in the own
 > cavities), with a species moved or lost in 17 of the 51. In the eight scenarios whose

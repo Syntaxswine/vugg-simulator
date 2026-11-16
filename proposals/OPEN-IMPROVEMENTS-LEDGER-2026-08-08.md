@@ -222,8 +222,8 @@ single execution ledger for the science-first AAA completion branch.
     hold the ten, that habit decides something more: twice the fill at which the next
     crystal is let through, once whether `reactivated_fluorite_vein`'s acid wash etches
     a fluorite (review rounds' runs, not committed). A full pocket also drops what an engine
-    wrote for a crystal, and that side is the larger: at the vug 262 crystals, 81 of them
-    with solid, end without the habit their engine last wrote (a review round's count, not
+    wrote for a crystal, and that side is the larger: at the vug 251 crystals, 81 of them
+    with solid, end without the habit their engine last wrote (review rounds' counts, not
     committed). No remedy was previewed in a committed run, and no change is proposed. The
     outputs give every host layer's size: a floor on the host's layer has room in both
     settings in the shipped runs (nothing between the layers under 1e-6 µm and 0.13 µm in
