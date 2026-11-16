@@ -56,13 +56,18 @@ describe('process census snapshot normalization', () => {
     ['bun.exe', 'bun node_modules/vite/bin/vite.js', 'vite'],
     ['deno.exe', 'deno run tools/test-workflow.mjs', 'test-workflow'],
     ['esbuild.exe', 'esbuild node_modules/vitest/vitest.mjs', 'vitest'],
+    // The nightly task's exact command line (vugg-canary run-nightly.cmd, 2026-10-29).
+    ['node.exe', '"C:\\Program Files\\nodejs\\node.exe" "C:\\Users\\x\\Local Storage\\AI\\vugg-canary\\src\\sweep.mjs" --now', 'vugg-canary-sweep'],
+    ['node', 'node /home/x/vugg-canary/src/sweep.mjs --seeds 2', 'vugg-canary-sweep'],
   ])('recognizes %s work without requiring a Vugg directory in %s', (name, command, kind) => {
     const report = assess([proc(), external({ name, command })]);
     expect(report).toMatchObject({ status: 'busy', exit_code: 1 });
     expect(report.blockers[0].work_kind).toBe(kind);
   });
 
-  it.each(['node not-vitest.mjs', 'node test-workflow.mjs.bak', 'node utility.mjs', 'node.exe'])(
+  it.each(['node not-vitest.mjs', 'node test-workflow.mjs.bak', 'node utility.mjs', 'node.exe',
+    'node src/sweep.mjs --now', 'node C:\\other\\src\\sweep.mjs', 'node not-vugg-canary/src/sweep.mjs',
+    'node vugg-canary/src/sweep.mjs.bak'])(
     'does not invent recognized work from %s', command => {
       const report = assess([proc(), external({ command })]);
       expect(report).toMatchObject({ status: 'no-observed-work', exit_code: 0, host_cleanliness: 'not-certified', full_suite_pass: false });

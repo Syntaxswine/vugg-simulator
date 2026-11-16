@@ -4,8 +4,9 @@ import os from 'node:os';
 import path from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import {
-  COLD_CI_SCHEMA, coldCiVerdict, fullTestResultProblems, runColdCi,
+  COLD_CI_SCHEMA, coldCiVerdict, fullTestResultProblems, runColdCi, runColdCiCommand,
 } from '../tools/cold-ci-lib.mjs';
+import { QUIET_BOX_ENV, assessQuietBox } from '../tools/quiet-box-lib.mjs';
 import {
   TEST_INVOCATION_ENV, TEST_INVOCATION_SCHEMA, makeTestCheckpoint, makeTestCompletionReport,
   testInvocationReportPath, testWorkflowIdentity, writeJsonAtomic,
@@ -29,7 +30,7 @@ function verdict(overrides: any = {}) {
     identity, allFiles, before: clean, after: clean, ...overrides });
 }
 
-function fixture(run: (f: any) => void) {
+function fixture(run: (f: any) => void | Promise<void>) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'vugg-cold-ci-'));
   const stampPath = path.join(root, '.ci-stamp.json');
   const identify = () => testWorkflowIdentity({ root });
@@ -38,8 +39,12 @@ function fixture(run: (f: any) => void) {
   const readStamp = () => JSON.parse(fs.readFileSync(stampPath, 'utf8'));
   const writeResult = (result = fullResult(identify())) => writeJsonAtomic(testInvocationReportPath(invocationId, root), result);
   fs.writeFileSync(path.join(root, 'input.txt'), 'original');
-  try { run({ root, stampPath, identify, options, readStamp, writeResult }); }
-  finally { fs.rmSync(root, { recursive: true, force: true }); }
+  const cleanup = () => fs.rmSync(root, { recursive: true, force: true });
+  let pending;
+  try { pending = run({ root, stampPath, identify, options, readStamp, writeResult }); }
+  catch (error) { cleanup(); throw error; }
+  if (pending instanceof Promise) return pending.finally(cleanup);
+  cleanup();
 }
 
 describe('cold-CI full-suite verdict boundary', () => {
@@ -214,12 +219,89 @@ describe('cold-CI invocation and reusable local stamp', () => {
   );
 });
 
+describe('cold-CI quiet-box launch check', () => {
+  const box = (pct: number, refuse = false) => assessQuietBox({
+    load: { status: 'available', load_pct: pct, window_ms: 30000, logical_cpus: 16 },
+    census: { status: 'no-observed-work', blockers: [], issues: [] },
+    schedule: { status: 'available', tasks: [] }, refuse,
+  });
+  // env is only what the gate reads; runColdCi still hands the child process.env.
+  const command = (f: any, overrides: any = {}) => runColdCiCommand({ ...f.options, env: {}, log: () => {}, ...overrides });
+  const quietErrors = () => vi.spyOn(console, 'error').mockImplementation(() => {});
+
+  it('warns on a busy box by default: it starts and keeps the reasons in the stamp', () => fixture(async f => {
+    const preflight = vi.fn(async ({ refuse }: any) => box(80, refuse));
+    const spawn = vi.fn(() => { f.writeResult(); return { status: 0 }; });
+    expect(await command(f, { spawn, preflight })).toBe(0);
+    expect(preflight).toHaveBeenCalledExactlyOnceWith({ refuse: false });
+    expect(spawn).toHaveBeenCalledTimes(1);
+    expect(f.readStamp()).toMatchObject({ verdict: 'green', quiet_box: { verdict: 'busy', policy: 'warn', refused: false,
+      reasons: ['box load 80 % over 30 s (quiet is below 25 %)'] } });
+  }));
+
+  it.each([
+    ['--refuse-busy', ['--refuse-busy'], {}],
+    ['the env policy', [], { [QUIET_BOX_ENV]: 'refuse' }],
+  ])('under %s, does not start on a busy box and leaves an earlier stamp byte for byte', (_label, argv, env) => fixture(async f => {
+    writeJsonAtomic(f.stampPath, { verdict: 'green', commit: clean.commit });
+    const before = fs.readFileSync(f.stampPath, 'utf8');
+    const spawn = vi.fn();
+    const preflight = vi.fn(async ({ refuse }: any) => box(80, refuse));
+    const errors = quietErrors();
+    try {
+      expect(await command(f, { argv, env, spawn, preflight })).toBe(3);
+      expect(errors.mock.calls.flat().join('\n')).toContain('[cold-ci] NOT STARTED: the box is busy; .ci-stamp.json is unchanged');
+    } finally { errors.mockRestore(); }
+    expect(preflight).toHaveBeenCalledExactlyOnceWith({ refuse: true });
+    expect(spawn).not.toHaveBeenCalled();
+    expect(fs.readFileSync(f.stampPath, 'utf8')).toBe(before);
+  }));
+
+  it('starts on a quiet box, stamps what it read, and tells the runner not to read again', () => fixture(async f => {
+    const spawn = vi.fn((_command, _args, options) => {
+      expect(options.env[QUIET_BOX_ENV]).toBe('cold-ci');
+      expect(f.readStamp()).toMatchObject({ verdict: 'running', quiet_box: { verdict: 'quiet' } });
+      f.writeResult();
+      return { status: 0 };
+    });
+    // A quiet box starts under the refuse policy as well.
+    expect(await command(f, { argv: ['--refuse-busy'], spawn, preflight: async ({ refuse }: any) => box(10, refuse) })).toBe(0);
+    expect(spawn).toHaveBeenCalledTimes(1);
+    expect(f.readStamp()).toMatchObject({ verdict: 'green',
+      quiet_box: { verdict: 'quiet', policy: 'refuse', load: { load_pct: 10 } } });
+  }));
+
+  it('starts when the reading itself fails, with no quiet-box claim in the stamp', () => fixture(async f => {
+    const spawn = vi.fn(() => { f.writeResult(); return { status: 0 }; });
+    expect(await command(f, { spawn, preflight: async () => { throw new Error('CIM unavailable'); } })).toBe(0);
+    expect(f.readStamp()).toMatchObject({ verdict: 'green', quiet_box: null });
+  }));
+
+  it('never reads the box for --check, bad arguments, or a bad override', () => fixture(async f => {
+    const spawn = vi.fn();
+    const preflight = vi.fn(async () => box(10));
+    const errors = quietErrors();
+    try {
+      expect(await command(f, { argv: ['--check'], spawn, preflight })).toBe(1);
+      expect(await command(f, { argv: ['--refuse-busy', '--check'], spawn, preflight })).toBe(1);
+      // The retired override flag is now an unknown argument, not a silent no-op.
+      expect(await command(f, { argv: ['--busy-ok'], spawn, preflight })).toBe(1);
+      expect(await command(f, { spawn, preflight, env: { [QUIET_BOX_ENV]: 'maybe' } })).toBe(1);
+      expect(errors.mock.calls.flat().join('\n')).toContain(`[cold-ci] cannot start: ${QUIET_BOX_ENV} must be one of`);
+    } finally { errors.mockRestore(); }
+    expect(preflight).not.toHaveBeenCalled();
+    expect(spawn).not.toHaveBeenCalled();
+    expect(fs.existsSync(f.stampPath)).toBe(false);
+  }));
+});
+
 describe('real runner to cold-CI result wiring (tiny fixture suite)', () => {
   it.each([
     ['full', 0, true], ['resume', 2, false], ['selected', 2, false], ['failed', 7, false], ['failed-exit2', 2, false],
   ] as const)('%s run produces verdict %i without running geological fixtures', (mode, expected, full) => fixture(f => {
     fs.mkdirSync(path.join(f.root, 'tools'));
-    for (const file of ['test-workflow.mjs', 'test-quarry-ledger.mjs', 'locality-frequency-contract.mjs', 'test-chip-check.mjs']) {
+    for (const file of ['test-workflow.mjs', 'test-quarry-ledger.mjs', 'locality-frequency-contract.mjs', 'test-chip-check.mjs',
+      'quiet-box-lib.mjs', 'process-census-lib.mjs']) {
       fs.copyFileSync(path.join(process.cwd(), 'tools', file), path.join(f.root, 'tools', file));
     }
     fs.mkdirSync(path.join(f.root, 'tests-js'));
@@ -258,14 +340,16 @@ describe('real runner to cold-CI result wiring (tiny fixture suite)', () => {
     }
     if (mode.startsWith('failed')) {
       expect(f.readStamp().testResult).toMatchObject({ status: expected, outcome: 'test-process-failed', completion: null });
+      // The failing file and the load it ran under reach the stamp, for reading a red run's shape.
+      expect(f.readStamp().testResult.failed_batch).toMatchObject({ files: [allFiles[0]], box_load: { bucket_ms: 30000 } });
       expect(f.readStamp().verdict).toBe('red');
     }
   }), 20000);
 
-  it.each([0, 1, 2, 7])('the actual cold-CI CLI preserves verdict %i and arguments', status => fixture(f => {
+  it.each([0, 1, 2, 3, 7])('the actual cold-CI CLI preserves verdict %i and arguments', status => fixture(f => {
     fs.copyFileSync(path.join(process.cwd(), 'tools', 'cold-ci.mjs'), path.join(f.root, 'cold-ci.mjs'));
     fs.writeFileSync(path.join(f.root, 'cold-ci-lib.mjs'), `
-      export function runColdCi() { console.log(JSON.stringify(process.argv.slice(2))); return ${status}; }
+      export async function runColdCiCommand() { console.log(JSON.stringify(process.argv.slice(2))); return ${status}; }
     `);
     const result = spawnSync(process.execPath, ['cold-ci.mjs', '--check'], {
       cwd: f.root, encoding: 'utf8', windowsHide: true, timeout: 5000,

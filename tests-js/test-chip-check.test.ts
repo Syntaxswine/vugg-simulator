@@ -15,6 +15,7 @@ const build = 'tests-js/build-all.test.ts';
 const cold = 'tests-js/cold-ci.test.ts';
 const census = 'tests-js/process-census.test.ts';
 const lease = 'tests-js/test-lease.test.ts';
+const quiet = 'tests-js/quiet-box.test.ts';
 const allPresent = { exists: () => true };
 
 describe('bounded authored chip selection', () => {
@@ -34,12 +35,17 @@ describe('bounded authored chip selection', () => {
     ['tools/cold-ci-lib.mjs', [cold, runner, ledger]],
     ['tools/cold-ci.mjs', [cold, runner, ledger]],
     [cold, [cold, runner, ledger]],
-    ['tools/process-census.mjs', [census, lease]],
-    ['tools/process-census-lib.mjs', [census, lease]],
-    [census, [census, lease]],
+    // The quiet-box preflight reads the census's canary classification.
+    ['tools/process-census.mjs', [census, lease, quiet]],
+    ['tools/process-census-lib.mjs', [census, lease, quiet]],
+    [census, [census, lease, quiet]],
     ['tools/test-lease.mjs', [lease, census]],
     ['tools/test-lease-lib.mjs', [lease, census]],
     [lease, [lease, census]],
+    // Both entry points that refuse a busy box carry their own witnesses.
+    ['tools/quiet-box-lib.mjs', [quiet, runner, cold]],
+    ['tools/quiet-box.mjs', [quiet, runner, cold]],
+    [quiet, [quiet, runner, cold]],
   ])('maps %s to its required witnesses', (file, required) => {
     const plan = selectChipTests([file], allPresent);
     expect(plan.status).toBe('chip');
@@ -54,7 +60,7 @@ describe('bounded authored chip selection', () => {
     expect(plan.status).toBe('chip');
     expect(plan).toEqual(selectChipTests([...changes].reverse()));
     expect(plan.tests.every(test => collectTestFiles().includes(test))).toBe(true);
-    expect(plan.tests).toEqual([build, cold, census, lease, selector, ledger, runner].sort());
+    expect(plan.tests).toEqual([build, cold, census, lease, quiet, selector, ledger, runner].sort());
   });
 
   it.each([
@@ -99,6 +105,11 @@ describe('bounded authored chip selection', () => {
 
   it.each(['tools/process-census.mjs', 'tools/process-census-lib.mjs', census])('refuses census selection with missing %s', file => {
     const plan = selectChipTests([file === census ? 'tools/process-census.mjs' : file], { exists: name => name !== file });
+    expect(plan.status).toBe('requires-full-check');
+  });
+
+  it.each(['tools/quiet-box-lib.mjs', 'tools/quiet-box.mjs', quiet])('refuses quiet-box selection with missing %s', file => {
+    const plan = selectChipTests([file === quiet ? 'tools/quiet-box-lib.mjs' : file], { exists: name => name !== file });
     expect(plan.status).toBe('requires-full-check');
   });
 

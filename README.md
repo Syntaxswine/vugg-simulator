@@ -45,7 +45,8 @@ stamps and invocation records are local operator results, not scientific
 receipts or independent attestation. No full guard is run by the chip tests.
 
 `node tools/process-census.mjs --preflight` takes one Windows process snapshot
-for the foreman work. Exit 1 means recognized JavaScript test/build work was
+for the foreman work. Exit 1 means recognized JavaScript test/build work (or a
+vugg-canary sweep started by its full path) was
 observed outside a verified caller tree; exit 2 means observation is incomplete
 or unavailable. Exit 0 means no such work was observed in this snapshot.
 Shell intermediates and exact creation times are retained for ancestry checks;
@@ -92,8 +93,35 @@ API grants no ownership of other processes, termination authority, or green CI
 verdict. It has no watcher, heartbeat timer, telemetry collector, or retained
 helper process.
 
+Full and resumed runs read the box first. Cold CI belongs on a quiet box (the
+owner's rule, 2026-10-28), so `npm test` without `--file` or `--chip-base`, and
+`node tools/cold-ci.mjs`, take one 30-second reading before anything is deleted,
+written, or launched. The box is busy when whole-box CPU load is at or above
+25 %, a vugg-canary sweep is running (its process or its scheduled task), or
+that task is due to start within 3.5 h, a full run with margin. A busy box is a
+warning by default (the owner's choice, 2026-10-29): the run starts, and the
+reasons go in the record. `--refuse-busy`, or `VUGG_QUIET_BOX_PREFLIGHT=refuse`
+(which also reaches `npm run ci`), makes a busy box refuse instead (exit 3). A
+refused start leaves `.ci-stamp.json`, the checkpoint, and the cost ledger
+exactly as they were. A signal that cannot be read (CPU times, the census, the
+task query) is listed and never makes the box busy on its own; the reading is
+then reported as partly read, never as quiet. `node tools/quiet-box.mjs [--json]`
+reads the box and starts nothing: exit 0 quiet, 3 busy, 2 when it cannot run.
+
+The reading is one launch observation, not a reservation; it cannot stop load
+that arrives later. So every batch also records the box load it ran under: the
+whole-box mean and each full 30-second bucket, this run's own child included.
+The load appears on the batch's result line, in the checkpoint and completion
+batch records, and, for a failed batch, in the invocation result that cold CI
+stamps; read a timeout against it before debugging the change. Other recognized
+work the census sees (another checkout's Vitest, a dev server) is listed but does
+not make the box busy, because its load is what counts. The last reading is saved under
+`.local-evidence/quiet-box-preflight-v1.json`. The preflight does not acquire the
+lease, attribute load to processes, or change any verdict.
+
 Test Quarry also has a bounded chip check for its own runner, ledger, test
-selector, build orchestration, cold-CI verdict wrapper, process census, and lease.
+selector, build orchestration, cold-CI verdict wrapper, process census, lease,
+and quiet-box preflight.
 Preview the authored selection with
 `node tools/test-chip-check.mjs --base origin/main`, then execute it with
 `npm test -- --chip-base origin/main`. The comparison includes branch commits

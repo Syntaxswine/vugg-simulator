@@ -1,5 +1,5 @@
 #!/usr/bin/env node
 // Local full-guard verdict; --check reads the stamp without starting CI.
-import { runColdCi } from './cold-ci-lib.mjs';
+import { runColdCiCommand } from './cold-ci-lib.mjs';
 
-process.exitCode = runColdCi();
+process.exitCode = await runColdCiCommand();
