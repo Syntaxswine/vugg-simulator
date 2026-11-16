@@ -62,6 +62,13 @@
 // ─────────────────────────────────────────────────────────────────────────
 
 function zoneColor(zone, mineral, crystal) {
+  // This is a historical strip, including material subsequently dissolved.
+  // Do not make an exhausted zone lose its original growth assignment.
+  if (mineral === 'fluorite' && zone?.thickness_um > 0
+      && !(Number(crystal?.radiation_damage) > 0.1)) {
+    const recorded = fluoriteZoneColour(zone);
+    if (recorded) return recorded.hex;
+  }
   // Per-zone color via the existing per-mineral crystalColor() switch
   // statement — by building a single-zone fake-crystal and reusing the
   // ~80 lines of mineral-specific color logic. Whole-crystal attributes

@@ -205,6 +205,11 @@ function _chemistryVariant(crystal: any, spec: any): string | null {
 // Resolve a crystal's body colour. D1b chemistry variant (if one fires) wins;
 // then the D1a chain: per-species override → named default → class_color fallback.
 function resolveBodyColour(crystal: any, spec: any): string {
+  // Fluorite has an existing accepted-zone appearance record and legacy
+  // display fallback. Use the same interpretation as its name and colour bar;
+  // prose color_rules triggers cannot recover those assignments numerically.
+  if (crystal?.mineral === 'fluorite'
+      && crystal.zones?.some((z: any) => Number(z?.thickness_um) > 0)) return crystalColor(crystal);
   const cv = _chemistryVariant(crystal, spec);
   if (cv && COLOUR_LEXICON[cv]) return COLOUR_LEXICON[cv];
   const m = crystal && crystal.mineral;

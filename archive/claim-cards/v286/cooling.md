@@ -88,9 +88,9 @@
   - Al2SiO5 executed phase counts: {"unconstrained":100}; first=unconstrained, last=unconstrained
   - Executed stress: no stress event recorded by the run.
   - Mineral transformations: none executed.
-  - Transformation reactivity commissioning: controlled production-engine boundary; not a locality trajectory; artifact vugg-mechanism-witnesses-v6/02502a63938fbcffe2872b52adfef74fd5c449bc5c327d3755920306fc49f225.
+  - Transformation reactivity commissioning: controlled production-engine boundary; not a locality trajectory; artifact vugg-mechanism-witnesses-v6/66a76239dd9343605dc98d708383e083d6a18588dcff81fc4bcb0c8526fabfa5.
     - No controlled reactivity witness is applicable to a transformation product in this locality run.
-  - Player-choice commissioning: controlled production GAME-02 branch; not a locality trajectory claim; artifact vugg-mechanism-witnesses-v6/02502a63938fbcffe2872b52adfef74fd5c449bc5c327d3755920306fc49f225.
+  - Player-choice commissioning: controlled production GAME-02 branch; not a locality trajectory claim; artifact vugg-mechanism-witnesses-v6/66a76239dd9343605dc98d708383e083d6a18588dcff81fc4bcb0c8526fabfa5.
     - cooling seed 42: wait-only final T=158.26685435471236°C with 1 crystals; Heat final T=183.26685435471316°C with 0 crystals; ΔT=25.000000000000796°C; geology changed=true.
   - Conserved carbonate boundary: not enabled for this archived run.
 

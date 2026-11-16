@@ -9,7 +9,7 @@
     "platform": "win32",
     "arch": "x64"
   },
-  "runtimeDigest": "64cdfb541681cdf15aeee4cbf96496a78e0ef6230639252f7065523db9c64c85",
+  "runtimeDigest": "a6ef202b28e5f5cef0e1b71c23df268e7f188e3b3c0db08d33d40271e914fbde",
   "scope": "plain untwinned Wulff calcite; all other calcite explicitly counted as excluded",
   "decision": "Preserve existing mass/growth rules; record measured factors; hold production integration.",
   "sourceHashes": {

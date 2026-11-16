@@ -499,6 +499,27 @@ function _topoCelestineNotice(panel: HTMLElement, sim: any): void {
   notice.hidden = !view;
 }
 
+// Read-only identity of the vug actually shown in this panel. Inputs remain
+// untouched: blank still requests fresh randomness on the next run.
+function _topoRunSeedNotice(panel: HTMLElement, sim: any): void {
+  let note = panel.querySelector('[data-run-seeds]') as HTMLElement | null;
+  if (!sim) { if (note) note.remove(); return; }
+  const meta = sim._agentRunMeta;
+  const format = (value: any): string => Number.isSafeInteger(value) ? String(value) : 'not recorded';
+  const text = `Growth seed: ${format(meta?.seed)} · Shape seed: ${format(meta?.shape_seed)}`;
+  if (!note) {
+    note = document.createElement('div');
+    note.dataset.runSeeds = '';
+    note.setAttribute('role', 'status');
+    note.setAttribute('aria-live', 'polite');
+    note.style.cssText = 'font-size:0.75rem;line-height:1.5;color:#c0a848;margin:0.3rem 0;overflow-wrap:anywhere;user-select:text';
+    const header = panel.querySelector('.topo-header');
+    if (header) header.insertAdjacentElement('afterend', note);
+    else panel.prepend(note);
+  }
+  if (note.textContent !== text) note.textContent = text;
+}
+
 function topoRender(optOverrideSnap?) {
   const canvas = document.getElementById('topo-canvas');
   const panel = document.getElementById('topo-panel');
@@ -519,6 +540,8 @@ function topoRender(optOverrideSnap?) {
 
   const sim = topoActiveSim();
   const wall = sim ? sim.wall_state : null;
+
+  _topoRunSeedNotice(panel, sim);
 
   _topoCelestineNotice(panel, celestinePresentationSim(sim, optOverrideSnap?.step ?? Infinity));
 

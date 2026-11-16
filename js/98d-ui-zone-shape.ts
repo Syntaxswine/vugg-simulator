@@ -99,7 +99,10 @@ function renderZoneShape_equant(canvas, crystal, opts: any = {}) {
     }
 
     // Fill this ring. Draw outer hexagon filled, then punch out inner.
-    ctx.fillStyle = zoneTemperatureColor(z);
+    // Fluorite's specimen preview shares its recorded chromophore colours
+    // with the zone bar and wall view. Temperature remains a separate plot.
+    ctx.fillStyle = crystal.mineral === 'fluorite'
+      ? zoneColor(z, crystal.mineral, crystal) : zoneTemperatureColor(z);
     ctx.beginPath();
     for (let v = 0; v < 6; v++) {
       const [vx, vy] = hexVertex(v * 60, outerR);
