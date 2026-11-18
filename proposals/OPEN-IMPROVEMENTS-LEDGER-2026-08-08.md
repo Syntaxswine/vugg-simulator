@@ -112,8 +112,10 @@ single execution ledger for the science-first AAA completion branch.
     pocket is full at step 9–10 of 230 (7 of its 8 events fire into a full pocket). Recommended: a
     clamp on the rate authored on that scenario alone, which changes one baseline. It makes topaz
     appear at all three locality-gate seeds, so the same bump has to move topaz out of that
-    scenario's aspirational tier, which is a ruling, and rewrite its rationale by hand. It is
-    a bound on a rate and buys steps, not an end: where Simulation mode, Quick Play and
+    scenario's aspirational tier, which is a ruling, and rewrite its rationale by hand. Under it the
+    game also names the pocket's quartz smoky quartz and its two feldspars albite, not sanidine
+    (review rounds' runs, not committed). It is a bound on a rate and buys steps, not an end: where
+    Simulation mode, Quick Play and
     Creative mode start the scenario it keeps the pocket under 0.7 full for the scenario's
     own 230 steps and 27–29 more; a run that goes on seals at step 304–306, on quartz, and
     Creative mode, where the Scenarios menu opens a scenario, has no last step. How many

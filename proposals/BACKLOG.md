@@ -46,8 +46,10 @@ Living list of open work items, captured from session conversations so context s
 > **Awaits the boss:** the eight decisions in the doc's §6. SC1: a clamp on the feldspar pair's
 > rate authored on `gem_pegmatite` ALONE (recommended; one baseline changes), which makes topaz
 > appear at all three locality-gate seeds, so the bump must also PROMOTE TOPAZ out of the
-> aspirational tier and rewrite its rationale by hand (the gate does not check that sentence).
-> ITS VALUE IS A CHOICE IN A RANGE: the bump's acceptance lines are met by every whole value
+> aspirational tier and rewrite its rationale by hand (the gate does not check that sentence). Under
+> it the game also names the pocket's quartz smoky quartz and its two feldspars albite, not sanidine
+> (review rounds' runs, not committed). ITS VALUE IS A CHOICE IN A RANGE: the bump's acceptance
+> lines are met by every whole value
 > from 5 to 9 and pick none (5: feldspar 17 mm, 37–38 steps to spare; 9: feldspar 31 mm, 3–5
 > steps; the gems are the same throughout). That range is in the scenario's own cavity. At
 > ten other shape seeds of it, which the form's Shape Seed box draws (63–78 cm³ against its
