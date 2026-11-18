@@ -24,22 +24,33 @@ import { describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { auditTemplateVariableSupply, templateBodyComplaints, templateVariables } from '../tools/narrative-workflow.mjs';
+import {
+  auditIndirectNarrativeUses,
+  auditTemplateVariableSupply,
+  narrativeCallOutsideNarrators,
+  strayBraces,
+  templateBodyComplaints,
+  templateVariables,
+  unrenderedSectionComplaints,
+} from '../tools/narrative-workflow.mjs';
 
 declare const VugSimulator: any;
 declare const SCENARIOS: any;
 declare const setSeed: any;
 declare const grow_quartz: any;
+declare const buildRandomScenario: any;
 declare const QUARTZ_HOST_DOSE_CEILING: number;
 declare const narrative_variant: (species: string, variant: string, context?: Record<string, unknown>) => string;
 declare const _narrative_interp: (template: string, context?: Record<string, unknown>) => string;
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
-// A template variable left in printed text: "{word}" starting with a letter or an
-// underscore, or the empty "{}". Crystal-form notation ({100}, {0001}, {40-41},
-// {h0-il}) is neither, and is meant to print.
-const UNFILLED = /\{[A-Za-z_]\w*\}|\{\s*\}/;
+// Braces left in printed text that are not crystal-form notation: an unfilled
+// "{word}", an empty "{}", a positional "{0}", a formatted "{dose:.2f}". A crystal
+// form ({100}, {0001}, {10-10}, {40-41}, {h0-il}: three or more places of digits,
+// the index letters h k i l, hyphens or overbars, with a digit) is meant to print.
+// Spelled out here rather than read from the audit; a test below holds the two equal.
+const UNFILLED = /\{(?!(?=[^{}\d]*\d)[0-9hkil̄̅-]{3,}\})[^{}]*\}/;
 
 // The two sentences as SIM 286 printed them (seed 42; grimsel_alpine_cleft quartz
 // #21 and radioactive_pegmatite quartz #2). They keep the detector honest.
@@ -62,7 +73,20 @@ describe('the detector can fail', () => {
     expect(tessin).toContain('{h0-il}');
     expect(tessin).toContain('{40-41}');
     expect(tessin).not.toMatch(UNFILLED);
-    expect('flattened on {001}, prism {10-10}, {0001} pinacoid').not.toMatch(UNFILLED);
+    expect('flattened on {001}, prism {10-10}, {0001} pinacoid, {10̄10}, {01-12}').not.toMatch(UNFILLED);
+  });
+
+  it('flags what is neither a crystal form nor filled, as the audit does', () => {
+    const neither = ['{}', '{ }', '{0}', '{12}', '{dose:.2f}', '{c.crystal_id}', '{ spaced }', '{max-rate}', '{1a}', '{rad_count}', '{hkl}'];
+    const forms = ['{100}', '{0001}', '{1011}', '{104}', '{10-10}', '{10̄10}', '{01-12}', '{40-41}', '{30-31}', '{h0-il}'];
+    for (const braces of neither) {
+      expect(`a carnotite #${braces} growing`, braces).toMatch(UNFILLED);
+      expect(strayBraces(`a carnotite #${braces} growing`), braces).toEqual([braces]);
+    }
+    for (const braces of forms) {
+      expect(`flattened on ${braces}`, braces).not.toMatch(UNFILLED);
+      expect(strayBraces(`flattened on ${braces}`), braces).toEqual([]);
+    }
   });
 });
 
@@ -168,6 +192,74 @@ describe('narrative audit: a call supplies every variable its template names', (
     `, templates)).toEqual([]);
   });
 
+  it('follows a shared const context only where nothing else can touch it', () => {
+    const templates = { quartz: { 'variant: smoky': SHIPPED_SMOKY } };
+    const smoky = `parts.push(narrative_variant('quartz', 'smoky', ctx));`;
+    const followed = [
+      `function narrate(c) { const ctx = { dosed_pct: 40 }; ${smoky} ${smoky} }`,
+      `function narrate(c) { const ctx = { dosed_pct: 40 }; if (c.a) { ${smoky} } return other.ctx + { ctx: 1 }.ctx; }`,
+      `function narrate(c) { parts.push(narrative_variant('quartz', 'smoky', ({ dosed_pct: 40 }))); }`,
+      `function narrate(c) { parts.push(narrative_variant('quartz', 'smoky', c.a ? { dosed_pct: 1, x: 2 } : { dosed_pct: 3 })); }`,
+    ];
+    for (const source of followed) expect(auditTemplateVariableSupply(source, templates), source).toEqual([]);
+
+    // Each of these leaves the braces printed while a looser reading of `ctx` would pass.
+    const refused = [
+      `function narrate(c) { const ctx = { dosed_pct: 40 }; for (const ctx of c.list) { ${smoky} } }`,
+      `function narrate(c, { ctx }) { const other = { dosed_pct: 40 }; ${smoky} }`,
+      `function narrate(c) { const ctx = { dosed_pct: 40 }; try { go(); } catch (ctx) { ${smoky} } }`,
+      `function narrate(c) { const ctx = { dosed_pct: 40 }; function inner(ctx) { ${smoky} } inner({}); }`,
+      `function narrate(c) { const ctx = { dosed_pct: 40 }; for (let ctx = {}; ; ) { ${smoky} break; } }`,
+      `function narrate(c) { const ctx = { dosed_pct: 40 }; delete ctx.dosed_pct; ${smoky} }`,
+      `function narrate(c) { const ctx = { dosed_pct: 40 }; strip(ctx); ${smoky} }`,
+      `function narrate(c) { const ctx = { dosed_pct: 40 }; const held = { ctx }; ${smoky} }`,
+      `function narrate(c) { const ctx = { other: 1 }; ctx.dosed_pct = 40; ${smoky} }`,
+      `function narrate(c) { parts.push(narrative_variant('quartz', 'smoky', c.a ? { dosed_pct: 1 } : { other: 2 })); }`,
+    ];
+    for (const source of refused) {
+      const complaints = auditTemplateVariableSupply(source, templates);
+      expect(complaints.length, source).toBeGreaterThan(0);
+      expect(complaints.join(' '), source).toMatch(/not an object literal|does not supply \{dosed_pct\}/);
+    }
+  });
+
+  it('wants the three functions called directly, and in a narrator file', () => {
+    expect(auditIndirectNarrativeUses(`
+      parts.push(narrative_variant('quartz', 'smoky'));
+      parts.push(narrative_blurb('quartz'), narrative_closing('quartz'));
+      const text = holder.narrative_variant;
+    `)).toEqual([]);
+    const indirect = auditIndirectNarrativeUses(`
+      const say = narrative_variant;
+      parts.push(say('quartz', 'smoky'));
+      parts.push(narrative_blurb.call(null, 'quartz'));
+      parts.push([1].map(narrative_closing));
+    `);
+    expect(indirect).toHaveLength(3);
+    for (const complaint of indirect) expect(complaint).toContain('must be called directly');
+
+    const call = `  parts.push(narrative_variant('quartz', 'smoky'));`;
+    expect(narrativeCallOutsideNarrators('92i-narrators-silicate.ts', call)).toBeNull();
+    expect(narrativeCallOutsideNarrators('05-narratives.ts', 'function narrative_variant(species, variant, ctx?) {')).toBeNull();
+    expect(narrativeCallOutsideNarrators('85-simulator.ts', `  // see narrative_variant('quartz', 'smoky')`)).toBeNull();
+    expect(narrativeCallOutsideNarrators('85-simulator.ts', `const a = 1;\n${call}`)).toContain('js/85-simulator.ts:2');
+  });
+
+  it('refuses a section no call renders', () => {
+    const rendered = new Set(['quartz\nvariant: smoky', 'quartz\nvariant: morion', 'calcite\nvariant: amethyst_tint']);
+    expect(unrenderedSectionComplaints('quartz', ['variant: smoky', 'variant: morion'], rendered)).toEqual([]);
+    // narratives/quartz.md held these two, unreached, until this branch.
+    const dead = unrenderedSectionComplaints('quartz', ['variant: smoky', 'variant: amethyst_tint', 'variant: mild_smoky'], rendered);
+    expect(dead).toHaveLength(2);
+    expect(dead[0]).toContain('"variant: amethyst_tint" is rendered by no narrator call');
+    // The shipped tree holds none: every section of narratives/quartz.md is one the narrator dispatches.
+    const quartz = fs.readFileSync(path.join(ROOT, 'narratives', 'quartz.md'), 'utf8');
+    const narrator = fs.readFileSync(path.join(ROOT, 'js', '92i-narrators-silicate.ts'), 'utf8');
+    const sections = Array.from(quartz.matchAll(/^## variant: (\w+)\s*$/gm), match => match[1]);
+    expect(sections.length).toBeGreaterThan(10);
+    for (const section of sections) expect(narrator, section).toContain(`narrative_variant('quartz', '${section}'`);
+  });
+
   it('rejects an empty placeholder in a section, which no call can fill', () => {
     // narratives/tyuyamunite.md as SIM 286 shipped it; the runtime's pattern needs a key.
     const shipped = 'This tyuyamunite is the calcium twin to a carnotite #{} growing in the same pocket.';
@@ -175,6 +267,24 @@ describe('narrative audit: a call supplies every variable its template names', (
     expect(templateBodyComplaints(shipped)).toHaveLength(1);
     expect(templateBodyComplaints('a carnotite #{ } growing')).toHaveLength(1);
     expect(templateBodyComplaints('plates on {001}; {habit_pretty}; steep {h0-il} rhombohedra')).toEqual([]);
+  });
+
+  it('refuses whatever else in braces is neither a variable nor a crystal form', () => {
+    // The same family as "{}": the runtime prints each as written under any context of
+    // named keys (the only kind the audit reads), so a call cannot be held to it.
+    for (const braces of ['{0}', '{12}', '{dose:.2f}', '{c.crystal_id}', '{ spaced }', '{max-rate}', '{1a}']) {
+      const body = `a carnotite #${braces} growing in the same pocket`;
+      expect(_narrative_interp(body, { dose: 1, c: {}, crystal_id: 7, spaced: 2, max: 3, rate: 4, a: 5 }), braces).toBe(body);
+      expect(templateBodyComplaints(body), braces).toHaveLength(1);
+      expect(templateBodyComplaints(body)[0], braces).toContain(braces);
+    }
+    // What the 94 files do hold: variables, and forms of three or more places.
+    const held = 'Quartz #{crystal_id}: {100} {0001} {1011} {104} {10̄10} {01-12} {30-31} {40-41} {h0-il}, {habit_pretty}';
+    expect(templateBodyComplaints(held)).toEqual([]);
+    for (const name of fs.readdirSync(path.join(ROOT, 'narratives')).filter(file => file.endsWith('.md'))) {
+      const text = fs.readFileSync(path.join(ROOT, 'narratives', name), 'utf8');
+      expect(templateBodyComplaints(text), name).toEqual([]);
+    }
   });
 });
 
@@ -241,7 +351,9 @@ describe('quartz narrator: the smoky and morion sentences', () => {
 
   it('names the uraninite only past the ceiling the host rock cannot pass', () => {
     // The damage settles it alone, so it holds with or without a run to ask.
-    for (const narrator of [run({ radiation_dose: 11.676 }), null, { crystals: [] }]) {
+    // (A simulator with no dose on record cannot hold such a crystal; the order of the
+    // narrator's two tests is held all the same.)
+    for (const narrator of [run({ radiation_dose: 11.676 }), run(), null, { crystals: [] }]) {
       const text = narrateQuartz(narrator, quartz(1.103));
       expect(text).toContain(narrative_variant('quartz', 'morion_uraninite'));
       expect(text).toContain('uraninite in this pocket');
@@ -326,19 +438,33 @@ describe('what makes the two certain sentences true', () => {
   });
 });
 
-// Runs a scenario one step at a time and holds every crystal's damage to what the
-// narrator assumes of its two writers:
+// The host rock's largest dose in one step, as grow_quartz computes it (js/59):
+// 0.006 x the wall's intensity (pegmatite 1, phonolite 0.5, otherwise wall.gamma_host)
+// x min(fluid Al / 10, 1.2), once per engine call. Spelled out here, not read back.
+function largestHostDose(wall: any): number {
+  const intensity = wall.composition === 'pegmatite' ? 1 : wall.composition === 'phonolite' ? 0.5 : (wall.gamma_host || 0);
+  return 0.006 * intensity * 1.2;
+}
+
+// Steps a run and holds every crystal's damage to what the narrator assumes of its
+// two writers, as the damage changes:
 //   - a crystal that is not a quartz gains damage only in a step where the run's
 //     radiation_dose rises, and then by twice the rise (0.02 x size against 0.01 x
 //     size, js/85); otherwise it gains nothing (it was not active, or nothing dosed);
-//   - a quartz gains nothing that leaves it past the host rock's ceiling in a step
-//     where the dose does not rise.
-// A uraninite is dosed by the other uraninites alone and is left out.
-function runWithDoseLedger(name: string, seed = 42) {
-  setSeed(seed);
-  const { conditions, events, defaultSteps } = SCENARIOS[name]();
+//   - a quartz, in a step where the dose does not rise, gains no more than the host
+//     rock's largest dose (nothing at all on a wall that gives none) and is not left
+//     past the ceiling.
+// A uraninite is dosed by the other uraninites alone and is left out. What this cannot
+// see: a third writer that adds to a quartz less than the host rock may, on a wall
+// that doses. The control runs on walls that give nothing close that from one side.
+function runWithDoseLedger(start: () => { conditions: any; events: any[]; defaultSteps?: number }) {
+  const { conditions, events, defaultSteps } = start();
   const sim = new VugSimulator(conditions, events);
-  const ledger = { stepsWithDose: 0, stepsWithoutDose: 0, gainsInLockStep: 0, quartzGainsWithoutDose: 0, violations: [] as string[] };
+  const hostLimit = largestHostDose(conditions.wall);
+  const ledger = {
+    stepsWithDose: 0, stepsWithoutDose: 0, gainsInLockStep: 0, quartzGainsWithoutDose: 0,
+    violations: [] as string[], damageBeforeFirstDose: new Map<any, number>(),
+  };
   for (let step = 0; step < (defaultSteps ?? 100); step++) {
     const doseBefore = sim.radiation_dose || 0;
     const damageBefore = new Map<any, number>(sim.crystals.map((c: any) => [c, c.radiation_damage || 0]));
@@ -347,11 +473,16 @@ function runWithDoseLedger(name: string, seed = 42) {
     if (rise > 0) ledger.stepsWithDose += 1; else ledger.stepsWithoutDose += 1;
     for (const c of sim.crystals) {
       if (c.mineral === 'uraninite') continue;
-      const gain = (c.radiation_damage || 0) - (damageBefore.get(c) || 0);
+      const before = damageBefore.get(c) || 0;
+      const gain = (c.radiation_damage || 0) - before;
+      if (rise > 0 && c.active && !ledger.damageBeforeFirstDose.has(c)) ledger.damageBeforeFirstDose.set(c, before);
       if (c.mineral === 'quartz') {
         if (rise > 0 || !(gain > 1e-12)) continue;
         ledger.quartzGainsWithoutDose += 1;
-        if (c.radiation_damage > QUARTZ_HOST_DOSE_CEILING) {
+        if (gain > hostLimit + 1e-12) {
+          ledger.violations.push(`step ${step}: quartz #${c.crystal_id} gained ${gain} with no uraninite dose; the host rock gives at most ${hostLimit}`);
+        }
+        if (c.radiation_damage > 0.7) {
           ledger.violations.push(`step ${step}: quartz #${c.crystal_id} rose to ${c.radiation_damage} with no uraninite dose`);
         }
       } else if (Math.abs(gain) > 1e-12) {
@@ -362,14 +493,16 @@ function runWithDoseLedger(name: string, seed = 42) {
   }
   return { sim, ledger };
 }
+const scenarioAtSeed42 = (name: string) => () => { setSeed(42); return SCENARIOS[name](); };
+const smokySentenceOfTheRun = (sim: any): string => (sim.narrate().match(/[^.]*turned smoky[^.]*\./) || [''])[0];
 
 describe('the two shipped runs, seed 42', { timeout: 600_000 }, () => {
   it('grimsel_alpine_cleft: smoky quartz, no uraninite, and none named', () => {
-    const { sim, ledger } = runWithDoseLedger('grimsel_alpine_cleft');
+    const { sim, ledger } = runWithDoseLedger(scenarioAtSeed42('grimsel_alpine_cleft'));
     expect(sim.crystals.some((c: any) => c.mineral === 'uraninite')).toBe(false);
     expect(sim.radiation_dose || 0).toBe(0);
     // No uraninite dose in the run, so the host rock is the only writer left: it
-    // touches quartz alone, and never past its ceiling.
+    // touches quartz alone, by no more than its own dose, and never past its ceiling.
     expect(ledger.violations).toEqual([]);
     expect(ledger.stepsWithDose).toBe(0);
     expect(ledger.quartzGainsWithoutDose).toBeGreaterThan(0);
@@ -384,11 +517,14 @@ describe('the two shipped runs, seed 42', { timeout: 600_000 }, () => {
       expect(text).not.toMatch(/uraninite/i);
       expect(text).not.toMatch(UNFILLED);
     }
-    expect(sim.narrate()).not.toMatch(UNFILLED);
+    const narrative = sim.narrate();
+    expect(narrative).not.toMatch(UNFILLED);
+    // No uraninite in the run: nothing in its narrative should name one.
+    expect(narrative).not.toMatch(/uraninite/i);
   });
 
   it('radioactive_pegmatite: quartz past the ceiling, and the uraninite named', () => {
-    const { sim, ledger } = runWithDoseLedger('radioactive_pegmatite');
+    const { sim, ledger } = runWithDoseLedger(scenarioAtSeed42('radioactive_pegmatite'));
     expect(sim.crystals.some((c: any) => c.mineral === 'uraninite')).toBe(true);
     expect(sim.radiation_dose).toBeGreaterThan(0);
     // The run's dose and every other crystal's damage rise together, by one factor:
@@ -401,10 +537,72 @@ describe('the two shipped runs, seed 42', { timeout: 600_000 }, () => {
     expect(dosed.length).toBeGreaterThan(0);
     for (const crystal of dosed) {
       const text = sim._narrate_quartz(crystal);
+      expect(text).toContain(narrative_variant('quartz', 'morion_uraninite'));
       expect(text).toContain('uraninite in this pocket');
       expect(text).not.toMatch(UNFILLED);
     }
     expect(sim.narrate()).not.toMatch(UNFILLED);
+    expect(smokySentenceOfTheRun(sim)).toContain('knocked loose by radiation');
+  });
+});
+
+describe('a wall that gives no dose', { timeout: 600_000 }, () => {
+  // The control for the ledger's blind side. On limestone or dolomite the host rock
+  // writes nothing, so with no uraninite ANY damage on ANY crystal is a third writer:
+  // one that stayed under the host rock's dose on a pegmatite wall shows here.
+  it.each(['tutorial_first_crystal', 'cooling', 'mvt'])('%s: quartz grows and nothing carries damage', (name) => {
+    const { sim, ledger } = runWithDoseLedger(scenarioAtSeed42(name));
+    expect(largestHostDose(sim.conditions.wall)).toBe(0);
+    expect(sim.radiation_dose || 0).toBe(0);
+    const quartz = sim.crystals.filter((c: any) => c.mineral === 'quartz' && c.zones.some((z: any) => z.thickness_um > 0));
+    expect(quartz.length).toBeGreaterThan(0);
+    expect(ledger.violations).toEqual([]);
+    expect(ledger.quartzGainsWithoutDose).toBe(0);
+    expect(sim.crystals.filter((c: any) => (c.radiation_damage || 0) !== 0).length).toBe(0);
+    expect(sim.narrate()).not.toMatch(/smoky|morion|irradiat/i);
+  });
+});
+
+describe('a pocket the review built: host-rock morion, then a late uraninite', { timeout: 600_000 }, () => {
+  // Not a shipped scenario. Random Vugg's pegmatite broth with the host set to
+  // pegmatite, and uranium arriving at step 100 under reducing conditions: what a
+  // Creative-mode player does with the host select and the U and O2 sliders. The
+  // quartz are morion on the host rock's dose alone long before a uraninite exists.
+  function lateUranium() {
+    setSeed(2);
+    const scenario = buildRandomScenario('pegmatite', 'any');
+    scenario.conditions.wall.composition = 'pegmatite';
+    const pulse = { step: 100, name: 'Late uranium-bearing reducing pulse', description: 'constructed',
+      apply_fn: (c: any) => { c.fluid.U += 150; c.fluid.O2 = 0; return 'U +150 ppm, O2 -> 0'; } };
+    return { conditions: scenario.conditions, events: [...scenario.events, pulse], defaultSteps: scenario.defaultSteps };
+  }
+
+  it('says what the damage settles and no more', () => {
+    const { sim, ledger } = runWithDoseLedger(lateUranium);
+    expect(ledger.violations).toEqual([]);
+    const uraninites = sim.crystals.filter((c: any) => c.mineral === 'uraninite');
+    expect(uraninites.length).toBeGreaterThan(0);
+    expect(Math.min(...uraninites.map((c: any) => c.nucleation_step))).toBeGreaterThanOrEqual(100);
+
+    // The state under test: morion before the first uraninite dose, past the ceiling after it.
+    const hostMorionThenDosed = sim.crystals.filter((c: any) => c.mineral === 'quartz' && c.zones.length
+      && (ledger.damageBeforeFirstDose.get(c) || 0) > 0.6 && c.radiation_damage > 0.7);
+    expect(hostMorionThenDosed.length).toBeGreaterThan(0);
+    for (const crystal of hostMorionThenDosed) {
+      const text = sim._narrate_quartz(crystal);
+      const sentence = narrative_variant('quartz', 'morion_uraninite');
+      expect(text).toContain(sentence);
+      // Two facts side by side. The uraninite did not do the darkening here, and
+      // the sentence must not say it did, nor that the host rock alone did.
+      expect(sentence).toMatch(/is morion/);
+      expect(sentence).toMatch(/dose includes that of uraninite/);
+      expect(sentence).not.toMatch(/darkened|turned|activated|host rock/i);
+      expect(text).not.toMatch(UNFILLED);
+    }
+    // The run's own sentence counts every quartz past 0.3 and credits no source.
+    const ofTheRun = smokySentenceOfTheRun(sim);
+    expect(ofTheRun).toContain('knocked loose by radiation');
+    expect(ofTheRun).not.toMatch(/uraninite|alpha/i);
   });
 });
 

@@ -40,11 +40,23 @@ Optional extras:
 `data/minerals.json` plus the Markdown directory. `npm run audit:narratives`
 checks file/frontmatter/section references, requires literal exhaustive variant
 branches, and rejects direct, identifier-mediated, or named inline fallback drift.
-It also requires each call to supply every `{variable}` its section names, as an
-object literal (or a `const` bound to one): the runtime leaves an unsupplied
-`{key}` as written, which is how crystal forms such as `{100}` print, and how a
-forgotten variable would too. A key that starts with a digit is notation; an
-empty `{}` in a section is refused, since no call can fill it.
+It also requires each call to supply every `{variable}` its section names: the
+runtime leaves an unsupplied `{key}` as written, which is how crystal forms such
+as `{100}` print, and how a forgotten variable would too. The rule is conservative
+on purpose:
+
+- A context is read when it is an object literal with plain keys (parentheses, and
+  a `cond ? {…} : {…}` of two literals, are read through), or a `const` bound to one
+  that is used for nothing but narrative calls. A spread, a computed or numeric key,
+  or a context built or completed elsewhere is refused where the section names a
+  variable.
+- In a section, braces may hold a variable (`{name}`, starting with a letter or an
+  underscore) or crystal-form notation of three or more places (`{100}`, `{10̄10}`,
+  `{h0-il}`). Anything else (`{}`, `{0}`, `{dose:.2f}`) is refused; so is letter-only
+  notation such as `{hkl}`, which reads as a variable, unless a call supplies it.
+- Every section must be rendered by some call; the three functions must be called
+  directly, and only from `js/92*` files.
+- It reads keys, not values: a key supplied as `undefined` prints "undefined".
 
 **Adding a new scenario** (≤ 2 file touches typically):
 

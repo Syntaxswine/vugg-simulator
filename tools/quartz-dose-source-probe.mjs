@@ -17,9 +17,10 @@
 //   - H of a step = (damage after the step) - (damage before) - (U of the step).
 //     It is negative when the clamp cuts down damage a uraninite took past the ceiling.
 // It then prints the narrator's sentence for every quartz past the smoky threshold
-// (0.3) and tallies: template variables left in the text ("{word}" starting with a
-// letter or an underscore, or an empty "{}"), sentences that name a uraninite the
-// crystal got nothing from, and sentences that name the host rock likewise.
+// (0.3) and tallies: braces left in the text that are not crystal-form notation (an
+// unfilled "{word}", an empty "{}"; the audit's own reading, strayBraces in
+// tools/narrative-workflow.mjs), sentences that name a uraninite the crystal got
+// nothing from, and sentences that name the host rock likewise.
 //
 // Booking "the rest" to the host rock would hide a third writer, so the probe also
 // counts what the host rock cannot have done: a change of that kind on a crystal
@@ -36,6 +37,7 @@
 //        node tools/quartz-dose-source-probe.mjs --random-vugg 40 [--archetype pegmatite]
 
 import { loadSimBundle } from './_harness.mjs';
+import { strayBraces } from './narrative-workflow.mjs';
 
 const arg = (name, dflt) => { const i = process.argv.indexOf(name); return i >= 0 ? process.argv[i + 1] : dflt; };
 const RANDOM_VUGG = parseInt(arg('--random-vugg', '0'), 10) || 0;
@@ -46,9 +48,9 @@ const SEEDS = RANDOM_VUGG
 const ONLY = arg('--scenarios', '');
 const FULL = process.argv.includes('--full-narrative');
 
-const { SIM_VERSION, SCENARIOS, VugSimulator, setSeed, startSimulationCommandRuntime, makeSimulationStartCommand, buildRandomScenario } = await loadSimBundle({
+const { SIM_VERSION, SCENARIOS, VugSimulator, setSeed, startSimulationCommandRuntime, makeSimulationStartCommand, buildRandomScenario, QUARTZ_HOST_DOSE_CEILING } = await loadSimBundle({
   toolName: 'quartz-dose-source-probe',
-  extraExports: ['startSimulationCommandRuntime', 'makeSimulationStartCommand', 'buildRandomScenario'],
+  extraExports: ['startSimulationCommandRuntime', 'makeSimulationStartCommand', 'buildRandomScenario', 'QUARTZ_HOST_DOSE_CEILING'],
 });
 const names = RANDOM_VUGG ? [`random vugg (${ARCHETYPE})`] : (ONLY ? ONLY.split(',') : Object.keys(SCENARIOS).sort());
 console.log(`quartz-dose-source-probe — SIM ${SIM_VERSION}; ${names.length} scenario(s); seeds ${SEEDS.join(', ')}`);
@@ -65,7 +67,11 @@ function startRun(name, seed) {
   return { sim: new VugSimulator(scenario.conditions, scenario.events), steps: scenario.defaultSteps };
 }
 
-const UNFILLED = /\{[A-Za-z_]\w*\}|\{\s*\}/g;
+// Braces left in printed text that are not crystal-form notation: the audit's own reading.
+const unfilled = (text) => {
+  const stray = new Set(strayBraces(text));
+  return (text.match(/\{[^{}]*\}/g) || []).filter(braces => stray.has(braces));
+};
 const tally = {
   runs: 0, runsWithUraniniteDose: 0, quartzPast: 0, narrated: 0,
   hostOnly: 0, uraniniteOnly: 0, both: 0, neither: 0,
@@ -74,7 +80,7 @@ const tally = {
   placeholders: 0, runsWithPlaceholderInNarrative: 0, quartzUndosedInARunWithUraniniteDose: 0,
   changesOffQuartzNotFromUraninite: 0, quartzLeftPastCeilingByHost: 0,
 };
-const CEILING = 0.7;   // QUARTZ_HOST_DOSE_CEILING, js/59
+const CEILING = QUARTZ_HOST_DOSE_CEILING;   // js/59: the engine's own constant
 const quiet = [];
 
 for (const name of names) {
@@ -119,7 +125,7 @@ for (const name of names) {
     const firstStep = Math.min(...sim.crystals.map(c => c.nucleation_step));
     const quartz = sim.crystals.filter(c => c.mineral === 'quartz' && (c.radiation_damage || 0) > 0.3);
     const narrative = typeof sim.narrate === 'function' ? sim.narrate() : '';
-    const left = narrative.match(UNFILLED) || [];
+    const left = unfilled(narrative);
     if (left.length) tally.runsWithPlaceholderInNarrative += 1;
     const head = `${name} seed ${seed}: wall ${wall.composition}${wall.gamma_host ? ` gamma_host ${wall.gamma_host}` : ''}; `
       + `uraninite crystals ${uraninites.length}; run radiation_dose ${runDose.toFixed(3)}; `
@@ -138,7 +144,7 @@ for (const name of names) {
       const narrated = c.zones.length > 0 && (c.nucleation_step === firstStep || c.total_growth_um > 100);
       const text = c.zones.length ? sim._narrate_quartz(c) : '';
       const sentence = (text.match(/[^.]*(?:smoky|morion)[^.]*\.(?:[^.]*growth zones[^.]*\.)?/i) || [''])[0].trim();
-      const leftHere = text.match(UNFILLED) || [];
+      const leftHere = unfilled(text);
       if (narrated) {
         tally.narrated += 1;
         tally.placeholders += leftHere.length;
