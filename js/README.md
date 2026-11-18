@@ -43,7 +43,8 @@ branches, and rejects direct, identifier-mediated, or named inline fallback drif
 It also requires each call to supply every `{variable}` its section names, as an
 object literal (or a `const` bound to one): the runtime leaves an unsupplied
 `{key}` as written, which is how crystal forms such as `{100}` print, and how a
-forgotten variable would too. A key that starts with a digit is notation.
+forgotten variable would too. A key that starts with a digit is notation; an
+empty `{}` in a section is refused, since no call can fill it.
 
 **Adding a new scenario** (≤ 2 file touches typically):
 

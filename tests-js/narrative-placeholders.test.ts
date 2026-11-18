@@ -9,7 +9,8 @@
 //   "Alpha-damage from nearby uraninite activated Al-hole color centers in
 //    {dosed_pct}% of the growth zones"
 // for a Grimsel quartz in a run with no uraninite, and "{rad_count} of
-// {total_count} growth zones record the irradiation" for a morion.
+// {total_count} growth zones record the irradiation" for a morion. The
+// tyuyamunite narrator printed "a carnotite #{}" the same way.
 //
 // Three layers, cheapest first:
 //   1. the static rule in tools/narrative-workflow.mjs (run by every build and by
@@ -22,7 +23,7 @@ import { describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { auditTemplateVariableSupply, templateVariables } from '../tools/narrative-workflow.mjs';
+import { auditTemplateVariableSupply, templateBodyComplaints, templateVariables } from '../tools/narrative-workflow.mjs';
 import { runScenario } from './helpers';
 
 declare const VugSimulator: any;
@@ -36,9 +37,9 @@ declare const _narrative_interp: (template: string, context?: Record<string, unk
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 // A template variable left in printed text: "{word}" starting with a letter or an
-// underscore. Crystal-form notation ({100}, {0001}, {40-41}, {h0-il}) is not one,
-// and is meant to print.
-const UNFILLED = /\{[A-Za-z_]\w*\}/;
+// underscore, or the empty "{}". Crystal-form notation ({100}, {0001}, {40-41},
+// {h0-il}) is neither, and is meant to print.
+const UNFILLED = /\{[A-Za-z_]\w*\}|\{\s*\}/;
 
 // The two sentences as SIM 286 printed them (seed 42; grimsel_alpine_cleft quartz
 // #21 and radioactive_pegmatite quartz #2). They keep the detector honest.
@@ -50,6 +51,7 @@ describe('the detector can fail', () => {
   it('flags what SIM 286 printed, and the runtime really prints it', () => {
     expect(SHIPPED_SMOKY).toMatch(UNFILLED);
     expect(SHIPPED_MORION).toMatch(UNFILLED);
+    expect('a carnotite #{} growing in the same pocket').toMatch(UNFILLED);
     // The shipped call passed `dose` and nothing the templates name.
     expect(_narrative_interp(SHIPPED_SMOKY, { dose: '0.43' })).toBe(SHIPPED_SMOKY);
     expect(_narrative_interp(SHIPPED_MORION, { dose: '1.10' })).toContain('{rad_count} of {total_count}');
@@ -136,6 +138,15 @@ describe('narrative audit: a call supplies every variable its template names', (
       parts.push(narrative_variant('quartz', 'tessin'));
       parts.push(narrative_variant('quartz', 'tessin', anything));
     `, templates)).toEqual([]);
+  });
+
+  it('rejects an empty placeholder in a section, which no call can fill', () => {
+    // narratives/tyuyamunite.md as SIM 286 shipped it; the runtime's pattern needs a key.
+    const shipped = 'This tyuyamunite is the calcium twin to a carnotite #{} growing in the same pocket.';
+    expect(_narrative_interp(shipped, { carnotite_id: 12 })).toBe(shipped);
+    expect(templateBodyComplaints(shipped)).toHaveLength(1);
+    expect(templateBodyComplaints('a carnotite #{ } growing')).toHaveLength(1);
+    expect(templateBodyComplaints('plates on {001}; {habit_pretty}; steep {h0-il} rhombohedra')).toEqual([]);
   });
 });
 
@@ -313,5 +324,28 @@ describe('the two shipped runs, seed 42', { timeout: 600_000 }, () => {
       expect(text).not.toMatch(UNFILLED);
     }
     expect(sim.narrate()).not.toMatch(UNFILLED);
+  });
+});
+
+describe('tyuyamunite narrator: the carnotite it nucleated beside', () => {
+  function tyuyamunite(position: string) {
+    return { crystal_id: 31, mineral: 'tyuyamunite', habit: 'earthy_crust', c_length_mm: 0.4, position, dissolved: false, zones: [{}] };
+  }
+  const narrate = (position: string): string => VugSimulator.prototype._narrate_tyuyamunite.call(null, tyuyamunite(position));
+
+  it('fills the carnotite\'s number from the position js/88 writes', () => {
+    const text = narrate('adjacent to carnotite #12');
+    expect(text).toContain('the calcium twin to a carnotite #12 growing in the same pocket');
+    expect(text).not.toMatch(UNFILLED);
+  });
+
+  it('prints no number, and no braces, when the position carries none', () => {
+    const text = narrate('beside a carnotite crust');
+    expect(text).toContain('the calcium twin to a carnotite growing in the same pocket');
+    expect(text).not.toMatch(UNFILLED);
+  });
+
+  it('does not print the sentence for a crystal on the wall', () => {
+    expect(narrate('vug wall')).not.toContain('calcium twin to a carnotite');
   });
 });

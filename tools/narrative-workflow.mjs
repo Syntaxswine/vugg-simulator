@@ -36,6 +36,8 @@ const NARRATIVE_FUNCTIONS = new Set([
 // A key that starts with a letter or an underscore is a template variable, and
 // the call that renders the section has to supply it.
 const TEMPLATE_KEY_PATTERN = /\{(\w+)\}/g;
+// "{}" matches nothing at runtime, so it is always printed: "a carnotite #{}".
+const EMPTY_PLACEHOLDER_PATTERN = /\{\s*\}/;
 
 function normalizeNewlines(text) {
   return text.replace(/\r\n/g, '\n');
@@ -44,6 +46,15 @@ function normalizeNewlines(text) {
 export function templateVariables(body) {
   const keys = Array.from(body.matchAll(TEMPLATE_KEY_PATTERN), match => match[1]);
   return [...new Set(keys.filter(key => /^[A-Za-z_]/.test(key)))];
+}
+
+// What is wrong with a section's body on its own, whatever call renders it.
+export function templateBodyComplaints(body) {
+  const complaints = [];
+  if (EMPTY_PLACEHOLDER_PATTERN.test(body)) {
+    complaints.push('holds an empty placeholder "{}" that no call can fill');
+  }
+  return complaints;
 }
 
 function parseNarrative(id, filename, text, errors) {
@@ -68,6 +79,9 @@ function parseNarrative(id, filename, text, errors) {
     const body = normalized.slice(bodyStart, bodyEnd).trim();
     if (sections.has(heading)) errors.push(`${filename}: duplicate section "${heading}"`);
     if (!body) errors.push(`${filename}: empty section "${heading}"`);
+    for (const complaint of templateBodyComplaints(body)) {
+      errors.push(`${filename}: section "${heading}" ${complaint}`);
+    }
     sections.set(heading, body);
   }
   if (!sections.size) errors.push(`${filename}: no level-two narrative sections found`);
