@@ -51,9 +51,11 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 // "{word}", an empty "{}", a positional "{0}", a formatted "{dose:.2f}", and a brace
 // that opens or closes no group at all. A crystal form ({100}, {0001}, {10-10},
 // {40-41}, {h0-il}, {hk0}: three or more places of digits, the index letters
-// h k i l, hyphens or overbars, with a digit) is meant to print.
+// h k i l, hyphens or overbars, with a digit) is meant to print. A group that is
+// also a well-formed name (an index letter, then index letters and digits only) is
+// a form only when its digits are zeros: {hk0} prints, {k40} is a variable left unfilled.
 // Spelled out here rather than read from the audit; a test below holds the two equal.
-const UNFILLED = /\{(?!(?=[^{}\d]*\d)[0-9hkil\u0304\u0305-]{3,}\})[^{}]*\}|\{(?![^{}]*\})|(?<!\{[^{}]*)\}/;
+const UNFILLED = /\{(?!(?=[^{}\d]*\d)(?![hkil][0-9hkil]*[1-9][0-9hkil]*\})[0-9hkil\u0304\u0305-]{3,}\})[^{}]*\}|\{(?![^{}]*\})|(?<!\{[^{}]*)\}/;
 
 // The two sentences as SIM 286 printed them (seed 42; grimsel_alpine_cleft quartz
 // #21 and radioactive_pegmatite quartz #2). They keep the detector honest.
@@ -80,8 +82,12 @@ describe('the detector can fail', () => {
   });
 
   it('flags what is neither a crystal form nor filled, as the audit does', () => {
-    const neither = ['{}', '{ }', '{0}', '{12}', '{dose:.2f}', '{c.crystal_id}', '{ spaced }', '{max-rate}', '{1a}', '{rad_count}', '{hkl}'];
-    const forms = ['{100}', '{0001}', '{1011}', '{104}', '{10-10}', '{10\u030410}', '{01-12}', '{40-41}', '{30-31}', '{h0-il}', '{hk0}', '{h0l}'];
+    // The last five are well-formed names that only look like forms: an index letter
+    // first, and a digit that is not zero. Printed, each is a variable nobody filled.
+    const neither = ['{}', '{ }', '{0}', '{12}', '{dose:.2f}', '{c.crystal_id}', '{ spaced }', '{max-rate}', '{1a}', '{rad_count}', '{hkl}',
+      '{k40}', '{i131}', '{l10}', '{kill1}', '{hk1}'];
+    const forms = ['{100}', '{0001}', '{1011}', '{104}', '{10-10}', '{10\u030410}', '{01-12}', '{40-41}', '{30-31}', '{h0-il}', '{hk0}', '{h0l}',
+      '{0kl}', '{hh0}', '{10l}', '{hh-2hl}', '{-201}'];
     for (const braces of neither) {
       expect(`a carnotite #${braces} growing`, braces).toMatch(UNFILLED);
       expect(strayBraces(`a carnotite #${braces} growing`), braces).toEqual([braces]);
@@ -124,6 +130,8 @@ describe('narrative audit: a call supplies every variable its template names', (
       'plates on {001} and {10-10}; {0001}; m{100}; {habit_pretty}, {_x1}, {A}',
       'steep {h0-il} rhombohedra such as {40-41} and {30-31}',
       'odd ones: {1a} { spaced } {} {a.b} {a-b} {é} {$x} {a b} {{nested}} {trailing',
+      // Names that look like forms: the runtime fills each, so a call must supply it.
+      'dated by {k40} and {i131}; layer {l10}; {kill1}',
     ];
     let replacedSomething = 0, leftSomething = 0;
     for (const sample of samples) {
@@ -152,6 +160,37 @@ describe('narrative audit: a call supplies every variable its template names', (
       `parts.push(narrative_variant('quartz', 'tessin'));`,
       { quartz: { 'variant: tessin': 'zone {hk0}, faces {h0l}' } },
     )).toEqual([]);
+    // A well-formed name that only looks like a form ({k40}: an index letter, then a
+    // digit that is not zero) is a variable. Read as notation, a section naming it
+    // would print its braces with the audit passing.
+    expect(_narrative_interp('dated by {k40}', {})).toBe('dated by {k40}');
+    expect(templateVariables('dated by {k40}, {i131}, {l10} and {kill1}; zone {hk0}')).toEqual(['k40', 'i131', 'l10', 'kill1']);
+    const dated = { quartz: { 'variant: tessin': 'dated by {k40}' } };
+    expect(auditTemplateVariableSupply(`parts.push(narrative_variant('quartz', 'tessin'));`, dated).join(' '))
+      .toContain('does not supply {k40}');
+    expect(auditTemplateVariableSupply(`parts.push(narrative_variant('quartz', 'tessin', { k40: age }));`, dated)).toEqual([]);
+    // {hkl} and {hk1} are read the same way, and the complaint says how to write notation.
+    const general = auditTemplateVariableSupply(
+      `parts.push(narrative_variant('quartz', 'tessin'));`,
+      { quartz: { 'variant: tessin': 'faces {hkl} and {hk1} at {dose}' } },
+    ).join(' ');
+    expect(general).toContain('does not supply {hkl}, {hk1}, {dose}');
+    expect(general).toContain('like {hkl}, {hk1}, is read as crystal-form notation only when it holds a zero and no other digit');
+    expect(auditTemplateVariableSupply(
+      `parts.push(narrative_variant('quartz', 'tessin'));`,
+      { quartz: { 'variant: tessin': 'smoky at {dose}' } },
+    ).join(' ')).not.toContain('crystal-form notation');
+  });
+
+  it('reads keys, not values: what a supplied key can still print', () => {
+    // Both calls pass the audit; js/README.md names both as what it does not read.
+    const templates = { quartz: { 'variant: smoky': 'Smoky at {dose}.' } };
+    const call = (value: string) => `parts.push(narrative_variant('quartz', 'smoky', { dose: ${value} }));`;
+    expect(auditTemplateVariableSupply(call('undefined'), templates)).toEqual([]);
+    expect(_narrative_interp('Smoky at {dose}.', { dose: undefined })).toBe('Smoky at undefined.');
+    // The runtime substitutes once, so braces that arrive in a value are printed.
+    expect(auditTemplateVariableSupply(call(`'{rad_count}'`), templates)).toEqual([]);
+    expect(_narrative_interp('Smoky at {dose}.', { dose: '{rad_count}', rad_count: 3 })).toBe('Smoky at {rad_count}.');
   });
 
   it('rejects the calls SIM 286 shipped', () => {
@@ -264,9 +303,21 @@ describe('narrative audit: a call supplies every variable its template names', (
       parts.push(window['narrative_blurb']('quartz'));
       const bound = narrative_closing.bind(null);
       const held = holder.narrative_variant;
+      const boundThroughAnObject = globalThis.narrative_closing.bind(null);
     `);
-    expect(indirect).toHaveLength(7);
+    expect(indirect).toHaveLength(8);
     for (const complaint of indirect) expect(complaint).toContain('must be called directly by name');
+    // Each says which way the name was used, in the order the source has them.
+    expect(indirect.map(complaint => /narrative_\w+ (.*?); it must be called directly by name/.exec(complaint)?.[1])).toEqual([
+      'is aliased, passed or held as a value',
+      'is used through .call',
+      'is aliased, passed or held as a value',
+      'is reached through an object',
+      'is named in a string',
+      'is used through .bind',
+      'is reached through an object',
+      'is reached through an object',
+    ]);
 
     // Outside the narrator files the names may not appear at all, bar a comment line.
     const call = `  parts.push(narrative_variant('quartz', 'smoky'));`;
@@ -333,10 +384,10 @@ describe('narrative audit: a call supplies every variable its template names', (
           '"variant: amethyst_tint" is rendered by no narrator call'],
         ['an alias in a narrator file',
           () => write('js/92i-narrators-silicate.ts', narrator('  const say = narrative_variant;\n')),
-          'must be called directly by name'],
+          'narrative_variant is aliased, passed or held as a value; it must be called directly by name'],
         ['a call through an object in a narrator file',
           () => write('js/92i-narrators-silicate.ts', narrator(`  parts.push(globalThis.narrative_variant('quartz', 'smoky', {}));\n`)),
-          'must be called directly by name'],
+          'narrative_variant is reached through an object; it must be called directly by name'],
         ['a call outside the narrator files',
           () => write('js/85-simulator.ts', `class Sim {}\nconst text = narrative_variant('quartz', 'smoky', { dose: 1 });\n`),
           'js/85-simulator.ts:2: names a narrative function outside js/92'],
@@ -568,8 +619,15 @@ function largestHostDose(wall: any): number {
 //   - a quartz, in a step where the dose rises, gains no more than that dose plus
 //     the host rock's; an inactive quartz gains nothing.
 // A uraninite is dosed by the other uraninites alone and is left out. What this cannot
-// see: a third writer that adds to an active quartz less than the host rock may, on a
-// wall that doses. The control runs on walls that give nothing close that from one side.
+// see, on a wall that doses:
+//   - a third writer that adds to an active quartz less than the host rock may. The
+//     control runs on walls that give nothing close that from one side;
+//   - in a step where a uraninite doses, a third writer whose addition fits under the
+//     bound because the clamp cut the host rock's share (review round 3 planted two
+//     such writers and most of their writes went unflagged). That one cannot make a
+//     printed sentence false: once a uraninite has dosed in the run no sentence names
+//     the host rock, and the one that names the uraninite says only that its dose is
+//     included.
 function runWithDoseLedger(start: () => { conditions: any; events: any[]; defaultSteps?: number }) {
   const { conditions, events, defaultSteps } = start();
   const sim = new VugSimulator(conditions, events);

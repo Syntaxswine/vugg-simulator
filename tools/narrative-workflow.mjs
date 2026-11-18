@@ -57,9 +57,15 @@ const TEMPLATE_KEY_PATTERN = /\{(\w+)\}/g;
 // Whatever else sits in braces the runtime prints as written and no call can fill:
 // an empty "{}", a positional "{0}", a formatted "{dose:.2f}", a dotted "{c.id}",
 // padding inside the braces.
+// One kind of group could be read either way: an index letter followed by index
+// letters and digits only ({hk0}, {k40}) is both a well-formed variable name and
+// form-shaped. It is notation only when its digits are zeros ({hk0}, {h0l}); with
+// any other digit ({k40}, {i131}, {hk1}) it is a variable, and a call must supply
+// it. Read the other way, a section naming {k40} that no call fills would print
+// its braces with the audit passing.
 const BRACE_GROUP_PATTERN = /\{([^{}]*)\}/g;
 const TEMPLATE_VARIABLE_PATTERN = /^[A-Za-z_]\w*$/;
-const CRYSTAL_FORM_PATTERN = /^(?=\D*\d)[0-9hkil\u0304\u0305-]{3,}$/;
+const CRYSTAL_FORM_PATTERN = /^(?=\D*\d)(?![hkil][0-9hkil]*[1-9][0-9hkil]*$)[0-9hkil\u0304\u0305-]{3,}$/;
 
 function normalizeNewlines(text) {
   return text.replace(/\r\n/g, '\n');
@@ -336,8 +342,15 @@ function templateVariableComplaint(node, callName, sectionLabel, body) {
   }
   const missing = needed.filter(key => !supplied.includes(key));
   if (!missing.length) return null;
+  // {hkl} or {hk1} in prose is most likely meant as notation, not as a variable a
+  // call forgot: say why the audit read it as one.
+  const formShaped = missing.filter(key => /^[hkil][0-9hkil]*$/.test(key));
+  const hint = formShaped.length
+    ? ` (a group that starts with an index letter, like ${formShaped.map(key => `{${key}}`).join(', ')}, is read as `
+      + 'crystal-form notation only when it holds a zero and no other digit, as in {hk0}; say general indices in words)'
+    : '';
   return `${sectionLabel} names ${wanted}, and the call does not supply `
-    + `${missing.map(key => `{${key}}`).join(', ')}; the game would print the braces`;
+    + `${missing.map(key => `{${key}}`).join(', ')}; the game would print the braces${hint}`;
 }
 
 function narrativeSectionOfCall(node, callName) {
@@ -383,8 +396,12 @@ function indirectNarrativeUses(sourceFile) {
       const parent = node.parent;
       const isDirectCall = ts.isIdentifier(node) && ts.isCallExpression(parent) && parent.expression === node;
       if (!isDirectCall) {
-        complaints.push(`${sourceLocation(sourceFile, node)}: ${node.text} must be called directly by name, `
-          + 'not aliased, bound, or reached through an object or .call/.apply (the audit reads direct calls)');
+        let how = 'is aliased, passed or held as a value';
+        if (!ts.isIdentifier(node)) how = 'is named in a string';
+        else if (ts.isPropertyAccessExpression(parent) && parent.name === node) how = 'is reached through an object';
+        else if (ts.isPropertyAccessExpression(parent)) how = `is used through .${parent.name.text}`;
+        complaints.push(`${sourceLocation(sourceFile, node)}: ${node.text} ${how}; it must be called directly `
+          + 'by name (the audit reads direct calls)');
       }
     }
     ts.forEachChild(node, visit);
@@ -422,8 +439,9 @@ function narrativeCallsOutsideNarrators(narratorFiles) {
     .filter(Boolean);
 }
 
-// Prose no call renders is prose no check reads: two quartz sections sat unreached
-// with a false sentence and an unfillable variable from the day the file was written.
+// Prose no call renders is prose no check reads: two quartz sections were rendered
+// only by the Python runtime (retired in 2492eb57) and reached by no JS call, one
+// with a false sentence and one with a variable no JS call ever filled.
 // `rendered` holds "species\nsection" for every section a call was matched to.
 export function unrenderedSectionComplaints(id, sectionNames, rendered) {
   return sectionNames
