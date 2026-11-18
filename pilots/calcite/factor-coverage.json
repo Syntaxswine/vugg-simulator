@@ -5,7 +5,7 @@
     "platform": "win32",
     "arch": "x64"
   },
-  "runtimeDigest": "a6ef202b28e5f5cef0e1b71c23df268e7f188e3b3c0db08d33d40271e914fbde",
+  "runtimeDigest": "7a13530af0c3e3ee0fcbc7e23e912a85632f28c090bbefce796fbf2d2aee3fb5",
   "volumeContract": {
     "schema": "calcite-volume-reconciliation-v1",
     "status": "scientific-solid-closure-unresolved",
@@ -82,7 +82,7 @@
     "pilots/calcite/factor-report.mjs": "5d033926a4e5d97e4ba898b255799c0af1287fec80d44005cee8d1131e91e568",
     "pilots/calcite/volume-contract.js": "0aa9f8f83533d09c8d273034ab667674025f291dfafd1b99eba982e81f6159bb"
   },
-  "fleetReceiptSha256": "404b05f1b7c7dc38860bc601621cc3d77bb0a2349cdc24666fe75aacee9c260f",
+  "fleetReceiptSha256": "9f40141b852b0617f18f74210ac718c0e1ded834678c15566aff68032f886d63",
   "fleet": {
     "scenarios": 41,
     "endpointCalcites": 44,
@@ -609,7 +609,7 @@
       }
     },
     "elmwood": {
-      "specimenSha256": "5a196ae3411d79144d1132b45eaaf2c461694c4ddfa842c9364f7c7678064196",
+      "specimenSha256": "1c6cf5367da198f2e8f3d52d0061307a3c4fb3d5f32e6f833e305cdab8c51e45",
       "sourceClass": "live Elmwood with explicit Wulff override",
       "volumeContracts": [
         {
@@ -747,7 +747,7 @@
           "wulffCalciteOverride": true,
           "limitation": "Old pilot configuration, 16 steps; not authored default Elmwood or an independent geology validation",
           "simVersion": 286,
-          "runtimeDigest": "a6ef202b28e5f5cef0e1b71c23df268e7f188e3b3c0db08d33d40271e914fbde",
+          "runtimeDigest": "7a13530af0c3e3ee0fcbc7e23e912a85632f28c090bbefce796fbf2d2aee3fb5",
           "sourceHashes": {
             "pilots/calcite/authority.js": "e214e82c8360c92d0f8065ae96d9df3971f3a977d545fc8af3ffaf4ff8de00a3",
             "pilots/calcite/specimen.js": "591cb08033f43a6a1a48ae177b75b26a88d6ce8ca1f224d0bff1b00f25044eda",

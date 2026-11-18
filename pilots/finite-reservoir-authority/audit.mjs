@@ -12,9 +12,9 @@ import {assertCommissionedEvidenceRuntime,nodeRuntimeIdentity,runtimeExecutionDi
 const OUTPUT='pilots/finite-reservoir-authority/source-audit.json';
 const WALL_OUTPUT='pilots/finite-reservoir-authority/wall-reference-census.json';
 const BASE='c2651d4f2c2526b4944ef853ea6676bd9b4afd97';
-// Recommissioned for the recorded-fluorite display and visible-seed runtime;
-// the source inventories and physical controls remain unchanged.
-const EXECUTION='a6ef202b28e5f5cef0e1b71c23df268e7f188e3b3c0db08d33d40271e914fbde';
+// Recommissioned for the quartz smoky/morion and tyuyamunite narration fix:
+// its runtime bytes moved, no simulated result did.
+const EXECUTION='7a13530af0c3e3ee0fcbc7e23e912a85632f28c090bbefce796fbf2d2aee3fb5';
 const SOURCES=['data/scenarios.json5','js/19-mineral-stoichiometry.ts',
   'js/20-chemistry-fluid.ts','js/20b-chemistry-carbonate-system.ts',
   'js/22-geometry-wall.ts','js/22a-geometry-cavity-evolution.ts',
