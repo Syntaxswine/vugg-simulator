@@ -66,11 +66,14 @@ Object.assign(VugSimulator.prototype, {
   //   - grow_quartz (js/59) adds the host rock's γ-dose and clamps the total at
   //     QUARTZ_HOST_DOSE_CEILING with every write;
   //   - the uraninite block of run_step (js/85) adds to every other active crystal,
-  //     unclamped, and to this.radiation_dose by the same factor.
+  //     unclamped, and half as much to this.radiation_dose in the same pass.
   // So a sentence names a source only where the number settles it: damage past the
   // ceiling has a uraninite in it, and damage in a run whose radiation_dose is still
   // zero has none and is the host rock's. Anywhere else the split is not recorded
   // (a pegmatite pocket with uraninite gives both), and the sentence names neither.
+  // Past the ceiling the number says a uraninite dosed the crystal, not that it did
+  // the darkening (the host rock may have taken it to morion first), so that
+  // sentence states the two facts side by side.
   // "A run" means a simulator narrating its own crystal (every crystal it holds was
   // nucleated in it): called bare, `this` is the global object, which has no dose
   // on record and is not evidence of anything.

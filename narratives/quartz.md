@@ -1,7 +1,7 @@
 ---
 species: quartz
 formula: SiO2
-description: Silicon dioxide. The most abundant mineral; many narrative variants for trace chemistry, fluid inclusions, growth oscillation, and radiation color centers (smoky/morion/amethyst).
+description: Silicon dioxide. The most abundant mineral; many narrative variants for trace chemistry, fluid inclusions, growth oscillation, and radiation color centers (smoky/morion).
 ---
 
 ## variant: failed_to_develop
@@ -46,7 +46,7 @@ Growth alternated between rapid pulses (up to {max_rate} µm/step, producing gro
 
 ## variant: morion_uraninite
 
-Uraninite in this pocket irradiated the crystal, and the lattice darkened past smoky to morion — the near-black end of the smoky series.
+This crystal is morion — the near-black end of the smoky series — and its radiation dose includes that of uraninite in this pocket.
 
 ## variant: morion_host_rock
 
@@ -54,7 +54,7 @@ A sustained γ-dose from the host rock darkened the lattice past smoky to morion
 
 ## variant: morion
 
-Sustained irradiation darkened the lattice past smoky to morion — the near-black end of the smoky series.
+Irradiation darkened the lattice past smoky to morion — the near-black end of the smoky series.
 
 ## variant: smoky_host_rock
 
@@ -62,15 +62,7 @@ The host rock's natural γ-dose activated Al-hole color centers — this crystal
 
 ## variant: smoky
 
-Natural irradiation activated Al-hole color centers — this crystal reads as smoky quartz.
-
-## variant: amethyst_tint
-
-Radiation from adjacent uraninite activated Fe³⁺ color centers — the crystal carries an amethyst tint where dose overlapped Fe-rich zones.
-
-## variant: mild_smoky
-
-A modest α-dose ({avg_rad}) crossed the growth history — the crystal carries a faint smoky tint in the irradiated zones.
+Irradiation has tinted the lattice with color centers — this crystal reads as smoky quartz.
 
 ## variant: final_size
 

@@ -244,7 +244,7 @@ describe('quartz narrator: the smoky and morion sentences', () => {
     for (const narrator of [run({ radiation_dose: 11.676 }), null, { crystals: [] }]) {
       const text = narrateQuartz(narrator, quartz(1.103));
       expect(text).toContain(narrative_variant('quartz', 'morion_uraninite'));
-      expect(text).toContain('Uraninite in this pocket');
+      expect(text).toContain('uraninite in this pocket');
       expect(text).not.toContain('host rock');
       expect(text).not.toMatch(UNFILLED);
     }
@@ -401,7 +401,7 @@ describe('the two shipped runs, seed 42', { timeout: 600_000 }, () => {
     expect(dosed.length).toBeGreaterThan(0);
     for (const crystal of dosed) {
       const text = sim._narrate_quartz(crystal);
-      expect(text).toContain('Uraninite in this pocket');
+      expect(text).toContain('uraninite in this pocket');
       expect(text).not.toMatch(UNFILLED);
     }
     expect(sim.narrate()).not.toMatch(UNFILLED);
