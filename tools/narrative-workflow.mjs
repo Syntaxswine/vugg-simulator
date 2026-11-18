@@ -7,7 +7,9 @@
  *
  * The generated TypeScript file is consumed before js/05-narratives.ts.  The
  * audit also rejects stale inline `|| fallback` prose wherever a narrator has
- * already delegated its prose to narrative_blurb/variant/closing.
+ * already delegated its prose to narrative_blurb/variant/closing, and a call
+ * that does not supply a variable its template names (the game would print
+ * the braces: "{rad_count} of {total_count} growth zones").
  */
 
 import fs from 'node:fs';
@@ -27,8 +29,21 @@ const NARRATIVE_FUNCTIONS = new Set([
   'narrative_variant',
 ]);
 
+// The runtime's own interpolation pattern (js/05-narratives.ts, _narrative_interp):
+// "{key}" is replaced only when the call's context object has that key, and is
+// printed as written otherwise. The prose relies on the second half for crystal
+// forms ({100}, {0001}, {40-41}), so a key that starts with a digit is notation.
+// A key that starts with a letter or an underscore is a template variable, and
+// the call that renders the section has to supply it.
+const TEMPLATE_KEY_PATTERN = /\{(\w+)\}/g;
+
 function normalizeNewlines(text) {
   return text.replace(/\r\n/g, '\n');
+}
+
+export function templateVariables(body) {
+  const keys = Array.from(body.matchAll(TEMPLATE_KEY_PATTERN), match => match[1]);
+  return [...new Set(keys.filter(key => /^[A-Za-z_]/.test(key)))];
 }
 
 function parseNarrative(id, filename, text, errors) {
@@ -191,6 +206,91 @@ export function auditNarratorSourceText(sourceText, filename = 'fixture.ts') {
   return auditNarratorSyntaxSource(sourceFile);
 }
 
+// `const ctx = { … }` in an enclosing block. The dolomite narrator shares one
+// context between three calls; anything less plain is not followed.
+function constObjectLiteral(identifier) {
+  for (let scope = identifier.parent; scope; scope = scope.parent) {
+    if (
+      ts.isFunctionLike(scope)
+      && scope.parameters.some(p => ts.isIdentifier(p.name) && p.name.text === identifier.text)
+    ) return null;
+    if (!scope.statements) continue;
+    for (const statement of scope.statements) {
+      if (!ts.isVariableStatement(statement)) continue;
+      for (const declaration of statement.declarationList.declarations) {
+        if (!ts.isIdentifier(declaration.name) || declaration.name.text !== identifier.text) continue;
+        const isConst = (statement.declarationList.flags & ts.NodeFlags.Const) !== 0;
+        return isConst && declaration.initializer && ts.isObjectLiteralExpression(declaration.initializer)
+          ? declaration.initializer
+          : null;
+      }
+    }
+  }
+  return null;
+}
+
+// The property names of a call's context argument, or null when the source
+// does not state them (a spread, a computed name, a value built elsewhere).
+function contextKeys(node) {
+  if (!node) return [];
+  const literal = ts.isIdentifier(node) ? constObjectLiteral(node) : node;
+  if (!literal || !ts.isObjectLiteralExpression(literal)) return null;
+  const keys = [];
+  for (const property of literal.properties) {
+    const named = (ts.isPropertyAssignment(property) || ts.isShorthandPropertyAssignment(property))
+      && (ts.isIdentifier(property.name) || ts.isStringLiteral(property.name));
+    if (!named) return null;
+    keys.push(property.name.text);
+  }
+  return keys;
+}
+
+// One call against the section it renders: every template variable must be a
+// key of the call's context. Returns the complaint, or null when there is none.
+function templateVariableComplaint(node, callName, sectionLabel, body) {
+  const needed = templateVariables(body);
+  if (!needed.length) return null;
+  const supplied = contextKeys(node.arguments[callName === 'narrative_variant' ? 2 : 1]);
+  const wanted = needed.map(key => `{${key}}`).join(', ');
+  if (supplied === null) {
+    return `${sectionLabel} names ${wanted}, and the call's context is not an object literal `
+      + 'whose keys can be read (pass one, or a const bound to one)';
+  }
+  const missing = needed.filter(key => !supplied.includes(key));
+  if (!missing.length) return null;
+  return `${sectionLabel} names ${wanted}, and the call does not supply `
+    + `${missing.map(key => `{${key}}`).join(', ')}; the game would print the braces`;
+}
+
+function narrativeSectionOfCall(node, callName) {
+  if (callName === 'narrative_blurb') return 'blurb';
+  if (callName === 'narrative_closing') return 'closing';
+  const variant = stringLiteralValue(node.arguments[1]);
+  return variant === null ? null : `variant: ${variant}`;
+}
+
+// Fixture entry point for the rule above. `templates` maps a species to its
+// sections: { quartz: { 'variant: smoky': '… {dosed_pct} …' } }.
+export function auditTemplateVariableSupply(sourceText, templates, filename = 'fixture.ts') {
+  const sourceFile = ts.createSourceFile(filename, sourceText, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+  const complaints = [];
+  function visit(node) {
+    const callName = narrativeCallName(node);
+    if (callName) {
+      const species = stringLiteralValue(node.arguments[0]);
+      const section = narrativeSectionOfCall(node, callName);
+      const body = species !== null && section !== null ? templates?.[species]?.[section] : undefined;
+      if (typeof body === 'string') {
+        const complaint = templateVariableComplaint(node, callName, `narratives/${species}.md "${section}"`, body);
+        if (complaint) complaints.push(`${sourceLocation(sourceFile, node)}: ${complaint}`);
+      }
+    }
+    ts.forEachChild(node, visit);
+  }
+  visit(sourceFile);
+  return complaints;
+}
+
 function auditNarratorSources(documents, errors) {
   const referenced = new Set();
   let dynamicVariantCount = 0;
@@ -221,17 +321,15 @@ function auditNarratorSources(documents, errors) {
           errors.push(`${loc}: ${callName} references missing narratives/${species}.md`);
         } else {
           referenced.add(species);
-          let section = callName === 'narrative_blurb' ? 'blurb' : 'closing';
-          if (callName === 'narrative_variant') {
-            const variant = stringLiteralValue(node.arguments[1]);
-            if (variant === null) {
-              section = null;
-            } else {
-              section = `variant: ${variant}`;
-            }
-          }
-          if (section && !documents.get(species).sections.has(section)) {
+          const section = narrativeSectionOfCall(node, callName);
+          const sections = documents.get(species).sections;
+          if (section && !sections.has(section)) {
             errors.push(`${loc}: narratives/${species}.md is missing section "${section}"`);
+          } else if (section) {
+            const complaint = templateVariableComplaint(
+              node, callName, `narratives/${species}.md "${section}"`, sections.get(section),
+            );
+            if (complaint) errors.push(`${loc}: ${complaint}`);
           }
         }
       }

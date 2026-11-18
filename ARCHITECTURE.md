@@ -154,8 +154,9 @@ npm run ci               # typecheck + build:check (combined regression guard)
 Internals: `tools/build-all.mjs` first runs `tools/narrative-workflow.mjs`,
 which derives `js/04-narrative-manifest.generated.ts` from the mineral registry
 and Markdown directory, validates every literal code reference, rejects dynamic
-variant selectors and inline prose fallbacks, and requires an all-files-loaded
-runtime receipt before simulation construction. It then runs
+variant selectors and inline prose fallbacks, rejects a call that does not supply
+a `{variable}` its section names (the runtime would print the braces), and
+requires an all-files-loaded runtime receipt before simulation construction. It then runs
 `tsc -p tsconfig.json` (which emits `dist/**/*.js`), and `tools/build.mjs` walks `dist/` in lex order,
 concatenates with file-marker headers, and splices the result into
 `index.html` between BUILD markers inside the inline `<script>`. The

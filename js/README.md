@@ -40,6 +40,10 @@ Optional extras:
 `data/minerals.json` plus the Markdown directory. `npm run audit:narratives`
 checks file/frontmatter/section references, requires literal exhaustive variant
 branches, and rejects direct, identifier-mediated, or named inline fallback drift.
+It also requires each call to supply every `{variable}` its section names, as an
+object literal (or a `const` bound to one): the runtime leaves an unsupplied
+`{key}` as written, which is how crystal forms such as `{100}` print, and how a
+forgotten variable would too. A key that starts with a digit is notation.
 
 **Adding a new scenario** (≤ 2 file touches typically):
 
