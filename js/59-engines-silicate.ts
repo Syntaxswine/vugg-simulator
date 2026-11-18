@@ -9,6 +9,12 @@
 //
 // Phase B8 of PROPOSAL-MODULAR-REFACTOR.
 
+// The ceiling grow_quartz puts on a quartz's radiation_damage each time it adds
+// the host rock's dose (below). The uraninite block of run_step (js/85) adds
+// with no ceiling, so damage past this value has a uraninite in it; the quartz
+// narrator (js/92i) reads the same constant to say so.
+const QUARTZ_HOST_DOSE_CEILING = 0.7;
+
 function grow_quartz(crystal, conditions, step) {
   const selectedPhase = conditions.silica_precipitate_phase();
   const sigma = selectedPhase === 'quartz'
@@ -41,7 +47,7 @@ function grow_quartz(crystal, conditions, step) {
       : ((conditions.wall && conditions.wall.gamma_host) || 0);
     if (radHost > 0 && conditions.fluid.Al > 1) {
       const dose = 0.006 * radHost * Math.min(conditions.fluid.Al / 10, 1.2);
-      crystal.radiation_damage = Math.min((crystal.radiation_damage || 0) + dose, 0.7);
+      crystal.radiation_damage = Math.min((crystal.radiation_damage || 0) + dose, QUARTZ_HOST_DOSE_CEILING);
     }
   }
 

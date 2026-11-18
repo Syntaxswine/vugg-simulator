@@ -22,7 +22,7 @@ Powdery yellow disseminations — the disseminated sandstone-stain form. Doesn't
 
 ## variant: carnotite_companion
 
-This tyuyamunite is the calcium twin to a carnotite #{} growing in the same pocket. The fluid's K/(K+Ca) ratio decided which one each grain became; specimens preserving both side by side capture a moment when the ratio was crossing 0.5. Geologically, the boundary between them is fluid composition, not chemistry.
+This tyuyamunite is the calcium twin to a carnotite{carnotite_ref} growing in the same pocket. The fluid's K/(K+Ca) ratio decided which one each grain became; specimens preserving both side by side capture a moment when the ratio was crossing 0.5. Geologically, the boundary between them is fluid composition, not chemistry.
 
 ## variant: on_weathering_uraninite
 

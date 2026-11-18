@@ -7,7 +7,9 @@
  *
  * The generated TypeScript file is consumed before js/05-narratives.ts.  The
  * audit also rejects stale inline `|| fallback` prose wherever a narrator has
- * already delegated its prose to narrative_blurb/variant/closing.
+ * already delegated its prose to narrative_blurb/variant/closing, and a call
+ * that does not supply a variable its template names (the game would print
+ * the braces: "{rad_count} of {total_count} growth zones").
  */
 
 import fs from 'node:fs';
@@ -16,19 +18,88 @@ import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
 
 const THIS_FILE = fileURLToPath(import.meta.url);
-const ROOT = path.dirname(path.dirname(THIS_FILE));
-const DATA_PATH = path.join(ROOT, 'data', 'minerals.json');
-const NARRATIVE_DIR = path.join(ROOT, 'narratives');
-const JS_DIR = path.join(ROOT, 'js');
-const GENERATED_PATH = path.join(JS_DIR, '04-narrative-manifest.generated.ts');
+// The tree the audit reads: this repository, or the one named with --root (a test
+// hands it a fixture tree, so the rules are held as the tool applies them and not
+// only as functions).
+let ROOT = path.dirname(path.dirname(THIS_FILE));
+let DATA_PATH;
+let NARRATIVE_DIR;
+let JS_DIR;
+let GENERATED_PATH;
+function readTreeAt(root) {
+  ROOT = root;
+  DATA_PATH = path.join(ROOT, 'data', 'minerals.json');
+  NARRATIVE_DIR = path.join(ROOT, 'narratives');
+  JS_DIR = path.join(ROOT, 'js');
+  GENERATED_PATH = path.join(JS_DIR, '04-narrative-manifest.generated.ts');
+}
+readTreeAt(ROOT);
 const NARRATIVE_FUNCTIONS = new Set([
   'narrative_blurb',
   'narrative_closing',
   'narrative_variant',
 ]);
 
+// The runtime's own interpolation pattern (js/05-narratives.ts, _narrative_interp):
+// "{key}" is replaced only when the call's context object has that key, and is
+// printed as written otherwise. The prose relies on the second half for crystal
+// forms ({100}, {0001}, {40-41}), so a key that starts with a digit is notation.
+// A key that starts with a letter or an underscore is a template variable, and
+// the call that renders the section has to supply it.
+const TEMPLATE_KEY_PATTERN = /\{(\w+)\}/g;
+
+// What a "{…}" in a section may be, and nothing else:
+//   - a template variable, {name}: letters, digits and underscores, starting with a
+//     letter or an underscore;
+//   - crystal-form notation of three or more places: {100} {0001} {10̄10} {40-41}
+//     {h0-il}. Digits, the index letters h k i l, a hyphen or a combining overbar,
+//     with at least one digit.
+// Whatever else sits in braces the runtime prints as written and no call can fill:
+// an empty "{}", a positional "{0}", a formatted "{dose:.2f}", a dotted "{c.id}",
+// padding inside the braces.
+// One kind of group could be read either way: an index letter followed by index
+// letters and digits only ({hk0}, {k40}) is both a well-formed variable name and
+// form-shaped. It is notation only when its digits are zeros ({hk0}, {h0l}); with
+// any other digit ({k40}, {i131}, {hk1}) it is a variable, and a call must supply
+// it. Read the other way, a section naming {k40} that no call fills would print
+// its braces with the audit passing.
+const BRACE_GROUP_PATTERN = /\{([^{}]*)\}/g;
+const TEMPLATE_VARIABLE_PATTERN = /^[A-Za-z_]\w*$/;
+const CRYSTAL_FORM_PATTERN = /^(?=\D*\d)(?![hkil][0-9hkil]*[1-9][0-9hkil]*$)[0-9hkil\u0304\u0305-]{3,}$/;
+
 function normalizeNewlines(text) {
   return text.replace(/\r\n/g, '\n');
+}
+
+export function templateVariables(body) {
+  const keys = Array.from(body.matchAll(TEMPLATE_KEY_PATTERN), match => match[1]);
+  return [...new Set(keys.filter(key => TEMPLATE_VARIABLE_PATTERN.test(key) && !CRYSTAL_FORM_PATTERN.test(key)))];
+}
+
+// Braces the game would print as written although they are not crystal forms.
+// Applied to a section it finds what no call can fill; applied to rendered text
+// it also finds a variable a call did not fill.
+export function strayBraces(text, { variablesAllowed = false } = {}) {
+  const stray = [];
+  const outsideGroups = text.replace(BRACE_GROUP_PATTERN, (group, inner) => {
+    const accepted = CRYSTAL_FORM_PATTERN.test(inner)
+      || (variablesAllowed && TEMPLATE_VARIABLE_PATTERN.test(inner));
+    if (!accepted) stray.push(group);
+    return '';
+  });
+  // A brace that closes or opens no group: "#{{crystal_id}}" prints "#{21}", and
+  // "({mm × {a_width_mm} mm)" prints its first brace.
+  stray.push(...(outsideGroups.match(/[{}]/g) || []));
+  return [...new Set(stray)];
+}
+
+// What is wrong with a section's body on its own, whatever call renders it.
+export function templateBodyComplaints(body) {
+  return strayBraces(body, { variablesAllowed: true }).map(braces => (braces.length === 1
+    ? `holds a "${braces}" that opens or closes no variable and no crystal form; the game would print it`
+    : `holds "${braces}", which is neither a named variable ({name}) nor crystal-form notation of three or `
+      + 'more places; no call can be held to it, and the game would print it as written'
+  ));
 }
 
 function parseNarrative(id, filename, text, errors) {
@@ -53,6 +124,9 @@ function parseNarrative(id, filename, text, errors) {
     const body = normalized.slice(bodyStart, bodyEnd).trim();
     if (sections.has(heading)) errors.push(`${filename}: duplicate section "${heading}"`);
     if (!body) errors.push(`${filename}: empty section "${heading}"`);
+    for (const complaint of templateBodyComplaints(body)) {
+      errors.push(`${filename}: section "${heading}" ${complaint}`);
+    }
     sections.set(heading, body);
   }
   if (!sections.size) errors.push(`${filename}: no level-two narrative sections found`);
@@ -191,8 +265,193 @@ export function auditNarratorSourceText(sourceText, filename = 'fixture.ts') {
   return auditNarratorSyntaxSource(sourceFile);
 }
 
+function isContextArgument(node) {
+  const call = node.parent;
+  const callName = call && narrativeCallName(call);
+  return !!callName && call.arguments[callName === 'narrative_variant' ? 2 : 1] === node;
+}
+
+// `const ctx = { … }`, shared between calls (the dolomite narrator renders three
+// sections from one). Followed only where nothing else can touch it: within the
+// outermost enclosing function the name occurs as that one const declaration and
+// as the context of narrative calls, and nowhere else. A second binding of the name
+// (a parameter, a loop or catch variable, a nested declaration), an assignment, a
+// delete, or handing it to anything else leaves the keys unreadable.
+function constObjectLiteral(identifier) {
+  let container = identifier.getSourceFile();
+  for (let node = identifier.parent; node; node = node.parent) {
+    if (ts.isFunctionLike(node)) container = node;
+  }
+  let literal = null;
+  let sound = true;
+  function visit(node) {
+    if (!sound) return;
+    if (ts.isIdentifier(node) && node.text === identifier.text) {
+      const parent = node.parent;
+      const namesAProperty = ((ts.isPropertyAccessExpression(parent) || ts.isPropertyAssignment(parent)
+        || ts.isMethodDeclaration(parent)) && parent.name === node)
+        || (ts.isBindingElement(parent) && parent.propertyName === node);
+      const declaresIt = ts.isVariableDeclaration(parent) && parent.name === node
+        && ts.isVariableDeclarationList(parent.parent)
+        && (parent.parent.flags & ts.NodeFlags.Const) !== 0
+        && !!parent.initializer && ts.isObjectLiteralExpression(parent.initializer);
+      if (declaresIt && !literal) literal = parent.initializer;
+      else if (!namesAProperty && !isContextArgument(node)) sound = false;
+    }
+    ts.forEachChild(node, visit);
+  }
+  visit(container);
+  return sound ? literal : null;
+}
+
+// The property names of a call's context argument, or null when the source
+// does not state them (a spread, a computed name, a value built elsewhere).
+function contextKeys(node) {
+  if (!node) return [];
+  while (ts.isParenthesizedExpression(node) || ts.isAsExpression(node) || ts.isNonNullExpression(node)) {
+    node = node.expression;
+  }
+  if (ts.isConditionalExpression(node)) {
+    // Either branch may render: only the keys both state are supplied.
+    const whenTrue = contextKeys(node.whenTrue);
+    const whenFalse = contextKeys(node.whenFalse);
+    return whenTrue && whenFalse ? whenTrue.filter(key => whenFalse.includes(key)) : null;
+  }
+  const literal = ts.isIdentifier(node) ? constObjectLiteral(node) : node;
+  if (!literal || !ts.isObjectLiteralExpression(literal)) return null;
+  const keys = [];
+  for (const property of literal.properties) {
+    const named = (ts.isPropertyAssignment(property) || ts.isShorthandPropertyAssignment(property))
+      && (ts.isIdentifier(property.name) || ts.isStringLiteral(property.name));
+    if (!named) return null;
+    keys.push(property.name.text);
+  }
+  return keys;
+}
+
+// One call against the section it renders: every template variable must be a
+// key of the call's context. Returns the complaint, or null when there is none.
+function templateVariableComplaint(node, callName, sectionLabel, body) {
+  const needed = templateVariables(body);
+  if (!needed.length) return null;
+  const supplied = contextKeys(node.arguments[callName === 'narrative_variant' ? 2 : 1]);
+  const wanted = needed.map(key => `{${key}}`).join(', ');
+  if (supplied === null) {
+    return `${sectionLabel} names ${wanted}, and the call's context is not an object literal `
+      + 'whose keys can be read (pass one, or a const bound to one)';
+  }
+  const missing = needed.filter(key => !supplied.includes(key));
+  if (!missing.length) return null;
+  // {hkl} or {hk1} in prose is most likely meant as notation, not as a variable a
+  // call forgot: say why the audit read it as one.
+  const formShaped = missing.filter(key => /^[hkil][0-9hkil]*$/.test(key));
+  const hint = formShaped.length
+    ? ` (a group that starts with an index letter, like ${formShaped.map(key => `{${key}}`).join(', ')}, is read as `
+      + 'crystal-form notation only when it holds a zero and no other digit, as in {hk0}; say general indices in words)'
+    : '';
+  return `${sectionLabel} names ${wanted}, and the call does not supply `
+    + `${missing.map(key => `{${key}}`).join(', ')}; the game would print the braces${hint}`;
+}
+
+function narrativeSectionOfCall(node, callName) {
+  if (callName === 'narrative_blurb') return 'blurb';
+  if (callName === 'narrative_closing') return 'closing';
+  const variant = stringLiteralValue(node.arguments[1]);
+  return variant === null ? null : `variant: ${variant}`;
+}
+
+// Fixture entry point for the rule above. `templates` maps a species to its
+// sections: { quartz: { 'variant: smoky': '… {dosed_pct} …' } }.
+export function auditTemplateVariableSupply(sourceText, templates, filename = 'fixture.ts') {
+  const sourceFile = ts.createSourceFile(filename, sourceText, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+  const complaints = [];
+  function visit(node) {
+    const callName = narrativeCallName(node);
+    if (callName) {
+      const species = stringLiteralValue(node.arguments[0]);
+      const section = narrativeSectionOfCall(node, callName);
+      const body = species !== null && section !== null ? templates?.[species]?.[section] : undefined;
+      if (typeof body === 'string') {
+        const complaint = templateVariableComplaint(node, callName, `narratives/${species}.md "${section}"`, body);
+        if (complaint) complaints.push(`${sourceLocation(sourceFile, node)}: ${complaint}`);
+      }
+    }
+    ts.forEachChild(node, visit);
+  }
+  visit(sourceFile);
+  return complaints;
+}
+
+// The three functions are audited as direct calls by their own names. An alias
+// (`const say = narrative_variant`), `.call()` or `.bind()`, a call through an
+// object (`globalThis.narrative_variant(…)`, `window['narrative_variant'](…)`) would
+// each render a section the audit never matched to a context. So in a narrator file
+// the names appear as direct callees and nowhere else, not even as a string.
+function indirectNarrativeUses(sourceFile) {
+  const complaints = [];
+  function visit(node) {
+    const named = (ts.isIdentifier(node) || ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node))
+      && NARRATIVE_FUNCTIONS.has(node.text);
+    if (named) {
+      const parent = node.parent;
+      const isDirectCall = ts.isIdentifier(node) && ts.isCallExpression(parent) && parent.expression === node;
+      if (!isDirectCall) {
+        let how = 'is aliased, passed or held as a value';
+        if (!ts.isIdentifier(node)) how = 'is named in a string';
+        else if (ts.isPropertyAccessExpression(parent) && parent.name === node) how = 'is reached through an object';
+        else if (ts.isPropertyAccessExpression(parent)) how = `is used through .${parent.name.text}`;
+        complaints.push(`${sourceLocation(sourceFile, node)}: ${node.text} ${how}; it must be called directly `
+          + 'by name (the audit reads direct calls)');
+      }
+    }
+    ts.forEachChild(node, visit);
+  }
+  visit(sourceFile);
+  return complaints;
+}
+
+export function auditIndirectNarrativeUses(sourceText, filename = 'fixture.ts') {
+  return indirectNarrativeUses(
+    ts.createSourceFile(filename, sourceText, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS),
+  );
+}
+
+// The audit reads js/92*-narrators files. Anywhere else in js/ a call, an alias, a
+// bind or a call split over lines would render prose nothing checked, so there the
+// three names may not appear at all outside a `//` comment line (a trailing comment
+// or a string that mentions one is refused too: say it another way).
+// js/05-narratives.ts defines them.
+const NARRATIVE_NAME_TEXT = /\bnarrative_(?:blurb|closing|variant)\b/;
+
+export function narrativeCallOutsideNarrators(name, sourceText) {
+  if (/^92.*\.ts$/.test(name) || name === '05-narratives.ts') return null;
+  const lines = sourceText.split('\n');
+  const index = lines.findIndex(line => !line.trim().startsWith('//') && NARRATIVE_NAME_TEXT.test(line));
+  return index < 0 ? null : `js/${name}:${index + 1}: names a narrative function outside js/92*-narrators files, `
+    + 'where the audit does not read; render the section from a narrator';
+}
+
+function narrativeCallsOutsideNarrators(narratorFiles) {
+  return fs.readdirSync(JS_DIR)
+    .filter(name => name.endsWith('.ts') && !narratorFiles.includes(name))
+    .sort()
+    .map(name => narrativeCallOutsideNarrators(name, fs.readFileSync(path.join(JS_DIR, name), 'utf8')))
+    .filter(Boolean);
+}
+
+// Prose no call renders is prose no check reads: two quartz sections were rendered
+// only by the Python runtime (retired in 2492eb57) and reached by no JS call, one
+// with a false sentence and one with a variable no JS call ever filled.
+// `rendered` holds "species\nsection" for every section a call was matched to.
+export function unrenderedSectionComplaints(id, sectionNames, rendered) {
+  return sectionNames
+    .filter(section => !rendered.has(`${id}\n${section}`))
+    .map(section => `narratives/${id}.md: section "${section}" is rendered by no narrator call`);
+}
+
 function auditNarratorSources(documents, errors) {
   const referenced = new Set();
+  const rendered = new Set();
   let dynamicVariantCount = 0;
   let callCount = 0;
   let fallbackCount = 0;
@@ -209,6 +468,8 @@ function auditNarratorSources(documents, errors) {
     dynamicVariantCount += syntaxAudit.dynamicVariants.length;
     errors.push(...syntaxAudit.inlineFallbacks, ...syntaxAudit.dynamicVariants);
 
+    errors.push(...indirectNarrativeUses(sourceFile));
+
     function visit(node) {
       const callName = narrativeCallName(node);
       if (callName) {
@@ -221,17 +482,16 @@ function auditNarratorSources(documents, errors) {
           errors.push(`${loc}: ${callName} references missing narratives/${species}.md`);
         } else {
           referenced.add(species);
-          let section = callName === 'narrative_blurb' ? 'blurb' : 'closing';
-          if (callName === 'narrative_variant') {
-            const variant = stringLiteralValue(node.arguments[1]);
-            if (variant === null) {
-              section = null;
-            } else {
-              section = `variant: ${variant}`;
-            }
-          }
-          if (section && !documents.get(species).sections.has(section)) {
+          const section = narrativeSectionOfCall(node, callName);
+          const sections = documents.get(species).sections;
+          if (section && !sections.has(section)) {
             errors.push(`${loc}: narratives/${species}.md is missing section "${section}"`);
+          } else if (section) {
+            rendered.add(`${species}\n${section}`);
+            const complaint = templateVariableComplaint(
+              node, callName, `narratives/${species}.md "${section}"`, sections.get(section),
+            );
+            if (complaint) errors.push(`${loc}: ${complaint}`);
           }
         }
       }
@@ -241,9 +501,14 @@ function auditNarratorSources(documents, errors) {
     visit(sourceFile);
   }
 
-  for (const id of documents.keys()) {
-    if (!referenced.has(id)) errors.push(`narratives/${id}.md is never referenced by a narrator`);
+  for (const [id, document] of documents) {
+    if (!referenced.has(id)) {
+      errors.push(`narratives/${id}.md is never referenced by a narrator`);
+      continue;
+    }
+    errors.push(...unrenderedSectionComplaints(id, [...document.sections.keys()], rendered));
   }
+  errors.push(...narrativeCallsOutsideNarrators(files));
   return { callCount, fallbackCount, dynamicVariantCount };
 }
 
@@ -256,6 +521,8 @@ function renderManifest(ids) {
 
 function main() {
   const check = process.argv.includes('--check');
+  const rootArg = process.argv.indexOf('--root');
+  if (rootArg >= 0) readTreeAt(path.resolve(process.argv[rootArg + 1]));
   const errors = [];
   const mineralDoc = JSON.parse(fs.readFileSync(DATA_PATH, 'utf8'));
   const minerals = mineralDoc.minerals || {};

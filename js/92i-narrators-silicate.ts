@@ -61,13 +61,34 @@ Object.assign(VugSimulator.prototype, {
   if ((c.dominant_forms || []).some(f => f.includes('{40-41}/{30-31}'))) {
     parts.push(narrative_variant('quartz', 'tessin'));
   }
-  // Smoky / morion colour centres (Rossman 1994 — Al + radiogenic-host γ-dose).
+  // Smoky / morion colour centres (Rossman 1994). The simulator keeps ONE damage
+  // number per crystal — no zone carries a dose — and that number has two writers:
+  //   - grow_quartz (js/59) adds the host rock's γ-dose and clamps the total at
+  //     QUARTZ_HOST_DOSE_CEILING with every write;
+  //   - the uraninite block of run_step (js/85) adds to every other active crystal,
+  //     unclamped, and half as much to this.radiation_dose in the same pass.
+  // So a sentence names a source only where the number settles it: damage past the
+  // ceiling has a uraninite in it, and damage in a run whose radiation_dose is still
+  // zero has none and is the host rock's. Anywhere else the split is not recorded
+  // (a pegmatite pocket with uraninite gives both), and the sentence names neither.
+  // Past the ceiling the number says a uraninite dosed the crystal, not that it did
+  // the darkening (the host rock may have taken it to morion first), so that
+  // sentence states the two facts side by side.
+  // "A run" means a simulator narrating its own crystal (every crystal it holds was
+  // nucleated in it): called bare, `this` is the global object, which has no dose
+  // on record and is not evidence of anything.
   const rd = c.radiation_damage || 0;
   if (rd > 0.3) {
+    const pastHostCeiling = rd > QUARTZ_HOST_DOSE_CEILING;
+    const noUraniniteDoseInRun = this instanceof VugSimulator && !(this.radiation_dose > 0);
     if (rd > 0.6) {
-      parts.push(narrative_variant('quartz', 'morion', { dose: rd.toFixed(2) }));
+      if (pastHostCeiling) parts.push(narrative_variant('quartz', 'morion_uraninite'));
+      else if (noUraniniteDoseInRun) parts.push(narrative_variant('quartz', 'morion_host_rock'));
+      else parts.push(narrative_variant('quartz', 'morion'));
+    } else if (noUraniniteDoseInRun) {
+      parts.push(narrative_variant('quartz', 'smoky_host_rock'));
     } else {
-      parts.push(narrative_variant('quartz', 'smoky', { dose: rd.toFixed(2) }));
+      parts.push(narrative_variant('quartz', 'smoky'));
     }
   }
   const fast_zones = c.zones.filter(z => z.growth_rate > 15);

@@ -1,7 +1,7 @@
 ---
 species: quartz
 formula: SiO2
-description: Silicon dioxide. The most abundant mineral; many narrative variants for trace chemistry, fluid inclusions, growth oscillation, and α-radiation color centers (smoky/amethyst).
+description: Silicon dioxide. The most abundant mineral; many narrative variants for trace chemistry, fluid inclusions, growth oscillation, and radiation color centers (smoky/morion).
 ---
 
 ## variant: failed_to_develop
@@ -44,21 +44,25 @@ Tessiner Habitus — steep {h0-il} rhombohedra such as {40-41} and {30-31} domin
 
 Growth alternated between rapid pulses (up to {max_rate} µm/step, producing growth hillocks) and slow, high-quality periods near equilibrium. This oscillation would be visible as alternating clear and milky zones.
 
+## variant: morion_uraninite
+
+This crystal is morion — the near-black end of the smoky series — and its radiation dose includes that of uraninite in this pocket.
+
+## variant: morion_host_rock
+
+A sustained γ-dose from the host rock darkened the lattice past smoky to morion — the near-black end of the smoky series.
+
 ## variant: morion
 
-Sustained α-bombardment from a uraninite neighbor darkened the lattice to dark smoky — morion in the deepest zones. {rad_count} of {total_count} growth zones record the irradiation.
+Irradiation darkened the lattice past smoky to morion — the near-black end of the smoky series.
+
+## variant: smoky_host_rock
+
+The host rock's natural γ-dose activated Al-hole color centers — this crystal reads as smoky quartz.
 
 ## variant: smoky
 
-Alpha-damage from nearby uraninite activated Al-hole color centers in {dosed_pct}% of the growth zones — this crystal reads as smoky quartz.
-
-## variant: amethyst_tint
-
-Radiation from adjacent uraninite activated Fe³⁺ color centers — the crystal carries an amethyst tint where dose overlapped Fe-rich zones.
-
-## variant: mild_smoky
-
-A modest α-dose ({avg_rad}) crossed the growth history — the crystal carries a faint smoky tint in the irradiated zones.
+Irradiation has tinted the lattice with color centers — this crystal reads as smoky quartz.
 
 ## variant: final_size
 

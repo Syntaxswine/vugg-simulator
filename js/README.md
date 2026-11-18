@@ -40,6 +40,40 @@ Optional extras:
 `data/minerals.json` plus the Markdown directory. `npm run audit:narratives`
 checks file/frontmatter/section references, requires literal exhaustive variant
 branches, and rejects direct, identifier-mediated, or named inline fallback drift.
+It also requires each call to supply every `{variable}` its section names: the
+runtime leaves an unsupplied `{key}` as written, which is how crystal forms such
+as `{100}` print, and how a forgotten variable would too. The rule is conservative
+on purpose:
+
+- A context is read when it is an object literal with plain keys (parentheses, and
+  a `cond ? {…} : {…}` of two literals, are read through), or a `const` bound to one
+  whose name occurs nowhere else in the narrator but as the context of narrative
+  calls. A spread, a computed or numeric key, a context built or completed
+  elsewhere, `ctx as any`, or a second `const` of the same name in a sibling block
+  is refused where the section names a variable.
+- In a section, braces may hold a variable (`{name}`, starting with a letter or an
+  underscore) or crystal-form notation of three or more places: digits, the index
+  letters h k i l, hyphens or combining overbars, with at least one digit (`{100}`,
+  `{10̄10}`, `{40-41}`, `{h0-il}`, `{hk0}`). Anything else is refused: `{}`, `{0}`,
+  `{dose:.2f}`, a brace that opens or closes no group (`{{name}}`), and notation
+  written another way (`{10.4}`, a U+2212 minus, spaces inside the braces).
+- One kind of group could be read either way: an index letter followed by index
+  letters and digits only is both a well-formed variable name and form-shaped. It
+  is notation only when its digits are zeros (`{hk0}`, `{h0l}`). With any other
+  digit (`{k40}`, `{i131}`, `{hk1}`), and with letters alone (`{hkl}`), it is a
+  variable a call must supply; the complaint says so. General indices are best
+  said in words.
+- Every section must be rendered by some call.
+- The three functions are called directly by name, in `js/92*` files only. An
+  alias, `.call`/`.bind`, `globalThis.narrative_variant(…)` or the name in a string
+  is refused there; in any other `js/` file the names may not appear at all outside
+  a `//` comment line (a trailing comment, a string, or a `typeof` guard that
+  mentions one is refused, and so is a `.d.ts` that declares them).
+  `js/05-narratives.ts`, which defines the three, is exempt as a whole: a helper
+  added there that renders a section under a fourth name would be read by no rule.
+- It reads keys, not values: a key supplied as `undefined` prints "undefined", and
+  a value that itself carries braces (`{ dose: '{rad_count}' }`) prints them, since
+  the runtime substitutes once.
 
 **Adding a new scenario** (≤ 2 file touches typically):
 

@@ -85,6 +85,13 @@ jobs:
           --file tests-js/fluorite-appearance.test.ts
           --file tests-js/run-seed-notice.test.ts
 
+      # A narrator must not print a template variable its call never filled
+      # ("{rad_count} of {total_count} growth zones"). `npm run audit:narratives`
+      # below is the static half; this is the narrators' own output for the
+      # sentences that shipped the fault, and the facts their wording rests on.
+      - name: Narrator placeholders and the quartz radiation sentences
+        run: npm test -- --file tests-js/narrative-placeholders.test.ts
+
       # These cleanup regressions protect the engineering benchmarks. Ordinary
       # calibration CI does not otherwise execute their focused test files.
       - name: Browser ownership and cleanup regressions

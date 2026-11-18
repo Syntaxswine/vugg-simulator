@@ -16,8 +16,8 @@
         "minerals": 184,
         "narratives": 94
       },
-      "browser_bundle_sha256": "99e9e73d743205370f5e5d4c85ba83e7547fb1b0ee85f814fca2f1491d5f3001",
-      "runtime_execution_sha256": "a6ef202b28e5f5cef0e1b71c23df268e7f188e3b3c0db08d33d40271e914fbde",
+      "browser_bundle_sha256": "695285c641b69c7542d9541233ea52b756e35a2bf0af820fe660f14b69eecbff",
+      "runtime_execution_sha256": "7a13530af0c3e3ee0fcbc7e23e912a85632f28c090bbefce796fbf2d2aee3fb5",
       "source_files": [
         {
           "path": "data/locality_chemistry.json",
@@ -396,8 +396,8 @@
         },
         {
           "path": "narratives/quartz.md",
-          "bytes": 3089,
-          "sha256": "8808fa737af30b74f05f30ef41dc8e606fd777f57552ecf09df4d9e3322acf3e"
+          "bytes": 3084,
+          "sha256": "1aeb46189376a30cb98773fcff63a257bf5e3001dfdd05d83c739f75c6c032c5"
         },
         {
           "path": "narratives/raspite.md",
@@ -491,8 +491,8 @@
         },
         {
           "path": "narratives/tyuyamunite.md",
-          "bytes": 3636,
-          "sha256": "b31879ffec24db48985d70d2ee17d7b6736a64dca4ddc62a0c0fd980e22c7186"
+          "bytes": 3647,
+          "sha256": "6293749a7b91be27a41a4adac61b30152ee6cf4f2a038de68d99f5e8c538a704"
         },
         {
           "path": "narratives/uraninite.md",
@@ -529,5 +529,5 @@
   ],
   "producer_contract_sha256": "087a027714f57651a5b70fe6e9e2b525cd00dd553586c61196e339a38106b1a9",
   "node_runtime_sha256": "b4bb27f2f1b62692b79844cbcc3df7c4966fa7cdc3106c81ce630a74b9a2e62c",
-  "catalog_sha256": "1bd855d3b334246bd8cbf210cd0bfb63758a809742ad5718bc48ab3fbe519e99"
+  "catalog_sha256": "422553e5fe91bc201f1cd491223a5b522e969471603582b5f0c867d1a55580df"
 }

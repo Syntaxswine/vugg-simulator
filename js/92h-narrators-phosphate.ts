@@ -170,7 +170,12 @@ Object.assign(VugSimulator.prototype, {
     parts.push(narrative_variant('tyuyamunite', 'powdery_disseminated'));
   }
   if ((c.position || '').includes('carnotite')) {
-    parts.push(narrative_variant('tyuyamunite', 'carnotite_companion'));
+    // The position names the carnotite this crystal nucleated beside:
+    // "adjacent to carnotite #12" (js/88 _nuc_tyuyamunite).
+    const carnotite = /carnotite #(\d+)/.exec(c.position || '');
+    parts.push(narrative_variant('tyuyamunite', 'carnotite_companion', {
+      carnotite_ref: carnotite ? ` #${carnotite[1]}` : '',
+    }));
   } else if ((c.position || '').includes('uraninite')) {
     parts.push(narrative_variant('tyuyamunite', 'on_weathering_uraninite'));
   } else if ((c.position || '').includes('roll-front')) {
