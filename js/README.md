@@ -47,15 +47,23 @@ on purpose:
 
 - A context is read when it is an object literal with plain keys (parentheses, and
   a `cond ? {…} : {…}` of two literals, are read through), or a `const` bound to one
-  that is used for nothing but narrative calls. A spread, a computed or numeric key,
-  or a context built or completed elsewhere is refused where the section names a
-  variable.
+  whose name occurs nowhere else in the narrator but as the context of narrative
+  calls. A spread, a computed or numeric key, a context built or completed
+  elsewhere, `ctx as any`, or a second `const` of the same name in a sibling block
+  is refused where the section names a variable.
 - In a section, braces may hold a variable (`{name}`, starting with a letter or an
-  underscore) or crystal-form notation of three or more places (`{100}`, `{10̄10}`,
-  `{h0-il}`). Anything else (`{}`, `{0}`, `{dose:.2f}`) is refused; so is letter-only
-  notation such as `{hkl}`, which reads as a variable, unless a call supplies it.
-- Every section must be rendered by some call; the three functions must be called
-  directly, and only from `js/92*` files.
+  underscore) or crystal-form notation of three or more places: digits, the index
+  letters h k i l, hyphens or combining overbars, with at least one digit (`{100}`,
+  `{10̄10}`, `{40-41}`, `{h0-il}`, `{hk0}`). Anything else is refused: `{}`, `{0}`,
+  `{dose:.2f}`, a brace that opens or closes no group (`{{name}}`), and notation
+  written another way (`{10.4}`, a U+2212 minus, spaces inside the braces). Letters
+  alone, such as `{hkl}`, read as a variable and are refused unless a call supplies
+  it; a variable cannot be named like a crystal form.
+- Every section must be rendered by some call.
+- The three functions are called directly by name, in `js/92*` files only. An
+  alias, `.call`/`.bind`, or `globalThis.narrative_variant(…)` is refused there; in
+  any other `js/` file the names may not appear at all outside a `//` comment line
+  (a trailing comment, a string, or a `typeof` guard that mentions one is refused).
 - It reads keys, not values: a key supplied as `undefined` prints "undefined".
 
 **Adding a new scenario** (≤ 2 file touches typically):

@@ -18,11 +18,22 @@ import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
 
 const THIS_FILE = fileURLToPath(import.meta.url);
-const ROOT = path.dirname(path.dirname(THIS_FILE));
-const DATA_PATH = path.join(ROOT, 'data', 'minerals.json');
-const NARRATIVE_DIR = path.join(ROOT, 'narratives');
-const JS_DIR = path.join(ROOT, 'js');
-const GENERATED_PATH = path.join(JS_DIR, '04-narrative-manifest.generated.ts');
+// The tree the audit reads: this repository, or the one named with --root (a test
+// hands it a fixture tree, so the rules are held as the tool applies them and not
+// only as functions).
+let ROOT = path.dirname(path.dirname(THIS_FILE));
+let DATA_PATH;
+let NARRATIVE_DIR;
+let JS_DIR;
+let GENERATED_PATH;
+function readTreeAt(root) {
+  ROOT = root;
+  DATA_PATH = path.join(ROOT, 'data', 'minerals.json');
+  NARRATIVE_DIR = path.join(ROOT, 'narratives');
+  JS_DIR = path.join(ROOT, 'js');
+  GENERATED_PATH = path.join(JS_DIR, '04-narrative-manifest.generated.ts');
+}
+readTreeAt(ROOT);
 const NARRATIVE_FUNCTIONS = new Set([
   'narrative_blurb',
   'narrative_closing',
@@ -48,7 +59,7 @@ const TEMPLATE_KEY_PATTERN = /\{(\w+)\}/g;
 // padding inside the braces.
 const BRACE_GROUP_PATTERN = /\{([^{}]*)\}/g;
 const TEMPLATE_VARIABLE_PATTERN = /^[A-Za-z_]\w*$/;
-const CRYSTAL_FORM_PATTERN = /^(?=\D*\d)[0-9hkil̄̅-]{3,}$/;
+const CRYSTAL_FORM_PATTERN = /^(?=\D*\d)[0-9hkil\u0304\u0305-]{3,}$/;
 
 function normalizeNewlines(text) {
   return text.replace(/\r\n/g, '\n');
@@ -56,7 +67,7 @@ function normalizeNewlines(text) {
 
 export function templateVariables(body) {
   const keys = Array.from(body.matchAll(TEMPLATE_KEY_PATTERN), match => match[1]);
-  return [...new Set(keys.filter(key => TEMPLATE_VARIABLE_PATTERN.test(key)))];
+  return [...new Set(keys.filter(key => TEMPLATE_VARIABLE_PATTERN.test(key) && !CRYSTAL_FORM_PATTERN.test(key)))];
 }
 
 // Braces the game would print as written although they are not crystal forms.
@@ -64,18 +75,23 @@ export function templateVariables(body) {
 // it also finds a variable a call did not fill.
 export function strayBraces(text, { variablesAllowed = false } = {}) {
   const stray = [];
-  for (const match of text.matchAll(BRACE_GROUP_PATTERN)) {
-    if (CRYSTAL_FORM_PATTERN.test(match[1])) continue;
-    if (variablesAllowed && TEMPLATE_VARIABLE_PATTERN.test(match[1])) continue;
-    stray.push(match[0]);
-  }
+  const outsideGroups = text.replace(BRACE_GROUP_PATTERN, (group, inner) => {
+    const accepted = CRYSTAL_FORM_PATTERN.test(inner)
+      || (variablesAllowed && TEMPLATE_VARIABLE_PATTERN.test(inner));
+    if (!accepted) stray.push(group);
+    return '';
+  });
+  // A brace that closes or opens no group: "#{{crystal_id}}" prints "#{21}", and
+  // "({mm × {a_width_mm} mm)" prints its first brace.
+  stray.push(...(outsideGroups.match(/[{}]/g) || []));
   return [...new Set(stray)];
 }
 
 // What is wrong with a section's body on its own, whatever call renders it.
 export function templateBodyComplaints(body) {
-  return strayBraces(body, { variablesAllowed: true }).map(braces => (
-    `holds "${braces}", which is neither a named variable ({name}) nor crystal-form notation of three or `
+  return strayBraces(body, { variablesAllowed: true }).map(braces => (braces.length === 1
+    ? `holds a "${braces}" that opens or closes no variable and no crystal form; the game would print it`
+    : `holds "${braces}", which is neither a named variable ({name}) nor crystal-form notation of three or `
       + 'more places; no call can be held to it, and the game would print it as written'
   ));
 }
@@ -353,20 +369,22 @@ export function auditTemplateVariableSupply(sourceText, templates, filename = 'f
   return complaints;
 }
 
-// The three functions are audited as direct calls. An alias (`const say =
-// narrative_variant`) or `.call()` would render a section the audit never matched
-// to a context.
+// The three functions are audited as direct calls by their own names. An alias
+// (`const say = narrative_variant`), `.call()` or `.bind()`, a call through an
+// object (`globalThis.narrative_variant(…)`, `window['narrative_variant'](…)`) would
+// each render a section the audit never matched to a context. So in a narrator file
+// the names appear as direct callees and nowhere else, not even as a string.
 function indirectNarrativeUses(sourceFile) {
   const complaints = [];
   function visit(node) {
-    if (ts.isIdentifier(node) && NARRATIVE_FUNCTIONS.has(node.text)) {
+    const named = (ts.isIdentifier(node) || ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node))
+      && NARRATIVE_FUNCTIONS.has(node.text);
+    if (named) {
       const parent = node.parent;
-      const isDirectCall = ts.isCallExpression(parent) && parent.expression === node;
-      const namesAProperty = (ts.isPropertyAccessExpression(parent) || ts.isPropertyAssignment(parent)
-        || ts.isMethodDeclaration(parent)) && parent.name === node;
-      if (!isDirectCall && !namesAProperty) {
-        complaints.push(`${sourceLocation(sourceFile, node)}: ${node.text} must be called directly, `
-          + 'not aliased or invoked through .call/.apply (the audit reads direct calls)');
+      const isDirectCall = ts.isIdentifier(node) && ts.isCallExpression(parent) && parent.expression === node;
+      if (!isDirectCall) {
+        complaints.push(`${sourceLocation(sourceFile, node)}: ${node.text} must be called directly by name, `
+          + 'not aliased, bound, or reached through an object or .call/.apply (the audit reads direct calls)');
       }
     }
     ts.forEachChild(node, visit);
@@ -381,16 +399,19 @@ export function auditIndirectNarrativeUses(sourceText, filename = 'fixture.ts') 
   );
 }
 
-// The audit reads js/92*-narrators files. A narrative call anywhere else in js/
-// would render prose nothing checked; js/05-narratives.ts only defines the three.
-const NARRATIVE_CALL_TEXT = /\bnarrative_(?:blurb|closing|variant)\s*\(/;
+// The audit reads js/92*-narrators files. Anywhere else in js/ a call, an alias, a
+// bind or a call split over lines would render prose nothing checked, so there the
+// three names may not appear at all outside a `//` comment line (a trailing comment
+// or a string that mentions one is refused too: say it another way).
+// js/05-narratives.ts defines them.
+const NARRATIVE_NAME_TEXT = /\bnarrative_(?:blurb|closing|variant)\b/;
 
 export function narrativeCallOutsideNarrators(name, sourceText) {
   if (/^92.*\.ts$/.test(name) || name === '05-narratives.ts') return null;
   const lines = sourceText.split('\n');
-  const index = lines.findIndex(line => !line.trim().startsWith('//') && NARRATIVE_CALL_TEXT.test(line));
-  return index < 0 ? null : `js/${name}:${index + 1}: a narrative call outside js/92*-narrators files is not audited; `
-    + 'move it into a narrator';
+  const index = lines.findIndex(line => !line.trim().startsWith('//') && NARRATIVE_NAME_TEXT.test(line));
+  return index < 0 ? null : `js/${name}:${index + 1}: names a narrative function outside js/92*-narrators files, `
+    + 'where the audit does not read; render the section from a narrator';
 }
 
 function narrativeCallsOutsideNarrators(narratorFiles) {
@@ -482,6 +503,8 @@ function renderManifest(ids) {
 
 function main() {
   const check = process.argv.includes('--check');
+  const rootArg = process.argv.indexOf('--root');
+  if (rootArg >= 0) readTreeAt(path.resolve(process.argv[rootArg + 1]));
   const errors = [];
   const mineralDoc = JSON.parse(fs.readFileSync(DATA_PATH, 'utf8'));
   const minerals = mineralDoc.minerals || {};

@@ -21,7 +21,9 @@
 //      ledger that holds every crystal's damage to those two facts as it changes.
 
 import { describe, expect, it } from 'vitest';
+import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -46,11 +48,12 @@ declare const _narrative_interp: (template: string, context?: Record<string, unk
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 // Braces left in printed text that are not crystal-form notation: an unfilled
-// "{word}", an empty "{}", a positional "{0}", a formatted "{dose:.2f}". A crystal
-// form ({100}, {0001}, {10-10}, {40-41}, {h0-il}: three or more places of digits,
-// the index letters h k i l, hyphens or overbars, with a digit) is meant to print.
+// "{word}", an empty "{}", a positional "{0}", a formatted "{dose:.2f}", and a brace
+// that opens or closes no group at all. A crystal form ({100}, {0001}, {10-10},
+// {40-41}, {h0-il}, {hk0}: three or more places of digits, the index letters
+// h k i l, hyphens or overbars, with a digit) is meant to print.
 // Spelled out here rather than read from the audit; a test below holds the two equal.
-const UNFILLED = /\{(?!(?=[^{}\d]*\d)[0-9hkil̄̅-]{3,}\})[^{}]*\}/;
+const UNFILLED = /\{(?!(?=[^{}\d]*\d)[0-9hkil\u0304\u0305-]{3,}\})[^{}]*\}|\{(?![^{}]*\})|(?<!\{[^{}]*)\}/;
 
 // The two sentences as SIM 286 printed them (seed 42; grimsel_alpine_cleft quartz
 // #21 and radioactive_pegmatite quartz #2). They keep the detector honest.
@@ -73,12 +76,12 @@ describe('the detector can fail', () => {
     expect(tessin).toContain('{h0-il}');
     expect(tessin).toContain('{40-41}');
     expect(tessin).not.toMatch(UNFILLED);
-    expect('flattened on {001}, prism {10-10}, {0001} pinacoid, {10̄10}, {01-12}').not.toMatch(UNFILLED);
+    expect('flattened on {001}, prism {10-10}, {0001} pinacoid, {10\u030410}, {01-12}').not.toMatch(UNFILLED);
   });
 
   it('flags what is neither a crystal form nor filled, as the audit does', () => {
     const neither = ['{}', '{ }', '{0}', '{12}', '{dose:.2f}', '{c.crystal_id}', '{ spaced }', '{max-rate}', '{1a}', '{rad_count}', '{hkl}'];
-    const forms = ['{100}', '{0001}', '{1011}', '{104}', '{10-10}', '{10̄10}', '{01-12}', '{40-41}', '{30-31}', '{h0-il}'];
+    const forms = ['{100}', '{0001}', '{1011}', '{104}', '{10-10}', '{10\u030410}', '{01-12}', '{40-41}', '{30-31}', '{h0-il}', '{hk0}', '{h0l}'];
     for (const braces of neither) {
       expect(`a carnotite #${braces} growing`, braces).toMatch(UNFILLED);
       expect(strayBraces(`a carnotite #${braces} growing`), braces).toEqual([braces]);
@@ -86,6 +89,19 @@ describe('the detector can fail', () => {
     for (const braces of forms) {
       expect(`flattened on ${braces}`, braces).not.toMatch(UNFILLED);
       expect(strayBraces(`flattened on ${braces}`), braces).toEqual([]);
+    }
+    // A brace that opens or closes no group. "#{{crystal_id}}" renders as "#{21}";
+    // "({mm × {a_width_mm} mm)" renders with its first brace standing.
+    expect(_narrative_interp('Quartz #{{crystal_id}} nucleated', { crystal_id: 21 })).toBe('Quartz #{21} nucleated');
+    expect(_narrative_interp('({mm × {a_width_mm} mm)', { mm: 4.2, a_width_mm: 2.1 })).toBe('({mm × 2.1 mm)');
+    for (const [printed, stray] of [
+      ['Quartz #{21} nucleated', ['{21}']],
+      ['({mm × 2.1 mm)', ['{']],
+      ['4.2 × 2.1} mm', ['}']],
+      ['prism {100}} and {{0001}', ['}', '{']],
+    ] as const) {
+      expect(printed).toMatch(UNFILLED);
+      expect(strayBraces(printed).sort(), printed).toEqual([...stray].sort());
     }
   });
 });
@@ -128,6 +144,14 @@ describe('narrative audit: a call supplies every variable its template names', (
     // it to the prose on purpose, because no call supplies a crystal form.
     expect(_narrative_interp('prism {100}', ownsEveryKey)).toBe('prism <<100>>');
     expect(templateVariables('prism {100}')).toEqual([]);
+    // So is a form that starts with an index letter: {hk0} and {h0l} are notation.
+    // Letters alone ({hkl}) read as a variable, which a call would have to supply.
+    expect(templateVariables('zone {hk0}, faces {h0l} and {hkl}')).toEqual(['hkl']);
+    expect(templateBodyComplaints('zone {hk0}, faces {h0l}')).toEqual([]);
+    expect(auditTemplateVariableSupply(
+      `parts.push(narrative_variant('quartz', 'tessin'));`,
+      { quartz: { 'variant: tessin': 'zone {hk0}, faces {h0l}' } },
+    )).toEqual([]);
   });
 
   it('rejects the calls SIM 286 shipped', () => {
@@ -203,8 +227,11 @@ describe('narrative audit: a call supplies every variable its template names', (
     ];
     for (const source of followed) expect(auditTemplateVariableSupply(source, templates), source).toEqual([]);
 
-    // Each of these leaves the braces printed while a looser reading of `ctx` would pass.
+    // A looser reading of `ctx` passes each of these. Most leave the braces printed;
+    // the rest hand `ctx` to code the audit cannot read.
     const refused = [
+      `function narrate(c) { const ctx = { dosed_pct: 40 }; function inner({ ctx }) { ${smoky} } inner({}); }`,
+      `function narrate(c) { const ctx = { dosed_pct: 40 }; c.list.forEach(({ ctx }) => { ${smoky} }); }`,
       `function narrate(c) { const ctx = { dosed_pct: 40 }; for (const ctx of c.list) { ${smoky} } }`,
       `function narrate(c, { ctx }) { const other = { dosed_pct: 40 }; ${smoky} }`,
       `function narrate(c) { const ctx = { dosed_pct: 40 }; try { go(); } catch (ctx) { ${smoky} } }`,
@@ -227,22 +254,106 @@ describe('narrative audit: a call supplies every variable its template names', (
     expect(auditIndirectNarrativeUses(`
       parts.push(narrative_variant('quartz', 'smoky'));
       parts.push(narrative_blurb('quartz'), narrative_closing('quartz'));
-      const text = holder.narrative_variant;
     `)).toEqual([]);
     const indirect = auditIndirectNarrativeUses(`
       const say = narrative_variant;
       parts.push(say('quartz', 'smoky'));
       parts.push(narrative_blurb.call(null, 'quartz'));
       parts.push([1].map(narrative_closing));
+      parts.push(globalThis.narrative_variant('quartz', 'final_size', {}));
+      parts.push(window['narrative_blurb']('quartz'));
+      const bound = narrative_closing.bind(null);
+      const held = holder.narrative_variant;
     `);
-    expect(indirect).toHaveLength(3);
-    for (const complaint of indirect) expect(complaint).toContain('must be called directly');
+    expect(indirect).toHaveLength(7);
+    for (const complaint of indirect) expect(complaint).toContain('must be called directly by name');
 
+    // Outside the narrator files the names may not appear at all, bar a comment line.
     const call = `  parts.push(narrative_variant('quartz', 'smoky'));`;
     expect(narrativeCallOutsideNarrators('92i-narrators-silicate.ts', call)).toBeNull();
     expect(narrativeCallOutsideNarrators('05-narratives.ts', 'function narrative_variant(species, variant, ctx?) {')).toBeNull();
     expect(narrativeCallOutsideNarrators('85-simulator.ts', `  // see narrative_variant('quartz', 'smoky')`)).toBeNull();
     expect(narrativeCallOutsideNarrators('85-simulator.ts', `const a = 1;\n${call}`)).toContain('js/85-simulator.ts:2');
+    for (const elsewhere of [
+      'const say = narrative_variant;',
+      `parts.push(narrative_variant\n  ('quartz', 'smoky'));`,
+      'const bound = narrative_blurb.bind(null);',
+      `parts.push(globalThis['narrative_closing']('quartz'));`,
+    ]) {
+      expect(narrativeCallOutsideNarrators('85a-simulator-narrate.ts', elsewhere), elsewhere).toContain('outside js/92');
+    }
+    // The tree holds none: no js/ file but the narrators and js/05 names them.
+    const jsDir = path.join(ROOT, 'js');
+    for (const name of fs.readdirSync(jsDir).filter(file => file.endsWith('.ts'))) {
+      expect(narrativeCallOutsideNarrators(name, fs.readFileSync(path.join(jsDir, name), 'utf8')), name).toBeNull();
+    }
+  });
+
+  it('applies each rule when the tool itself runs, not only when its functions are called', () => {
+    // The rules above are functions; the gate is the command. A fixture tree, the
+    // real tool, --check: clean it passes, and each planted fault fails it by name.
+    const tool = path.join(ROOT, 'tools', 'narrative-workflow.mjs');
+    const tree = fs.mkdtempSync(path.join(os.tmpdir(), 'vugg-narrative-audit-'));
+    const write = (file: string, content: string) => {
+      fs.mkdirSync(path.dirname(path.join(tree, file)), { recursive: true });
+      fs.writeFileSync(path.join(tree, file), content);
+    };
+    const audit = (...extra: string[]) => spawnSync(process.execPath, [tool, ...extra, '--root', tree], {
+      encoding: 'utf8', windowsHide: true, timeout: 60_000,
+    });
+    const narrative = (extra = '') => `---\nspecies: quartz\n---\n\n## blurb\n\nQuartz #{crystal_id}, prism {100}.\n\n`
+      + `## variant: smoky\n\nSmoky at {dose}.\n${extra}`;
+    const narrator = (extra = '') => `Object.assign(Sim.prototype, { _narrate_quartz(c) {\n`
+      + `  const parts = [narrative_blurb('quartz', { crystal_id: c.crystal_id })];\n`
+      + `  parts.push(narrative_variant('quartz', 'smoky', { dose: c.dose }));\n${extra}  return parts.join(' ');\n} });\n`;
+    try {
+      write('data/minerals.json', JSON.stringify({ minerals: { quartz: {} } }));
+      write('narratives/quartz.md', narrative());
+      write('js/92i-narrators-silicate.ts', narrator());
+      write('js/05-narratives.ts', 'function narrative_variant(species, variant, ctx) { return \'\'; }\n');
+      write('js/85-simulator.ts', 'class Sim {}\n');
+      const generated = audit();
+      expect(generated.status, generated.stdout + generated.stderr).toBe(0);
+      const clean = audit('--check');
+      expect(clean.status, clean.stdout + clean.stderr).toBe(0);
+      expect(clean.stdout).toContain('PASS: 1 files, 2 statically validated calls');
+
+      const faults: Array<[string, () => void, string]> = [
+        ['a variable the call does not supply',
+          () => write('js/92i-narrators-silicate.ts', narrator().replace('{ dose: c.dose }', '{ rate: c.rate }')),
+          'does not supply {dose}'],
+        ['braces that are neither variable nor crystal form',
+          () => write('narratives/quartz.md', narrative().replace('prism {100}', 'prism {0}')),
+          'neither a named variable'],
+        ['a brace that opens no group',
+          () => write('narratives/quartz.md', narrative().replace('Smoky at {dose}.', 'Smoky at ({dose.')),
+          'opens or closes no variable'],
+        ['a section no call renders',
+          () => write('narratives/quartz.md', narrative('\n## variant: amethyst_tint\n\nRadiation from adjacent uraninite.\n')),
+          '"variant: amethyst_tint" is rendered by no narrator call'],
+        ['an alias in a narrator file',
+          () => write('js/92i-narrators-silicate.ts', narrator('  const say = narrative_variant;\n')),
+          'must be called directly by name'],
+        ['a call through an object in a narrator file',
+          () => write('js/92i-narrators-silicate.ts', narrator(`  parts.push(globalThis.narrative_variant('quartz', 'smoky', {}));\n`)),
+          'must be called directly by name'],
+        ['a call outside the narrator files',
+          () => write('js/85-simulator.ts', `class Sim {}\nconst text = narrative_variant('quartz', 'smoky', { dose: 1 });\n`),
+          'js/85-simulator.ts:2: names a narrative function outside js/92'],
+      ];
+      for (const [label, plant, message] of faults) {
+        write('narratives/quartz.md', narrative());
+        write('js/92i-narrators-silicate.ts', narrator());
+        write('js/85-simulator.ts', 'class Sim {}\n');
+        plant();
+        const result = audit('--check');
+        expect(result.status, `${label}: ${result.stdout}${result.stderr}`).toBe(1);
+        expect(result.stderr, label).toContain(message);
+        expect(result.stderr, label).toContain('[narratives] FAIL (1 issue)');
+      }
+    } finally {
+      fs.rmSync(tree, { recursive: true, force: true });
+    }
   });
 
   it('refuses a section no call renders', () => {
@@ -279,7 +390,7 @@ describe('narrative audit: a call supplies every variable its template names', (
       expect(templateBodyComplaints(body)[0], braces).toContain(braces);
     }
     // What the 94 files do hold: variables, and forms of three or more places.
-    const held = 'Quartz #{crystal_id}: {100} {0001} {1011} {104} {10̄10} {01-12} {30-31} {40-41} {h0-il}, {habit_pretty}';
+    const held = 'Quartz #{crystal_id}: {100} {0001} {1011} {104} {10\u030410} {01-12} {30-31} {40-41} {h0-il}, {habit_pretty}';
     expect(templateBodyComplaints(held)).toEqual([]);
     for (const name of fs.readdirSync(path.join(ROOT, 'narratives')).filter(file => file.endsWith('.md'))) {
       const text = fs.readFileSync(path.join(ROOT, 'narratives', name), 'utf8');
@@ -454,9 +565,11 @@ function largestHostDose(wall: any): number {
 //   - a quartz, in a step where the dose does not rise, gains no more than the host
 //     rock's largest dose (nothing at all on a wall that gives none) and is not left
 //     past the ceiling.
+//   - a quartz, in a step where the dose rises, gains no more than that dose plus
+//     the host rock's; an inactive quartz gains nothing.
 // A uraninite is dosed by the other uraninites alone and is left out. What this cannot
-// see: a third writer that adds to a quartz less than the host rock may, on a wall
-// that doses. The control runs on walls that give nothing close that from one side.
+// see: a third writer that adds to an active quartz less than the host rock may, on a
+// wall that doses. The control runs on walls that give nothing close that from one side.
 function runWithDoseLedger(start: () => { conditions: any; events: any[]; defaultSteps?: number }) {
   const { conditions, events, defaultSteps } = start();
   const sim = new VugSimulator(conditions, events);
@@ -468,6 +581,7 @@ function runWithDoseLedger(start: () => { conditions: any; events: any[]; defaul
   for (let step = 0; step < (defaultSteps ?? 100); step++) {
     const doseBefore = sim.radiation_dose || 0;
     const damageBefore = new Map<any, number>(sim.crystals.map((c: any) => [c, c.radiation_damage || 0]));
+    const activeBefore = new Map<any, boolean>(sim.crystals.map((c: any) => [c, !!c.active]));
     sim.run_step();
     const rise = (sim.radiation_dose || 0) - doseBefore;
     if (rise > 0) ledger.stepsWithDose += 1; else ledger.stepsWithoutDose += 1;
@@ -477,6 +591,14 @@ function runWithDoseLedger(start: () => { conditions: any; events: any[]; defaul
       const gain = (c.radiation_damage || 0) - before;
       if (rise > 0 && c.active && !ledger.damageBeforeFirstDose.has(c)) ledger.damageBeforeFirstDose.set(c, before);
       if (c.mineral === 'quartz') {
+        // With a uraninite dosing, a quartz gains at most that dose plus the host
+        // rock's; one that was inactive through the step gains nothing from either.
+        if (gain > 2 * rise + hostLimit + 1e-9) {
+          ledger.violations.push(`step ${step}: quartz #${c.crystal_id} gained ${gain}; uraninite gave ${2 * rise}, the host rock at most ${hostLimit}`);
+        }
+        if (activeBefore.get(c) === false && !c.active && Math.abs(gain) > 1e-12) {
+          ledger.violations.push(`step ${step}: inactive quartz #${c.crystal_id} changed by ${gain}`);
+        }
         if (rise > 0 || !(gain > 1e-12)) continue;
         ledger.quartzGainsWithoutDose += 1;
         if (gain > hostLimit + 1e-12) {
