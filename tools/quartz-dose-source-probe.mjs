@@ -21,24 +21,49 @@
 // letter or an underscore, or an empty "{}"), sentences that name a uraninite the
 // crystal got nothing from, and sentences that name the host rock likewise.
 //
+// Booking "the rest" to the host rock would hide a third writer, so the probe also
+// counts what the host rock cannot have done: a change of that kind on a crystal
+// that is not a quartz (grow_quartz is the only engine with a host dose), and a
+// quartz the change left past the ceiling. Both should read zero.
+//
 // Each scenario runs in its own cavity through the Simulation-mode entry
 // (startSimulationCommandRuntime). About seven minutes a seed for all scenarios.
+// --random-vugg N runs Random Vugg instead (js/96 buildRandomScenario, the size
+// select left at "any"), seeds 1..N of one archetype: its wall is the default
+// limestone, so there a quartz has the uraninite and nothing else.
 //
 // Usage: node tools/quartz-dose-source-probe.mjs [--seeds 42,1,2] [--scenarios a,b] [--full-narrative]
+//        node tools/quartz-dose-source-probe.mjs --random-vugg 40 [--archetype pegmatite]
 
 import { loadSimBundle } from './_harness.mjs';
 
 const arg = (name, dflt) => { const i = process.argv.indexOf(name); return i >= 0 ? process.argv[i + 1] : dflt; };
-const SEEDS = String(arg('--seeds', '42')).split(',').map(s => parseInt(s, 10));
+const RANDOM_VUGG = parseInt(arg('--random-vugg', '0'), 10) || 0;
+const ARCHETYPE = arg('--archetype', 'pegmatite');
+const SEEDS = RANDOM_VUGG
+  ? Array.from({ length: RANDOM_VUGG }, (_, i) => i + 1)
+  : String(arg('--seeds', '42')).split(',').map(s => parseInt(s, 10));
 const ONLY = arg('--scenarios', '');
 const FULL = process.argv.includes('--full-narrative');
 
-const { SIM_VERSION, SCENARIOS, startSimulationCommandRuntime, makeSimulationStartCommand } = await loadSimBundle({
+const { SIM_VERSION, SCENARIOS, VugSimulator, setSeed, startSimulationCommandRuntime, makeSimulationStartCommand, buildRandomScenario } = await loadSimBundle({
   toolName: 'quartz-dose-source-probe',
-  extraExports: ['startSimulationCommandRuntime', 'makeSimulationStartCommand'],
+  extraExports: ['startSimulationCommandRuntime', 'makeSimulationStartCommand', 'buildRandomScenario'],
 });
-const names = ONLY ? ONLY.split(',') : Object.keys(SCENARIOS).sort();
+const names = RANDOM_VUGG ? [`random vugg (${ARCHETYPE})`] : (ONLY ? ONLY.split(',') : Object.keys(SCENARIOS).sort());
 console.log(`quartz-dose-source-probe — SIM ${SIM_VERSION}; ${names.length} scenario(s); seeds ${SEEDS.join(', ')}`);
+
+// The game's own start for each mode: Simulation's command runtime, or Random Vugg's
+// builder under its seeded generator (js/96 runRandomVugg).
+function startRun(name, seed) {
+  if (!RANDOM_VUGG) {
+    const runtime = startSimulationCommandRuntime(makeSimulationStartCommand(name, seed, undefined));
+    return { sim: runtime.sim, steps: runtime.scenarioData.defaultSteps ?? 100 };
+  }
+  setSeed(seed);
+  const scenario = buildRandomScenario(ARCHETYPE, 'any');
+  return { sim: new VugSimulator(scenario.conditions, scenario.events), steps: scenario.defaultSteps };
+}
 
 const UNFILLED = /\{[A-Za-z_]\w*\}|\{\s*\}/g;
 const tally = {
@@ -47,15 +72,15 @@ const tally = {
   sentenceHost: 0, sentenceUraninite: 0, sentenceNoSource: 0,
   namesUraniniteFalsely: 0, namesHostFalsely: 0, hostSentenceButUraniniteDosed: 0,
   placeholders: 0, runsWithPlaceholderInNarrative: 0, quartzUndosedInARunWithUraniniteDose: 0,
+  changesOffQuartzNotFromUraninite: 0, quartzLeftPastCeilingByHost: 0,
 };
+const CEILING = 0.7;   // QUARTZ_HOST_DOSE_CEILING, js/59
 const quiet = [];
 
 for (const name of names) {
   for (const seed of SEEDS) {
     const t0 = Date.now();
-    const runtime = startSimulationCommandRuntime(makeSimulationStartCommand(name, seed, undefined));
-    const sim = runtime.sim;
-    const steps = runtime.scenarioData.defaultSteps ?? 100;
+    const { sim, steps } = startRun(name, seed);
     const fromU = new Map(); const hostUp = new Map(); const hostDown = new Map();
     let stepU = new Map();
     const original = sim._check_enclosure;
@@ -81,6 +106,9 @@ for (const name of names) {
         if (u) fromU.set(c, (fromU.get(c) || 0) + u);
         if (h > 1e-12) hostUp.set(c, (hostUp.get(c) || 0) + h);
         else if (h < -1e-12) hostDown.set(c, (hostDown.get(c) || 0) + h);
+        // What the host rock cannot have done (1e-9: the block sums one dose per uraninite).
+        if (c.mineral !== 'quartz' && Math.abs(h) > 1e-9) tally.changesOffQuartzNotFromUraninite += 1;
+        if (c.mineral === 'quartz' && h > 1e-9 && !u && c.radiation_damage > CEILING) tally.quartzLeftPastCeilingByHost += 1;
       }
     }
     tally.runs += 1;

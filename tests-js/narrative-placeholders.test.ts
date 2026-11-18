@@ -17,14 +17,14 @@
 //      `npm test`'s pretest): a call supplies every variable its template names;
 //   2. the narrators' own output for a crystal in each state the quartz sentence
 //      distinguishes, and the two facts that make its two certain sentences true;
-//   3. the two shipped runs that showed the fault, seed 42.
+//   3. the two shipped runs that showed the fault, seed 42, each stepped under a
+//      ledger that holds every crystal's damage to those two facts as it changes.
 
 import { describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { auditTemplateVariableSupply, templateBodyComplaints, templateVariables } from '../tools/narrative-workflow.mjs';
-import { runScenario } from './helpers';
 
 declare const VugSimulator: any;
 declare const SCENARIOS: any;
@@ -67,15 +67,43 @@ describe('the detector can fail', () => {
 });
 
 describe('narrative audit: a call supplies every variable its template names', () => {
-  it('reads variables with the runtime\'s own pattern', () => {
-    const runtime = fs.readFileSync(path.join(ROOT, 'js', '05-narratives.ts'), 'utf8');
-    const tool = fs.readFileSync(path.join(ROOT, 'tools', 'narrative-workflow.mjs'), 'utf8');
-    const pattern = String.raw`/\{(\w+)\}/g`;
-    expect(runtime).toContain(`template.replace(${pattern}`);
-    expect(tool).toContain(`const TEMPLATE_KEY_PATTERN = ${pattern};`);
+  it('reads a section the way the runtime does', () => {
+    // The audit and the runtime each carry the pattern. Rather than compare their
+    // source, render each sample through the runtime with a context that owns
+    // EVERY key, and see which braces it replaced: those are the keys a call can
+    // supply. The audit must ask for exactly the ones that start with a letter or
+    // an underscore, and for nothing the runtime would leave alone.
+    const ownsEveryKey = new Proxy({}, {
+      getOwnPropertyDescriptor: (_target, key) => ({ value: `<<${String(key)}>>`, writable: true, enumerable: true, configurable: true }),
+      get: (_target, key) => `<<${String(key)}>>`,
+    });
+    const samples = [
+      SHIPPED_SMOKY,
+      SHIPPED_MORION,
+      'Quartz #{crystal_id} nucleated at {nucleation_temp}°C; {crystal_id} again.',
+      'plates on {001} and {10-10}; {0001}; m{100}; {habit_pretty}, {_x1}, {A}',
+      'steep {h0-il} rhombohedra such as {40-41} and {30-31}',
+      'odd ones: {1a} { spaced } {} {a.b} {a-b} {é} {$x} {a b} {{nested}} {trailing',
+    ];
+    let replacedSomething = 0, leftSomething = 0;
+    for (const sample of samples) {
+      const rendered = _narrative_interp(sample, ownsEveryKey);
+      const replaced = [...new Set(Array.from(rendered.matchAll(/<<(.*?)>>/g), match => match[1]))];
+      expect(templateVariables(sample), sample).toEqual(replaced.filter(key => /^[A-Za-z_]/.test(key)));
+      replacedSomething += replaced.length;
+      if (/\{[^{}]*\}/.test(rendered)) leftSomething += 1;
+    }
+    // The battery exercises both halves: keys the runtime fills, and braces it leaves.
+    expect(replacedSomething).toBeGreaterThan(10);
+    expect(leftSomething).toBeGreaterThan(2);
+
     expect(templateVariables(SHIPPED_MORION)).toEqual(['rad_count', 'total_count']);
     expect(templateVariables('plates on {001} and {10-10}; {habit_pretty}, {habit_pretty}, {_x1}')).toEqual(['habit_pretty', '_x1']);
     expect(templateVariables('steep {h0-il} rhombohedra such as {40-41} and {30-31}')).toEqual([]);
+    // A key that starts with a digit is one the runtime WOULD fill; the audit leaves
+    // it to the prose on purpose, because no call supplies a crystal form.
+    expect(_narrative_interp('prism {100}', ownsEveryKey)).toBe('prism <<100>>');
+    expect(templateVariables('prism {100}')).toEqual([]);
   });
 
   it('rejects the calls SIM 286 shipped', () => {
@@ -263,9 +291,13 @@ describe('what makes the two certain sentences true', () => {
     expect(conditions.fluid.Al).toBeGreaterThan(1);
     setSeed(42);
 
+    // The value grow_quartz carried as a bare literal before it had a name (SIM 206):
+    // past morion (0.6), under the metamict threshold (0.8). Naming it changed nothing.
+    expect(QUARTZ_HOST_DOSE_CEILING).toBe(0.7);
+
     const heavilyDosed: any = { mineral: 'quartz', radiation_damage: 5, zones: [], total_growth_um: 0, twinned: false };
     grow_quartz(heavilyDosed, conditions, 1);
-    expect(heavilyDosed.radiation_damage).toBe(QUARTZ_HOST_DOSE_CEILING);
+    expect(heavilyDosed.radiation_damage).toBe(0.7);
 
     // Not a vacuous clamp: the same call adds the host rock's dose under the ceiling.
     const lightlyDosed: any = { mineral: 'quartz', radiation_damage: 0.1, zones: [], total_growth_um: 0, twinned: false };
@@ -274,11 +306,14 @@ describe('what makes the two certain sentences true', () => {
     expect(lightlyDosed.radiation_damage).toBeLessThan(QUARTZ_HOST_DOSE_CEILING);
   });
 
-  it('a crystal\'s radiation_damage has two writers, the ones the narrator tells apart', () => {
+  it('js/ spells two writers of a crystal\'s radiation_damage, the ones the narrator tells apart', () => {
     // "Host rock" and "uraninite" are said by elimination between these two. A third
     // writer makes both sentences unsound until the narrator is taught the new source.
-    // (The engine's write reaches the crystal through the accepted-zone transaction,
-    // js/85b _applyAcceptedCrystalMutations, which copies staged fields by key.)
+    // This reads the source for ONE spelling, `.radiation_damage =` (and `+=` and the
+    // like): a write through a computed key or Object.assign passes it. The ledger
+    // below watches the same thing in execution, in the runs it makes. (The engine's
+    // own write reaches the crystal by key through the accepted-zone transaction,
+    // js/85b _applyAcceptedCrystalMutations.)
     const writes: Record<string, number> = {};
     const jsDir = path.join(ROOT, 'js');
     for (const name of fs.readdirSync(jsDir).filter(file => file.endsWith('.ts')).sort()) {
@@ -288,19 +323,59 @@ describe('what makes the two certain sentences true', () => {
       if (count) writes[name] = count;
     }
     expect(writes).toEqual({ '59-engines-silicate.ts': 1, '85-simulator.ts': 2 });
-
-    const simulator = fs.readFileSync(path.join(jsDir, '85-simulator.ts'), 'utf8');
-    // The uraninite block moves the run's dose and each crystal's damage by the same factor.
-    expect(simulator).toContain('this.radiation_dose += 0.01 * u_size;');
-    expect(simulator).toContain('other.radiation_damage += 0.02 * u_size;');
   });
 });
 
+// Runs a scenario one step at a time and holds every crystal's damage to what the
+// narrator assumes of its two writers:
+//   - a crystal that is not a quartz gains damage only in a step where the run's
+//     radiation_dose rises, and then by twice the rise (0.02 x size against 0.01 x
+//     size, js/85); otherwise it gains nothing (it was not active, or nothing dosed);
+//   - a quartz gains nothing that leaves it past the host rock's ceiling in a step
+//     where the dose does not rise.
+// A uraninite is dosed by the other uraninites alone and is left out.
+function runWithDoseLedger(name: string, seed = 42) {
+  setSeed(seed);
+  const { conditions, events, defaultSteps } = SCENARIOS[name]();
+  const sim = new VugSimulator(conditions, events);
+  const ledger = { stepsWithDose: 0, stepsWithoutDose: 0, gainsInLockStep: 0, quartzGainsWithoutDose: 0, violations: [] as string[] };
+  for (let step = 0; step < (defaultSteps ?? 100); step++) {
+    const doseBefore = sim.radiation_dose || 0;
+    const damageBefore = new Map<any, number>(sim.crystals.map((c: any) => [c, c.radiation_damage || 0]));
+    sim.run_step();
+    const rise = (sim.radiation_dose || 0) - doseBefore;
+    if (rise > 0) ledger.stepsWithDose += 1; else ledger.stepsWithoutDose += 1;
+    for (const c of sim.crystals) {
+      if (c.mineral === 'uraninite') continue;
+      const gain = (c.radiation_damage || 0) - (damageBefore.get(c) || 0);
+      if (c.mineral === 'quartz') {
+        if (rise > 0 || !(gain > 1e-12)) continue;
+        ledger.quartzGainsWithoutDose += 1;
+        if (c.radiation_damage > QUARTZ_HOST_DOSE_CEILING) {
+          ledger.violations.push(`step ${step}: quartz #${c.crystal_id} rose to ${c.radiation_damage} with no uraninite dose`);
+        }
+      } else if (Math.abs(gain) > 1e-12) {
+        if (rise > 0 && Math.abs(gain - 2 * rise) < 1e-9) ledger.gainsInLockStep += 1;
+        else ledger.violations.push(`step ${step}: ${c.mineral} #${c.crystal_id} gained ${gain} against a dose rise of ${rise}`);
+      }
+    }
+  }
+  return { sim, ledger };
+}
+
 describe('the two shipped runs, seed 42', { timeout: 600_000 }, () => {
   it('grimsel_alpine_cleft: smoky quartz, no uraninite, and none named', () => {
-    const sim = runScenario('grimsel_alpine_cleft', { seed: 42 });
+    const { sim, ledger } = runWithDoseLedger('grimsel_alpine_cleft');
     expect(sim.crystals.some((c: any) => c.mineral === 'uraninite')).toBe(false);
     expect(sim.radiation_dose || 0).toBe(0);
+    // No uraninite dose in the run, so the host rock is the only writer left: it
+    // touches quartz alone, and never past its ceiling.
+    expect(ledger.violations).toEqual([]);
+    expect(ledger.stepsWithDose).toBe(0);
+    expect(ledger.quartzGainsWithoutDose).toBeGreaterThan(0);
+    expect(sim.crystals.filter((c: any) => c.mineral !== 'quartz' && (c.radiation_damage || 0) > 0).length).toBe(0);
+    expect(Math.max(...sim.crystals.map((c: any) => c.radiation_damage || 0))).toBeLessThanOrEqual(0.7);
+
     const smoky = sim.crystals.filter((c: any) => c.mineral === 'quartz' && c.zones.length && (c.radiation_damage || 0) > 0.3);
     expect(smoky.length).toBeGreaterThan(0);
     for (const crystal of smoky) {
@@ -313,10 +388,16 @@ describe('the two shipped runs, seed 42', { timeout: 600_000 }, () => {
   });
 
   it('radioactive_pegmatite: quartz past the ceiling, and the uraninite named', () => {
-    const sim = runScenario('radioactive_pegmatite', { seed: 42 });
+    const { sim, ledger } = runWithDoseLedger('radioactive_pegmatite');
     expect(sim.crystals.some((c: any) => c.mineral === 'uraninite')).toBe(true);
     expect(sim.radiation_dose).toBeGreaterThan(0);
-    const dosed = sim.crystals.filter((c: any) => c.mineral === 'quartz' && c.zones.length && (c.radiation_damage || 0) > QUARTZ_HOST_DOSE_CEILING);
+    // The run's dose and every other crystal's damage rise together, by one factor:
+    // that is what lets "no dose on record in this run" stand for "no uraninite dosed it".
+    expect(ledger.violations).toEqual([]);
+    expect(ledger.stepsWithDose).toBeGreaterThan(0);
+    expect(ledger.gainsInLockStep).toBeGreaterThan(0);
+
+    const dosed = sim.crystals.filter((c: any) => c.mineral === 'quartz' && c.zones.length && (c.radiation_damage || 0) > 0.7);
     expect(dosed.length).toBeGreaterThan(0);
     for (const crystal of dosed) {
       const text = sim._narrate_quartz(crystal);
