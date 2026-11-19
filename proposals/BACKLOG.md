@@ -47,10 +47,11 @@ Living list of open work items, captured from session conversations so context s
 > rate authored on `gem_pegmatite` ALONE (recommended; one baseline changes), which makes topaz
 > appear at all three locality-gate seeds, so the bump must also PROMOTE TOPAZ out of the
 > aspirational tier and rewrite its rationale by hand (the gate does not check that sentence). Under
-> it the game also names the pocket's quartz smoky quartz and its two feldspars albite, not sanidine
-> (review rounds' runs, not committed). ITS VALUE IS A CHOICE IN A RANGE: the bump's acceptance
-> lines are met by every whole value
-> from 5 to 9 and pick none (5: feldspar 17 mm, 37–38 steps to spare; 9: feldspar 31 mm, 3–5
+> it the game also names the pocket's quartz smoky quartz, gives it morion as its base colour in the
+> cavity view, and names its two feldspars albite, not sanidine; it shows all of that today in the
+> one cavity setting where this pocket stays open (review rounds' runs, not committed). ITS VALUE IS
+> A CHOICE IN A RANGE: the bump's acceptance lines are met by every whole value from 5 to 9 and pick
+> none (5: feldspar 17 mm, 37–38 steps to spare; 9: feldspar 31 mm, 3–5
 > steps; the gems are the same throughout). That range is in the scenario's own cavity. At
 > ten other shape seeds of it, which the form's Shape Seed box draws (63–78 cm³ against its
 > own 69), 5 to 8 hold at all ten and 9 lets the pocket pass 0.7 inside the run at two; the

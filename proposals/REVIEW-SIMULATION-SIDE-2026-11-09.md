@@ -129,12 +129,14 @@ sets out and §6 puts to the owner.
 - *SC1* comes with a choice of where the bound lives, a value, a ruling, and a horizon.
   Authored on `gem_pegmatite` it changes one baseline, and it makes topaz appear, which that
   scenario lists as aspirational, so the locality gate needs topaz's tier changed in the
-  same bump. It also changes two names that the game shows there: the pocket's quartz is
-  named smoky quartz, and its two feldspars, sanidine today, are named albite. Its value, 7,
-  is the one this review previewed, and it is one of a range: in the scenario's own cavity
-  the bump's acceptance lines are met by every whole value from 5 to 9, with the same gems
-  and with more or fewer steps to spare. In ten other cavities of that size, which the
-  form's Shape Seed box draws, they are met by 5 to 8, and 9 fails in two (§4, SC1).
+  same bump. It also changes how two of the pocket's minerals are shown there: the quartz is
+  named smoky quartz and takes morion, near black, as its base colour in the cavity view,
+  and the two feldspars, sanidine today, are named albite. The game shows both already in
+  the one cavity setting where this pocket does not plug. Its value, 7, is the one this
+  review previewed, and it is one of a range: in the scenario's own cavity the bump's
+  acceptance lines are met by every whole value from 5 to 9, with the same gems and with
+  more or fewer steps to spare. In ten other cavities of that size, which the form's Shape
+  Seed box draws, they are met by 5 to 8, and 9 fails in two (§4, SC1).
 
   It is a bound on a rate, so it buys steps and not an end, and how many depends on the
   cavity. In the scenario's own cavity, where Simulation mode and Creative mode start the
@@ -179,7 +181,7 @@ sets out and §6 puts to the owner.
   millimetre in a Zen run of the scenario, whose pocket is full by step 200, and one of 21
   to 23 mm in a Zen run of `schneeberg`.
 
-**This document has been corrected twenty-four times, each time by its own review round.** The
+**This document has been corrected twenty-five times, each time by its own review round.** The
 first version said supply does not bind. The second costed the recommended fixes too lightly. The
 third counted a crystal that had dissolved away as still present, and recommended a lead mechanism
 that cannot work. The fourth left out a gate that the recommended change trips, and put two coupled
@@ -282,13 +284,25 @@ reading of a regime left out of the note's counts; and comments on the pull requ
 put the suite's two red runs down to a cause its logs do not show.
 The twenty-fourth round reviewed the two commits that answered the twenty-third, and
 found nothing that had to be fixed. It found six things that should be: SC1's bound
-renames the feldspars it is put on, by a second dropped field that reaches what a player
-is shown, where the text had named the quartz alone; in one pocket what is dropped is
-the engine's cap on a quartz's damage, and the run's narrative counts by it; a call
-that returns no zone loses the engine's write in any pocket; a count that the document
-had withdrawn, left on the pull request; a cause in a note there that the logs do not
-show; and "rationed to nothing in the competition", said of crystals whose fluid held
-none of one ingredient.
+renames the feldspars it is put on, where the text had named the quartz alone, and the
+field that names them is a second dropped field that reaches what a player is shown; in
+one pocket what is dropped is the engine's cap on a quartz's damage, and the run's
+narrative counts by it; a call that returns no zone loses the engine's write in any
+pocket; a count that the document had withdrawn, left on the pull request; a cause in a
+note there that the logs do not show; and "rationed to nothing in the competition", said
+of crystals whose fluid held none of one ingredient.
+The twenty-fifth round reviewed the commit that answered the twenty-fourth, and found
+nothing that had to be fixed. It found eight things that should be: what the fill
+switch does to the same names, said of each seed and true at four of eleven; the cavity
+view's colour for the renamed quartz and what the run's narrative prints of it, where
+the text gave the card's name alone; the two renamings listed as costs of the bound,
+when the game shows both today in the one cavity setting where the pocket stays open;
+a comparison of names that could not have come out otherwise for five minerals of
+eight; half of the rule that names a feldspar; a question put to the owner with no
+word that keeping what is dropped moves runs; the narrative, a way by which a dropped
+field reaches a player that the text had not followed; and a figure gone stale on the
+pull request, with a fault of the shipped narrator that the bound would bring into
+this scenario.
 §9 lists every correction.
 
 ## 1. What was run
@@ -423,7 +437,7 @@ document cites one ("the sixth round ran", "by the seventh round's run"), the nu
 checked against that round's output file, and it cannot be reproduced from the committed tree:
 a reader has this document's word for it. In §1 to §8 each such statement says *not committed*
 where it stands. §9 lists what each round found, and the runs it cites there are the rounds'
-own unless an entry says a probe here now makes them. They are of twenty-seven kinds: copies of
+own unless an entry says a probe here now makes them. They are of twenty-eight kinds: copies of
 the census that over-count (above; trap 21); copies of the census with a proposed change
 installed (§4, SC2 and SC3; trap 5; §7); a run of the agent API's fluid preset (§3.3);
 `schneeberg` opened in Creative mode (§6, decision 3; §7); a looser clamp tried against an
@@ -450,14 +464,19 @@ counted at the vug and in three own cavities by what the engines proposed and ag
 loop was handed, with what one quartz's engine wrote there, the doses it drops put back on the
 quartz, and the regime read on the zones of the last room (§3.4); `gem_pegmatite`'s quartz
 under SC1's clamp, read for its dose and for the name and colour the game gives it (§4, SC1);
-and that pocket's every crystal read for its name and card colour under that clamp and under
-the fill switch, what the feldspar engine read and wrote there at each step, the fields that a
-full pocket last dropped, at the vug and in three own cavities, put on a copy of each crystal
-and read the same way, and every call of the quartz engine in eleven own cavities with what
-became of its write (§3.4; §4, SC1). No recommendation of §4 rests on one of them. The
-predictions of which census controls SC2 and SC3 flip do, so does what SC1's bound does to the
-names of the pocket's quartz and feldspars, and so does the direct evidence that the walls of
-v160 held no radiogenic lead.
+that pocket's every crystal read for its name and card colour under that clamp and under the
+fill switch, what the feldspar engine read and wrote at each step of the shipped run, the
+fields that a full pocket last dropped, at the vug and in three own cavities, put on a copy of
+each crystal and read the same way, and every call of the quartz engine in eleven own cavities
+with what became of its write (§3.4; §4, SC1); and the same pocket at eight more seeds, in the
+form's three other cavities, stepped on and in a Zen run, under the bound and under the other
+courses of decision 1, read as well for the cavity view's base colour and the card's habit and
+twin, with the run's narrative under the bound, every field that a full pocket drops given to
+its crystal, and the narrative read again with one crystal's dropped write put on it (§3.4; §4,
+SC1; §6). No recommendation of §4 rests on one of them. The predictions of which census
+controls SC2 and SC3 flip do, so does what SC1's bound does to how the pocket's quartz and
+feldspars are shown, and so does the direct evidence that the walls of v160 held no radiogenic
+lead.
 
 ## 2. The structural reading
 
@@ -1588,18 +1607,17 @@ is a lead for story-pocket WP1: Naica's selenite at v244; Shigar's aquamarine at
 never lost: it was never there.
 
 **Almost every crystal beside a uraninite is counted as metamict.** The block that writes the
-radiogenic lead also adds a fiftieth of each uraninite's size to the radiation damage of every
-other active crystal, every step. The run's closing narration counts a crystal as metamict
-once its damage passes 0.8, and says of those that "the crystal structure itself is destroyed
-by accumulated radiation damage" (`js/85-simulator.ts:1283`, `:1591`, `:1597`). In `schneeberg`
-at seed 42, 71 of the 74 crystals that hold solid are past that threshold
-(`probe-cation-gate.txt`). Whether a feldspar or a carbonate beside a uraninite should read as
-metamict is a question for the sources. This was read in one run, on the way to following what
-SC2 moves (§4), and nothing is proposed for it. The eighteenth review round found one thing
-more on the way, and it was not followed: where a wall doses its quartz, the quartz engine
-writes a quartz's damage as at most 0.7 with each zone of it that is accepted
-(`js/59-engines-silicate.ts:44`), and this block adds to it with no cap, so what a quartz's
-damage reads depends on when it last grew.
+radiogenic lead also adds a fiftieth of each uraninite's size to the radiation damage of every other
+active crystal, every step. The run's closing narration counts a crystal as metamict once its damage
+passes 0.8, and says of those that "the crystal structure itself is destroyed by accumulated
+radiation damage" (`js/85-simulator.ts:1283`, `:1591`, `:1597`). In `schneeberg` at seed 42, 71 of
+the 74 crystals that hold solid are past that threshold (`probe-cation-gate.txt`). Whether a
+feldspar or a carbonate beside a uraninite should read as metamict is a question for the sources.
+This was read in one run, on the way to following what SC2 moves (§4), and nothing is proposed for
+it. The eighteenth review round found one thing more on the way, which the note on the last room of
+a full pocket follows (below): where a wall doses its quartz, the quartz engine writes a quartz's
+damage as at most 0.7 with each zone of it that is accepted (`js/59-engines-silicate.ts:44`), and
+this block adds to it with no cap, so what a quartz's damage reads depends on when it last grew.
 
 **A fill above 100 %.** The step clamps a zone to the room the cavity has left
 (`js/85-simulator.ts:947`), and two readings here pass 100 % all the same. They are not one
@@ -1919,51 +1937,86 @@ drops each (the round's count, and a scratch run for the twin; not committed).
 
 What a full pocket drops reaches what a player is shown. Three ways were followed. The
 first is the habit itself: a crystal's card prints its habit, its first form and its
-twin law (`js/97c-ui-crystal-card.ts:156`, `:160`; read, not run), and the 81 above
-carry another habit than their engine last wrote.
+twin law (`js/97c-ui-crystal-card.ts:156`, `:160`; read, not run). The 81 above carry
+another habit than their engine last wrote; among the vug's crystals with solid the
+first form differs for 76 and the twin for two, and in the own cavities the three counts
+are 19, 19 and six (the twenty-fifth round's count, not committed; run again here, the
+same but for the seconds it prints). The run's narrative reads those fields too. With
+what its engine last wrote put on one crystal at a time, the narrative reads otherwise
+for 65 of the vug's 128 crystals with solid whose last write was dropped, in ten
+scenarios, and for 19 of the 39 in the own cavities, in `gem_pegmatite` and
+`radioactive_pegmatite` (a scratch run, not committed).
 
 The second is a quartz's radiation damage. Where the wall doses its quartz, the quartz
 engine writes it at each call made while the fluid holds more than 1 ppm of Al, as the
 damage plus the wall's dose, held under a cap of 0.7 (`js/59-engines-silicate.ts:42`,
-`:44`). Its comment has the dose accrue at "every step the crystal sits in the host"
-(`:25`), and the crystal takes the write only with a zone that is accepted
-(`js/85b-simulator-nucleate.ts:148`). So a call that returns no zone loses the write in
-any pocket, and a full pocket loses it with each zone it drops. Of the 9,362 calls on
-the quartz with solid in the own cavities of the eleven scenarios whose wall doses
-quartz, 1,399 returned no zone and a full pocket dropped the zone of 2,060 (the
-twenty-fourth round's count, not committed; run again here, the same but for the seconds
-it prints). The twenty-third round put each write that a full pocket dropped on its
-crystal, and nothing else (not committed; run again here the same way). In
-`gem_pegmatite`'s own cavity the eight quartz with solid then end at the cap, where they
-end at 0.03 to 0.07 as shipped, and the game names and colours each of them smoky
-quartz, where it shows rock crystal or milky quartz now (`js/12-mineral-art.ts:66`,
-`:280`). In `radioactive_pegmatite`'s own cavity the nine quartz are named smoky quartz
-either way, and there the write mostly lowers. Each active uraninite adds to the damage
-of every other active crystal at each step, with no cap (`js/85-simulator.ts:1283`), and
-912 of the engine's 1,054 writes bring a quartz back down to 0.7. With the dropped
-writes given, seven of the nine end at 0.70 to 0.96, where they end at 1.02 to 12.05 as
-shipped, and the run's narrative, which counts every crystal above 0.8 as metamict
-(`:1591`), counts 37 at seed 42 where it counts 40, and 32 at seed 1 where it counts 34
-(the twenty-fourth round's run, not committed). At the vug, in the seven scenarios the
-simulator seals whose wall doses its quartz, the name changes for 12 of the 43 quartz
-with solid whose engine wrote a dose. Each of the 27 runs with the dropped writes given
-ends as shipped in every crystal's size, flag, host and habit.
+`:44`). The crystal takes the write only with a zone, and only if that zone is accepted
+(`js/85b-simulator-nucleate.ts:89`, `:148`). So a call that returns no zone loses the
+write in any pocket, and a full pocket loses it with each zone it drops. Of the 9,362
+calls on the quartz with solid in the own cavities of the eleven scenarios whose wall
+doses quartz, eight of which hold such a quartz, 5,882 landed, 1,399 returned no zone, a
+full pocket dropped the zone of 2,060, and the other 21, all in `amethyst_geode`, are of
+none of these (the twenty-fourth round's count, not committed; run again here, the same
+but for the seconds it prints). With each write that a full pocket dropped put back on
+its crystal, and nothing else (the twenty-third round's run, not committed; run again
+here the same way), the eight quartz with solid in `gem_pegmatite`'s own cavity end at
+the cap, where they end at 0.03 to 0.07 as shipped, and the game names and colours each
+of them smoky quartz, where it shows rock crystal or milky quartz now
+(`js/12-mineral-art.ts:66`, `:280`). In `radioactive_pegmatite`'s own cavity the nine
+quartz are named smoky quartz either way, and there the write mostly lowers. Each active
+uraninite adds to the damage of every other active crystal at each step, after the
+growth loop and with no cap (`js/85-simulator.ts:1283`), and in 912 of the engine's
+1,054 calls the write is 0.7 onto a damage above it. 415 of those writes reach the
+crystal, and at the end of 414 of those steps the quartz stands above 0.8 again (the
+twenty-fifth round's count, not committed; run again here, the same but for the seconds
+it prints). With the dropped writes given, seven of the nine end at 0.70 to 0.96, where
+they end at 1.02 to 12.05 as shipped, and the run's narrative, which counts every
+crystal above 0.8 as metamict (`:1591`), counts 37 at seed 42 where it counts 40, 32 at
+seed 1 where it counts 34, and 38 at seed 2 either way (the twenty-fourth round's run,
+not committed). At the vug, in the seven scenarios the simulator seals whose wall doses
+its quartz, the name changes for 12 of the 43 quartz with solid whose engine wrote a
+dose. Each of the 27 runs with the dropped doses given ends as shipped in every
+crystal's size, flag, host and habit.
 
-The third is a feldspar's polymorph. The feldspar engine writes it at each call that
-proposes growth, as albite where the crystal's fluid holds less K than Na
-(`js/59-engines-silicate.ts:224`, `:264`). The game names the crystal by it, and the
-card's colour reads it (`js/12-mineral-art.ts:223`, `:302`). In `gem_pegmatite`'s own
-cavity the two feldspars at each seed, of 19 to 37 mm, stored their last zone at step 9
-or 10 and are named sanidine. The scenario's Albitization event of step 60 takes 30 from
-K and adds 40 to Na, and at each of the 171 steps from 60 to 230 the engine writes
-albite and the crystal takes none of it. At the vug 14 feldspars with solid, in four of
-the 16 scenarios, end under another name than their engine last wrote, and two mimetites
-of `supergene_oxidation` under another card colour, which reads their habit (`:259`; the
-twenty-fourth round's runs, not committed; run again here, the same but for the seconds
-they print). The form the game draws for a quartz reads its habit, twin and polymorph as
-well (`js/46m-quartz-form-display.ts:39`), and what it draws for these was not run. No
-search was made for other readers of a dropped field, and the 24 scenarios whose pocket
-never reaches a fill of 1 at the vug were not run.
+The third is a feldspar's display name. The feldspar engine writes a polymorph's name to
+it at each call that proposes growth: albite where the crystal's fluid holds less K than
+Na, and otherwise by temperature, sanidine above 500 °C, orthoclase above 300 °C,
+microcline below, and adularia under 250 °C at a slow rate
+(`js/59-engines-silicate.ts:224`, `:229`, `:264`). The game names the crystal by it, and
+the card's colour reads it (`js/12-mineral-art.ts:223`, `:302`). In `gem_pegmatite`'s
+own cavity the two feldspars at each seed, of 19 to 37 mm, stored their last zone at
+step 9 or 10 and are named sanidine. The scenario's Albitization event of step 60 takes
+30 from K and adds 40 to Na, and at each of the 171 steps from 60 to 230 the engine
+writes albite and the crystal takes none of it. At the vug 14 feldspars with solid, in
+four of the 16 scenarios, end under another name than their engine last wrote: six named
+sanidine where it wrote albite, two sanidine where it wrote microcline, and six albite
+where it wrote orthoclase. Two mimetites of `supergene_oxidation` end under another card
+colour, which reads their habit (`:259`; the twenty-fourth round's runs, not committed;
+run again here, the same but for the seconds they print).
+
+The gives above are of one field each: a habit for the fluorite, the dose for the
+quartz. With every field that a full pocket drops given to its crystal at its turn, and
+nothing else changed, the nine runs of the own cavities end as shipped in every size,
+flag and host, and 5 of the 48 runs at the vug do not: one of
+`reactivated_fluorite_vein`, one of `supergene_oxidation` and all three of
+`radioactive_pegmatite`, where a uraninite ends at 0.94 mm against 0.70 at seed 1 and at
+0.20 mm against 0.60 at seed 2. Each of the five turns on a habit: it parts in as many
+crystals, from the same step, with the habits given alone, or in `radioactive_pegmatite`
+with their forms, and nothing else. Which reader of the habit does it there and in
+`supergene_oxidation` was not traced (the twenty-fifth round's runs, not committed; run
+again here, the same but for the seconds they print). So what a full pocket drops cannot
+be kept at no cost to the runs.
+
+A search of the tree for readers of the fifteen fields that the rounds' counts found
+dropped finds none for five of them under `js/`, `tests-js/`, `tools/` or `agent-api/`,
+and tests alone for two (the twenty-fifth round's search; made again here for those
+seven). The other eight have many. The card, the zone bars, the narrators, the size
+cap's test, the form the game draws for a quartz and the renderer of the cavity view,
+which shapes a crystal by its habit and its twin, are among them
+(`js/46m-quartz-form-display.ts:39`; `js/99i-renderer-three.ts:3266`, `:7747`). Of those
+the card's name, colour and three lines, the cavity view's base colour and the narrative
+were run; the rest were not, and neither were the 24 scenarios whose pocket never
+reaches a fill of 1 at the vug.
 
 Under the four factors on every engine, a size or the bulk fluid differs from the
 shipped run in 51 of the 492 nudged runs at that setting, at 20 of the 123
@@ -2622,32 +2675,65 @@ What it costs.
   entry would pass with that sentence still on it. The ruling binds what comes after: once topaz
   is promised at every seed, a later change that loses it fails the same gate, and SC4's pilot
   with the bound lifted is such a change.
-- *The pocket's quartz is shown as smoky quartz.* A quartz takes its wall's dose with each zone that
-  is accepted (§3.4; `js/59-engines-silicate.ts:44`). As shipped the dose stops where the pocket
-  fills, at step 9 or 10: the eight quartz that hold solid at the three seeds end with a damage of
-  0.03 to 0.07, and the game shows them as rock crystal or milky quartz. In a run with the clamp
-  written in the two engines at 7 nine quartz hold solid, the ninth a quartz of seed 2 that stores
-  its first zone at step 13. They go on growing to the last step, each reaches the engine's cap of
-  0.7 between step 98 and step 110, and the game names each smoky quartz and gives its card the
-  darker of the two smoky colours (`js/12-mineral-art.ts:66`, `:280`; two review rounds' runs, not
-  committed; §3.4). The cavity view takes its colour from another table, which has a quartz above
-  0.6 as morion (`data/minerals.json:369`; `js/12a-colour-lexicon.ts:207`; read, not run). The
-  backlog's entry on that dose, "SMOKY/MORION", says "granite/pegmatite quartz now smoky", and in
-  this pegmatite the plug of F1 is what keeps the dose short of it. The narrator's sentence for such
-  a quartz names a uraninite and leaves its placeholders unfilled, as it does in shipped runs today
-  (`js/92i-narrators-silicate.ts:68`; `narratives/quartz.md:49`); that fault is the narrator's, and
-  it was not followed.
+- *The pocket's quartz is shown as smoky quartz, and as morion in the cavity view.* A quartz takes
+  its wall's dose with each zone that is accepted (§3.4; `js/59-engines-silicate.ts:44`). As shipped
+  the dose stops where the pocket fills, at step 9 or 10: the eight quartz that hold solid at the
+  three seeds end with a damage of 0.03 to 0.07, and the game shows them as rock crystal or milky
+  quartz. In a run with the clamp written in the two engines at 7 nine quartz hold solid; the ninth
+  is a third quartz at seed 2, where the shipped run's third is born into the full pocket and holds
+  none. They go on growing to the last step, each reaches the engine's cap of 0.7 between step 98
+  and step 110, and the game names each smoky quartz and gives its card the darker of the two smoky
+  colours (`js/12-mineral-art.ts:66`, `:280`; two review rounds' runs, not committed; §3.4). The
+  cavity view takes a crystal's base colour from another table, which has a quartz above 0.6 as
+  morion. Each of the 27 quartz at 5, 7 and 9 reads `#201a13` there, where each of the eight shipped
+  ones reads `#eef1f4`, the table's clear (`data/minerals.json:369`; `js/12a-colour-lexicon.ts:44`,
+  `:93`, `:207`; the twenty-fifth review round's run, not committed). The renderer, which sets a
+  tone and a jitter over that base, and the zone bars were not run. The run's narrative says morion
+  too, by a sentence of the shipped narrator that names a uraninite neighbour, which this pocket
+  does not hold, and leaves two placeholders unfilled (`js/92i-narrators-silicate.ts:68`;
+  `narratives/quartz.md:49`). At the form's defaults the shipped narrative prints that sentence for
+  no quartz at the three seeds; under the clamp, at 5, at 7 and at 9, it prints it for each of the
+  nine (a scratch run, not committed). The fault is the narrator's. Pull request 50, open against
+  main on 2026-11-18, rewrites the sentence (read, not run), and decision 6 puts it before a bump of
+  SC1.
 - *The pocket's feldspars are named albite.* The game names a feldspar by the polymorph its engine
   wrote with the last zone the crystal stored, and the engine writes albite where the crystal's
-  fluid holds less K than Na (§3.4; `js/59-engines-silicate.ts:224`; `js/12-mineral-art.ts:302`). As
-  shipped the two feldspars at each seed stored their last zone at step 9 or 10 and are named
-  sanidine. With the clamp written in the two engines, at 5, at 7 and at 9, they store a zone at
-  every step to the last, past the Albitization event of step 60 that puts K under Na, and the game
-  names both albite at each seed and gives their cards another colour (`:233`, `:235`; the
-  twenty-fourth review round's run and a scratch run, not committed). The pocket then holds four
-  crystals named albite, two of them the albite engine's, and none named as a K-feldspar. Of the
-  eight minerals that hold solid under the clamp the other five are named and coloured as today, and
-  topaz is new (above).
+  fluid holds less K than Na, and a K-feldspar by temperature where it does not (§3.4;
+  `js/59-engines-silicate.ts:224`; `js/12-mineral-art.ts:302`). As shipped the two feldspars at each
+  seed stored their last zone at step 9 or 10 and are named sanidine. With the clamp written in the
+  two engines, at 5, at 7 and at 9, they store a zone at every step to the last, past the
+  Albitization event of step 60 that puts K under Na, and the game names both albite at each seed
+  and gives their cards another colour (`:233`, `:235`; the twenty-fourth review round's run and a
+  scratch run, not committed). Their base colour in the cavity view does not move; their habit does,
+  from tabular to platy. The pocket then holds four crystals named albite, two of them the albite
+  engine's, and none named as a K-feldspar. In the simulator's books the two stay K-feldspar: a zone
+  of the feldspar engine debits potassium whatever its name (`js/19-mineral-stoichiometry.ts:160`),
+  so under the bound they grow 171 steps on potassium under the sodium feldspar's name. The
+  narrative has a paragraph of its own for one of the two at each seed, and under the clamp it opens
+  "Albite" and loses its sentences on sanidine, the narrator having none for albite
+  (`js/92i-narrators-silicate.ts:111`; a scratch run, not committed).
+- *Neither renaming is the bound's own doing.* Both are what the scenario's script gives a quartz
+  that goes on being dosed and a feldspar that goes on growing past step 60, and the plug of F1 is
+  what hides them at the form's defaults. In the form's cave setting, where the shipped pocket does
+  not fill, the game shows them today: at each of the three seeds three quartz named smoky quartz,
+  at 0.70 and morion in the cavity view, and two feldspars named albite; with the clamp at 7 there,
+  the name, the card colour and the base colour of no mineral differ from the shipped run's. In the
+  form's pocket setting, which fills at step 37 or 38 as shipped, the nine quartz are amethysts and
+  the feldspars sanidine, and under the clamp they are smoky quartz and albite. In the scenario's
+  own cavity the renamings hold at each of eleven growth seeds: with the clamp at 7, 33 quartz of 33
+  are named smoky quartz and 22 feldspars of 22 albite, where the shipped runs have 19 rock crystal,
+  six milky and one amethyst, and 22 sanidine. Stepped on to the seal, the names are the same. A Zen
+  run fires no event, so one that carries the bound names its feldspars by temperature: its six end
+  as microcline, and its ten quartz as smoky quartz, where the shipped Zen run's nine are amethysts
+  (the twenty-fifth review round's runs, not committed; run again here, the same but for the seconds
+  they print).
+- *What the card prints beside the name changes for more.* For the pocket's five other minerals the
+  game has no variety name and one card colour, whatever a run did (`js/12-mineral-art.ts:264`,
+  `:271`), so a comparison of names says nothing of them, and topaz is new (above). The habit and
+  the twin law on a card do change: at 7 the set of habits differs from the shipped run's in 13 of
+  the 24 mineral-runs at the three seeds, and the set of twin laws in 7. The quartz are prismatic
+  with the Dauphiné twin of the inversion where the shipped ones are β-quartz bipyramids, untwinned
+  (the twenty-fifth review round's run, not committed).
 - *The new field needs a class.* The Creative lever audit fails on a scenario field it holds no
   class for. `tiger_eye_stage` is classed there as a process input, not a Creative control, and
   the bound would be classed the same way in the same commit.
@@ -2812,9 +2898,11 @@ Pre-registered acceptance for SC1's bump, as recommended:
   lines above are read at the scenario's own shape seed and name no other, so they do not
   ask for this. In the preview all three are met at the ten at every value from 5 to 8,
   and at 9 the first fails at two of them (below).
-- *A report, not a test.* The bump gives the game's name for the crystals of each mineral that
-  holds solid at those three seeds, beside today's. With the clamp written in the two engines
-  the quartz are named smoky quartz and the feldspars albite (above).
+- *A report, not a test.* For the crystals of each mineral that holds solid at those three seeds
+  the bump gives the game's name, the cavity view's base colour and the habit and twin law that
+  the card prints, beside today's, and what the run's narrative says of its quartz. With the
+  clamp written in the two engines the quartz are named smoky quartz and take morion as their
+  base colour, and the feldspars are named albite (above).
 - The census controls `space+end` (positive) and `time` (negative) fail, and the same commit
   rewrites them.
 - No other scenario's entry in the regenerated seed-42 baseline differs from today's. The bound
@@ -3724,12 +3812,17 @@ without a control (§1 lists them) stays labelled as one.
    `radioactive_pegmatite`'s plug included. It is a calibration constant on one scenario, and SC4 is
    what would remove the need for it. It comes with a ruling: topaz, aspirational in that scenario
    today, appears at all three of the locality gate's seeds, so the bump has to promote it and
-   rewrite its rationale, and a promoted topaz binds later changes. It also changes what two of the
-   pocket's minerals are shown as. With the pocket open the quartz goes on taking the wall's dose,
-   to the engine's cap, and the game names it smoky quartz where it shows rock crystal or milky
-   quartz today. The two feldspars go on growing past the scenario's Albitization event, and the
-   game names both albite where it names them sanidine today (§4, SC1; two review rounds' runs and a
-   scratch run, not committed).
+   rewrite its rationale, and a promoted topaz binds later changes. It also changes how two of the
+   pocket's minerals are shown. With the pocket open the quartz goes on taking the wall's dose, to
+   the engine's cap: the game names it smoky quartz and gives it morion, near black, as its base
+   colour in the cavity view, where the shipped quartz is rock crystal or milky quartz at the three
+   seeds and clear in that view. The two feldspars go on growing past the scenario's Albitization
+   event, and the game names both albite where it names them sanidine. At eleven seeds that is each
+   of the 33 quartz and each of the 22 feldspars. Neither is the bound's own doing: in the form's
+   cave setting, where the shipped pocket does not fill, the game shows both today. And the run's
+   narrative then prints, for each quartz, a sentence of the shipped narrator that names a uraninite
+   the pocket does not hold and leaves two placeholders unfilled, which pull request 50 rewrites
+   (§4, SC1; three review rounds' runs and two scratch runs, not committed).
 
    The value is a choice inside a range. In the scenario's own cavity the acceptance lines
    of §4 are met by every whole value from 5 to 9, and they pick none. At 5 the pocket has
@@ -3800,10 +3893,16 @@ without a control (§1 lists them) stays labelled as one.
    the species it expects at seed 1 and two at seed 2; the fill switch the tree already has,
    which keeps the pocket open at five seeds of eleven; a change to the scenario's broth, which
    costs the pocket its quartz; the rind; or no bound, with F1 left for SC4. Every one that
-   opens the pocket needs the same ruling on topaz. Under the fill switch two or three of the
-   pocket's quartz at each seed are named smoky quartz as well, and the feldspars keep the name
-   sanidine, since they store no zone there after step 20 (the twenty-fourth review round's run
-   and a scratch run, not committed). Factor caps and the per-factor root are refused by the
+   opens the pocket needs the same ruling on topaz. Under the fill switch the names go by the
+   seed. At the eleven seeds 12 of the 43 quartz with solid are named smoky quartz, 11 of them
+   at the five seeds where the pocket stays open, and 29 of the 30 feldspars keep the name
+   sanidine; the thirtieth, of 70 mm in a pocket that fills at step 187, is born after the
+   Albitization event and is named albite. Under the rind all nine quartz are named smoky
+   quartz and the feldspars keep the name sanidine; under the changed broth, alone or with the
+   clamp at 1 in the vug, the feldspars are named albite and the one quartz is rock crystal.
+   Under the same clamp for every scenario the quartz and the feldspars of the seven other
+   scenarios whose baseline it changes carry the names they carry as shipped (the twenty-fifth
+   review round's runs, not committed). Factor caps and the per-factor root are refused by the
    preview. The owner's directive of 2026-05-06, "when in doubt, defer to the actual geology",
    took a cap on a crystal's size out of the simulator. Whether a bound on a rate falls under
    it is the owner's to say (§4, SC1).
@@ -3849,17 +3948,17 @@ without a control (§1 lists them) stays labelled as one.
    own pick there down to accepting that vug. The list's other courses stand as they are.
 5. **SC5:** whether the census, with its mutation tool, joins the SIM-bump routine.
 6. **Order against the open ladders.** My proposal: SC1 first, because it is the one change that
-   gives `gem_pegmatite` back seven of its eight events and grows four of its species to
-   millimetres (tourmaline, topaz, spodumene, lepidolite); SC2 as a rung of its own beside the
-   recipe review's R2 → R9; SC3 last of the three. It waits on nothing, and it is a small
-   change to the simulator, but under the timing recommended it also changes what the scenario
-   says of itself, in data and in code. It shows in `radioactive_pegmatite` only
-   once that pocket stays open, which needs its quartz dealt with (trap 3), and it renames
-   `schneeberg`'s feldspars at once (decision 3). SC2 and SC3 both reach the two uraninite
-   scenarios, so the second of them to land is previewed on the tree the first leaves
-   (trap 16). SC4 after the ruling on 4.
-   Story-pocket WP8(b) waits on none of them, and should not be tested on `gem_pegmatite`'s
-   tourmaline (trap 4).
+   gives `gem_pegmatite` back seven of its eight events and grows four of its species to millimetres
+   (tourmaline, topaz, spodumene, lepidolite); SC2 as a rung of its own beside the recipe review's
+   R2 → R9; SC3 last of the three. It waits on nothing, and it is a small change to the simulator,
+   but under the timing recommended it also changes what the scenario says of itself, in data and in
+   code. It shows in `radioactive_pegmatite` only once that pocket stays open, which needs its
+   quartz dealt with (trap 3), and it renames `schneeberg`'s feldspars at once (decision 3). SC2 and
+   SC3 both reach the two uraninite scenarios, so the second of them to land is previewed on the
+   tree the first leaves (trap 16). SC4 after the ruling on 4. SC1's bump should follow pull request
+   50, which rewrites the narrator's smoky and morion sentences: under the bound this scenario's
+   narrative prints the faulty one for each of its quartz (decision 1). Story-pocket WP8(b) waits on
+   none of them, and should not be tested on `gem_pegmatite`'s tourmaline (trap 4).
 7. **Three authored values on an edge, and two outcomes that rounding picks (§3.4).**
    Whether the step-160 seal of `supergene_oxidation` is meant to leave the wall cells
    below azurite's redox minimum while the bulk handle sits on it, which starts four
@@ -3899,13 +3998,12 @@ without a control (§1 lists them) stays labelled as one.
    The dropped side is the larger. At the vug, in the shipped runs of the 16 scenarios
    whose pocket the simulator seals, 251 crystals end without the habit their engine
    last wrote, 81 of them with solid, where nine end with one from a zone of the last
-   room. What is dropped reaches what a player is shown. A crystal's card prints its
-   habit. A quartz takes its engine's write of its radiation damage only with a zone,
-   and with the writes a full pocket drops `gem_pegmatite`'s quartz would be shown as
-   smoky quartz, which it is not today. And a feldspar is named by the polymorph its
-   engine wrote with the last zone the crystal stored: in its own cavity
-   `gem_pegmatite`'s two are named sanidine, where their engine has written albite at
-   every step from the sixtieth (three review rounds' counts, not committed; §3.4).
+   room. What is dropped reaches what a player is shown, on a crystal's card and in the
+   run's narrative: with it given, `gem_pegmatite`'s quartz would be shown as smoky
+   quartz and its two feldspars named albite, which neither is today. Nothing was
+   previewed for this side. The gives made were of one field each, and with every
+   dropped field given to its crystal 5 of the 48 runs at the vug end otherwise in a
+   size, each through a habit (four review rounds' counts, not committed; §3.4).
 
    Four nudges of a part in 10¹³ or less move 51 of 492 runs at the vug, in nine
    scenarios, in a size or in the bulk fluid. In the eight whose pocket fills, 53 of the
@@ -4227,14 +4325,17 @@ without a control (§1 lists them) stays labelled as one.
   are the σ functions, through the species tables; the cation gate's share; the radiation
   dose; and four readers of the amazonite note (§4, SC3). The name and colour of every
   mineral's crystals were compared with the shipped run in `schneeberg` at seed 42. For SC1
-  they were compared in `gem_pegmatite` at the three seeds, with the clamp written in the two
-  engines at 5, 7 and 9 (the twenty-fourth review round's run, not committed); what that run
-  narrates, the cavity view and the forms drawn were not. The four readers of the note were
-  run in both uraninite scenarios at all three seeds: three on each feldspar, and the step
-  log's lines for feldspar zones. They were found by two searches, the second for reads of a
-  zone's `note`. Five places that print a zone's note were read and not run. The rest of what
-  a run narrates was not compared, no other zone note was followed, and a reader both
-  searches missed is not covered. All of it is the scenario's Simulation-mode run.
+  they were compared in `gem_pegmatite` with the clamp written in the two engines: at 5, 7
+  and 9 at the three seeds, and at 7 at eight more seeds, in the form's three other cavities,
+  stepped on to step 310 and in a Zen run, with the cavity view's base colour and the card's
+  habit, with its twin law in all but the Zen run, and at the three seeds with the run's
+  narrative (two review rounds' runs and a scratch run, not committed). The renderer, the
+  zone bars and the forms drawn were not run. The four readers of the note were run in both
+  uraninite scenarios at all three seeds: three on each feldspar, and the step log's lines
+  for feldspar zones. They were found by two searches, the second for reads of a zone's
+  `note`. Five places that print a zone's note were read and not run. The rest of what a run
+  narrates was not compared, no other zone note was followed, and a reader both searches
+  missed is not covered. All of it is the scenario's Simulation-mode run.
 - **The mutation tool judges one control per mutant.** It runs a mutant on the scenarios its
   control needs and reads that control. It does not report what else the mutant breaks, and a
   control that fails for another reason than its label would still count as caught. Nineteen
@@ -4447,7 +4548,7 @@ The twelve steps of `npm run ci` that precede the tests pass on this tree, and s
 audit:evidence`. They read the tree as it is and say nothing about the changes proposed here; §4
 says what each change would do to three of them. **The full suite** (`npm run ci` with its tests,
 two hours and more on this machine) is not part of this commit's evidence, and it has not been run
-on this tip. It was run twice four commits back, on `4500240f`, and both runs stopped at batch 153
+on this tip. It was run twice five commits back, on `4500240f`, and both runs stopped at batch 153
 of 303 on one wall-clock budget: a rebuild that `tests-js/marching-cubes-performance.test.ts` allows
 150 ms (`:38`, `:278`) took 151.9 and 169.8 ms, where the four green runs had 89 to 125 ms. Run
 alone five times between the two, that file passed three times and failed twice, on that one tree,
@@ -4455,24 +4556,24 @@ and that commit changed three documents. On it the 150 files after that batch ha
 the suite's stamp, which is not in the tree, is red. Pull request 40 (`e6b10f12`), which main has
 not taken, has that file judge each of its wall-clock budgets on the best of up to eight fresh
 readings, the budget that failed here among them; this branch does not hold it. The suite's last
-full pass is six commits back, on `f422564f`: 303 test files in 303 batches, one uninterrupted pass
-under `node tools/cold-ci.mjs`, in 9,683 s. It passed the same way on `346dd818`, in 7,585 s, on
-`db5dd3df`, in 9,501 s, and on `c08c9d47`, in 7,955 s. Other work shared the machine during each of
-those four runs but the one on `346dd818`. All six are local results, and a comment on the pull
+full pass is seven commits back, on `f422564f`: 303 test files in 303 batches, one uninterrupted
+pass under `node tools/cold-ci.mjs`, in 9,683 s. It passed the same way on `346dd818`, in 7,585 s,
+on `db5dd3df`, in 9,501 s, and on `c08c9d47`, in 7,955 s. Other work shared the machine during each
+of those four runs but the one on `346dd818`. All six are local results, and a comment on the pull
 request gives each in full. The repository's hosted workflow, which runs a part of the suite on each
 push to the pull request, is no part of this evidence; its runs are on the pull request's page. This
-commit and the five before it, `207dc2da`, `4500240f`, `56d9f479`, `aca59ede` and `0dd41cb0`, change
-files under `proposals/` only, as did the two that followed `346dd818`, the last of them `f422564f`,
-and the eight that followed `db5dd3df`, the last of them `346dd818`. The suite is to be run again on
-the final tip of the branch, and its verdict recorded in another comment there. The repository's
-chip selector (`tools/test-chip-check.mjs`) has none of this change's paths in its authored map, so
-it offers no bounded test set for it; its own answer for such a change is a full check. Nothing
-under `js/`, `data/` or `tests-js/` is changed, and no test was added. No test names the three
-documents, the five scripts or the evidence folder of this change, by a search of `tests-js/`; one
-test lists the tree's files by name and opens none of them (`tests-js/test-workflow.test.ts:113`).
-The suite itself reads every file of the tree, but for folders of seven names and its own stamp, to
-fingerprint the tree it ran on (`tools/test-workflow.mjs:67`, `:119`), so these files are in that
-fingerprint.
+commit and the six before it, `207dc2da`, `4500240f`, `56d9f479`, `aca59ede`, `0dd41cb0` and
+`c3fbb548`, change files under `proposals/` only, as did the two that followed `346dd818`, the last
+of them `f422564f`, and the eight that followed `db5dd3df`, the last of them `346dd818`. The suite
+is to be run again on the final tip of the branch, and its verdict recorded in another comment
+there. The repository's chip selector (`tools/test-chip-check.mjs`) has none of this change's paths
+in its authored map, so it offers no bounded test set for it; its own answer for such a change is a
+full check. Nothing under `js/`, `data/` or `tests-js/` is changed, and no test was added. No test
+names the three documents, the five scripts or the evidence folder of this change, by a search of
+`tests-js/`; one test lists the tree's files by name and opens none of them
+(`tests-js/test-workflow.test.ts:113`). The suite itself reads every file of the tree, but for
+folders of seven names and its own stamp, to fingerprint the tree it ran on
+(`tools/test-workflow.mjs:67`, `:119`), so these files are in that fingerprint.
 
 ## 9. Corrections to earlier versions
 
@@ -5772,7 +5873,8 @@ It ran the twenty-third round's scripts again and got their outputs back the sam
 for the seconds they print, read the source lines cited, the pull request's text and its
 comments, and made probes of its own. It found nothing that had to be fixed, six things
 that should be, and some smaller things. The corrections below were made after that
-round, and no round has reviewed them.
+round, in commit `c3fbb548`, which the twenty-fifth round then reviewed (the next
+block).
 
 - "It also changes what the pocket's quartz is shown as" named one of two. The function
   that the text cited for the quartz's name gives a feldspar the polymorph its engine
@@ -5816,10 +5918,98 @@ round, and no round has reviewed them.
   banner and the ledger give all of the recount's figures, where they give two.
 - Not taken up: what followed the four readings that changed a regime; the size cap's
   test, which reads a crystal's habit and extent kind, two fields that a full pocket
-  drops (the round found no proposal that they change); what the cavity view and the
-  quartz form draw; and readers of the other dropped fields. Main's pull request 49
-  makes a fluorite's shown name and colour a reading of its accepted zones' notes, which
-  is one more reader of that list, and nothing was run on main.
+  drops (by the round's run at the vug, in two scenarios and not committed, 33 of the
+  1,419 positive zones proposed for a crystal at its size cap staged one of the two, and
+  under none would the crystal be off its cap); what the cavity view and the quartz form
+  draw; and readers of the other dropped fields. Main's pull request 49 makes a
+  fluorite's shown name and colour a reading of its accepted zones' notes, which is one
+  more reader of that list, and nothing was run on main.
+
+**Corrections to the twenty-fifth version** (commit `c3fbb548`). Its twenty-fifth review
+round was limited to that commit, which changed text alone. It compared the
+twenty-fourth round's outputs with the author's re-runs of them, read the source lines
+cited, the pull request's text, its comments and its hosted runs, and made probes of its
+own, some of them written apart from that round's to re-derive its figures. It found
+nothing that had to be fixed, eight things that should be, and some smaller things. The
+corrections below were made after that round, and no round has reviewed them.
+
+- "Under the fill switch two or three of the pocket's quartz at each seed are named
+  smoky quartz as well, and the feldspars keep the name sanidine, since they store no
+  zone there after step 20" was three seeds' run, written after "five seeds of eleven".
+  The round ran the eleven (not committed; run again here, the same but for the seconds
+  it prints). Two or three holds at four of them. The pocket fills under the switch at
+  six, a feldspar stores a zone after step 20 at five, and at one a feldspar born after
+  the Albitization event is named albite. Decision 1 now gives the eleven, and what the
+  rind, the changed broth and the clamp for every scenario do to the same names.
+- "The cavity view takes its colour from another table" was read and not run, and the
+  places that sum SC1 up gave the card's name alone. The round read that table's colour
+  for every crystal: each quartz under the clamp reads as morion, where the shipped ones
+  read clear. A scratch run of the narrative itself (not committed) has it print the
+  shipped narrator's morion sentence, with its uraninite and its unfilled placeholders,
+  for each of the nine quartz, where the shipped narrative prints it for none at the
+  form's defaults. §4, decision 1, §0, the banner and the ledger now say so, and §7 says
+  what was run.
+- The two renamings stood under "What it costs" with no word of where they come from.
+  The round ran the form's three other cavities, the scenario stepped on, a Zen run and
+  eight more seeds. In the cave setting, where the shipped pocket does not fill, the
+  game shows the same names and colours today, so neither is the bound's own doing. And
+  "today" was the default cavity at three seeds: one of the 26 shipped quartz at the
+  eleven seeds is an amethyst, and in the form's pocket setting all nine are. §4 has an
+  item for it, with the eleven seeds, at which the renamings hold without exception.
+- "Of the eight minerals that hold solid under the clamp the other five are named and
+  coloured as today" could not have come out otherwise: the two readers that the round
+  compared return the mineral's own name and one colour for those five, whatever a run
+  did. The sentence is cut. What the card prints beside the name does change for them,
+  and §4 now says so; the bump's report line asks for the habit and the twin law as
+  well.
+- "As albite where the crystal's fluid holds less K than Na" gave half of the rule that
+  names a feldspar. Where K is not under Na the engine names a K-feldspar by
+  temperature, and eight of the vug's 14 feldspars that end under another name than
+  their engine last wrote are of that half or go the other way: two are sanidine for
+  microcline and six albite for orthoclase. §3.4 gives the rule and the three kinds, and
+  §4 now says that the renamed feldspars go on debiting potassium.
+- Decision 7's new question, what should become of what an engine writes for a crystal
+  that is handed nothing, stood on gives of one field each, and "each of the 27 runs
+  with the dropped writes given ends as shipped" could be read as saying that what is
+  dropped can be kept at no cost to the runs. The round gave every dropped field to its
+  crystal (not committed; run again here, the same but for the seconds it prints): 5 of
+  the 48 runs at the vug then end otherwise in a size, each through a habit. §3.4 and
+  decision 7 say so, and decision 7 says that nothing was previewed for that side.
+- "Three ways were followed" left out the run's narrative, and "no search was made for
+  other readers of a dropped field" could be a search. The round counted the crystals
+  whose own paragraph a narrator would write otherwise. The narrative does not print
+  that paragraph for every crystal, so a scratch run read the narrative itself (not
+  committed), and the text gives its counts, beside the round's for the card's first
+  form and twin. The round's search of the tree is in the text too, made again here for
+  the seven fields with no reader in the game.
+- The pull request said that the hosted run on its tip was still in progress and gave 31
+  green runs of 33; the run had finished green, which makes 32 of 34. It is corrected
+  there. And "leaves its placeholders unfilled, as it does in shipped runs today" is
+  true of other scenarios: at the form's defaults this scenario's shipped narrative does
+  not print that sentence, so the bound would bring the fault into it. Pull request 50
+  mends the sentence; §4 names it and decision 6 puts it before SC1's bump.
+- Smaller: the transaction's two lines are cited where one was; the count of the quartz
+  engine's calls says how many landed and in how many of the eleven scenarios they are;
+  "912 of the engine's 1,054 writes bring a quartz back down to 0.7" counted writes
+  inside the engine's transaction, of which 415 reach the crystal, and the text now says
+  so; the metamict count has its third seed; "polymorph" named two fields in one note,
+  and the feldspar's is now its display name; the ninth quartz of §4 is set beside the
+  shipped run's, which holds no solid; §1 said "there" of a trace made in the shipped
+  run; the engine's comment on the dose, the backlog's words and decision 7's second
+  telling of the three ways are cut; §0's sentence on the twenty-fourth round had the
+  bound rename "by a second dropped field", where under the bound nothing is dropped;
+  the block above did not list four things that its commit changed, the kind added to
+  §1, a parenthesis on `porphyry` cut from §3.4, "where the wall doses its quartz" and
+  §8's counts, and its entry on the size cap's test said "no proposal" where it now
+  gives the round's figures; and in this commit §1 has a kind for the round's runs and
+  the two scratch runs, §8's counts are one commit further on, and the note on metamict
+  crystals no longer says of the engine's cap on a quartz's damage that it "was not
+  followed", which the last two rounds' counts had made untrue.
+- Not taken up: §0's history of the rounds, which the round suggested cutting to a
+  pointer as the banner's was; which reader of a habit moves four of the five runs; the
+  renderer, the zone bars and the quartz form, which were read and not run; the names
+  under SC2, SC3 and SC4, under the clamp's other values beyond the three seeds, and at
+  the ten shape seeds; and anything on main.
 
 ## References
 
