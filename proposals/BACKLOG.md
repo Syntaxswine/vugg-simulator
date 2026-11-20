@@ -137,7 +137,7 @@ Living list of open work items, captured from session conversations so context s
 > host's layer has room in both settings in the shipped runs (no host layer lies between
 > those under 1e-6 µm and 0.13 µm in the own cavities, or 4e-5 µm at the vug), and it
 > would leave the guest's side, the sizes, the habits and whatever else such a zone sets
-> as they are (the doc lists what it followed, and searched for no more). The loop is
+> as they are (the doc lists what it followed). The loop is
 > not the only reader of the fill: nucleation reads it too. The
 > doc's §3.4, a sixth note; decision 7. A SECOND OUTCOME THAT ROUNDING PICKS turned up when
 > the whole fleet was put to the nudge in its own cavities (every growth engine's zones,
