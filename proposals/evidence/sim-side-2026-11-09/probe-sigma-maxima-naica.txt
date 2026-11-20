@@ -1,0 +1,9 @@
+[scenarios] loaded 41 from ./data/scenarios.json5
+[spec] loaded 184 minerals from ./data/minerals.json
+[thermo] loaded 15 carbonate entries from ./data/thermo-carbonates.json
+[thermo] loaded 4 sulfate entries from ./data/thermo-sulfates.json
+[narratives] loaded 94 species
+bulk supersaturation, SIM 286, seed 42 — start / smallest (step) / largest (step) / at run end; "grows" is the largest crystal in mm
+scenario                               SiO2 ppm at start   selenite: start / min (step) / max (step) / end       celestine: start / min (step) / max (step) / end      grows
+naica_geothermal                               30             1.33 /    1.20 (320) /    1.33 (  0) /    1.20        1.54 /    1.54 (  0) /    1.54 (  0) /    1.54     selenite 2.8, celestine 2.2
+integrity: 1 of 1 runs reproduce tests-js/baselines/seed42_v286.json with the reader attached

@@ -1,0 +1,63 @@
+seed-42 baselines: 258 (v26 … v286)
+
+gem_pegmatite is in 258 baselines (v26 … v286). Tourmaline is present in 258; its largest crystal in any of them is 2.40 mm (v69). Feldspar is present in 258; its smallest largest-crystal is 30.74 mm (v219).
+
+naica_geothermal / selenite: in 258 baselines (v26 … v286); first 65.98 mm, latest 2.85 mm; largest crystal changed by more than 1.5×, appeared or vanished at:
+   v243 → v244: 64.37 mm → 1.39 mm
+   v269 → v270: 1.75 mm → 2.85 mm
+
+shigar_pegmatite / aquamarine: in 69 baselines (v216 … v286); first 0.60 mm, latest none; largest crystal changed by more than 1.5×, appeared or vanished at:
+   v218 → v219: 0.60 mm → 22.04 mm
+   v240 → v241: 20.51 mm → 37.77 mm
+   v271 → v272: 37.73 mm → none
+
+amethyst_geode / quartz: in 61 baselines (v224 … v286); first 1.75 mm, latest 0.85 mm; largest crystal changed by more than 1.5×, appeared or vanished at:
+   v238 → v239: 1.75 mm → 16.67 mm
+   v242 → v243: 16.65 mm → 2.69 mm
+   v245 → v246: 2.69 mm → 0.85 mm
+
+gem_pegmatite / tourmaline: in 258 baselines (v26 … v286); first 1.05 mm, latest 0.29 mm; largest crystal changed by more than 1.5×, appeared or vanished at:
+   v67 → v68: 2.17 mm → 0.94 mm
+   v68 → v69: 0.94 mm → 2.40 mm
+   v75 → v76: 1.84 mm → 0.79 mm
+   v88 → v89: 0.63 mm → 0.97 mm
+   v128 → v129: 0.76 mm → 0.49 mm
+   v132 → v133: 0.49 mm → 0.22 mm
+   v135 → v136: 0.22 mm → 0.85 mm
+   v171 → v172: 0.71 mm → 0.45 mm
+
+radioactive_pegmatite / plumbogummite: in 258 baselines (v26 … v286); first none, latest 0.00 mm; largest crystal changed by more than 1.5×, appeared or vanished at:
+   v107 → v108: none → 0.00 mm
+   v128 → v129: 0.00 mm → 0.0008 mm
+   v159 → v160: 0.00 mm → none
+   v180 → v181: none → 0.00 mm
+   v227 → v228: 0.00 mm → 0.0007 mm
+
+radioactive_pegmatite / galena: in 258 baselines (v26 … v286); first none, latest none; largest crystal changed by more than 1.5×, appeared or vanished at:
+   v69 → v70: none → 0.00 mm
+   v159 → v160: 0.00 mm → none
+
+on record, by baseline. A baseline row counts a mineral's crystals whether or not they grew, so a mineral can be on record with a largest crystal of 0 µm. Versions from v26 to v286 with no committed baseline: v127, v249, v265
+  radioactive_pegmatite / galena: not on record v26 … v69 (44); on record v70 … v159 (89 baselines; largest crystal in any of them 0.00 mm; at 0 µm in 89); not on record v160 … v286 (125)
+  radioactive_pegmatite / plumbogummite: not on record v26 … v107 (82); on record v108 … v159 (51 baselines; largest crystal in any of them 0.0008 mm; at 0 µm in 46); not on record v160 … v180 (21); on record v181 … v286 (104 baselines; largest crystal in any of them 0.0007 mm; at 0 µm in 89)
+  schneeberg / galena: not on record v26 … v69 (44); on record v70 … v159 (89 baselines; largest crystal in any of them 0.00 mm; at 0 µm in 89); not on record v160 … v286 (125)
+  schneeberg / anglesite: not on record v26 … v67 (42); on record v68 … v159 (91 baselines; largest crystal in any of them 0.00 mm; at 0 µm in 91); not on record v160 … v286 (125)
+  schneeberg / duftite: not on record v26 … v96 (71); on record v97 … v159 (62 baselines; largest crystal in any of them 0.00 mm; at 0 µm in 62); not on record v160 … v286 (125)
+  schneeberg / plumbogummite: not on record v26 … v107 (82); on record v108 … v159 (51 baselines; largest crystal in any of them 0.00 mm; at 0 µm in 51); not on record v160 … v286 (125)
+
+canary stratum 2026-11-04/v286 — largest crystal over the stratum's seeds
+  gem_pegmatite / tourmaline: in 55 of 55 seeds; min / median / max 0.19 / 0.36 / 0.67 mm
+  gem_pegmatite / feldspar: in 55 of 55 seeds; min / median / max 30.82 / 34.16 / 38.61 mm
+  gem_pegmatite / topaz: absent in all 55 seeds
+  gem_pegmatite / beryl: absent in all 55 seeds
+  naica_geothermal / selenite: in 55 of 55 seeds; min / median / max 2.75 / 2.81 / 2.87 mm
+  shigar_pegmatite / aquamarine: absent in all 55 seeds
+  shigar_pegmatite / tourmaline: in 55 of 55 seeds; min / median / max 0.87 / 1.78 / 1.90 mm
+  shigar_pegmatite / topaz: in 55 of 55 seeds; min / median / max 0.31 / 0.61 / 0.73 mm
+  radioactive_pegmatite / plumbogummite: in 55 of 55 seeds; min / median / max 0.00 / 0.00 / 0.0006 mm
+  radioactive_pegmatite / galena: absent in all 55 seeds
+  radioactive_pegmatite / autunite: in 3 of 55 seeds; min / median / max 0.0008 / 0.0015 / 0.0029 mm
+  schneeberg / galena: absent in all 55 seeds
+  schneeberg / anglesite: absent in all 55 seeds
+  schneeberg / duftite: absent in all 55 seeds
+  schneeberg / plumbogummite: absent in all 55 seeds

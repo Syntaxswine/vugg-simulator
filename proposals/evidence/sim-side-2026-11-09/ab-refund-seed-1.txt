@@ -1,0 +1,353 @@
+sim-side A/B — SIM 286; arms refund=1; minerals feldspar, albite; seeds 1
+self-check on schneeberg, seed 42: shipped arm reproduces the baseline; neutral knobs — rind=Infinity ok; cap=Infinity ok; rclamp=Infinity ok; root=1 ok; mul=Ca:1 ok; refund=0 ok; fcap=Infinity ok
+self-check on tutorial_travertine, seed 42: refund=1 leaves the simulator's audits as the shipped arm has them (shipped: event refusals 0, failed carbonate transactions 0, ledger violations 0; refund=1: event refusals 0, failed carbonate transactions 0, ledger violations 0)
+
+### amethyst_geode — 240 steps — events: 18 Agate-to-Quartz Maturation | 80 Celadonite Film (prism frost) | 90 Quartz-Window Renewal | 214 Goethite Base Stain
+seed 1
+  A shipped        fill   0.0 % (largest 0.0 % at step 213; first >= 0.7 at step —)  full at step   —  last growth at step 213
+      chalcedony ×1 @ 0.154 (→17), quartz ×1 @ 0.019 (→213)
+  B refund=1       fill   0.0 % (largest 0.0 % at step 213; first >= 0.7 at step —)  full at step   —  last growth at step 213
+      chalcedony ×1 @ 0.154 (→17), quartz ×1 @ 0.019 (→213)
+      against A: 2 species present in either arm; moved 0; gained none; lost none; the baseline summary differs
+
+### asbestos_hills_crack_seal — 110 steps — events: 58 Later Oxidation of the Crack-Seal Fabric
+seed 1
+  A shipped        fill   0.2 % (largest 0.2 % at step 110; first >= 0.7 at step —)  full at step   —  last growth at step 110
+      siderite ×1 @ 7.5 (→57), opal ×5 @ 5.9 (→110), tigers_eye ×3 @ 2.8 (→57), crocidolite ×3 @ 2.3 (→57), goethite ×1 @ 2.0 (→110), amosite ×3 @ 1.4 (→57), hematite ×1 @ 1.0 (→110), quartz ×1 @ 0.277 (→57), magnetite ×2 @ 0.097 (→57)
+  B refund=1       fill   0.5 % (largest 0.5 % at step 110; first >= 0.7 at step —)  full at step   —  last growth at step 110
+      siderite ×1 @ 14.0 (→57), opal ×5 @ 5.9 (→110), tigers_eye ×3 @ 2.8 (→57), crocidolite ×3 @ 2.4 (→57), goethite ×1 @ 2.0 (→110), amosite ×3 @ 1.4 (→57), hematite ×1 @ 1.0 (→110), quartz ×1 @ 0.277 (→57), magnetite ×2 @ 0.097 (→57)
+      against A: 9 species present in either arm; moved 1 (siderite); gained none; lost none; the baseline summary differs
+
+### asbestos_hills_surficial_alteration — 120 steps — events: 58 Planation-Surface Silicification | 82 Waning Surface Alteration
+seed 1
+  A shipped        fill   0.3 % (largest 0.3 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120
+      siderite ×1 @ 7.2 (→57), opal ×5 @ 6.5 (→120), goethite ×1 @ 3.1 (→120), tigers_eye ×3 @ 3.1 (→120), crocidolite ×3 @ 1.7 (→57), hematite ×1 @ 1.7 (→120), amosite ×3 @ 1.3 (→57), quartz ×1 @ 0.269 (→57), magnetite ×2 @ 0.115 (→57), lepidocrocite ×2 @ 0.091 (→120)
+  B refund=1       fill   0.6 % (largest 0.6 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120
+      siderite ×1 @ 13.5 (→57), opal ×5 @ 6.5 (→120), goethite ×1 @ 3.1 (→120), tigers_eye ×3 @ 3.1 (→120), crocidolite ×3 @ 1.8 (→57), hematite ×1 @ 1.7 (→120), amosite ×3 @ 1.3 (→57), quartz ×1 @ 0.269 (→57), magnetite ×2 @ 0.115 (→57), lepidocrocite ×2 @ 0.091 (→120)
+      against A: 10 species present in either arm; moved 1 (siderite); gained none; lost none; the baseline summary differs
+
+### bisbee — 340 steps — events: 25 Primary Cooling | 65 Uplift + Weathering | 95 Enrichment Blanket | 120 Reducing Pulse | 145 Oxidation Zone | 180 Azurite Peak | 225 pCO2 Drop | 265 Silica Seep | 305 Final Drying
+seed 1
+  A shipped        fill  90.9 % (largest 90.9 % at step 340; first >= 0.7 at step 305)  full at step   —  last growth at step 340
+      chalcopyrite ×1 @ 56.6 (→119), atacamite ×8 @ 43.1 (→340), chrysocolla ×5 @ 17.3 (→340), malachite ×1 @ 13.6 (→264), goethite ×3 @ 12.3 (→340), pyrite ×1 @ 9.6 (→119), albite ×2 @ 8.0 (→64), opal ×6 @ 7.9 (→340), hematite ×1 @ 5.3 (→340), chalcedony ×4 @ 4.6 (→179), jarosite ×6 @ 3.5 (→116), feldspar ×2 @ 3.4 (→64), acanthite ×4 @ 3.1 (→119), brochantite ×5 @ 2.1 (→116), covellite ×4 @ 2.0 (→119), turquoise ×4 @ 1.8 (→340), lepidocrocite ×10 @ 1.8 (→340), native_gold ×14 @ 1.6 (→336), marcasite ×1 @ 1.5 (→119), dioptase ×4 @ 0.751 (→340), azurite ×4 @ 0.622 (→224), bornite ×3 @ 0.398 (→119), cuprite ×1 @ 0.375 (→156), chalcocite ×4 @ 0.340 (→119), siderite ×2 @ 0.310 (→145), alunite ×1 @ 0.115 (→116), native_silver ×1 @ 0.004 (→139), mimetite ×3 @ 0.003 (→247)
+      no solid left: native_copper (1 record), tennantite (1 record), tetrahedrite (1 record)
+  B refund=1       fill  85.9 % (largest 92.8 % at step 119; first >= 0.7 at step 53)  full at step   —  last growth at step 340
+      chalcopyrite ×1 @ 73.9 (→119), malachite ×2 @ 28.7 (→264), atacamite ×5 @ 14.4 (→340), pyrite ×1 @ 11.8 (→119), albite ×2 @ 8.6 (→64), chrysocolla ×5 @ 5.7 (→340), goethite ×3 @ 4.0 (→340), feldspar ×2 @ 3.4 (→64), acanthite ×4 @ 3.3 (→69), opal ×6 @ 2.5 (→340), hematite ×2 @ 1.7 (→340), chalcedony ×4 @ 0.859 (→179), turquoise ×5 @ 0.728 (→340), lepidocrocite ×10 @ 0.674 (→340), native_gold ×7 @ 0.650 (→340), covellite ×2 @ 0.344 (→119), siderite ×2 @ 0.316 (→145), dioptase ×5 @ 0.297 (→340), azurite ×2 @ 0.181 (→224), alunite ×3 @ 0.133 (→116), bornite ×1 @ 0.057 (→119), mimetite ×3 @ 0.047 (→340), cuprite ×3 @ 0.045 (→153), chalcocite ×1 @ 0.023 (→119), marcasite ×1 @ 0.005 (→73)
+      no solid left: jarosite (2 records), native_copper (1 record), tennantite (1 record), tetrahedrite (1 record)
+      against A: 28 species present in either arm; moved 20 (alunite, atacamite, azurite, bornite, chalcedony, chalcocite, chalcopyrite, chrysocolla, covellite, cuprite, dioptase, goethite, hematite, lepidocrocite, malachite, marcasite, mimetite, native_gold, opal, turquoise); gained none; lost brochantite, jarosite (2 records, no solid), native_silver; the baseline summary differs
+      wall dissolution withheld as too small to resolve: on 45 steps in A, 27 in B
+
+### chiastolite_hornfels — 120 steps — events: 
+seed 1
+  A shipped        fill   0.0 % (largest 0.0 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120
+      andalusite ×5 @ 1.2 (→120), feldspar ×1 @ 0.664 (→120), albite ×1 @ 0.001 (→1)
+  B refund=1       fill   0.0 % (largest 0.0 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120
+      andalusite ×5 @ 1.2 (→120), feldspar ×1 @ 0.733 (→120), albite ×1 @ 0.156 (→120)
+      against A: 3 species present in either arm; moved 1 (albite); gained none; lost none; the baseline summary differs
+
+### colorado_plateau — 180 steps — events: 20 Groundwater Pulse | 60 Roll-Front Contact | 100 K Pulse | 140 Ca Recovery | 165 Arid Stabilization
+seed 1
+  A shipped        fill   1.1 % (largest 1.1 % at step 180; first >= 0.7 at step —)  full at step   —  last growth at step 180
+      uranophane ×3 @ 12.7 (→180), tyuyamunite ×5 @ 4.4 (→180), opal ×5 @ 2.1 (→180), carnotite ×3 @ 0.286 (→139)
+  B refund=1       fill   9.1 % (largest 9.1 % at step 180; first >= 0.7 at step —)  full at step   —  last growth at step 180
+      uranophane ×3 @ 26.1 (→180), tyuyamunite ×5 @ 5.0 (→180), opal ×5 @ 2.2 (→180), carnotite ×3 @ 0.859 (→139)
+      against A: 4 species present in either arm; moved 2 (carnotite, uranophane); gained none; lost none; the baseline summary differs
+
+### cooling — 100 steps — events: 
+seed 1
+  A shipped        fill   0.0 % (largest 0.0 % at step 100; first >= 0.7 at step —)  full at step   —  last growth at step 100
+      quartz ×1 @ 0.572 (→100)
+  B refund=1       fill   0.0 % (largest 0.0 % at step 100; first >= 0.7 at step —)  full at step   —  last growth at step 100
+      quartz ×1 @ 0.574 (→100)
+      against A: 1 species present in either arm; moved 0; gained none; lost none; the baseline summary differs
+
+### deccan_zeolite — 200 steps — events: 20 Silica Veneer | 35 Fe-Silica Replenishment | 55 Silica Maturation | 70 Zeolite Stage IIa | 90 Zeolite Stage IIb | 110 Apophyllite Stage III | 160 Late Cooling
+seed 1
+  A shipped        fill   0.3 % (largest 0.3 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
+      quartz ×3 @ 8.0 (→159), albite ×2 @ 4.2 (→159), hematite ×1 @ 3.6 (→200), heulandite ×5 @ 3.6 (→159), goethite ×1 @ 2.1 (→200), chalcedony ×4 @ 1.7 (→200), calcite ×1 @ 1.7 (→200), pectolite ×4 @ 1.3 (→159), scolecite ×1 @ 1.1 (→200), stilbite ×5 @ 0.825 (→159), apophyllite ×1 @ 0.360 (→159), prehnite ×1 @ 0.271 (→159), mesolite ×1 @ 0.021 (→94)
+      no solid left: feldspar (1 record)
+  B refund=1       fill   0.3 % (largest 0.3 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
+      quartz ×3 @ 8.1 (→159), albite ×2 @ 4.4 (→159), heulandite ×5 @ 3.8 (→159), hematite ×1 @ 3.6 (→200), goethite ×1 @ 2.1 (→200), chalcedony ×4 @ 1.7 (→200), calcite ×1 @ 1.7 (→200), scolecite ×1 @ 1.3 (→200), pectolite ×4 @ 1.3 (→159), stilbite ×5 @ 0.943 (→159), apophyllite ×1 @ 0.359 (→159), prehnite ×1 @ 0.280 (→159), mesolite ×1 @ 0.028 (→100), feldspar ×1 @ 0.001 (→111)
+      against A: 14 species present in either arm; moved 2 (mesolite, scolecite); gained feldspar; lost none; the baseline summary differs
+
+### elmwood — 200 steps — events: 15 Elmwood Ore-Brine Mixing | 28 Barite Stage — Generation 1 | 40 Hypothesized Clay-Coated Hiatus | 50 Barite Stage — Generation 2 | 60 Hypothesized Iron-Oxide-Coated Hiatus | 68 Barite Stage — Generation 3 | 70 Fault Slip | 72 Diagenetic Strontium | 78 Hypothesized Final Clay Rind
+seed 1
+  A shipped        fill   1.2 % (largest 1.2 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
+      calcite ×1 @ 14.5 (→200), fluorite ×1 @ 10.1 (→200), celestine ×6 @ 7.5 (→200), sphalerite ×1 @ 5.5 (→200), barite ×6 @ 0.602 (→77), chalcedony ×1 @ 0.556 (→200)
+  B refund=1       fill   1.4 % (largest 1.4 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
+      calcite ×1 @ 14.8 (→200), fluorite ×1 @ 10.6 (→200), celestine ×6 @ 8.3 (→200), sphalerite ×1 @ 5.6 (→200), barite ×6 @ 0.711 (→77), chalcedony ×1 @ 0.559 (→200)
+      against A: 6 species present in either arm; moved 0; gained none; lost none; the baseline summary differs
+
+### epithermal_telluride — 180 steps — events: 30 Telluride Recharge | 70 First Cooling | 110 Second Pulse | 145 Final Cooling
+seed 1
+  A shipped        fill   9.9 % (largest 9.9 % at step 180; first >= 0.7 at step —)  full at step   —  last growth at step 180
+      hessite ×3 @ 17.3 (→68), sylvanite ×2 @ 10.1 (→80), calaverite ×2 @ 10.0 (→80), feldspar ×2 @ 7.2 (→180), native_silver ×4 @ 7.1 (→180), quartz ×3 @ 4.7 (→180), native_gold ×4 @ 3.1 (→180), albite ×4 @ 0.144 (→66), native_tellurium ×3 @ 0.030 (→29)
+  B refund=1       fill  10.8 % (largest 10.8 % at step 180; first >= 0.7 at step —)  full at step   —  last growth at step 180
+      hessite ×3 @ 17.7 (→40), calaverite ×2 @ 10.8 (→40), sylvanite ×2 @ 10.3 (→39), feldspar ×2 @ 7.9 (→180), native_silver ×4 @ 7.2 (→180), quartz ×3 @ 4.7 (→180), native_gold ×4 @ 3.1 (→180), albite ×4 @ 0.439 (→137), native_tellurium ×3 @ 0.036 (→29)
+      against A: 9 species present in either arm; moved 1 (albite); gained none; lost none; the baseline summary differs
+
+### gem_pegmatite — 230 steps — events: 5 Outer Shell | 30 Schorl Arrives | 60 Albitization | 90 Be Saturation | 130 Li Phase | 160 Late Hydrothermal | 190 Clay Softening | 215 Final Cooling
+seed 1
+  A shipped        fill 100.0 % (largest 100.0 % at step 10; first >= 0.7 at step 7)  full at step  10  last growth at step  10
+      feldspar ×2 @ 33.4 (→10), albite ×2 @ 24.2 (→10), quartz ×3 @ 1.5 (→10), tourmaline ×3 @ 0.368 (→9), spodumene ×1 @ 0.197 (→9), cassiterite ×2 @ 0.041 (→10), lepidolite ×1 @ 0.016 (→9)
+  B refund=1       fill 100.0 % (largest 100.0 % at step 5; first >= 0.7 at step 5)  full at step   5  last growth at step   5
+      feldspar ×2 @ 37.5 (→5), albite ×1 @ 24.5 (→5), quartz ×3 @ 0.948 (→5), tourmaline ×2 @ 0.168 (→4), spodumene ×1 @ 0.089 (→4), cassiterite ×1 @ 0.026 (→5), lepidolite ×1 @ 0.010 (→4)
+      against A: 7 species present in either arm; moved 6 (albite, cassiterite, lepidolite, quartz, spodumene, tourmaline); gained none; lost none; the baseline summary differs
+
+### great_salt_plains — 250 steps — events: 25 Spring Rain #1 | 45 Dry Season #1 | 75 Spring Rain #2 | 95 Dry Season #2 | 125 Spring Rain #3 | 145 Dry Season #3 | 175 Spring Rain #4 | 195 Dry Season #4 | 215 Spring Rain #5 | 235 Dry Season #5 | 245 Crust Seal | 265 Red-Mud Flood
+seed 1
+  A shipped        fill   5.6 % (largest 5.6 % at step 250; first >= 0.7 at step —)  full at step   —  last growth at step 250
+      selenite ×2 @ 40.9 (→250), halite ×7 @ 1.1 (→250)
+  B refund=1       fill   5.6 % (largest 5.6 % at step 250; first >= 0.7 at step —)  full at step   —  last growth at step 250
+      selenite ×2 @ 40.9 (→250), halite ×7 @ 1.1 (→250)
+      against A: 2 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+
+### grimsel_alpine_cleft — 200 steps — events: 15 Cleft Opens (D1) | 45 Fissure Seals | 65 Cleft Re-opens (D2) | 90 Iron-Rose Stage | 115 Fissure Re-seals | 135 Cleft Re-opens (D3) | 165 Late Carbonate Stage
+seed 1
+  A shipped        fill   0.1 % (largest 0.1 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
+      calcite ×1 @ 12.7 (→200), quartz ×4 @ 6.7 (→200), albite ×2 @ 6.6 (→114), feldspar ×2 @ 5.2 (→114), apophyllite ×1 @ 2.2 (→200), apatite ×6 @ 1.6 (→200), hematite ×1 @ 1.3 (→200), titanite ×3 @ 1.1 (→200), epidote ×6 @ 1.0 (→171), fluorite ×1 @ 0.512 (→200)
+  B refund=1       fill   0.1 % (largest 0.1 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
+      calcite ×1 @ 14.1 (→200), albite ×2 @ 7.9 (→114), quartz ×3 @ 6.8 (→200), feldspar ×2 @ 6.1 (→114), apophyllite ×1 @ 2.3 (→200), apatite ×6 @ 1.7 (→200), titanite ×3 @ 1.4 (→200), hematite ×1 @ 1.3 (→200), epidote ×6 @ 1.1 (→171), fluorite ×1 @ 0.521 (→200)
+      against A: 10 species present in either arm; moved 2 (quartz, titanite); gained none; lost none; the baseline summary differs
+
+### jeffrey_mine — 200 steps — events: 25 Serpentinization Onset | 60 Mafic Dike Alteration | 100 Mid-Rodingite (Cyprine) | 140 Late Ca-Silicates | 170 Terminal Datolite
+seed 1
+  A shipped        fill   1.1 % (largest 1.1 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
+      vesuvianite ×4 @ 12.5 (→200), albite ×2 @ 10.4 (→200), diopside ×4 @ 8.9 (→200), grossular ×5 @ 4.7 (→200), actinolite ×4 @ 4.5 (→200), awaruite ×3 @ 3.6 (→200), prehnite ×5 @ 3.1 (→200), calcite ×1 @ 2.0 (→155), chrysotile ×1 @ 1.9 (→200), brucite ×4 @ 1.2 (→190), datolite ×3 @ 0.544 (→200), wollastonite ×2 @ 0.343 (→200), pectolite ×4 @ 0.303 (→190)
+  B refund=1       fill   1.4 % (largest 1.4 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
+      vesuvianite ×4 @ 13.7 (→200), albite ×2 @ 11.4 (→200), diopside ×4 @ 9.1 (→200), grossular ×4 @ 6.6 (→200), actinolite ×4 @ 4.5 (→200), prehnite ×4 @ 3.7 (→200), awaruite ×3 @ 3.5 (→200), calcite ×1 @ 2.4 (→155), chrysotile ×1 @ 2.0 (→200), brucite ×4 @ 1.1 (→190), datolite ×3 @ 0.546 (→200), pectolite ×4 @ 0.456 (→190), wollastonite ×3 @ 0.309 (→200)
+      against A: 13 species present in either arm; moved 4 (grossular, pectolite, prehnite, wollastonite); gained none; lost none; the baseline summary differs
+
+### marble_contact_metamorphism — 180 steps — events: 20 Peak Metamorphism | 60 Retrograde Cooling | 150 Fracture Seal | 165 Orogenic Strain — e-twin Lamellae
+seed 1
+  A shipped        fill   0.0 % (largest 0.0 % at step 0; first >= 0.7 at step —)  full at step   —  last growth at step   0
+      no species has solid left
+  B refund=1       fill   0.0 % (largest 0.0 % at step 0; first >= 0.7 at step —)  full at step   —  last growth at step   0
+      no species has solid left
+      against A: 0 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+
+### mvt — 120 steps — events: 20 Tri-State Ore-Fluid Mixing | 60 Second Pulse | 80 Tectonic
+seed 1
+  A shipped        fill   9.9 % (largest 9.9 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120
+      calcite ×1 @ 36.3 (→120), fluorite ×1 @ 12.6 (→120), galena ×1 @ 11.7 (→120), greenockite ×6 @ 2.4 (→120), anhydrite ×8 @ 2.0 (→120), pyrite ×1 @ 1.8 (→120), sphalerite ×2 @ 1.2 (→120), quartz ×3 @ 0.105 (→103), barite ×49 @ 0.031 (→119)
+  B refund=1       fill  12.4 % (largest 12.4 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120
+      calcite ×1 @ 38.9 (→120), fluorite ×1 @ 13.7 (→120), galena ×1 @ 13.6 (→120), greenockite ×5 @ 7.3 (→120), anhydrite ×8 @ 2.1 (→120), pyrite ×1 @ 1.8 (→120), sphalerite ×1 @ 1.1 (→120), quartz ×3 @ 0.103 (→103), barite ×64 @ 0.029 (→120)
+      against A: 9 species present in either arm; moved 3 (barite, greenockite, sphalerite); gained none; lost none; the baseline summary differs
+
+### naica_geothermal — 320 steps — events: 30 Cooling pulse #1 | 70 Cooling pulse #2 | 110 Cooling pulse #3 | 150 Cooling pulse #4 | 190 Cooling pulse #5 | 230 Cooling pulse #6 | 260 1985: Mining Begins | 290 2017: Pumps Stop
+seed 1
+  A shipped        fill   0.0 % (largest 0.0 % at step 320; first >= 0.7 at step —)  full at step   —  last growth at step 320
+      selenite ×1 @ 2.8 (→320), celestine ×6 @ 2.2 (→320)
+  B refund=1       fill   0.0 % (largest 0.0 % at step 320; first >= 0.7 at step —)  full at step   —  last growth at step 320
+      selenite ×1 @ 2.8 (→320), celestine ×6 @ 2.5 (→320)
+      against A: 2 species present in either arm; moved 0; gained none; lost none; the baseline summary differs
+
+### ouro_preto — 260 steps — events: 5 Vein Opening | 35 F-Pulse | 55 Cr Leach | 90 Steady Cooling | 150 Late Hydrothermal | 200 Oxidation Stain | 240 Final Cooling
+seed 1
+  A shipped        fill  32.3 % (largest 32.3 % at step 260; first >= 0.7 at step —)  full at step   —  last growth at step 260
+      albite ×2 @ 41.3 (→260), feldspar ×2 @ 17.4 (→260), topaz ×6 @ 5.5 (→260), quartz ×6 @ 4.3 (→247)
+  B refund=1       fill  50.5 % (largest 50.5 % at step 260; first >= 0.7 at step —)  full at step   —  last growth at step 260
+      albite ×2 @ 47.8 (→260), feldspar ×2 @ 19.1 (→260), topaz ×6 @ 5.5 (→260), quartz ×7 @ 4.2 (→247)
+      against A: 4 species present in either arm; moved 1 (quartz); gained none; lost none; the baseline summary differs
+
+### porphyry — 120 steps — events: 25 Copper Pulse | 45 Molybdenum Pulse | 60 Second Cu Pulse | 85 Exhumation + Oxidation | 95 Supergene Maturation
+seed 1
+  A shipped        fill  13.8 % (largest 13.8 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120
+      molybdenite ×3 @ 30.9 (→84), ferrimolybdite ×6 @ 18.5 (→120), galena ×4 @ 11.1 (→84), arsenopyrite ×4 @ 9.4 (→84), brochantite ×4 @ 4.3 (→120), acanthite ×4 @ 3.2 (→84), chalcopyrite ×1 @ 2.9 (→84), feldspar ×2 @ 2.6 (→84), pyrite ×1 @ 2.5 (→84), albite ×2 @ 1.9 (→84), goethite ×2 @ 1.2 (→120), bismuthinite ×4 @ 1.1 (→84), anglesite ×4 @ 0.748 (→120), hematite ×1 @ 0.441 (→120), malachite ×1 @ 0.216 (→120), stibnite ×2 @ 0.003 (→84)
+      no solid left: magnetite (1 record), tennantite (1 record), tetrahedrite (1 record)
+  B refund=1       fill  94.3 % (largest 94.3 % at step 120; first >= 0.7 at step 109)  full at step   —  last growth at step 120
+      molybdenite ×3 @ 51.9 (→84), ferrimolybdite ×6 @ 48.3 (→120), galena ×4 @ 15.6 (→84), arsenopyrite ×4 @ 15.1 (→84), acanthite ×4 @ 5.5 (→84), brochantite ×5 @ 3.5 (→120), pyrite ×1 @ 3.3 (→84), chalcopyrite ×1 @ 3.3 (→84), feldspar ×2 @ 2.7 (→84), albite ×2 @ 2.0 (→84), bismuthinite ×4 @ 1.3 (→84), goethite ×2 @ 1.0 (→120), anglesite ×4 @ 0.616 (→120), hematite ×1 @ 0.376 (→120), malachite ×2 @ 0.202 (→120), magnetite ×1 @ 0.012 (→84), stibnite ×2 @ 0.003 (→84)
+      no solid left: tennantite (1 record), tetrahedrite (1 record)
+      against A: 17 species present in either arm; moved 8 (acanthite, arsenopyrite, brochantite, ferrimolybdite, galena, malachite, molybdenite, pyrite); gained magnetite; lost none; the baseline summary differs
+
+### pulse — 100 steps — events: 40 Fluid Pulse | 70 Cooling Pulse
+seed 1
+  A shipped        fill   0.0 % (largest 0.0 % at step 100; first >= 0.7 at step —)  full at step   —  last growth at step 100
+      siderite ×1 @ 0.364 (→100), quartz ×1 @ 0.005 (→81), rhodochrosite ×1 @ 0.002 (→79)
+  B refund=1       fill   0.0 % (largest 0.0 % at step 100; first >= 0.7 at step —)  full at step   —  last growth at step 100
+      siderite ×1 @ 0.364 (→100), quartz ×1 @ 0.006 (→81), rhodochrosite ×1 @ 0.006 (→81)
+      against A: 3 species present in either arm; moved 1 (rhodochrosite); gained none; lost none; the baseline summary differs
+
+### radioactive_pegmatite — 120 steps — events: 20 Pegmatite Crystallization | 50 Deep Time | 80 Oxidizing Fluids | 100 Final Cooling
+seed 1
+  A shipped        fill 100.0 % (largest 100.0 % at step 82; first >= 0.7 at step 31)  full at step  55  last growth at step  82
+      feldspar ×2 @ 51.2 (→82), albite ×2 @ 49.5 (→82), morganite ×4 @ 16.8 (→55), quartz ×3 @ 9.8 (→82), uraninite ×3 @ 5.7 (→55), tourmaline ×9 @ 2.2 (→49), spodumene ×4 @ 1.5 (→49), lepidolite ×4 @ 0.537 (→49), cassiterite ×6 @ 0.145 (→43), topaz ×1 @ 0.077 (→39)
+      no solid left: opal (5 records), plumbogummite (3 records)
+  B refund=1       fill 100.0 % (largest 100.0 % at step 81; first >= 0.7 at step 12)  full at step  16  last growth at step  81
+      feldspar ×2 @ 33.3 (→80), albite ×2 @ 28.1 (→80), morganite ×4 @ 5.5 (→16), quartz ×3 @ 4.0 (→81), uraninite ×3 @ 2.0 (→16), spodumene ×3 @ 0.707 (→16), tourmaline ×4 @ 0.657 (→16), cassiterite ×3 @ 0.051 (→16), lepidolite ×2 @ 0.031 (→15)
+      no solid left: opal (5 records), plumbogummite (3 records)
+      against A: 10 species present in either arm; moved 9 (albite, cassiterite, feldspar, lepidolite, morganite, quartz, spodumene, tourmaline, uraninite); gained none; lost topaz; the baseline summary differs
+
+### reactivated_fluorite_vein — 160 steps — events: 20 North Pennine Stage-1 Brine | 60 Second Pulse | 78 Feeder Sealed | 118 Acidic Reopening Wash | 119 Mineralizing Recharge
+seed 1
+  A shipped        fill  23.3 % (largest 23.3 % at step 117; first >= 0.7 at step —)  full at step   —  last growth at step 160
+      calcite ×1 @ 38.7 (→123), fluorite ×1 @ 17.6 (→160), galena ×1 @ 8.5 (→117), rhodochrosite ×1 @ 3.8 (→117), acanthite ×4 @ 2.3 (→117), greenockite ×5 @ 2.1 (→117), anhydrite ×8 @ 1.8 (→77), siderite ×1 @ 1.4 (→117), barite ×6 @ 1.4 (→117), celestine ×6 @ 1.3 (→117), sphalerite ×1 @ 0.961 (→117)
+      no solid left: native_silver (4 records)
+  B refund=1       fill  28.3 % (largest 28.4 % at step 117; first >= 0.7 at step —)  full at step   —  last growth at step 160
+      calcite ×1 @ 41.2 (→123), fluorite ×1 @ 18.7 (→160), galena ×1 @ 9.6 (→117), greenockite ×5 @ 5.7 (→117), acanthite ×4 @ 4.3 (→117), rhodochrosite ×1 @ 3.9 (→117), anhydrite ×8 @ 1.8 (→77), barite ×6 @ 1.5 (→117), siderite ×1 @ 1.4 (→117), celestine ×6 @ 1.4 (→117), sphalerite ×1 @ 0.990 (→117)
+      no solid left: native_silver (4 records)
+      against A: 11 species present in either arm; moved 2 (acanthite, greenockite); gained none; lost none; the baseline summary differs
+
+### reactive_wall — 120 steps — events: 15 First Acid Pulse | 40 Second Acid Pulse | 70 Third Acid Pulse | 90 Fracture Seal
+seed 1
+  A shipped        fill   0.1 % (largest 0.1 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120
+      sphalerite ×1 @ 6.5 (→120), galena ×1 @ 1.1 (→120), pyrite ×2 @ 0.458 (→120), anhydrite ×6 @ 0.129 (→92), marcasite ×1 @ 0.002 (→70)
+  B refund=1       fill   0.2 % (largest 0.2 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120
+      galena ×1 @ 7.0 (→120), sphalerite ×1 @ 6.5 (→120), pyrite ×2 @ 0.460 (→120), anhydrite ×6 @ 0.128 (→92), marcasite ×1 @ 0.003 (→70)
+      against A: 5 species present in either arm; moved 2 (galena, marcasite); gained none; lost none; the baseline summary differs
+
+### roughten_gill — 240 steps — events: 55 Primary Carbonate-Gangue Pulse | 60 Primary Ore Stage Closes | 100 Deep Oxidation Seep | 140 Carbonate Gangue Buffers Acid | 180 Silica-Rich Zn Weathering | 215 Type-Locality Phosphate Cap
+seed 1
+  A shipped        fill  52.5 % (largest 52.5 % at step 240; first >= 0.7 at step —)  full at step   —  last growth at step 240
+      galena ×4 @ 23.6 (→59), malachite ×1 @ 13.9 (→240), pyromorphite ×6 @ 6.1 (→240), calcite ×1 @ 3.9 (→59), chrysocolla ×5 @ 3.8 (→240), brochantite ×5 @ 1.8 (→240), cerussite ×4 @ 1.4 (→240), hemimorphite ×6 @ 1.4 (→240), chalcocite ×5 @ 1.2 (→59), mottramite ×4 @ 1.2 (→179), pyrite ×1 @ 1.1 (→59), sphalerite ×1 @ 0.653 (→59), aurichalcite ×4 @ 0.610 (→214), azurite ×1 @ 0.400 (→179), anglesite ×2 @ 0.363 (→240), smithsonite ×1 @ 0.240 (→179), quartz ×1 @ 0.229 (→59), plumbogummite ×2 @ 0.227 (→240), mimetite ×1 @ 0.081 (→214), chalcopyrite ×2 @ 0.009 (→59), tetrahedrite ×1 @ 0.008 (→1), tennantite ×1 @ 0.007 (→1)
+      no solid left: acanthite (4 records)
+  B refund=1       fill  99.3 % (largest 99.5 % at step 59; first >= 0.7 at step 41)  full at step   —  last growth at step 240
+      galena ×4 @ 27.7 (→59), tennantite ×1 @ 3.3 (→59), tetrahedrite ×1 @ 1.0 (→59), malachite ×1 @ 0.860 (→240), sphalerite ×1 @ 0.609 (→52), pyrite ×1 @ 0.485 (→59), chalcocite ×3 @ 0.398 (→59), pyromorphite ×1 @ 0.377 (→240), acanthite ×4 @ 0.371 (→55), chrysocolla ×5 @ 0.233 (→240), quartz ×3 @ 0.137 (→58), plumbogummite ×3 @ 0.095 (→240), hemimorphite ×3 @ 0.076 (→240), mottramite ×1 @ 0.066 (→179), cerussite ×3 @ 0.054 (→240), anglesite ×1 @ 0.053 (→240), chalcopyrite ×4 @ 0.048 (→51), brochantite ×3 @ 0.038 (→240), aurichalcite ×4 @ 0.033 (→214), azurite ×1 @ 0.019 (→179), smithsonite ×1 @ 0.011 (→191), mimetite ×1 @ 0.006 (→214)
+      no solid left: calcite (1 record)
+      against A: 23 species present in either arm; moved 19 (anglesite, aurichalcite, azurite, brochantite, cerussite, chalcocite, chalcopyrite, chrysocolla, hemimorphite, malachite, mimetite, mottramite, plumbogummite, pyrite, pyromorphite, quartz, smithsonite, tennantite, tetrahedrite); gained acanthite; lost calcite (1 record, no solid); the baseline summary differs
+
+### sabkha_dolomitization — 260 steps — events: 10 Tidal Flood #1 | 20 Evaporation #1 | 30 Tidal Flood #2 | 40 Evaporation #2 | 50 Tidal Flood #3 | 60 Evaporation #3 | 70 Tidal Flood #4 | 80 Evaporation #4 | 90 Tidal Flood #5 | 100 Evaporation #5 | 110 Tidal Flood #6 | 120 Evaporation #6 | 130 Tidal Flood #7 | 140 Evaporation #7 | 150 Tidal Flood #8 | 160 Evaporation #8 | 170 Tidal Flood #9 | 180 Evaporation #9 | 190 Tidal Flood #10 | 200 Evaporation #10 | 210 Tidal Flood #11 | 220 Evaporation #11 | 230 Tidal Flood #12 | 240 Evaporation #12 | 245 Final Seal
+seed 1
+  A shipped        fill   2.6 % (largest 2.6 % at step 260; first >= 0.7 at step —)  full at step   —  last growth at step 260
+      celestine ×6 @ 10.6 (→260), anhydrite ×10 @ 7.8 (→240), dolomite ×4 @ 0.092 (→260), aragonite ×1 @ 0.019 (→9), calcite ×4 @ 0.012 (→260), HMC ×22 @ 0.000 (→239)
+  B refund=1       fill   2.8 % (largest 2.8 % at step 260; first >= 0.7 at step —)  full at step   —  last growth at step 260
+      celestine ×6 @ 11.1 (→260), anhydrite ×10 @ 7.7 (→240), dolomite ×6 @ 0.075 (→260), aragonite ×1 @ 0.019 (→9), calcite ×19 @ 0.006 (→260), HMC ×44 @ 0.000 (→239)
+      against A: 6 species present in either arm; moved 3 (HMC, calcite, dolomite); gained none; lost none; the baseline summary differs
+
+### schneeberg — 160 steps — events: 20 Pegmatite Crystallization | 70 Cooling | 85 Cu+P Oxidation | 105 Cu+As Pulse | 110 Vein Exhumed (water table drops) | 125 Cu Depletion | 145 Late As Pulse
+seed 1
+  A shipped        fill  11.0 % (largest 11.0 % at step 160; first >= 0.7 at step —)  full at step   —  last growth at step 160
+      feldspar ×2 @ 26.6 (→160), quartz ×3 @ 24.9 (→84), uraninite ×3 @ 7.8 (→87), chrysocolla ×5 @ 3.5 (→124), arsenopyrite ×4 @ 2.6 (→69), uranophane ×3 @ 1.6 (→160), autunite ×5 @ 1.2 (→144), metatorbernite ×4 @ 0.791 (→104), erythrite ×1 @ 0.740 (→160), nickeline ×2 @ 0.551 (→69), metazeunerite ×3 @ 0.544 (→124), pharmacolite ×1 @ 0.462 (→160), uranospinite ×2 @ 0.458 (→160), brochantite ×2 @ 0.421 (→124), native_arsenic ×1 @ 0.246 (→84), cobaltite ×1 @ 0.187 (→37), zeunerite ×1 @ 0.145 (→124), morganite ×1 @ 0.138 (→1), annabergite ×2 @ 0.137 (→160), spodumene ×1 @ 0.111 (→19), acanthite ×3 @ 0.091 (→84), native_bismuth ×1 @ 0.066 (→84), cassiterite ×4 @ 0.046 (→19), native_silver ×1 @ 0.022 (→84), topaz ×3 @ 0.022 (→21), proustite ×1 @ 0.012 (→84), cuprite ×1 @ 0.004 (→90)
+      no solid left: goethite (1 record), naumannite (1 record), tennantite (1 record)
+  B refund=1       fill  17.7 % (largest 17.7 % at step 160; first >= 0.7 at step —)  full at step   —  last growth at step 160
+      feldspar ×2 @ 38.0 (→160), quartz ×3 @ 24.9 (→84), uraninite ×3 @ 9.1 (→87), arsenopyrite ×4 @ 4.6 (→69), morganite ×1 @ 4.5 (→54), chrysocolla ×5 @ 3.7 (→124), nickeline ×3 @ 1.6 (→69), uranophane ×3 @ 1.6 (→160), autunite ×5 @ 1.2 (→144), acanthite ×4 @ 1.0 (→84), proustite ×2 @ 0.866 (→84), erythrite ×1 @ 0.805 (→160), metatorbernite ×4 @ 0.731 (→104), metazeunerite ×3 @ 0.608 (→124), topaz ×5 @ 0.568 (→53), pharmacolite ×1 @ 0.486 (→160), uranospinite ×2 @ 0.482 (→160), brochantite ×2 @ 0.452 (→124), native_arsenic ×2 @ 0.251 (→84), cobaltite ×2 @ 0.216 (→40), native_silver ×2 @ 0.151 (→84), zeunerite ×1 @ 0.144 (→124), annabergite ×2 @ 0.133 (→160), spodumene ×1 @ 0.108 (→19), native_bismuth ×1 @ 0.066 (→84), cassiterite ×4 @ 0.046 (→19), cuprite ×1 @ 0.004 (→90)
+      no solid left: goethite (1 record), naumannite (1 record), tennantite (1 record)
+      against A: 27 species present in either arm; moved 10 (acanthite, arsenopyrite, cobaltite, feldspar, morganite, native_arsenic, native_silver, nickeline, proustite, topaz); gained none; lost none; the baseline summary differs
+
+### searles_lake — 300 steps — events: 30 Winter Freeze #1 | 60 Summer Bake #1 | 75 Sierra Snowmelt #1 | 90 Winter Freeze #2 | 120 Summer Bake #2 | 135 Sierra Snowmelt #2 | 150 Winter Freeze #3 | 180 Summer Bake #3 | 195 Sierra Snowmelt #3 | 210 Winter Freeze #4 | 240 Summer Bake #4 | 255 Sierra Snowmelt #4 | 270 Winter Freeze #5
+seed 1
+  A shipped        fill  90.6 % (largest 100.0 % at step 186; first >= 0.7 at step 132)  full at step 185  last growth at step 300
+      thenardite ×3 @ 56.2 (→245), tincalconite ×8 @ 5.3 (→121), celestine ×7 @ 0.277 (→300), calcite ×10 @ 0.008 (→300)
+      no solid left: halite (23 records), mirabilite (8 records)
+  B refund=1       fill  90.7 % (largest 100.0 % at step 185; first >= 0.7 at step 131)  full at step 185  last growth at step 300
+      thenardite ×3 @ 56.2 (→244), tincalconite ×8 @ 5.6 (→121), celestine ×7 @ 0.293 (→300), calcite ×10 @ 0.008 (→300)
+      no solid left: halite (23 records), mirabilite (8 records)
+      against A: 4 species present in either arm; moved 0; gained none; lost none; the baseline summary differs
+
+### shigar_pegmatite — 70 steps — events: 5 Outer Shell | 12 Schorl Arrives | 22 Cleavelandite | 32 Aquamarine Boundary | 48 Topaz Window | 58 The Etch | 65 Final Cooling
+seed 1
+  A shipped        fill  91.6 % (largest 91.6 % at step 70; first >= 0.7 at step 57)  full at step   —  last growth at step  70
+      albite ×2 @ 267.9 (→70), feldspar ×2 @ 115.0 (→70), quartz ×3 @ 11.0 (→70), tourmaline ×8 @ 1.8 (→57), topaz ×2 @ 0.641 (→64)
+  B refund=1       fill 100.0 % (largest 100.0 % at step 26; first >= 0.7 at step 16)  full at step  26  last growth at step  26
+      feldspar ×2 @ 143.3 (→26), albite ×2 @ 114.3 (→26), quartz ×3 @ 3.8 (→26), tourmaline ×3 @ 0.284 (→25)
+      against A: 5 species present in either arm; moved 3 (albite, quartz, tourmaline); gained none; lost topaz; the baseline summary differs
+
+### sicily_solfifera — 200 steps — events: 15 Gypsum Pulse #1 | 25 BSR Pulse #1 | 50 Gypsum Pulse #2 | 60 BSR Pulse #2 | 85 Carbonate Buffer Lock | 105 Gypsum Pulse #3 | 115 Inherited S° Recharge | 140 Mid-Run Buffer Refresh | 160 Inherited S° Recharge | 180 Final S° Recharge
+seed 1
+  A shipped        fill   2.9 % (largest 2.9 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
+      celestine ×6 @ 9.0 (→200), native_sulfur ×4 @ 4.9 (→200), strontianite ×4 @ 1.3 (→200), calcite ×1 @ 1.0 (→84), selenite ×1 @ 0.119 (→24)
+  B refund=1       fill   2.9 % (largest 2.9 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
+      celestine ×6 @ 9.0 (→200), native_sulfur ×4 @ 4.9 (→200), strontianite ×4 @ 1.3 (→200), calcite ×1 @ 1.0 (→84), selenite ×1 @ 0.119 (→24)
+      against A: 5 species present in either arm; moved 0; gained none; lost none; the baseline summary differs
+
+### stalactite_demo — 100 steps — events: 
+seed 1
+  A shipped        fill   0.0 % (largest 0.0 % at step 100; first >= 0.7 at step —)  full at step   —  last growth at step 100
+      calcite ×10 @ 0.833 (→100)
+  B refund=1       fill   0.0 % (largest 0.0 % at step 100; first >= 0.7 at step —)  full at step   —  last growth at step 100
+      calcite ×10 @ 0.834 (→100)
+      against A: 1 species present in either arm; moved 0; gained none; lost none; the baseline summary differs
+
+### sulphur_bank — 200 steps — events: 10 H₂S Recharge #1 | 20 Surface O₂ Mixing #1 | 35 H₂S Recharge #2 | 45 Surface O₂ Mixing #2 | 60 H₂S Recharge #3 | 70 Surface O₂ Mixing #3 | 90 Seasonal Cooling | 105 H₂S Recharge #4 | 115 Surface O₂ Mixing #4 | 130 H₂S Recharge #5 | 140 Surface O₂ Mixing #5 | 160 Final Cooling | 175 H₂S Recharge #6
+seed 1
+  A shipped        fill  28.1 % (largest 28.1 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
+      marcasite ×1 @ 39.7 (→200), metacinnabar ×3 @ 15.8 (→200), cinnabar ×7 @ 7.2 (→200), native_sulfur ×4 @ 5.1 (→200), orpiment ×8 @ 2.9 (→200), pararealgar ×6 @ 1.3 (→108), pyrite ×1 @ 0.511 (→200)
+  B refund=1       fill  67.4 % (largest 67.4 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
+      marcasite ×1 @ 43.7 (→200), metacinnabar ×3 @ 30.1 (→199), cinnabar ×6 @ 10.1 (→200), native_sulfur ×4 @ 5.2 (→200), orpiment ×7 @ 3.3 (→200), pararealgar ×6 @ 1.4 (→108), pyrite ×3 @ 0.549 (→200)
+      against A: 7 species present in either arm; moved 4 (cinnabar, metacinnabar, orpiment, pyrite); gained none; lost none; the baseline summary differs
+
+### sunnyside_american_tunnel — 200 steps — events: 30 Primary Cooling | 70 Stage V Mn-Carbonate Pulse | 110 Stage VI Fluoride + REE Pulse | 150 Stage VI Carbonate Cap
+seed 1
+  A shipped        fill  87.5 % (largest 87.5 % at step 200; first >= 0.7 at step 195)  full at step   —  last growth at step 200
+      calcite ×1 @ 73.4 (→200), galena ×4 @ 23.2 (→149), rhodochrosite ×1 @ 5.1 (→200), argentite ×5 @ 4.4 (→200), tennantite ×1 @ 2.5 (→149), quartz ×3 @ 1.4 (→200), fluorite ×1 @ 1.3 (→149), native_gold ×4 @ 0.831 (→200), sphalerite ×1 @ 0.473 (→29), arsenopyrite ×2 @ 0.454 (→29), tetrahedrite ×1 @ 0.234 (→29), chalcopyrite ×2 @ 0.213 (→29), pyrite ×1 @ 0.193 (→29), sylvanite ×2 @ 0.019 (→11), calaverite ×2 @ 0.018 (→29)
+      no solid left: native_silver (4 records)
+  B refund=1       fill  98.6 % (largest 98.6 % at step 200; first >= 0.7 at step 183)  full at step   —  last growth at step 200
+      calcite ×1 @ 71.9 (→200), galena ×4 @ 31.1 (→149), calaverite ×2 @ 7.5 (→200), tennantite ×1 @ 6.8 (→149), argentite ×4 @ 5.5 (→189), rhodochrosite ×1 @ 4.8 (→200), sylvanite ×2 @ 4.2 (→200), arsenopyrite ×2 @ 1.6 (→29), fluorite ×1 @ 1.3 (→149), quartz ×3 @ 1.2 (→200), native_gold ×5 @ 1.1 (→200), tetrahedrite ×1 @ 0.626 (→29), sphalerite ×1 @ 0.498 (→29), chalcopyrite ×1 @ 0.219 (→29), pyrite ×1 @ 0.207 (→29)
+      no solid left: native_silver (3 records)
+      against A: 15 species present in either arm; moved 9 (argentite, arsenopyrite, calaverite, chalcopyrite, galena, native_gold, sylvanite, tennantite, tetrahedrite); gained none; lost none; the baseline summary differs
+
+### supergene_oxidation — 200 steps — events: 5 Acid Phase | 8 Acid Continues | 12 Acid Continues | 16 Acid Final Pulse | 20 Meteoric Flush | 40 Pb+Mo Pulse | 55 Cu Enrichment Boundary | 70 Dry-Season Ca-Sulfate Recharge | 95 Arsenic Seep | 115 Phosphate Seep | 130 V-bearing Seep | 160 Fracture Seal
+seed 1
+  A shipped        fill  43.1 % (largest 43.1 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
+      malachite ×1 @ 44.5 (→200), ferrimolybdite ×6 @ 24.6 (→200), powellite ×4 @ 20.1 (→163), wulfenite ×1 @ 17.5 (→200), brochantite ×5 @ 11.2 (→200), caledonite ×2 @ 5.2 (→133), conichalcite ×4 @ 5.1 (→133), anglesite ×4 @ 4.3 (→200), cerussite ×4 @ 4.2 (→200), azurite ×4 @ 3.3 (→159), scorodite ×6 @ 3.2 (→159), mimetite ×1 @ 3.2 (→159), stolzite ×6 @ 3.0 (→200), adamite ×1 @ 2.5 (→159), smithsonite ×1 @ 2.4 (→133), duftite ×2 @ 2.4 (→133), aurichalcite ×4 @ 2.2 (→100), pyromorphite ×6 @ 1.8 (→200), plumbogummite ×3 @ 1.7 (→200), raspite ×2 @ 1.5 (→200), jarosite ×7 @ 0.885 (→200), goethite ×1 @ 0.846 (→159), vanadinite ×6 @ 0.652 (→200), erythrite ×1 @ 0.622 (→133), annabergite ×1 @ 0.598 (→133), selenite ×1 @ 0.431 (→200), olivenite ×4 @ 0.405 (→94), descloizite ×3 @ 0.109 (→159), cuprite ×1 @ 0.080 (→69), lepidocrocite ×2 @ 0.077 (→113)
+  B refund=1       fill  98.3 % (largest 98.3 % at step 200; first >= 0.7 at step 139)  full at step   —  last growth at step 200
+      malachite ×1 @ 43.4 (→200), ferrimolybdite ×6 @ 42.2 (→200), powellite ×4 @ 20.1 (→145), wulfenite ×1 @ 17.3 (→200), brochantite ×5 @ 8.2 (→200), caledonite ×2 @ 7.9 (→133), conichalcite ×4 @ 5.1 (→93), mimetite ×2 @ 4.6 (→159), anglesite ×4 @ 3.2 (→200), cerussite ×4 @ 3.1 (→200), azurite ×4 @ 3.0 (→159), stolzite ×5 @ 2.9 (→172), scorodite ×6 @ 2.8 (→159), duftite ×2 @ 2.5 (→133), smithsonite ×1 @ 2.5 (→133), adamite ×1 @ 2.4 (→159), aurichalcite ×4 @ 2.3 (→100), plumbogummite ×3 @ 1.6 (→200), raspite ×2 @ 1.4 (→162), pyromorphite ×6 @ 0.993 (→200), goethite ×1 @ 0.802 (→159), erythrite ×1 @ 0.740 (→133), annabergite ×1 @ 0.705 (→133), vanadinite ×6 @ 0.478 (→200), olivenite ×4 @ 0.405 (→94), selenite ×4 @ 0.296 (→183), descloizite ×4 @ 0.281 (→159), jarosite ×6 @ 0.166 (→200), lepidocrocite ×7 @ 0.078 (→158), cuprite ×1 @ 0.077 (→69)
+      against A: 30 species present in either arm; moved 13 (anglesite, brochantite, caledonite, cerussite, descloizite, ferrimolybdite, jarosite, lepidocrocite, mimetite, pyromorphite, selenite, stolzite, vanadinite); gained none; lost none; the baseline summary differs
+      wall dissolution withheld as too small to resolve: on 37 steps in A, 0 in B
+
+### tn457_barite_pulses — 110 steps — events: 5 Pulse  1 | 7 Pulse  2 | 9 Pulse  3 | 11 Pulse  4 | 13 Pulse  5 | 15 Pulse  6 | 17 Pulse  7 | 19 Pulse  8 | 21 Pulse  9 | 23 Pulse 10 | 25 Pulse 11 | 27 Pulse 12 | 29 Pulse 13 | 31 Pulse 14 | 33 Pulse 15 | 35 Pulse 16 | 37 Pulse 17 | 39 Pulse 18 | 41 Pulse 19 | 43 Pulse 20 | 45 Pulse 21 | 47 Pulse 22 | 49 Pulse 23 | 51 Pulse 24 | 53 Pulse 25 | 55 Pulse 26 | 57 Pulse 27 | 59 Pulse 28 | 61 Pulse 29 | 63 Pulse 30 | 65 Pulse 31 | 67 Pulse 32 | 69 Pulse 33 | 71 Pulse 34 | 73 Pulse 35 | 75 Pulse 36 | 77 Pulse 37 | 79 Pulse 38 | 81 Pulse 39 | 83 Pulse 40 | 85 Pulse 41 | 87 Pulse 42 | 89 Pulse 43 | 91 Pulse 44 | 93 Pulse 45 | 95 Pulse 46 | 97 Pulse 47 | 99 Pulse 48 | 101 Pulse 49 | 103 Pulse 50
+seed 1
+  A shipped        fill   2.2 % (largest 2.2 % at step 110; first >= 0.7 at step —)  full at step   —  last growth at step 110
+      sphalerite ×1 @ 6.0 (→110), barite ×6 @ 4.2 (→110)
+  B refund=1       fill   2.2 % (largest 2.2 % at step 110; first >= 0.7 at step —)  full at step   —  last growth at step 110
+      sphalerite ×1 @ 6.2 (→110), barite ×6 @ 4.2 (→110)
+      against A: 2 species present in either arm; moved 0; gained none; lost none; the baseline summary differs
+
+### tormiq_alpine_cleft — 200 steps — events: 25 Cleft Opens — Quartz Lining | 50 Ti-Fe Oxide Stage | 80 The Epidote Stage | 110 Byssolite Sprays | 140 Adularia Stage | 170 Late Calcite — Cooling | 188 Late Karakoram-Thrust Shearing
+seed 1
+  A shipped        fill   8.3 % (largest 8.3 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
+      albite ×2 @ 66.5 (→200), feldspar ×2 @ 37.2 (→200), epidote ×5 @ 24.0 (→200), titanite ×3 @ 5.3 (→200), actinolite ×4 @ 1.4 (→200), quartz ×2 @ 0.053 (→155)
+  B refund=1       fill  32.3 % (largest 32.3 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
+      albite ×2 @ 94.7 (→200), feldspar ×2 @ 46.8 (→200), epidote ×5 @ 29.8 (→200), titanite ×3 @ 8.0 (→200), actinolite ×4 @ 1.5 (→200), quartz ×2 @ 0.054 (→155)
+      against A: 6 species present in either arm; moved 3 (albite, feldspar, titanite); gained none; lost none; the baseline summary differs
+
+### tutorial_first_crystal — 30 steps — events: 8 Hot Recharge
+seed 1
+  A shipped        fill   0.0 % (largest 0.0 % at step 7; first >= 0.7 at step —)  full at step   —  last growth at step   7
+      quartz ×1 @ 0.008 (→7)
+  B refund=1       fill   0.0 % (largest 0.0 % at step 7; first >= 0.7 at step —)  full at step   —  last growth at step   7
+      quartz ×1 @ 0.008 (→7)
+      against A: 1 species present in either arm; moved 0; gained none; lost none; the baseline summary is unchanged
+
+### tutorial_mn_calcite — 30 steps — events: 8 Manganese Pulse | 16 Iron-Poor Recharge
+seed 1
+  A shipped        fill   0.0 % (largest 0.0 % at step 30; first >= 0.7 at step —)  full at step   —  last growth at step  30
+      calcite ×1 @ 1.3 (→29), rhodochrosite ×1 @ 0.559 (→30), siderite ×1 @ 0.249 (→15), quartz ×1 @ 0.003 (→1)
+  B refund=1       fill   0.0 % (largest 0.0 % at step 30; first >= 0.7 at step —)  full at step   —  last growth at step  30
+      calcite ×1 @ 1.3 (→29), rhodochrosite ×1 @ 0.565 (→30), siderite ×1 @ 0.251 (→15), quartz ×1 @ 0.003 (→1)
+      against A: 4 species present in either arm; moved 0; gained none; lost none; the baseline summary differs
+
+### tutorial_travertine — 60 steps — events: 10 Upper Vent | 25 Terrace Run | 40 Apron Vent
+seed 1
+  A shipped        fill   0.0 % (largest 0.0 % at step 60; first >= 0.7 at step —)  full at step   —  last growth at step  60
+      aragonite ×1 @ 2.6 (→59), calcite ×1 @ 1.5 (→60)
+  B refund=1       fill   0.0 % (largest 0.0 % at step 60; first >= 0.7 at step —)  full at step   —  last growth at step  60
+      aragonite ×1 @ 2.6 (→59), calcite ×1 @ 1.5 (→60)
+      against A: 2 species present in either arm; moved 0; gained none; lost none; the baseline summary differs
+
+### ultramafic_supergene — 200 steps — events: 40 Wet Season | 80 Ni Pulse | 130 Dry Season | 175 Alkaline Cap
+seed 1
+  A shipped        fill   1.2 % (largest 1.2 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
+      opal ×5 @ 8.4 (→200), chrysoprase ×3 @ 5.5 (→200), calcite ×1 @ 0.002 (→200)
+      no solid left: dolomite (14 records)
+  B refund=1       fill   1.2 % (largest 1.2 % at step 200; first >= 0.7 at step —)  full at step   —  last growth at step 200
+      opal ×5 @ 8.4 (→200), chrysoprase ×3 @ 5.5 (→200), dolomite ×2 @ 0.061 (→200), calcite ×1 @ 0.002 (→200)
+      against A: 4 species present in either arm; moved 0; gained dolomite; lost none; the baseline summary differs
+
+### wittichen — 220 steps — events: 93 Hydrocarbon Influx | 134 Meteoric Sulfate | 142 Carbonate Gangue | 170 Post-vein Exhumation
+seed 1
+  A shipped        fill   0.0 % (largest 0.0 % at step 220; first >= 0.7 at step —)  full at step   —  last growth at step 220
+      erythrite ×1 @ 8.0 (→220), haidingerite ×5 @ 5.0 (→214), annabergite ×1 @ 4.4 (→220), chalcedony ×4 @ 1.7 (→220), nickeline ×4 @ 1.6 (→106), native_arsenic ×4 @ 1.5 (→169), barite ×6 @ 0.864 (→220), native_silver ×4 @ 0.539 (→113), anhydrite ×6 @ 0.245 (→169), skutterudite ×2 @ 0.062 (→34), native_bismuth ×1 @ 0.046 (→137), safflorite ×2 @ 0.006 (→93)
+  B refund=1       fill   0.0 % (largest 0.0 % at step 220; first >= 0.7 at step —)  full at step   —  last growth at step 220
+      erythrite ×1 @ 11.7 (→220), annabergite ×1 @ 6.5 (→220), haidingerite ×5 @ 5.0 (→214), chalcedony ×4 @ 1.7 (→220), nickeline ×4 @ 1.7 (→106), native_arsenic ×4 @ 1.5 (→169), barite ×6 @ 0.872 (→220), native_silver ×4 @ 0.539 (→113), anhydrite ×6 @ 0.247 (→169), skutterudite ×2 @ 0.064 (→34), native_bismuth ×1 @ 0.046 (→137), safflorite ×2 @ 0.010 (→93)
+      against A: 12 species present in either arm; moved 3 (annabergite, erythrite, safflorite); gained none; lost none; the baseline summary differs
+
+### zoned_dripstone_cave — 150 steps — events: 
+seed 1
+  A shipped        fill   0.0 % (largest 0.0 % at step 150; first >= 0.7 at step —)  full at step   —  last growth at step 150
+      aragonite ×4 @ 1.6 (→150), calcite ×10 @ 0.646 (→150), dolomite ×1 @ 0.340 (→150)
+  B refund=1       fill   0.0 % (largest 0.0 % at step 150; first >= 0.7 at step —)  full at step   —  last growth at step 150
+      aragonite ×4 @ 1.6 (→150), calcite ×10 @ 0.647 (→150), dolomite ×1 @ 0.340 (→150)
+      against A: 3 species present in either arm; moved 0; gained none; lost none; the baseline summary differs
+
+audits: every arm run reads the simulator's audits as the shipped arm does

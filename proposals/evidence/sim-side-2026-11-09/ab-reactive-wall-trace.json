@@ -1,0 +1,375 @@
+{
+ "sim_version": 286,
+ "arms": [
+  "excess=1"
+ ],
+ "minerals": [
+  "galena"
+ ],
+ "seeds": [
+  42,
+  1,
+  2
+ ],
+ "selfcheck": {
+  "scenario": "schneeberg",
+  "neutral": {
+   "rind=Infinity": true,
+   "cap=Infinity": true,
+   "rclamp=Infinity": true,
+   "root=1": true,
+   "mul=Ca:1": true,
+   "refund=0": true
+  },
+  "shippedReproducesBaseline": true
+ },
+ "runs": [
+  {
+   "scenario": "reactive_wall",
+   "seed": 42,
+   "shippedReproducesBaseline": true,
+   "A": {
+    "fill": 0.0012159551036735091,
+    "maxFill": 0.0012159551036735091,
+    "maxFillStep": 120,
+    "first70": null,
+    "full": null,
+    "lastGrowth": 120,
+    "species": {
+     "sphalerite": {
+      "n": 1,
+      "max_um": 6627.016185903934,
+      "last": 120
+     },
+     "galena": {
+      "n": 1,
+      "max_um": 3891.377833226939,
+      "last": 120
+     },
+     "pyrite": {
+      "n": 2,
+      "max_um": 468.450896975157,
+      "last": 120
+     },
+     "anhydrite": {
+      "n": 4,
+      "max_um": 131.08423839023405,
+      "last": 92
+     }
+    },
+    "noSolid": {
+     "marcasite": 1
+    },
+    "bulkPb": 30,
+    "voxPb": 29.991601109510004,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 46,
+    "trace": {
+     "mineral": "galena",
+     "steps": 81,
+     "sigmaBulkMedian": 1.1213067989273402,
+     "sigmaCellMedian": 1.0050779869158701
+    }
+   },
+   "B": {
+    "excess=1": {
+     "fill": 0.0010242775173983224,
+     "maxFill": 0.0010242775173983224,
+     "maxFillStep": 120,
+     "first70": null,
+     "full": null,
+     "lastGrowth": 120,
+     "species": {
+      "sphalerite": {
+       "n": 1,
+       "max_um": 6652.214544888441,
+       "last": 120
+      },
+      "galena": {
+       "n": 1,
+       "max_um": 742.3844651695076,
+       "last": 120
+      },
+      "pyrite": {
+       "n": 2,
+       "max_um": 463.5535691255218,
+       "last": 120
+      },
+      "anhydrite": {
+       "n": 4,
+       "max_um": 132.50023456815106,
+       "last": 92
+      }
+     },
+     "noSolid": {
+      "marcasite": 1
+     },
+     "bulkPb": 30,
+     "voxPb": 29.998397686862724,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "wallDissolutionWithheld": 46,
+     "trace": {
+      "mineral": "galena",
+      "steps": 81,
+      "sigmaBulkMedian": 1.1213067703523547,
+      "sigmaCellMedian": 1.0982937337401335
+     },
+     "auditMoved": false,
+     "speciesCount": 4,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "galena"
+     ],
+     "sameAsShipped": false
+    }
+   }
+  },
+  {
+   "scenario": "reactive_wall",
+   "seed": 1,
+   "shippedReproducesBaseline": null,
+   "A": {
+    "fill": 0.0009648784209469138,
+    "maxFill": 0.0009648784209469138,
+    "maxFillStep": 120,
+    "first70": null,
+    "full": null,
+    "lastGrowth": 120,
+    "species": {
+     "sphalerite": {
+      "n": 1,
+      "max_um": 6514.090530745432,
+      "last": 120
+     },
+     "galena": {
+      "n": 1,
+      "max_um": 1076.0177823200333,
+      "last": 120
+     },
+     "pyrite": {
+      "n": 2,
+      "max_um": 458.26348077934824,
+      "last": 120
+     },
+     "anhydrite": {
+      "n": 6,
+      "max_um": 128.66828371907235,
+      "last": 92
+     },
+     "marcasite": {
+      "n": 1,
+      "max_um": 2.1084788304022366,
+      "last": 70
+     }
+    },
+    "noSolid": {},
+    "bulkPb": 30,
+    "voxPb": 29.99767759495329,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 45,
+    "trace": {
+     "mineral": "galena",
+     "steps": 81,
+     "sigmaBulkMedian": 1.1205258535071463,
+     "sigmaCellMedian": 1.0852298898830444
+    }
+   },
+   "B": {
+    "excess=1": {
+     "fill": 0.00088663654665572,
+     "maxFill": 0.00088663654665572,
+     "maxFillStep": 120,
+     "first70": null,
+     "full": null,
+     "lastGrowth": 120,
+     "species": {
+      "sphalerite": {
+       "n": 1,
+       "max_um": 6339.312775596258,
+       "last": 120
+      },
+      "galena": {
+       "n": 2,
+       "max_um": 720.4870227703018,
+       "last": 120
+      },
+      "pyrite": {
+       "n": 2,
+       "max_um": 461.06744125810485,
+       "last": 120
+      },
+      "anhydrite": {
+       "n": 6,
+       "max_um": 128.98416619825315,
+       "last": 92
+      },
+      "marcasite": {
+       "n": 1,
+       "max_um": 3.108524044071061,
+       "last": 70
+      }
+     },
+     "noSolid": {},
+     "bulkPb": 30,
+     "voxPb": 29.998355153032378,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "wallDissolutionWithheld": 45,
+     "trace": {
+      "mineral": "galena",
+      "steps": 81,
+      "sigmaBulkMedian": 1.1205260321614607,
+      "sigmaCellMedian": 1.1149336237849892
+     },
+     "auditMoved": false,
+     "speciesCount": 5,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "galena",
+      "marcasite"
+     ],
+     "sameAsShipped": false
+    }
+   }
+  },
+  {
+   "scenario": "reactive_wall",
+   "seed": 2,
+   "shippedReproducesBaseline": null,
+   "A": {
+    "fill": 0.0010014215585635257,
+    "maxFill": 0.0010014215585635257,
+    "maxFillStep": 120,
+    "first70": null,
+    "full": null,
+    "lastGrowth": 120,
+    "species": {
+     "sphalerite": {
+      "n": 1,
+      "max_um": 6417.5641588047865,
+      "last": 120
+     },
+     "marcasite": {
+      "n": 2,
+      "max_um": 6.530025219813098,
+      "last": 70
+     },
+     "galena": {
+      "n": 1,
+      "max_um": 1135.9233747433834,
+      "last": 120
+     },
+     "pyrite": {
+      "n": 1,
+      "max_um": 2823.8771970025605,
+      "last": 120
+     },
+     "anhydrite": {
+      "n": 6,
+      "max_um": 114.68302998092831,
+      "last": 92
+     }
+    },
+    "noSolid": {},
+    "bulkPb": 30,
+    "voxPb": 29.997548298716275,
+    "uraniniteNegativeZones": 0,
+    "audit": {
+     "eventRefusals": 0,
+     "failedCarbonateTransactions": 0,
+     "ledgerViolations": 0
+    },
+    "wallDissolutionWithheld": 45,
+    "trace": {
+     "mineral": "galena",
+     "steps": 81,
+     "sigmaBulkMedian": 1.122214226220393,
+     "sigmaCellMedian": 1.0846409092215135
+    }
+   },
+   "B": {
+    "excess=1": {
+     "fill": 0.0010067806434957817,
+     "maxFill": 0.0010067806434957817,
+     "maxFillStep": 120,
+     "first70": null,
+     "full": null,
+     "lastGrowth": 120,
+     "species": {
+      "sphalerite": {
+       "n": 1,
+       "max_um": 6425.5256583730925,
+       "last": 120
+      },
+      "marcasite": {
+       "n": 2,
+       "max_um": 6.530025219813098,
+       "last": 70
+      },
+      "galena": {
+       "n": 2,
+       "max_um": 692.9819157764654,
+       "last": 120
+      },
+      "pyrite": {
+       "n": 1,
+       "max_um": 2892.801994090928,
+       "last": 120
+      },
+      "anhydrite": {
+       "n": 6,
+       "max_um": 118.63114378974971,
+       "last": 92
+      }
+     },
+     "noSolid": {},
+     "bulkPb": 30,
+     "voxPb": 29.99841445468451,
+     "uraniniteNegativeZones": 0,
+     "audit": {
+      "eventRefusals": 0,
+      "failedCarbonateTransactions": 0,
+      "ledgerViolations": 0
+     },
+     "wallDissolutionWithheld": 45,
+     "trace": {
+      "mineral": "galena",
+      "steps": 81,
+      "sigmaBulkMedian": 1.1222142755648314,
+      "sigmaCellMedian": 1.1150780211237237
+     },
+     "auditMoved": false,
+     "speciesCount": 5,
+     "gained": [],
+     "lost": [],
+     "moved": [
+      "galena"
+     ],
+     "sameAsShipped": false
+    }
+   }
+  }
+ ],
+ "auditMoved": []
+}

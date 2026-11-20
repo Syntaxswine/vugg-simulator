@@ -1,0 +1,29 @@
+rate-at-saturation census — SIM 286; forced sigma 1.0005, 1.01, 1.1, 1.5, 2, 3; rng re-seeded (7) before every engine call
+engines 183: rate vanishes at saturation 171; FINITE at saturation 3; other 0; not driven by the probe 9
+shape — thickness(1.1) / thickness(2) and thickness(1.5) / thickness(2); a law linear in sigma − 1 gives 0.10 and 0.50, k·sigma gives 0.55 and 0.75
+  linear in sigma − 1 (both within 0.005 of 0.10 and 0.50): 169 of the 174 driven engines
+  the others: chalcedony 0.19/0.61, galena 0.55/0.75, molybdenite 0.55/0.75, quartz 0.00/0.50, uraninite 0.55/0.75
+
+FINITE at saturation — proposed µm at sigma 1.0005 / 1.01 / 1.1 / 1.5 / 2 / 3, then thickness(1.0005) / thickness(2):
+  galena                12.1     12.2     13.3     18.1     24.1     36.2    50.0 %   (mvt)
+  molybdenite           8.37     8.45     9.21     12.6     16.7     25.1    50.0 %   (porphyry)
+  uraninite             6.44     6.50     7.08     9.66     12.9     19.3    50.0 %   (radioactive_pegmatite)
+
+controls (engines that are k·excess laws by inspection):
+  [PASS] quartz: vanishes — 0.00 0.00 0.00 1.29 2.57 5.15
+  [PASS] fluorite: vanishes — 0.00282 0.0563 0.563 2.82 5.63 11.3
+
+not driven by the probe (9): HMC, aragonite*, calcite*, dolomite*, haidingerite, meta-autunite, metatorbernite, metazeunerite, tincalconite
+  (* the engine proposed a zone, but its thickness did not change with the forced sigma)
+
+where it matters — galena, molybdenite, uraninite in 8 scenario(s), seed 42; sigma read at the crystal's own cell when the engine's dry run is taken
+  mvt                          galena       largest  11.53 mm  sigma 1.404 / 1.536 / 1.571 (min / median / max)  proposed below 1.05:   0 %  below 1.25:   0 %  k·(σ−1) would propose  34 %
+  porphyry                     galena       largest  11.11 mm  sigma 1.225 / 2.945 / 4.486 (min / median / max)  proposed below 1.05:   0 %  below 1.25:   2 %  k·(σ−1) would propose  63 %
+  porphyry                     molybdenite  largest  33.44 mm  sigma 10.860 / 13.543 / 20.161 (min / median / max)  proposed below 1.05:   0 %  below 1.25:   0 %  k·(σ−1) would propose  93 %
+  radioactive_pegmatite        uraninite    largest   6.95 mm  sigma 3.775 / 3.906 / 4.155 (min / median / max)  proposed below 1.05:   0 %  below 1.25:   0 %  k·(σ−1) would propose  75 %
+  reactivated_fluorite_vein    galena       largest   8.48 mm  sigma 1.140 / 1.153 / 1.317 (min / median / max)  proposed below 1.05:   0 %  below 1.25:  96 %  k·(σ−1) would propose  14 %
+  reactive_wall                galena       largest   3.89 mm  sigma 1.000 / 1.013 / 1.114 (min / median / max)  proposed below 1.05:  88 %  below 1.25: 100 %  k·(σ−1) would propose   2 %
+  roughten_gill                galena       largest  14.68 mm  sigma 2.765 / 2.971 / 7.942 (min / median / max)  proposed below 1.05:   0 %  below 1.25:   0 %  k·(σ−1) would propose  68 %
+  schneeberg                   uraninite    largest   8.27 mm  sigma 1.333 / 2.519 / 2.767 (min / median / max)  proposed below 1.05:   0 %  below 1.25:   0 %  k·(σ−1) would propose  58 %
+  sunnyside_american_tunnel    galena       largest  15.45 mm  sigma 1.000 / 1.028 / 6.578 (min / median / max)  proposed below 1.05:  48 %  below 1.25:  48 %  k·(σ−1) would propose  36 %
+integrity: 8 of 8 runs reproduce tests-js/baselines/seed42_v286.json with the dry-run reader attached

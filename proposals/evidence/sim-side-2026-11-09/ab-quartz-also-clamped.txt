@@ -1,0 +1,47 @@
+sim-side A/B — SIM 286; arms cap=8; minerals feldspar, albite, quartz; seeds 42, 1, 2
+self-check on schneeberg, seed 42: shipped arm reproduces the baseline; neutral knobs — rind=Infinity ok; cap=Infinity ok; rclamp=Infinity ok; root=1 ok; mul=Ca:1 ok; refund=0 ok
+
+### radioactive_pegmatite — 120 steps — events: 20 Pegmatite Crystallization | 50 Deep Time | 80 Oxidizing Fluids | 100 Final Cooling
+seed 42 (shipped arm reproduces the baseline)
+  A shipped        fill 100.0 % (largest 100.0 % at step 61; first >= 0.7 at step 37)  full at step  61  last growth at step  80
+      albite ×2 @ 61.4 (→61), feldspar ×2 @ 50.2 (→80), morganite ×4 @ 14.3 (→61), quartz ×3 @ 11.2 (→80), uraninite ×3 @ 6.9 (→61), tourmaline ×8 @ 2.6 (→49), spodumene ×4 @ 2.0 (→49), lepidolite ×6 @ 0.883 (→49), topaz ×3 @ 0.175 (→49), cassiterite ×5 @ 0.141 (→47)
+      no solid left: opal (5 records), plumbogummite (2 records)
+  B cap=8          fill  12.7 % (largest 12.7 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120
+      morganite ×4 @ 23.4 (→79), quartz ×3 @ 17.9 (→93), albite ×2 @ 16.9 (→120), feldspar ×2 @ 12.3 (→120), uraninite ×3 @ 11.5 (→79), tourmaline ×8 @ 2.9 (→49), spodumene ×4 @ 2.1 (→49), opal ×5 @ 1.8 (→120), lepidolite ×4 @ 1.1 (→49), topaz ×4 @ 0.237 (→49), cassiterite ×5 @ 0.159 (→49), autunite ×4 @ 0.061 (→120), plumbogummite ×3 @ 0.006 (→111)
+      against A: 13 species present in either arm; moved 7 (albite, feldspar, lepidolite, morganite, quartz, topaz, uraninite); gained autunite, opal, plumbogummite; lost none; the baseline summary differs
+seed 1
+  A shipped        fill 100.0 % (largest 100.0 % at step 82; first >= 0.7 at step 31)  full at step  55  last growth at step  82
+      feldspar ×2 @ 51.2 (→82), albite ×2 @ 49.5 (→82), morganite ×4 @ 16.8 (→55), quartz ×3 @ 9.8 (→82), uraninite ×3 @ 5.7 (→55), tourmaline ×9 @ 2.2 (→49), spodumene ×4 @ 1.5 (→49), lepidolite ×4 @ 0.537 (→49), cassiterite ×6 @ 0.145 (→43), topaz ×1 @ 0.077 (→39)
+      no solid left: opal (5 records), plumbogummite (3 records)
+  B cap=8          fill  11.3 % (largest 11.3 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120
+      morganite ×4 @ 26.5 (→79), quartz ×3 @ 18.3 (→93), albite ×2 @ 16.8 (→120), feldspar ×2 @ 13.0 (→120), uraninite ×3 @ 11.1 (→79), tourmaline ×8 @ 2.8 (→49), spodumene ×4 @ 2.2 (→49), opal ×5 @ 1.8 (→120), lepidolite ×4 @ 0.921 (→49), topaz ×3 @ 0.291 (→49), cassiterite ×6 @ 0.182 (→49), autunite ×1 @ 0.047 (→120), plumbogummite ×3 @ 0.005 (→119)
+      against A: 13 species present in either arm; moved 10 (albite, cassiterite, feldspar, lepidolite, morganite, quartz, spodumene, topaz, tourmaline, uraninite); gained autunite, opal, plumbogummite; lost none; the baseline summary differs
+seed 2
+  A shipped        fill 100.0 % (largest 100.0 % at step 59; first >= 0.7 at step 36)  full at step  59  last growth at step  94
+      albite ×2 @ 59.9 (→94), feldspar ×2 @ 47.2 (→94), morganite ×4 @ 19.5 (→59), quartz ×3 @ 11.0 (→93), uraninite ×3 @ 6.6 (→59), tourmaline ×8 @ 2.0 (→49), spodumene ×4 @ 2.0 (→49), lepidolite ×6 @ 0.798 (→49), topaz ×4 @ 0.388 (→50), cassiterite ×5 @ 0.139 (→49)
+      no solid left: opal (5 records), plumbogummite (3 records)
+  B cap=8          fill  17.8 % (largest 17.8 % at step 120; first >= 0.7 at step —)  full at step   —  last growth at step 120
+      morganite ×4 @ 27.5 (→79), quartz ×3 @ 18.6 (→93), albite ×2 @ 16.7 (→120), feldspar ×2 @ 12.0 (→120), uraninite ×3 @ 11.2 (→79), tourmaline ×8 @ 2.4 (→49), spodumene ×4 @ 2.2 (→49), opal ×5 @ 1.8 (→120), lepidolite ×4 @ 1.0 (→49), topaz ×4 @ 0.532 (→50), cassiterite ×4 @ 0.162 (→49), autunite ×3 @ 0.054 (→120), plumbogummite ×3 @ 0.005 (→117)
+      against A: 13 species present in either arm; moved 8 (albite, cassiterite, feldspar, lepidolite, morganite, quartz, topaz, uraninite); gained autunite, opal, plumbogummite; lost none; the baseline summary differs
+
+### gem_pegmatite — 230 steps — events: 5 Outer Shell | 30 Schorl Arrives | 60 Albitization | 90 Be Saturation | 130 Li Phase | 160 Late Hydrothermal | 190 Clay Softening | 215 Final Cooling
+seed 42 (shipped arm reproduces the baseline)
+  A shipped        fill 100.0 % (largest 100.0 % at step 9; first >= 0.7 at step 6)  full at step   9  last growth at step   9
+      feldspar ×2 @ 31.7 (→9), albite ×2 @ 24.6 (→9), quartz ×3 @ 1.7 (→9), tourmaline ×2 @ 0.294 (→9), spodumene ×1 @ 0.125 (→9), cassiterite ×1 @ 0.008 (→8), lepidolite ×1 @ 0.007 (→9)
+  B cap=8          fill  38.1 % (largest 38.1 % at step 230; first >= 0.7 at step —)  full at step   —  last growth at step 230
+      quartz ×3 @ 34.6 (→230), albite ×2 @ 32.3 (→230), feldspar ×2 @ 24.1 (→230), tourmaline ×8 @ 12.0 (→197), lepidolite ×5 @ 4.7 (→159), spodumene ×4 @ 4.2 (→159), topaz ×6 @ 2.5 (→215), cassiterite ×10 @ 1.4 (→230)
+      against A: 8 species present in either arm; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none; the baseline summary differs
+seed 1
+  A shipped        fill 100.0 % (largest 100.0 % at step 10; first >= 0.7 at step 7)  full at step  10  last growth at step  10
+      feldspar ×2 @ 33.4 (→10), albite ×2 @ 24.2 (→10), quartz ×3 @ 1.5 (→10), tourmaline ×3 @ 0.368 (→9), spodumene ×1 @ 0.197 (→9), cassiterite ×2 @ 0.041 (→10), lepidolite ×1 @ 0.016 (→9)
+  B cap=8          fill  37.5 % (largest 37.5 % at step 230; first >= 0.7 at step —)  full at step   —  last growth at step 230
+      quartz ×3 @ 33.7 (→230), albite ×2 @ 32.2 (→230), feldspar ×2 @ 24.7 (→230), tourmaline ×8 @ 11.9 (→197), lepidolite ×3 @ 4.0 (→159), topaz ×6 @ 2.5 (→215), spodumene ×5 @ 2.2 (→158), cassiterite ×8 @ 1.5 (→230)
+      against A: 8 species present in either arm; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none; the baseline summary differs
+seed 2
+  A shipped        fill 100.0 % (largest 100.0 % at step 10; first >= 0.7 at step 7)  full at step  10  last growth at step  10
+      feldspar ×2 @ 36.8 (→10), albite ×1 @ 29.6 (→10), quartz ×2 @ 1.6 (→10), tourmaline ×3 @ 0.390 (→9), spodumene ×4 @ 0.130 (→9), cassiterite ×2 @ 0.014 (→9), lepidolite ×1 @ 0.012 (→9)
+  B cap=8          fill  37.0 % (largest 37.0 % at step 230; first >= 0.7 at step —)  full at step   —  last growth at step 230
+      quartz ×3 @ 34.3 (→230), albite ×2 @ 32.5 (→230), feldspar ×2 @ 24.7 (→230), tourmaline ×8 @ 12.0 (→197), spodumene ×4 @ 5.1 (→159), lepidolite ×4 @ 3.4 (→159), topaz ×6 @ 2.5 (→215), cassiterite ×5 @ 1.4 (→230)
+      against A: 8 species present in either arm; moved 7 (albite, cassiterite, feldspar, lepidolite, quartz, spodumene, tourmaline); gained topaz; lost none; the baseline summary differs
+
+audits: every arm run reads the simulator's audits as the shipped arm does

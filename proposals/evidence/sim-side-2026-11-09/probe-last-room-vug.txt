@@ -1,0 +1,148 @@
+[scenarios] loaded 41 from ./data/scenarios.json5
+[spec] loaded 184 minerals from ./data/minerals.json
+[thermo] loaded 15 carbonate entries from ./data/thermo-carbonates.json
+[thermo] loaded 4 sulfate entries from ./data/thermo-sulfates.json
+[narratives] loaded 94 species
+probe-last-room — SIM 286; 41 scenarios as shipped, at the vug setting of the form (15 mm); seeds 42 / 1 / 2; time scale 5
+each line gives the three seeds. "cut" is an enclosure whose host layer of that step the cavity clamp had cut; "under 1e-6" one whose host layer is under 0.000001 µm; "last room" one whose host layer was accepted while the loop's fill read under 1 by 1e-9 or less
+4 nudges of every growth engine's positive zones (1 − 1.1e-16, 1 − 1.0e-14, 1 + 1.0e-13, 1 − 1.0e-13); the last three counts of a line are of the 4 nudged runs at each seed
+each scenario is run in a process of its own, this probe started with --one and the scenario's name, 6 at a time
+
+  cooling                              100 steps; largest fill 0.0 / 0.0 / 0.0 %, first 1 to a billionth at step — / — / —; enclosures 0 / 0 / 0, cut 0 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 3; a size or the bulk fluid differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  pulse                                100 steps; largest fill 0.0 / 0.0 / 0.0 %, first 1 to a billionth at step — / — / —; enclosures 0 / 0 / 0, cut 0 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  mvt                                  120 steps; largest fill 100.0 / 100.0 / 97.6 %, first 1 to a billionth at step 105 / 101 / —; enclosures 41 / 43 / 63, cut 0 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  elmwood                              200 steps; largest fill 42.1 / 45.1 / 43.9 %, first 1 to a billionth at step — / — / —; enclosures 0 / 0 / 0, cut 0 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  reactivated_fluorite_vein            160 steps; largest fill 100.0 / 100.0 / 100.0 %, first 1 to a billionth at step 62 / 60 / 61; enclosures 27 / 4 / 18, cut 1 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 4 / 0 / 1; an enclosure alone in 0 / 0 / 0
+  porphyry                             120 steps; largest fill 100.0 / 100.0 / 100.0 %, first 1 to a billionth at step 74 / 75 / 75; enclosures 4 / 3 / 3, cut 0 / 0 / 1, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  marble_contact_metamorphism          180 steps; largest fill 0.0 / 0.0 / 0.0 %, first 1 to a billionth at step — / — / —; enclosures 0 / 0 / 0, cut 0 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 0 / 0 / 0; a size or the bulk fluid differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  chiastolite_hornfels                 120 steps; largest fill 0.1 / 0.1 / 0.0 %, first 1 to a billionth at step — / — / —; enclosures 0 / 0 / 0, cut 0 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  reactive_wall                        120 steps; largest fill 2.1 / 1.7 / 1.8 %, first 1 to a billionth at step — / — / —; enclosures 1 / 1 / 1, cut 0 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  sabkha_dolomitization                260 steps; largest fill 96.6 / 97.4 / 96.8 %, first 1 to a billionth at step — / — / —; enclosures 144 / 124 / 156, cut 0 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  naica_geothermal                     320 steps; largest fill 0.8 / 0.8 / 0.8 %, first 1 to a billionth at step — / — / —; enclosures 0 / 0 / 0, cut 0 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  searles_lake                         300 steps; largest fill 100.0 / 100.0 / 100.0 %, first 1 to a billionth at step 72 / 73 / 123; enclosures 6 / 7 / 6, cut 4 / 4 / 2, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 3 / 4 / 3; an enclosure alone in 0 / 0 / 0
+  great_salt_plains                    250 steps; largest fill 2834.3 / 2877.1 / 2710.8 %, first 1 to a billionth at step 70 / 69 / 72; enclosures 12 / 5 / 10, cut 0 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0 | AN OPEN SYSTEM: the step reads this fill as 0
+  bisbee                               340 steps; largest fill 100.0 / 100.0 / 100.0 %, first 1 to a billionth at step 27 / 27 / 25; enclosures 37 / 32 / 9, cut 3 / 2 / 2, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 3 / 0 / 2; an enclosure alone in 0 / 0 / 0
+  supergene_oxidation                  200 steps; largest fill 100.0 / 100.0 / 100.0 %, first 1 to a billionth at step 111 / 111 / 112; enclosures 40 / 35 / 45, cut 23 / 15 / 25, under 1e-6 1 / 3 / 12, last room 1 / 3 / 12; reached 4 / 4 / 4; a size or the bulk fluid differs in 4 / 4 / 3; an enclosure alone in 0 / 0 / 1
+  gem_pegmatite                        230 steps; largest fill 100.0 / 100.0 / 100.0 %, first 1 to a billionth at step 2 / 2 / 2; enclosures 0 / 0 / 0, cut 0 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 1 / 0 / 2; an enclosure alone in 0 / 0 / 0
+  shigar_pegmatite                     70 steps; largest fill 100.0 / 100.0 / 100.0 %, first 1 to a billionth at step 2 / 2 / 2; enclosures 0 / 0 / 0, cut 0 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 0 / 2 / 0; an enclosure alone in 0 / 0 / 0
+  ouro_preto                           260 steps; largest fill 100.0 / 100.0 / 100.0 %, first 1 to a billionth at step 132 / 132 / 130; enclosures 4 / 4 / 3, cut 0 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  deccan_zeolite                       200 steps; largest fill 8.5 / 10.7 / 8.9 %, first 1 to a billionth at step — / — / —; enclosures 2 / 2 / 5, cut 0 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  radioactive_pegmatite                120 steps; largest fill 100.0 / 100.0 / 100.0 %, first 1 to a billionth at step 9 / 9 / 8; enclosures 4 / 4 / 2, cut 2 / 2 / 1, under 1e-6 0 / 1 / 1, last room 0 / 1 / 1; reached 4 / 4 / 4; a size or the bulk fluid differs in 0 / 1 / 4; an enclosure alone in 1 / 0 / 0
+  schneeberg                           160 steps; largest fill 100.0 / 100.0 / 100.0 %, first 1 to a billionth at step 78 / 78 / 80; enclosures 29 / 29 / 33, cut 0 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 1 / 3 / 4; an enclosure alone in 0 / 0 / 0
+  wittichen                            220 steps; largest fill 4.9 / 5.3 / 6.1 %, first 1 to a billionth at step — / — / —; enclosures 6 / 9 / 6, cut 0 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 1 / 0 / 1; an enclosure alone in 0 / 0 / 0
+  tormiq_alpine_cleft                  200 steps; largest fill 100.0 / 100.0 / 100.0 %, first 1 to a billionth at step 76 / 76 / 82; enclosures 3 / 0 / 3, cut 0 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  grimsel_alpine_cleft                 200 steps; largest fill 94.1 / 87.7 / 92.3 %, first 1 to a billionth at step — / — / —; enclosures 13 / 7 / 7, cut 0 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  colorado_plateau                     180 steps; largest fill 40.6 / 41.9 / 41.1 %, first 1 to a billionth at step — / — / —; enclosures 0 / 0 / 0, cut 0 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  tutorial_first_crystal               30 steps; largest fill 0.0 / 0.0 / 0.0 %, first 1 to a billionth at step — / — / —; enclosures 0 / 0 / 0, cut 0 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 3; a size or the bulk fluid differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  tutorial_mn_calcite                  30 steps; largest fill 0.1 / 0.0 / 0.1 %, first 1 to a billionth at step — / — / —; enclosures 0 / 0 / 0, cut 0 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  tutorial_travertine                  60 steps; largest fill 0.1 / 0.2 / 0.1 %, first 1 to a billionth at step — / — / —; enclosures 0 / 0 / 0, cut 0 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  epithermal_telluride                 180 steps; largest fill 100.0 / 100.0 / 100.0 %, first 1 to a billionth at step 103 / 78 / 165; enclosures 3 / 4 / 4, cut 0 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  ultramafic_supergene                 200 steps; largest fill 22.2 / 22.5 / 22.2 %, first 1 to a billionth at step — / — / —; enclosures 8 / 8 / 8, cut 0 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  stalactite_demo                      100 steps; largest fill 0.0 / 0.0 / 0.0 %, first 1 to a billionth at step — / — / —; enclosures 0 / 0 / 0, cut 0 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  zoned_dripstone_cave                 150 steps; largest fill 0.1 / 0.1 / 0.1 %, first 1 to a billionth at step — / — / —; enclosures 0 / 0 / 0, cut 0 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  sulphur_bank                         200 steps; largest fill 100.0 / 100.0 / 100.0 %, first 1 to a billionth at step 155 / 163 / 161; enclosures 12 / 15 / 16, cut 0 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  sicily_solfifera                     200 steps; largest fill 23.6 / 23.4 / 20.9 %, first 1 to a billionth at step — / — / —; enclosures 1 / 0 / 0, cut 0 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  sunnyside_american_tunnel            200 steps; largest fill 100.0 / 100.0 / 100.0 %, first 1 to a billionth at step 167 / 139 / 122; enclosures 6 / 14 / 6, cut 0 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  roughten_gill                        240 steps; largest fill 69.5 / 100.0 / 100.0 %, first 1 to a billionth at step — / 57 / 53; enclosures 13 / 12 / 13, cut 0 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  jeffrey_mine                         200 steps; largest fill 98.1 / 96.9 / 98.9 %, first 1 to a billionth at step — / — / —; enclosures 24 / 25 / 25, cut 0 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  tn457_barite_pulses                  110 steps; largest fill 9.9 / 9.8 / 13.2 %, first 1 to a billionth at step — / — / —; enclosures 0 / 0 / 0, cut 0 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  amethyst_geode                       240 steps; largest fill 0.0 / 0.0 / 0.0 %, first 1 to a billionth at step — / — / —; enclosures 0 / 0 / 0, cut 0 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  asbestos_hills_crack_seal            110 steps; largest fill 7.8 / 7.8 / 7.6 %, first 1 to a billionth at step — / — / —; enclosures 1 / 1 / 2, cut 0 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+  asbestos_hills_surficial_alteration  120 steps; largest fill 10.9 / 10.4 / 10.8 %, first 1 to a billionth at step — / — / —; enclosures 4 / 5 / 3, cut 0 / 0 / 0, under 1e-6 0 / 0 / 0, last room 0 / 0 / 0; reached 4 / 4 / 4; a size or the bulk fluid differs in 0 / 0 / 0; an enclosure alone in 0 / 0 / 0
+
+1285 enclosures in the 123 runs (445 / 393 / 447 at the three seeds)
+  on a host layer under 0.000001 µm: 18 (1 / 4 / 13), in supergene_oxidation (1 / 3 / 12), radioactive_pegmatite (0 / 1 / 1)
+  on a host layer in the last room: 18 (1 / 4 / 13), in supergene_oxidation (1 / 3 / 12), radioactive_pegmatite (0 / 1 / 1)
+  in the last room and on a layer of 0.000001 µm or more: 0; under 0.000001 µm and not in the last room: 0
+  on a host layer that the cavity clamp had cut: 87 (33 / 23 / 31), in reactivated_fluorite_vein (1 / 0 / 0), porphyry (0 / 0 / 1), searles_lake (4 / 4 / 2), bisbee (3 / 2 / 2), supergene_oxidation (23 / 15 / 25), radioactive_pegmatite (2 / 2 / 1)
+
+the host's layer, µm, over all 1285 enclosures — under 1e-6: 18; 1e-6 to 0.001: 5; 0.001 to 0.1: 14; 0.1 to 1: 110; 1 to 5: 107; 5 or more: 1031
+  of the 87 on a layer the clamp had cut — under 1e-6: 18; 1e-6 to 0.001: 5; 0.001 to 0.1: 13; 0.1 to 1: 39; 1 to 5: 1; 5 or more: 11
+  of the 1198 others — under 1e-6: 0; 1e-6 to 0.001: 0; 0.001 to 0.1: 1; 0.1 to 1: 71; 1 to 5: 106; 5 or more: 1020
+
+the 18 enclosures on a host layer under 0.000001 µm or in the last room:
+  supergene_oxidation, seed 42, step 164: ferrimolybdite #34 (10.54 mm) encloses erythrite #66 (0.045 mm) on 3.6e-12 µm; the layer was accepted with the fill at 1 − 1.11e-16, cut by the clamp
+  supergene_oxidation, seed 1, step 135: ferrimolybdite #52 (6.43 mm) encloses azurite #42 (1.319 mm) on 1.2e-11 µm; the layer was accepted with the fill at 1 − 1.11e-16, cut by the clamp
+  supergene_oxidation, seed 1, step 135: ferrimolybdite #52 (6.43 mm) encloses aurichalcite #48 (0.978 mm) on 1.2e-11 µm; the layer was accepted with the fill at 1 − 1.11e-16, cut by the clamp
+  supergene_oxidation, seed 1, step 181: ferrimolybdite #41 (10.25 mm) encloses brochantite #37 (3.332 mm) on 3.6e-12 µm; the layer was accepted with the fill at 1 − 1.11e-16, cut by the clamp
+  supergene_oxidation, seed 2, step 160: powellite #49 (7.45 mm) encloses adamite #1 (1.057 mm) on 8.9e-12 µm; the layer was accepted with the fill at 1 − 1.11e-16, cut by the clamp
+  supergene_oxidation, seed 2, step 160: powellite #49 (7.45 mm) encloses mimetite #2 (0.644 mm) on 8.9e-12 µm; the layer was accepted with the fill at 1 − 1.11e-16, cut by the clamp
+  supergene_oxidation, seed 2, step 160: ferrimolybdite #37 (9.67 mm) encloses cerussite #6 (1.752 mm) on 3.6e-12 µm; the layer was accepted with the fill at 1 − 1.11e-16, cut by the clamp
+  supergene_oxidation, seed 2, step 160: ferrimolybdite #37 (9.67 mm) encloses stolzite #38 (1.056 mm) on 3.6e-12 µm; the layer was accepted with the fill at 1 − 1.11e-16, cut by the clamp
+  supergene_oxidation, seed 2, step 160: powellite #49 (7.45 mm) encloses azurite #42 (1.222 mm) on 8.9e-12 µm; the layer was accepted with the fill at 1 − 1.11e-16, cut by the clamp
+  supergene_oxidation, seed 2, step 160: ferrimolybdite #37 (9.67 mm) encloses stolzite #43 (1.103 mm) on 3.6e-12 µm; the layer was accepted with the fill at 1 − 1.11e-16, cut by the clamp
+  supergene_oxidation, seed 2, step 160: ferrimolybdite #37 (9.67 mm) encloses anglesite #44 (1.438 mm) on 3.6e-12 µm; the layer was accepted with the fill at 1 − 1.11e-16, cut by the clamp
+  supergene_oxidation, seed 2, step 160: ferrimolybdite #37 (9.67 mm) encloses azurite #46 (1.000 mm) on 3.6e-12 µm; the layer was accepted with the fill at 1 − 1.11e-16, cut by the clamp
+  supergene_oxidation, seed 2, step 160: ferrimolybdite #37 (9.67 mm) encloses plumbogummite #75 (0.049 mm) on 3.6e-12 µm; the layer was accepted with the fill at 1 − 1.11e-16, cut by the clamp
+  supergene_oxidation, seed 2, step 160: powellite #49 (7.45 mm) encloses azurite #77 (0.014 mm) on 8.9e-12 µm; the layer was accepted with the fill at 1 − 1.11e-16, cut by the clamp
+  supergene_oxidation, seed 2, step 160: ferrimolybdite #37 (9.67 mm) encloses lepidocrocite #79 (0.001 mm) on 3.6e-12 µm; the layer was accepted with the fill at 1 − 1.11e-16, cut by the clamp
+  supergene_oxidation, seed 2, step 197: ferrimolybdite #39 (9.97 mm) encloses brochantite #40 (3.162 mm) on 3.6e-12 µm; the layer was accepted with the fill at 1 − 1.11e-16, cut by the clamp
+  radioactive_pegmatite, seed 1, step 82: albite #5 (7.96 mm) encloses uraninite #12 (0.584 mm) on 1.1e-11 µm; the layer was accepted with the fill at 1 − 1.11e-16, cut by the clamp
+  radioactive_pegmatite, seed 2, step 99: feldspar #10 (5.07 mm) encloses uraninite #1 (0.600 mm) on 1.8e-12 µm; the layer was accepted with the fill at 1 − 1.11e-16, cut by the clamp
+the six thinnest host layers among the other 1267:
+  supergene_oxidation, seed 1, step 165: malachite #4 (18.76 mm) encloses cerussite #5 (1.794 mm) on 4.2e-5 µm; the layer was accepted with the fill at 1 − 3.12e-9, cut by the clamp
+  supergene_oxidation, seed 1, step 165: malachite #4 (18.76 mm) encloses stolzite #13 (1.344 mm) on 4.2e-5 µm; the layer was accepted with the fill at 1 − 3.12e-9, cut by the clamp
+  supergene_oxidation, seed 1, step 165: malachite #4 (18.76 mm) encloses brochantite #29 (3.492 mm) on 4.2e-5 µm; the layer was accepted with the fill at 1 − 3.12e-9, cut by the clamp
+  supergene_oxidation, seed 42, step 165: malachite #4 (18.62 mm) encloses conichalcite #45 (4.795 mm) on 5.2e-5 µm; the layer was accepted with the fill at 1 − 3.83e-9, cut by the clamp
+  supergene_oxidation, seed 42, step 165: malachite #4 (18.62 mm) encloses conichalcite #50 (4.346 mm) on 5.2e-5 µm; the layer was accepted with the fill at 1 − 3.83e-9, cut by the clamp
+  bisbee, seed 2, step 66: chalcopyrite #4 (23.90 mm) encloses feldspar #1 (0.997 mm) on 3.7e-3 µm; the layer was accepted with the fill at 1 − 4.60e-7, cut by the clamp
+
+51 of 492 nudged runs differ from the shipped run in a size or the bulk fluid, at 20 of the 123 scenario-seeds, in 9 of the 41 scenarios: reactivated_fluorite_vein, searles_lake, bisbee, supergene_oxidation, gem_pegmatite, shigar_pegmatite, radioactive_pegmatite, schneeberg, wittichen
+2 more differ in an enclosure alone; the nudge reached 478 of the 492
+  reactivated_fluorite_vein, seed 42, under 1 − 1.1e-16: some crystal's size; an enclosure
+  reactivated_fluorite_vein, seed 42, under 1 − 1.0e-14: some crystal's size; an enclosure
+  reactivated_fluorite_vein, seed 42, under 1 + 1.0e-13: some crystal's size; an enclosure
+  reactivated_fluorite_vein, seed 42, under 1 − 1.0e-13: some crystal's size; an enclosure
+  reactivated_fluorite_vein, seed 2, under 1 + 1.0e-13: the summary; some crystal's size; an enclosure
+  searles_lake, seed 42, under 1 − 1.1e-16: the summary; some crystal's size; species (moved calcite; lost none; gained none); an enclosure
+  searles_lake, seed 42, under 1 − 1.0e-14: the summary; some crystal's size; species (moved calcite; lost none; gained none); an enclosure
+  searles_lake, seed 42, under 1 + 1.0e-13: the summary; some crystal's size; species (moved calcite; lost none; gained none); an enclosure
+  searles_lake, seed 1, under 1 − 1.1e-16: the summary; some crystal's size; species (moved none; lost halite; gained none)
+  searles_lake, seed 1, under 1 − 1.0e-14: some crystal's size
+  searles_lake, seed 1, under 1 + 1.0e-13: some crystal's size
+  searles_lake, seed 1, under 1 − 1.0e-13: some crystal's size
+  searles_lake, seed 2, under 1 − 1.0e-14: some crystal's size
+  searles_lake, seed 2, under 1 + 1.0e-13: some crystal's size
+  searles_lake, seed 2, under 1 − 1.0e-13: the summary; some crystal's size; species (moved tincalconite; lost none; gained none)
+  bisbee, seed 42, under 1 − 1.1e-16: the summary; some crystal's size; species (moved azurite, lepidocrocite, native_gold, turquoise; lost none; gained none); an enclosure
+  bisbee, seed 42, under 1 + 1.0e-13: the summary; some crystal's size; species (moved azurite, lepidocrocite, native_gold, turquoise; lost none; gained none); an enclosure
+  bisbee, seed 42, under 1 − 1.0e-13: the summary; some crystal's size; species (moved azurite, lepidocrocite, native_gold, turquoise; lost none; gained none); an enclosure
+  bisbee, seed 2, under 1 − 1.1e-16: the summary; some crystal's size; an enclosure
+  bisbee, seed 2, under 1 − 1.0e-13: the summary; some crystal's size; an enclosure
+  supergene_oxidation, seed 42, under 1 − 1.1e-16: the summary; some crystal's size; an enclosure
+  supergene_oxidation, seed 42, under 1 − 1.0e-14: the summary; some crystal's size; an enclosure
+  supergene_oxidation, seed 42, under 1 + 1.0e-13: the summary; some crystal's size; an enclosure
+  supergene_oxidation, seed 42, under 1 − 1.0e-13: the summary; some crystal's size; an enclosure
+  supergene_oxidation, seed 1, under 1 − 1.1e-16: the summary; some crystal's size; an enclosure
+  supergene_oxidation, seed 1, under 1 − 1.0e-14: some crystal's size; an enclosure
+  supergene_oxidation, seed 1, under 1 + 1.0e-13: the summary; some crystal's size; species (moved plumbogummite; lost none; gained none); an enclosure
+  supergene_oxidation, seed 1, under 1 − 1.0e-13: the summary; some crystal's size; species (moved plumbogummite; lost none; gained none); an enclosure
+  supergene_oxidation, seed 2, under 1 − 1.1e-16: an enclosure
+  supergene_oxidation, seed 2, under 1 − 1.0e-14: the summary; some crystal's size; species (moved descloizite; lost none; gained none); an enclosure
+  supergene_oxidation, seed 2, under 1 + 1.0e-13: the summary; some crystal's size; species (moved descloizite; lost none; gained none); an enclosure
+  supergene_oxidation, seed 2, under 1 − 1.0e-13: the summary; some crystal's size; species (moved descloizite; lost none; gained none); an enclosure
+  gem_pegmatite, seed 42, under 1 − 1.0e-14: some crystal's size
+  gem_pegmatite, seed 2, under 1 − 1.1e-16: some crystal's size
+  gem_pegmatite, seed 2, under 1 − 1.0e-14: some crystal's size
+  shigar_pegmatite, seed 1, under 1 − 1.0e-14: some crystal's size; species (moved quartz; lost none; gained none)
+  shigar_pegmatite, seed 1, under 1 + 1.0e-13: some crystal's size; species (moved quartz; lost none; gained none)
+  radioactive_pegmatite, seed 42, under 1 − 1.0e-14: an enclosure
+  radioactive_pegmatite, seed 1, under 1 − 1.0e-13: some crystal's size; the bulk fluid; an enclosure
+  radioactive_pegmatite, seed 2, under 1 − 1.1e-16: the summary; some crystal's size; the bulk fluid; an enclosure
+  radioactive_pegmatite, seed 2, under 1 − 1.0e-14: the summary; some crystal's size; the bulk fluid; an enclosure
+  radioactive_pegmatite, seed 2, under 1 + 1.0e-13: the summary; some crystal's size; the bulk fluid; an enclosure
+  radioactive_pegmatite, seed 2, under 1 − 1.0e-13: the summary; some crystal's size; the bulk fluid; an enclosure
+  schneeberg, seed 42, under 1 − 1.0e-13: some crystal's size
+  schneeberg, seed 1, under 1 − 1.1e-16: some crystal's size
+  schneeberg, seed 1, under 1 − 1.0e-14: some crystal's size
+  schneeberg, seed 1, under 1 + 1.0e-13: some crystal's size
+  schneeberg, seed 2, under 1 − 1.1e-16: some crystal's size
+  schneeberg, seed 2, under 1 − 1.0e-14: some crystal's size
+  schneeberg, seed 2, under 1 + 1.0e-13: some crystal's size
+  schneeberg, seed 2, under 1 − 1.0e-13: some crystal's size
+  wittichen, seed 42, under 1 − 1.0e-13: the summary; some crystal's size; species (moved safflorite; lost none; gained none); an enclosure
+  wittichen, seed 2, under 1 − 1.0e-13: the summary; some crystal's size; species (moved skutterudite; lost none; gained none); an enclosure
+
+control: the host's positive zones of the step, as this probe keeps them, add up to the layer on the simulator's receipt in 1285 of 1285 enclosures
+control: at seed 42 a run without the two wrappers is the wrapped run, to the last binary place of every size, the fill, the bulk fluid and every enclosure's layer, for all 41 scenarios
+control: at seed 42 a nudge of exactly 1 is the shipped run, to the last binary place of every size, the fill and the bulk fluid, and in every enclosure, for all 41 scenarios
