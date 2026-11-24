@@ -1,0 +1,106 @@
+[scenarios] loaded 41 from ./data/scenarios.json5
+[spec] loaded 184 minerals from ./data/minerals.json
+[thermo] loaded 15 carbonate entries from ./data/thermo-carbonates.json
+[thermo] loaded 4 sulfate entries from ./data/thermo-sulfates.json
+[narratives] loaded 94 species
+probe-rounding-twelve — SIM 286; radioactive_pegmatite and wittichen as shipped, each in its own cavity; seeds 42 / 1 / 2; time scale 5
+12 factors on every growth engine's positive zones; the 4 that probe-rounding-reach.mjs uses are marked *
+each scenario-seed is run in a process of its own, this probe started with --one, the scenario's name and the seed, 6 at a time
+
+radioactive_pegmatite, seed 42; 120 steps
+  × (1 + 2.2e-16): nothing differs but last binary places
+  × (1 − 1.1e-16 *): nothing differs but last binary places
+  × (1 + 4.4e-16): an enclosure alone differs
+  × (1 − 4.4e-16): an enclosure alone differs
+  × (1 + 1.1e-15): an enclosure alone differs
+  × (1 − 1.0e-15): an enclosure alone differs
+  × (1 + 1.0e-14): an enclosure alone differs
+  × (1 − 1.0e-14 *): nothing differs but last binary places
+  × (1 + 1.0e-13 *): nothing differs but last binary places
+  × (1 − 1.0e-13 *): nothing differs but last binary places
+  × (1 + 1.0e-12): an enclosure alone differs
+  × (1 − 1.0e-12): nothing differs but last binary places
+  a size or the bulk fluid differs in 0 of the 12 (none); an enclosure alone in 6 (1 + 4.4e-16, 1 − 4.4e-16, 1 + 1.1e-15, 1 − 1.0e-15, 1 + 1.0e-14, 1 + 1.0e-12); under the 4 marked factors: 0 and 0
+
+radioactive_pegmatite, seed 1; 120 steps
+  × (1 + 2.2e-16): nothing differs but last binary places
+  × (1 − 1.1e-16 *): a size or the bulk fluid differs (the summary; some crystal's size; the bulk fluid; an enclosure)
+  × (1 + 4.4e-16): a size or the bulk fluid differs (the summary; some crystal's size; the bulk fluid; an enclosure)
+  × (1 − 4.4e-16): nothing differs but last binary places
+  × (1 + 1.1e-15): a size or the bulk fluid differs (the summary; some crystal's size; the bulk fluid; an enclosure)
+  × (1 − 1.0e-15): nothing differs but last binary places
+  × (1 + 1.0e-14): a size or the bulk fluid differs (the summary; some crystal's size; the bulk fluid; an enclosure)
+  × (1 − 1.0e-14 *): a size or the bulk fluid differs (the summary; some crystal's size; the bulk fluid; an enclosure)
+  × (1 + 1.0e-13 *): nothing differs but last binary places
+  × (1 − 1.0e-13 *): nothing differs but last binary places
+  × (1 + 1.0e-12): a size or the bulk fluid differs (the summary; some crystal's size; the bulk fluid; an enclosure)
+  × (1 − 1.0e-12): nothing differs but last binary places
+  a size or the bulk fluid differs in 6 of the 12 (1 − 1.1e-16 *, 1 + 4.4e-16, 1 + 1.1e-15, 1 + 1.0e-14, 1 − 1.0e-14 *, 1 + 1.0e-12); an enclosure alone in 0 (none); under the 4 marked factors: 2 and 0
+
+radioactive_pegmatite, seed 2; 120 steps
+  × (1 + 2.2e-16): nothing differs but last binary places
+  × (1 − 1.1e-16 *): a size or the bulk fluid differs (the summary; some crystal's size; the bulk fluid; species (moved none; lost none; gained opal); an enclosure)
+  × (1 + 4.4e-16): a size or the bulk fluid differs (some crystal's size; the bulk fluid; an enclosure)
+  × (1 − 4.4e-16): a size or the bulk fluid differs (the summary; some crystal's size; the bulk fluid; species (moved none; lost none; gained opal); an enclosure)
+  × (1 + 1.1e-15): a size or the bulk fluid differs (the summary; some crystal's size; the bulk fluid; an enclosure)
+  × (1 − 1.0e-15): a size or the bulk fluid differs (the summary; some crystal's size; the bulk fluid; species (moved none; lost none; gained opal); an enclosure)
+  × (1 + 1.0e-14): a size or the bulk fluid differs (some crystal's size; the bulk fluid; an enclosure)
+  × (1 − 1.0e-14 *): a size or the bulk fluid differs (the summary; some crystal's size; the bulk fluid; species (moved none; lost none; gained opal); an enclosure)
+  × (1 + 1.0e-13 *): a size or the bulk fluid differs (the summary; some crystal's size; the bulk fluid; species (moved none; lost none; gained opal); an enclosure)
+  × (1 − 1.0e-13 *): a size or the bulk fluid differs (the summary; some crystal's size; the bulk fluid; species (moved none; lost none; gained opal); an enclosure)
+  × (1 + 1.0e-12): a size or the bulk fluid differs (the summary; some crystal's size; the bulk fluid; species (moved none; lost none; gained opal); an enclosure)
+  × (1 − 1.0e-12): a size or the bulk fluid differs (the summary; some crystal's size; the bulk fluid; an enclosure)
+  a size or the bulk fluid differs in 11 of the 12 (1 − 1.1e-16 *, 1 + 4.4e-16, 1 − 4.4e-16, 1 + 1.1e-15, 1 − 1.0e-15, 1 + 1.0e-14, 1 − 1.0e-14 *, 1 + 1.0e-13 *, 1 − 1.0e-13 *, 1 + 1.0e-12, 1 − 1.0e-12); an enclosure alone in 0 (none); under the 4 marked factors: 4 and 0
+
+wittichen, seed 42; 220 steps. As shipped erythrite #32 is born at step 171 on skutterudite #1; 4 candidates, the first two skutterudite #1 0.34042799999999618 and skutterudite #2 0.34042799999998391, apart by 1.2e-14
+  × (1 + 2.2e-16): erythrite #32 on skutterudite #1; apart by 1.2e-14; nothing differs but last binary places
+  × (1 − 1.1e-16 *): erythrite #32 on skutterudite #1; apart by 1.2e-14; nothing differs but last binary places
+  × (1 + 4.4e-16): erythrite #32 on skutterudite #1; apart by 1.2e-14; nothing differs but last binary places
+  × (1 − 4.4e-16): erythrite #32 on skutterudite #1; apart by 1.2e-14; nothing differs but last binary places
+  × (1 + 1.1e-15): erythrite #32 on skutterudite #1; apart by 1.2e-14; nothing differs but last binary places
+  × (1 − 1.0e-15): erythrite #32 on skutterudite #1; apart by 1.2e-14; nothing differs but last binary places
+  × (1 + 1.0e-14): erythrite #32 on skutterudite #1; apart by 1.2e-14; nothing differs but last binary places
+  × (1 − 1.0e-14 *): erythrite #32 on skutterudite #1; apart by 1.2e-14; nothing differs but last binary places
+  × (1 + 1.0e-13 *): erythrite #32 on skutterudite #1; apart by 3.3e-14; nothing differs but last binary places
+  × (1 − 1.0e-13 *): erythrite #32 on skutterudite #2  <- NOT THE SHIPPED RUN'S; apart by 4.4e-15; a size or the bulk fluid differs (the summary; some crystal's size; species (moved safflorite; lost none; gained none); an enclosure)
+  × (1 + 1.0e-12): erythrite #32 on skutterudite #2  <- NOT THE SHIPPED RUN'S; apart by 1.5e-14; a size or the bulk fluid differs (the summary; some crystal's size; species (moved safflorite; lost none; gained none); an enclosure)
+  × (1 − 1.0e-12): erythrite #32 on skutterudite #2  <- NOT THE SHIPPED RUN'S; apart by 1.2e-14; a size or the bulk fluid differs (the summary; some crystal's size; species (moved safflorite; lost none; gained none); an enclosure)
+  a size or the bulk fluid differs in 3 of the 12 (1 − 1.0e-13 *, 1 + 1.0e-12, 1 − 1.0e-12); an enclosure alone in 0 (none); under the 4 marked factors: 1 and 0
+  the product is born on another precursor in 3 of the 12 (1 − 1.0e-13 *, 1 + 1.0e-12, 1 − 1.0e-12); among the 8 factors within 1e-14 of 1 in 0
+
+wittichen, seed 1; 220 steps. As shipped erythrite #32 is born at step 171 on skutterudite #3; 2 candidates, the first two skutterudite #3 0.34042799999998569 and safflorite #12 0.25052399999999697, apart by 9.0e-2
+  × (1 + 2.2e-16): erythrite #32 on skutterudite #3; apart by 9.0e-2; nothing differs but last binary places
+  × (1 − 1.1e-16 *): erythrite #32 on skutterudite #3; apart by 9.0e-2; nothing differs but last binary places
+  × (1 + 4.4e-16): erythrite #32 on skutterudite #3; apart by 9.0e-2; nothing differs but last binary places
+  × (1 − 4.4e-16): erythrite #32 on skutterudite #3; apart by 9.0e-2; nothing differs but last binary places
+  × (1 + 1.1e-15): erythrite #32 on skutterudite #3; apart by 9.0e-2; nothing differs but last binary places
+  × (1 − 1.0e-15): erythrite #32 on skutterudite #3; apart by 9.0e-2; nothing differs but last binary places
+  × (1 + 1.0e-14): erythrite #32 on skutterudite #3; apart by 9.0e-2; nothing differs but last binary places
+  × (1 − 1.0e-14 *): erythrite #32 on skutterudite #3; apart by 9.0e-2; nothing differs but last binary places
+  × (1 + 1.0e-13 *): erythrite #32 on skutterudite #3; apart by 9.0e-2; nothing differs but last binary places
+  × (1 − 1.0e-13 *): erythrite #32 on skutterudite #3; apart by 9.0e-2; nothing differs but last binary places
+  × (1 + 1.0e-12): erythrite #32 on skutterudite #3; apart by 9.0e-2; nothing differs but last binary places
+  × (1 − 1.0e-12): erythrite #32 on skutterudite #3; apart by 9.0e-2; nothing differs but last binary places
+  a size or the bulk fluid differs in 0 of the 12 (none); an enclosure alone in 0 (none); under the 4 marked factors: 0 and 0
+  the product is born on another precursor in 0 of the 12 (none); among the 8 factors within 1e-14 of 1 in 0
+
+wittichen, seed 2; 220 steps. As shipped erythrite #34 is born at step 171 on skutterudite #9; 4 candidates, the first two skutterudite #9 0.34042800000001006 and skutterudite #2 0.34042799999999140, apart by 1.9e-14
+  × (1 + 2.2e-16): erythrite #34 on skutterudite #9; apart by 1.9e-14; nothing differs but last binary places
+  × (1 − 1.1e-16 *): erythrite #34 on skutterudite #9; apart by 1.9e-14; nothing differs but last binary places
+  × (1 + 4.4e-16): erythrite #34 on skutterudite #9; apart by 1.9e-14; nothing differs but last binary places
+  × (1 − 4.4e-16): erythrite #34 on skutterudite #9; apart by 1.9e-14; nothing differs but last binary places
+  × (1 + 1.1e-15): erythrite #34 on skutterudite #9; apart by 1.9e-14; nothing differs but last binary places
+  × (1 − 1.0e-15): erythrite #34 on skutterudite #9; apart by 1.9e-14; nothing differs but last binary places
+  × (1 + 1.0e-14): erythrite #34 on skutterudite #9; apart by 1.9e-14; nothing differs but last binary places
+  × (1 − 1.0e-14 *): erythrite #34 on skutterudite #9; apart by 4.9e-15; nothing differs but last binary places
+  × (1 + 1.0e-13 *): erythrite #34 on skutterudite #9; apart by 1.7e-14; nothing differs but last binary places
+  × (1 − 1.0e-13 *): erythrite #34 on skutterudite #2  <- NOT THE SHIPPED RUN'S; apart by 2.3e-14; a size or the bulk fluid differs (the summary; some crystal's size; species (moved skutterudite; lost none; gained none); an enclosure)
+  × (1 + 1.0e-12): erythrite #34 on skutterudite #9; apart by 1.8e-14; nothing differs but last binary places
+  × (1 − 1.0e-12): erythrite #34 on skutterudite #9; apart by 1.1e-14; nothing differs but last binary places
+  a size or the bulk fluid differs in 1 of the 12 (1 − 1.0e-13 *); an enclosure alone in 0 (none); under the 4 marked factors: 1 and 0
+  the product is born on another precursor in 1 of the 12 (1 − 1.0e-13 *); among the 8 factors within 1e-14 of 1 in 0
+
+over the 6 scenario-seeds: a size or the bulk fluid differs in 21 of 72 nudged runs and an enclosure alone in 6; of the 24 runs under the 4 marked factors, in 8 and 0
+control: at seed 42 the shipped run reproduces the baseline for the 2 scenarios
+control: at seed 42 a nudge of exactly 1 is the shipped run, to the last binary place of every size, the fill and the bulk fluid, and in every enclosure, for the 2 scenarios
+control: in 39 of the 39 runs with a product born on a precursor, the crystal the three keys put first is the precursor on the receipt; in 39 of them its release as summed here is the receipt's; exact ties between the first two: 0

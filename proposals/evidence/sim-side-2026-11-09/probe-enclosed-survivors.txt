@@ -1,0 +1,66 @@
+[scenarios] loaded 41 from ./data/scenarios.json5
+[spec] loaded 184 minerals from ./data/minerals.json
+[thermo] loaded 15 carbonate entries from ./data/thermo-carbonates.json
+[thermo] loaded 4 sulfate entries from ./data/thermo-sulfates.json
+[narratives] loaded 94 species
+probe-enclosed-survivors — schneeberg, SIM 286; the feldspar pair's rate clamped at k·min(sigma − 1, 7)
+events: 20 Pegmatite Crystallization | 70 Cooling | 85 Cu+P Oxidation | 105 Cu+As Pulse | 110 Vein Exhumed (water table drops) | 125 Cu Depletion | 145 Late As Pulse
+seed 42: the shipped run reproduces the baseline
+
+seed 42: largest of the pair, shipped feldspar 27.6 mm; under the clamp feldspar 10.3 mm
+  minerals with solid at run end as shipped and none under the clamp: none
+
+seed 1: largest of the pair, shipped feldspar 26.6 mm; under the clamp feldspar 9.8 mm
+  minerals with solid at run end as shipped and none under the clamp: cobaltite, cuprite, native_arsenic, native_bismuth
+  cobaltite, shipped:
+      cobaltite #18: born at step 11; no solid at run end; never enclosed; lost its last solid at step 111
+      cobaltite #21: born at step 13; 187 µm at run end; enclosed from step 37 by arsenopyrite #14 (2.6 mm at run end), still enclosed at run end
+      cobaltite #32: born at step 25; no solid at run end; never enclosed; lost its last solid at step 94
+      cobaltite #33: born at step 26; no solid at run end; never enclosed; lost its last solid at step 93
+  cobaltite, under the clamp:
+      cobaltite #18: born at step 11; no solid at run end; never enclosed; lost its last solid at step 111
+      cobaltite #21: born at step 13; no solid at run end; never enclosed; lost its last solid at step 105
+      cobaltite #32: born at step 25; no solid at run end; never enclosed; lost its last solid at step 94
+      cobaltite #33: born at step 26; no solid at run end; never enclosed; lost its last solid at step 93
+  cuprite, shipped:
+      cuprite #49: born at step 90; 4.3 µm at run end; never enclosed
+  cuprite, under the clamp:
+      cuprite #49: born at step 90; no solid at run end; never enclosed; lost its last solid at step 110
+  native_arsenic, shipped:
+      native_arsenic #38: born at step 40; 246 µm at run end; enclosed from step 90 by feldspar #10 (26.6 mm at run end), still enclosed at run end
+      native_arsenic #39: born at step 43; no solid at run end; never enclosed; lost its last solid at step 110
+      native_arsenic #43: born at step 70; no solid at run end; never enclosed; lost its last solid at step 98
+      native_arsenic #44: born at step 71; no solid at run end; never enclosed; lost its last solid at step 93
+  native_arsenic, under the clamp:
+      native_arsenic #38: born at step 40; no solid at run end; never enclosed; lost its last solid at step 111
+      native_arsenic #39: born at step 43; no solid at run end; never enclosed; lost its last solid at step 110
+      native_arsenic #43: born at step 70; no solid at run end; never enclosed; lost its last solid at step 98
+      native_arsenic #44: born at step 71; no solid at run end; never enclosed; lost its last solid at step 93
+  native_bismuth, shipped:
+      native_bismuth #42: born at step 70; 66 µm at run end; enclosed from step 91 by feldspar #10 (26.6 mm at run end), still enclosed at run end
+  native_bismuth, under the clamp:
+      native_bismuth #42: born at step 70; no solid at run end; never enclosed; lost its last solid at step 101
+
+seed 2: largest of the pair, shipped feldspar 26.7 mm; under the clamp feldspar 9.8 mm
+  minerals with solid at run end as shipped and none under the clamp: native_arsenic, native_bismuth, naumannite
+  native_arsenic, shipped:
+      native_arsenic #41: born at step 39; no solid at run end; never enclosed; lost its last solid at step 111
+      native_arsenic #42: born at step 40; 14 µm at run end; enclosed from step 47 by feldspar #3 (26.7 mm at run end), still enclosed at run end
+      native_arsenic #43: born at step 45; no solid at run end; never enclosed; lost its last solid at step 111
+      native_arsenic #44: born at step 51; no solid at run end; never enclosed; lost its last solid at step 107
+      native_arsenic #45: born at step 56; 171 µm at run end; enclosed from step 91 by feldspar #10 (26.2 mm at run end), still enclosed at run end
+  native_arsenic, under the clamp:
+      native_arsenic #41: born at step 39; no solid at run end; never enclosed; lost its last solid at step 110
+      native_arsenic #42: born at step 40; no solid at run end; never enclosed; lost its last solid at step 93
+      native_arsenic #43: born at step 45; no solid at run end; never enclosed; lost its last solid at step 110
+      native_arsenic #44: born at step 51; no solid at run end; never enclosed; lost its last solid at step 108
+  native_bismuth, shipped:
+      native_bismuth #46: born at step 70; 63 µm at run end; enclosed from step 91 by feldspar #10 (26.2 mm at run end), still enclosed at run end
+  native_bismuth, under the clamp:
+      native_bismuth #45: born at step 70; no solid at run end; never enclosed; lost its last solid at step 101
+  naumannite, shipped:
+      naumannite #48: born at step 72; no solid at run end; never enclosed; lost its last solid at step 97
+      naumannite #49: born at step 74; 66 µm at run end; enclosed from step 89 by feldspar #3 (26.7 mm at run end), still enclosed at run end
+  naumannite, under the clamp:
+      naumannite #47: born at step 72; no solid at run end; never enclosed; lost its last solid at step 96
+      naumannite #48: born at step 74; no solid at run end; never enclosed; lost its last solid at step 95

@@ -1,0 +1,3318 @@
+{
+ "sim_version": 286,
+ "sigmas": [
+  1.0005,
+  1.01,
+  1.1,
+  1.5,
+  2,
+  3
+ ],
+ "engines": {
+  "HMC": {
+   "verdict": "not driven",
+   "why": "no context proposed a zone at sigma 2",
+   "context": null
+  },
+  "acanthite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "bisbee",
+   "proposed_um": [
+    0,
+    0,
+    0.16093638025224224,
+    0.8046819012612105,
+    1.609363802522421,
+    3.218727605044842
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "actinolite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "jeffrey_mine",
+   "proposed_um": [
+    0,
+    0,
+    0.16093638025224224,
+    0.8046819012612105,
+    1.609363802522421,
+    3.218727605044842
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "adamite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "supergene_oxidation",
+   "proposed_um": [
+    0,
+    0,
+    0.3218727605044845,
+    1.609363802522421,
+    3.218727605044842,
+    6.437455210089684
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "albite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "bisbee",
+   "proposed_um": [
+    0,
+    0,
+    0.3218727605044845,
+    1.609363802522421,
+    3.218727605044842,
+    6.437455210089684
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "alunite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "bisbee",
+   "proposed_um": [
+    0,
+    0,
+    0.28163866544142396,
+    1.4081933272071185,
+    2.816386654414237,
+    5.632773308828474
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "amosite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "asbestos_hills_crack_seal",
+   "proposed_um": [
+    0,
+    0,
+    0.16093638025224224,
+    0.8046819012612105,
+    1.609363802522421,
+    3.218727605044842
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "andalusite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "chiastolite_hornfels",
+   "proposed_um": [
+    0,
+    0,
+    0.20921729432791492,
+    1.0460864716395737,
+    2.0921729432791474,
+    4.184345886558295
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "anglesite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "porphyry",
+   "proposed_um": [
+    0,
+    0,
+    0.24140457037836338,
+    1.2070228518918158,
+    2.4140457037836316,
+    4.828091407567263
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "anhydrite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "mvt",
+   "proposed_um": [
+    0,
+    0,
+    0.28163866544142396,
+    1.4081933272071185,
+    2.816386654414237,
+    5.632773308828474
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "annabergite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0.0004999999999999449,
+   "context": "schneeberg",
+   "proposed_um": [
+    0.001237289990810541,
+    0.024745799816213568,
+    0.24745799816213568,
+    1.2372899908106771,
+    2.4745799816213543,
+    4.949159963242709
+   ],
+   "shape": [
+    0.1000000000000001,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "anthophyllite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.16093638025224224,
+    0.8046819012612105,
+    1.609363802522421,
+    3.218727605044842
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "antlerite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.28163866544142396,
+    1.4081933272071185,
+    2.816386654414237,
+    5.632773308828474
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "apatite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "grimsel_alpine_cleft",
+   "proposed_um": [
+    0,
+    0,
+    0.4023409506306056,
+    2.011704753153026,
+    4.023409506306052,
+    8.046819012612104
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "apophyllite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0.0004999999999999449,
+   "context": "deccan_zeolite",
+   "proposed_um": [
+    0.0017675571297293443,
+    0.03535114259459081,
+    0.3535114259459081,
+    1.767557129729539,
+    3.535114259459078,
+    7.070228518918156
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "aquamarine": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0.289685484454036,
+    2.8968548445403606,
+    14.484274222701789,
+    28.968548445403577,
+    57.937096890807155
+   ],
+   "shape": [
+    0.1000000000000001,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "aragonite": {
+   "verdict": "not driven",
+   "why": "thickness did not change with the forced sigma",
+   "context": "sabkha_dolomitization"
+  },
+  "argentite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "sunnyside_american_tunnel",
+   "proposed_um": [
+    0,
+    0,
+    0.28163866544142396,
+    1.4081933272071185,
+    2.816386654414237,
+    5.632773308828474
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "arsenopyrite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "porphyry",
+   "proposed_um": [
+    0,
+    0,
+    0.28163866544142396,
+    1.4081933272071185,
+    2.816386654414237,
+    5.632773308828474
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "atacamite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "bisbee",
+   "proposed_um": [
+    0,
+    0,
+    0.3218727605044845,
+    1.609363802522421,
+    3.218727605044842,
+    6.437455210089684
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "aurichalcite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "roughten_gill",
+   "proposed_um": [
+    0,
+    0,
+    0.12070228518918169,
+    0.6035114259459079,
+    1.2070228518918158,
+    2.4140457037836316
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "austinite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.24140457037836338,
+    1.2070228518918158,
+    2.4140457037836316,
+    4.828091407567263
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "autunite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "schneeberg",
+   "proposed_um": [
+    0,
+    0,
+    0.12070228518918169,
+    0.6035114259459079,
+    1.2070228518918158,
+    2.4140457037836316
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "awaruite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "jeffrey_mine",
+   "proposed_um": [
+    0,
+    0,
+    0.12726411334052692,
+    0.636320566702634,
+    1.272641133405268,
+    2.545282266810536
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "azurite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "bisbee",
+   "proposed_um": [
+    0,
+    0,
+    0.24140457037836338,
+    1.2070228518918158,
+    2.4140457037836316,
+    4.828091407567263
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "barite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "elmwood",
+   "proposed_um": [
+    0,
+    0,
+    0.24140457037836338,
+    1.2070228518918158,
+    2.4140457037836316,
+    4.828091407567263
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "bayldonite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.22531093235313915,
+    1.1265546617656947,
+    2.2531093235313895,
+    4.506218647062779
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "beryl": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0.289685484454036,
+    2.8968548445403606,
+    14.484274222701789,
+    28.968548445403577,
+    57.937096890807155
+   ],
+   "shape": [
+    0.1000000000000001,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "birnessite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.10302671389188627,
+    0.5151335694594308,
+    1.0302671389188616,
+    2.060534277837723
+   ],
+   "shape": [
+    0.1000000000000001,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "bismuthinite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "porphyry",
+   "proposed_um": [
+    0,
+    0,
+    0.3218727605044845,
+    1.609363802522421,
+    3.218727605044842,
+    6.437455210089684
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "borax": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "searles_lake",
+   "proposed_um": [
+    0,
+    0.12070228518918169,
+    1.207022851891817,
+    6.035114259459079,
+    12.070228518918158,
+    24.140457037836317
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "bornite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "bisbee",
+   "proposed_um": [
+    0,
+    0,
+    0.24140457037836338,
+    1.2070228518918158,
+    2.4140457037836316,
+    4.828091407567263
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "brochantite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "bisbee",
+   "proposed_um": [
+    0,
+    0,
+    0.28163866544142396,
+    1.4081933272071185,
+    2.816386654414237,
+    5.632773308828474
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "brucite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "jeffrey_mine",
+   "proposed_um": [
+    0,
+    0,
+    0.22531093235313915,
+    1.1265546617656947,
+    2.2531093235313895,
+    4.506218647062779
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "calaverite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "epithermal_telluride",
+   "proposed_um": [
+    0,
+    0,
+    0.144842742227018,
+    0.7242137111350895,
+    1.448427422270179,
+    2.896854844540358
+   ],
+   "shape": [
+    0.10000000000000007,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "calcite": {
+   "verdict": "not driven",
+   "why": "thickness did not change with the forced sigma",
+   "context": "elmwood"
+  },
+  "caledonite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "supergene_oxidation",
+   "proposed_um": [
+    0,
+    0,
+    0.2011704753153028,
+    1.005852376576513,
+    2.011704753153026,
+    4.023409506306052
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "carnotite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "colorado_plateau",
+   "proposed_um": [
+    0,
+    0,
+    0.12070228518918169,
+    0.6035114259459079,
+    1.2070228518918158,
+    2.4140457037836316
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "cassiterite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "gem_pegmatite",
+   "proposed_um": [
+    0,
+    0,
+    0.1707022851891817,
+    0.8535114259459078,
+    1.7070228518918156,
+    3.414045703783631
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "celestine": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "elmwood",
+   "proposed_um": [
+    0,
+    0,
+    0.24140457037836338,
+    1.2070228518918158,
+    2.4140457037836316,
+    4.828091407567263
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "cerussite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "roughten_gill",
+   "proposed_um": [
+    0,
+    0,
+    0.24140457037836338,
+    1.2070228518918158,
+    2.4140457037836316,
+    4.828091407567263
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "chabazite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.13679592321440592,
+    0.683979616072029,
+    1.367959232144058,
+    2.735918464288116
+   ],
+   "shape": [
+    0.1000000000000001,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "chalcanthite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.4023409506306056,
+    2.011704753153026,
+    4.023409506306052,
+    8.046819012612104
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "chalcedony": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.3340896389520557,
+    1.0644405489990223,
+    1.7533273491419172,
+    2.888049310165698
+   ],
+   "shape": [
+    0.19054607179632485,
+    0.6070974421975236
+   ],
+   "linear_in_excess": false
+  },
+  "chalcocite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "bisbee",
+   "proposed_um": [
+    0,
+    0,
+    0.36210685556754507,
+    1.8105342778377236,
+    3.621068555675447,
+    7.242137111350894
+   ],
+   "shape": [
+    0.1000000000000001,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "chalcopyrite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0.0004999999999999448,
+   "context": "bisbee",
+   "proposed_um": [
+    0.0015908014167564097,
+    0.03181602833513173,
+    0.3181602833513173,
+    1.5908014167565852,
+    3.1816028335131703,
+    6.363205667026341
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "chromite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.3414045703783634,
+    1.7070228518918156,
+    3.414045703783631,
+    6.828091407567262
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "chrysocolla": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "bisbee",
+   "proposed_um": [
+    0,
+    0,
+    0.2011704753153028,
+    1.005852376576513,
+    2.011704753153026,
+    4.023409506306052
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "chrysoprase": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "ultramafic_supergene",
+   "proposed_um": [
+    0,
+    0,
+    0.21337785648647714,
+    1.0668892824323848,
+    2.1337785648647696,
+    4.267557129729539
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "chrysotile": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "jeffrey_mine",
+   "proposed_um": [
+    0,
+    0,
+    0.2011704753153028,
+    1.005852376576513,
+    2.011704753153026,
+    4.023409506306052
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "cinnabar": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "sulphur_bank",
+   "proposed_um": [
+    0,
+    0,
+    0.24140457037836338,
+    1.2070228518918158,
+    2.4140457037836316,
+    4.828091407567263
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "clausthalite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.1707022851891817,
+    0.8535114259459078,
+    1.7070228518918156,
+    3.414045703783631
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "clinobisvanite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.16093638025224224,
+    0.8046819012612105,
+    1.609363802522421,
+    3.218727605044842
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "cobaltite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "schneeberg",
+   "proposed_um": [
+    0,
+    0,
+    0.2011704753153028,
+    1.005852376576513,
+    2.011704753153026,
+    4.023409506306052
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "coffinite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.10605342778377243,
+    0.5302671389188617,
+    1.0605342778377234,
+    2.1210685556754467
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "conichalcite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "supergene_oxidation",
+   "proposed_um": [
+    0,
+    0,
+    0.18507683729007857,
+    0.925384186450392,
+    1.850768372900784,
+    3.701536745801568
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "corundum": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.16093638025224224,
+    0.8046819012612105,
+    1.609363802522421,
+    3.218727605044842
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "covellite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "bisbee",
+   "proposed_um": [
+    0,
+    0,
+    0.28163866544142396,
+    1.4081933272071185,
+    2.816386654414237,
+    5.632773308828474
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "crocidolite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "asbestos_hills_crack_seal",
+   "proposed_um": [
+    0,
+    0,
+    0.16093638025224224,
+    0.8046819012612105,
+    1.609363802522421,
+    3.218727605044842
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "cuprite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "bisbee",
+   "proposed_um": [
+    0,
+    0,
+    0.24140457037836338,
+    1.2070228518918158,
+    2.4140457037836316,
+    4.828091407567263
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "datolite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "jeffrey_mine",
+   "proposed_um": [
+    0,
+    0,
+    0.2011704753153028,
+    1.005852376576513,
+    2.011704753153026,
+    4.023409506306052
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "descloizite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "supergene_oxidation",
+   "proposed_um": [
+    0,
+    0,
+    0.2011704753153028,
+    1.005852376576513,
+    2.011704753153026,
+    4.023409506306052
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "diopside": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "jeffrey_mine",
+   "proposed_um": [
+    0,
+    0,
+    0.13605342778377247,
+    0.6802671389188618,
+    1.3605342778377236,
+    2.7210685556754473
+   ],
+   "shape": [
+    0.10000000000000007,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "dioptase": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "bisbee",
+   "proposed_um": [
+    0,
+    0,
+    0.1770300182774665,
+    0.8851500913873317,
+    1.7703001827746634,
+    3.5406003655493268
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "dolomite": {
+   "verdict": "not driven",
+   "why": "thickness did not change with the forced sigma",
+   "context": "sabkha_dolomitization"
+  },
+  "duftite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "supergene_oxidation",
+   "proposed_um": [
+    0,
+    0,
+    0.24140457037836338,
+    1.2070228518918158,
+    2.4140457037836316,
+    4.828091407567263
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "emerald": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0.289685484454036,
+    2.8968548445403606,
+    14.484274222701789,
+    28.968548445403577,
+    57.937096890807155
+   ],
+   "shape": [
+    0.1000000000000001,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "enargite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.2828091407567265,
+    1.4140457037836311,
+    2.8280914075672623,
+    5.656182815134525
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "epidote": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "grimsel_alpine_cleft",
+   "proposed_um": [
+    0,
+    0,
+    0.16093638025224224,
+    0.8046819012612105,
+    1.609363802522421,
+    3.218727605044842
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "erythrite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0.0004999999999999449,
+   "context": "schneeberg",
+   "proposed_um": [
+    0.001237289990810541,
+    0.024745799816213568,
+    0.24745799816213568,
+    1.2372899908106771,
+    2.4745799816213543,
+    4.949159963242709
+   ],
+   "shape": [
+    0.1000000000000001,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "feldspar": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "bisbee",
+   "proposed_um": [
+    0,
+    0,
+    0.21210685556754486,
+    1.0605342778377234,
+    2.1210685556754467,
+    4.242137111350893
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "ferrimolybdite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "porphyry",
+   "proposed_um": [
+    0,
+    0,
+    0.4023409506306056,
+    2.011704753153026,
+    4.023409506306052,
+    8.046819012612104
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "fluorite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0.0004999999999999449,
+   "context": "elmwood",
+   "proposed_um": [
+    0.002816386654413927,
+    0.05632773308828479,
+    0.5632773308828479,
+    2.816386654414237,
+    5.632773308828474,
+    11.265546617656948
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "galena": {
+   "verdict": "FINITE",
+   "share_at_saturation": 0.50025,
+   "context": "mvt",
+   "proposed_um": [
+    12.076263633177616,
+    12.19093080410734,
+    13.277251370809974,
+    18.10534277837724,
+    24.140457037836317,
+    36.21068555675448
+   ],
+   "shape": [
+    0.55,
+    0.75
+   ],
+   "linear_in_excess": false
+  },
+  "goethite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "asbestos_hills_crack_seal",
+   "proposed_um": [
+    0,
+    0,
+    0.2828091407567265,
+    1.4140457037836311,
+    2.8280914075672623,
+    5.656182815134525
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "greenockite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "mvt",
+   "proposed_um": [
+    0,
+    0,
+    0.4267557129729543,
+    2.1337785648647696,
+    4.267557129729539,
+    8.535114259459078
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "grossular": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "jeffrey_mine",
+   "proposed_um": [
+    0,
+    0,
+    0.13605342778377247,
+    0.6802671389188618,
+    1.3605342778377236,
+    2.7210685556754473
+   ],
+   "shape": [
+    0.10000000000000007,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "haidingerite": {
+   "verdict": "not driven",
+   "why": "no context proposed a zone at sigma 2",
+   "context": null
+  },
+  "halite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "great_salt_plains",
+   "proposed_um": [
+    0,
+    0,
+    0.6828091407567268,
+    3.414045703783631,
+    6.828091407567262,
+    13.656182815134525
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "hawleyite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.38408014167565885,
+    1.9204007083782926,
+    3.840801416756585,
+    7.68160283351317
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "heliodor": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0.289685484454036,
+    2.8968548445403606,
+    14.484274222701789,
+    28.968548445403577,
+    57.937096890807155
+   ],
+   "shape": [
+    0.1000000000000001,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "hematite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "asbestos_hills_crack_seal",
+   "proposed_um": [
+    0,
+    0,
+    0.3218727605044845,
+    1.609363802522421,
+    3.218727605044842,
+    6.437455210089684
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "hemimorphite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "roughten_gill",
+   "proposed_um": [
+    0,
+    0,
+    0.22531093235313915,
+    1.1265546617656947,
+    2.2531093235313895,
+    4.506218647062779
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "hessite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "epithermal_telluride",
+   "proposed_um": [
+    0,
+    0,
+    0.1707022851891817,
+    0.8535114259459078,
+    1.7070228518918156,
+    3.414045703783631
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "heulandite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "deccan_zeolite",
+   "proposed_um": [
+    0,
+    0,
+    0.144842742227018,
+    0.7242137111350895,
+    1.448427422270179,
+    2.896854844540358
+   ],
+   "shape": [
+    0.10000000000000007,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "hydrozincite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.28163866544142396,
+    1.4081933272071185,
+    2.816386654414237,
+    5.632773308828474
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "jarosite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "bisbee",
+   "proposed_um": [
+    0,
+    0,
+    0.3218727605044845,
+    1.609363802522421,
+    3.218727605044842,
+    6.437455210089684
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "koettigite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.2011704753153028,
+    1.005852376576513,
+    2.011704753153026,
+    4.023409506306052
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "leadhillite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.22531093235313915,
+    1.1265546617656947,
+    2.2531093235313895,
+    4.506218647062779
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "legrandite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.28163866544142396,
+    1.4081933272071185,
+    2.816386654414237,
+    5.632773308828474
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "lepidocrocite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "asbestos_hills_surficial_alteration",
+   "proposed_um": [
+    0,
+    0,
+    0.3218727605044845,
+    1.609363802522421,
+    3.218727605044842,
+    6.437455210089684
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "lepidolite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "gem_pegmatite",
+   "proposed_um": [
+    0,
+    0,
+    0.144842742227018,
+    0.7242137111350895,
+    1.448427422270179,
+    2.896854844540358
+   ],
+   "shape": [
+    0.10000000000000007,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "linarite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.2011704753153028,
+    1.005852376576513,
+    2.011704753153026,
+    4.023409506306052
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "loellingite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.21210685556754486,
+    1.0605342778377234,
+    2.1210685556754467,
+    4.242137111350893
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "magnetite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "asbestos_hills_crack_seal",
+   "proposed_um": [
+    0,
+    0,
+    0.24140457037836338,
+    1.2070228518918158,
+    2.4140457037836316,
+    4.828091407567263
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "malachite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "bisbee",
+   "proposed_um": [
+    0,
+    0,
+    0.48280914075672676,
+    2.4140457037836316,
+    4.828091407567263,
+    9.656182815134526
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "marcasite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0.0004999999999999448,
+   "context": "bisbee",
+   "proposed_um": [
+    0.0015908014167564097,
+    0.03181602833513173,
+    0.3181602833513173,
+    1.5908014167565852,
+    3.1816028335131703,
+    6.363205667026341
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "mesolite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "deccan_zeolite",
+   "proposed_um": [
+    0,
+    0,
+    0.1287491042017938,
+    0.6437455210089684,
+    1.2874910420179368,
+    2.5749820840358737
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "meta-autunite": {
+   "verdict": "not driven",
+   "why": "no context proposed a zone at sigma 2",
+   "context": null
+  },
+  "metacinnabar": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "sulphur_bank",
+   "proposed_um": [
+    0,
+    0,
+    0.28163866544142396,
+    1.4081933272071185,
+    2.816386654414237,
+    5.632773308828474
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "metatorbernite": {
+   "verdict": "not driven",
+   "why": "no context proposed a zone at sigma 2",
+   "context": null
+  },
+  "metazeunerite": {
+   "verdict": "not driven",
+   "why": "no context proposed a zone at sigma 2",
+   "context": null
+  },
+  "millerite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.3218727605044845,
+    1.609363802522421,
+    3.218727605044842,
+    6.437455210089684
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "mimetite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "bisbee",
+   "proposed_um": [
+    0,
+    0,
+    0.4023409506306056,
+    2.011704753153026,
+    4.023409506306052,
+    8.046819012612104
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "mirabilite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "searles_lake",
+   "proposed_um": [
+    0,
+    0.10242137111350902,
+    1.0242137111350902,
+    5.121068555675446,
+    10.242137111350893,
+    20.484274222701785
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "molybdenite": {
+   "verdict": "FINITE",
+   "share_at_saturation": 0.50025,
+   "context": "porphyry",
+   "proposed_um": [
+    8.372876119003147,
+    8.452378690847755,
+    9.20556095042825,
+    12.553037659674885,
+    16.73738354623318,
+    25.10607531934977
+   ],
+   "shape": [
+    0.55,
+    0.75
+   ],
+   "linear_in_excess": false
+  },
+  "morganite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "radioactive_pegmatite",
+   "proposed_um": [
+    0,
+    0.289685484454036,
+    2.8968548445403606,
+    14.484274222701789,
+    28.968548445403577,
+    57.937096890807155
+   ],
+   "shape": [
+    0.1000000000000001,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "mottramite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "roughten_gill",
+   "proposed_um": [
+    0,
+    0,
+    0.2011704753153028,
+    1.005852376576513,
+    2.011704753153026,
+    4.023409506306052
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "native_arsenic": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "schneeberg",
+   "proposed_um": [
+    0,
+    0,
+    0.2011704753153028,
+    1.005852376576513,
+    2.011704753153026,
+    4.023409506306052
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "native_bismuth": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "schneeberg",
+   "proposed_um": [
+    0,
+    0,
+    0.24140457037836338,
+    1.2070228518918158,
+    2.4140457037836316,
+    4.828091407567263
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "native_copper": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "bisbee",
+   "proposed_um": [
+    0,
+    0,
+    0.16093638025224224,
+    0.8046819012612105,
+    1.609363802522421,
+    3.218727605044842
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "native_gold": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "bisbee",
+   "proposed_um": [
+    0,
+    0,
+    0.12070228518918169,
+    0.6035114259459079,
+    1.2070228518918158,
+    2.4140457037836316
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "native_silver": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "bisbee",
+   "proposed_um": [
+    0,
+    0,
+    0.36210685556754507,
+    1.8105342778377236,
+    3.621068555675447,
+    7.242137111350894
+   ],
+   "shape": [
+    0.1000000000000001,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "native_sulfur": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "sicily_solfifera",
+   "proposed_um": [
+    0,
+    0,
+    0.3218727605044845,
+    1.609363802522421,
+    3.218727605044842,
+    6.437455210089684
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "native_tellurium": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "epithermal_telluride",
+   "proposed_um": [
+    0,
+    0,
+    0.16093638025224224,
+    0.8046819012612105,
+    1.609363802522421,
+    3.218727605044842
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "naumannite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "schneeberg",
+   "proposed_um": [
+    0,
+    0,
+    0.15363205667026353,
+    0.768160283351317,
+    1.536320566702634,
+    3.072641133405268
+   ],
+   "shape": [
+    0.10000000000000007,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "nickeline": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "schneeberg",
+   "proposed_um": [
+    0,
+    0,
+    0.24140457037836338,
+    1.2070228518918158,
+    2.4140457037836316,
+    4.828091407567263
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "olivenite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "supergene_oxidation",
+   "proposed_um": [
+    0,
+    0,
+    0.2011704753153028,
+    1.005852376576513,
+    2.011704753153026,
+    4.023409506306052
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "opal": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "asbestos_hills_crack_seal",
+   "proposed_um": [
+    0,
+    0,
+    0.36210685556754507,
+    1.8105342778377236,
+    3.621068555675447,
+    7.242137111350894
+   ],
+   "shape": [
+    0.1000000000000001,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "orpiment": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "sulphur_bank",
+   "proposed_um": [
+    0,
+    0,
+    0.24140457037836338,
+    1.2070228518918158,
+    2.4140457037836316,
+    4.828091407567263
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "pectolite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "deccan_zeolite",
+   "proposed_um": [
+    0,
+    0,
+    0.1770300182774665,
+    0.8851500913873317,
+    1.7703001827746634,
+    3.5406003655493268
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "pharmacolite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "schneeberg",
+   "proposed_um": [
+    0,
+    0,
+    0.2011704753153028,
+    1.005852376576513,
+    2.011704753153026,
+    4.023409506306052
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "plumbogummite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "radioactive_pegmatite",
+   "proposed_um": [
+    0,
+    0,
+    0.14140457037836324,
+    0.7070228518918156,
+    1.4140457037836311,
+    2.8280914075672623
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "powellite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "supergene_oxidation",
+   "proposed_um": [
+    0,
+    0,
+    0.298728999081068,
+    1.4936449954053386,
+    2.987289990810677,
+    5.974579981621354
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "prehnite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "deccan_zeolite",
+   "proposed_um": [
+    0,
+    0,
+    0.1770300182774665,
+    0.8851500913873317,
+    1.7703001827746634,
+    3.5406003655493268
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "proustite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "schneeberg",
+   "proposed_um": [
+    0,
+    0,
+    0.17675571297295406,
+    0.8837785648647695,
+    1.767557129729539,
+    3.535114259459078
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "pyrargyrite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.19796639852970854,
+    0.9898319926485417,
+    1.9796639852970834,
+    3.959327970594167
+   ],
+   "shape": [
+    0.1000000000000001,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "pyrite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0.0004999999999999449,
+   "context": "bisbee",
+   "proposed_um": [
+    0.0017675571297293443,
+    0.03535114259459081,
+    0.3535114259459081,
+    1.767557129729539,
+    3.535114259459078,
+    7.070228518918156
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "pyrolusite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.10605342778377243,
+    0.5302671389188617,
+    1.0605342778377234,
+    2.1210685556754467
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "pyromorphite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "roughten_gill",
+   "proposed_um": [
+    0,
+    0,
+    0.28163866544142396,
+    1.4081933272071185,
+    2.816386654414237,
+    5.632773308828474
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "quartz": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "cooling",
+   "proposed_um": [
+    0,
+    0,
+    0,
+    1.2870008636779449,
+    2.5740017273558897,
+    5.1480034547117794
+   ],
+   "shape": [
+    0,
+    0.5
+   ],
+   "linear_in_excess": false
+  },
+  "rammelsbergite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.21210685556754486,
+    1.0605342778377234,
+    2.1210685556754467,
+    4.242137111350893
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "raspite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "supergene_oxidation",
+   "proposed_um": [
+    0,
+    0,
+    0.144842742227018,
+    0.7242137111350895,
+    1.448427422270179,
+    2.896854844540358
+   ],
+   "shape": [
+    0.10000000000000007,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "realgar": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.22531093235313915,
+    1.1265546617656947,
+    2.2531093235313895,
+    4.506218647062779
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "rhodochrosite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0.0004999999999999449,
+   "context": "pulse",
+   "proposed_um": [
+    0.0017675571297293443,
+    0.03535114259459081,
+    0.3535114259459081,
+    1.767557129729539,
+    3.535114259459078,
+    7.070228518918156
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "romanechite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.08654243966918446,
+    0.43271219834592195,
+    0.8654243966918439,
+    1.7308487933836878
+   ],
+   "shape": [
+    0.10000000000000007,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "rosasite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.12070228518918169,
+    0.6035114259459079,
+    1.2070228518918158,
+    2.4140457037836316
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "ruby": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.16093638025224224,
+    0.8046819012612105,
+    1.609363802522421,
+    3.218727605044842
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "rutile": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.1707022851891817,
+    0.8535114259459078,
+    1.7070228518918156,
+    3.414045703783631
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "safflorite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "wittichen",
+   "proposed_um": [
+    0,
+    0,
+    0.21210685556754486,
+    1.0605342778377234,
+    2.1210685556754467,
+    4.242137111350893
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "sapphire": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.16093638025224224,
+    0.8046819012612105,
+    1.609363802522421,
+    3.218727605044842
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "scheelite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.3414045703783634,
+    1.7070228518918156,
+    3.414045703783631,
+    6.828091407567262
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "scolecite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "deccan_zeolite",
+   "proposed_um": [
+    0,
+    0,
+    0.13679592321440592,
+    0.683979616072029,
+    1.367959232144058,
+    2.735918464288116
+   ],
+   "shape": [
+    0.1000000000000001,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "scorodite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "supergene_oxidation",
+   "proposed_um": [
+    0,
+    0,
+    0.24140457037836338,
+    1.2070228518918158,
+    2.4140457037836316,
+    4.828091407567263
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "selenite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "great_salt_plains",
+   "proposed_um": [
+    0,
+    0,
+    0.4242137111350897,
+    2.1210685556754467,
+    4.242137111350893,
+    8.484274222701787
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "shattuckite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.144842742227018,
+    0.7242137111350895,
+    1.448427422270179,
+    2.896854844540358
+   ],
+   "shape": [
+    0.10000000000000007,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "siderite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0.0004999999999999449,
+   "context": "asbestos_hills_crack_seal",
+   "proposed_um": [
+    0.0017675571297293443,
+    0.03535114259459081,
+    0.3535114259459081,
+    1.767557129729539,
+    3.535114259459078,
+    7.070228518918156
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "skutterudite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "wittichen",
+   "proposed_um": [
+    0,
+    0,
+    0.24745799816213568,
+    1.2372899908106771,
+    2.4745799816213543,
+    4.949159963242709
+   ],
+   "shape": [
+    0.1000000000000001,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "smithsonite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "roughten_gill",
+   "proposed_um": [
+    0,
+    0,
+    0.4023409506306056,
+    2.011704753153026,
+    4.023409506306052,
+    8.046819012612104
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "sphalerite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0.0004999999999999449,
+   "context": "elmwood",
+   "proposed_um": [
+    0.002121068555675213,
+    0.04242137111350897,
+    0.4242137111350897,
+    2.1210685556754467,
+    4.242137111350893,
+    8.484274222701787
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "spodumene": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "gem_pegmatite",
+   "proposed_um": [
+    0,
+    0,
+    0.28163866544142396,
+    1.4081933272071185,
+    2.816386654414237,
+    5.632773308828474
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "stibnite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "porphyry",
+   "proposed_um": [
+    0,
+    0,
+    0.28163866544142396,
+    1.4081933272071185,
+    2.816386654414237,
+    5.632773308828474
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "stilbite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "deccan_zeolite",
+   "proposed_um": [
+    0,
+    0,
+    0.144842742227018,
+    0.7242137111350895,
+    1.448427422270179,
+    2.896854844540358
+   ],
+   "shape": [
+    0.10000000000000007,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "stolzite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "supergene_oxidation",
+   "proposed_um": [
+    0,
+    0,
+    0.2011704753153028,
+    1.005852376576513,
+    2.011704753153026,
+    4.023409506306052
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "strontianite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "sicily_solfifera",
+   "proposed_um": [
+    0,
+    0,
+    0.38408014167565885,
+    1.9204007083782926,
+    3.840801416756585,
+    7.68160283351317
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "sylvanite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "epithermal_telluride",
+   "proposed_um": [
+    0,
+    0,
+    0.1287491042017938,
+    0.6437455210089684,
+    1.2874910420179368,
+    2.5749820840358737
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "sylvite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.597457998162136,
+    2.987289990810677,
+    5.974579981621354,
+    11.949159963242709
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "tennantite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0.0004999999999999448,
+   "context": "bisbee",
+   "proposed_um": [
+    0.0015908014167564097,
+    0.03181602833513173,
+    0.3181602833513173,
+    1.5908014167565852,
+    3.1816028335131703,
+    6.363205667026341
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "tetrahedrite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0.0004999999999999448,
+   "context": "bisbee",
+   "proposed_um": [
+    0.0015908014167564097,
+    0.03181602833513173,
+    0.3181602833513173,
+    1.5908014167565852,
+    3.1816028335131703,
+    6.363205667026341
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "thenardite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "searles_lake",
+   "proposed_um": [
+    0,
+    0,
+    0.7681602833513177,
+    3.840801416756585,
+    7.68160283351317,
+    15.36320566702634
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "thomsonite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.1287491042017938,
+    0.6437455210089684,
+    1.2874910420179368,
+    2.5749820840358737
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "tigers_eye": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "asbestos_hills_crack_seal",
+   "proposed_um": [
+    0,
+    0,
+    0.2011704753153028,
+    1.005852376576513,
+    2.011704753153026,
+    4.023409506306052
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "tincalconite": {
+   "verdict": "not driven",
+   "why": "no context proposed a zone at sigma 2",
+   "context": null
+  },
+  "titanite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "grimsel_alpine_cleft",
+   "proposed_um": [
+    0,
+    0,
+    0.11265546617656957,
+    0.5632773308828474,
+    1.1265546617656947,
+    2.2531093235313895
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "todorokite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.082421371113509,
+    0.41210685556754467,
+    0.8242137111350893,
+    1.6484274222701787
+   ],
+   "shape": [
+    0.10000000000000007,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "topaz": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "ouro_preto",
+   "proposed_um": [
+    0,
+    0,
+    0.28163866544142396,
+    1.4081933272071185,
+    2.816386654414237,
+    5.632773308828474
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "torbernite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.12070228518918169,
+    0.6035114259459079,
+    1.2070228518918158,
+    2.4140457037836316
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "tourmaline": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "gem_pegmatite",
+   "proposed_um": [
+    0,
+    0,
+    0.24140457037836338,
+    1.2070228518918158,
+    2.4140457037836316,
+    4.828091407567263
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "tremolite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.16093638025224224,
+    0.8046819012612105,
+    1.609363802522421,
+    3.218727605044842
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "turquoise": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "bisbee",
+   "proposed_um": [
+    0,
+    0,
+    0.24140457037836338,
+    1.2070228518918158,
+    2.4140457037836316,
+    4.828091407567263
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "tyuyamunite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "colorado_plateau",
+   "proposed_um": [
+    0,
+    0,
+    0.12070228518918169,
+    0.6035114259459079,
+    1.2070228518918158,
+    2.4140457037836316
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "uraninite": {
+   "verdict": "FINITE",
+   "share_at_saturation": 0.50025,
+   "context": "radioactive_pegmatite",
+   "proposed_um": [
+    6.440673937694728,
+    6.501829762190581,
+    7.0812007310986536,
+    9.656182815134526,
+    12.874910420179368,
+    19.312365630269053
+   ],
+   "shape": [
+    0.55,
+    0.75
+   ],
+   "linear_in_excess": false
+  },
+  "uranophane": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "colorado_plateau",
+   "proposed_um": [
+    0,
+    0,
+    0.24140457037836338,
+    1.2070228518918158,
+    2.4140457037836316,
+    4.828091407567263
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "uranospinite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "schneeberg",
+   "proposed_um": [
+    0,
+    0,
+    0.12070228518918169,
+    0.6035114259459079,
+    1.2070228518918158,
+    2.4140457037836316
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "vanadinite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "supergene_oxidation",
+   "proposed_um": [
+    0,
+    0,
+    0.24140457037836338,
+    1.2070228518918158,
+    2.4140457037836316,
+    4.828091407567263
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "vesuvianite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "jeffrey_mine",
+   "proposed_um": [
+    0,
+    0,
+    0.15117047531530275,
+    0.755852376576513,
+    1.511704753153026,
+    3.023409506306052
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "willemite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.2011704753153028,
+    1.005852376576513,
+    2.011704753153026,
+    4.023409506306052
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "witherite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.38408014167565885,
+    1.9204007083782926,
+    3.840801416756585,
+    7.68160283351317
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "wolframite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.298728999081068,
+    1.4936449954053386,
+    2.987289990810677,
+    5.974579981621354
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "wollastonite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "jeffrey_mine",
+   "proposed_um": [
+    0,
+    0,
+    0.16093638025224224,
+    0.8046819012612105,
+    1.609363802522421,
+    3.218727605044842
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "wulfenite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "supergene_oxidation",
+   "proposed_um": [
+    0,
+    0,
+    0.28163866544142396,
+    1.4081933272071185,
+    2.816386654414237,
+    5.632773308828474
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "wurtzite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0.0004999999999999449,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0.0019443128427022787,
+    0.038886256854049894,
+    0.3888625685404989,
+    1.9443128427024927,
+    3.8886256854049854,
+    7.777251370809971
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  },
+  "zeunerite": {
+   "verdict": "vanishes",
+   "share_at_saturation": 0,
+   "context": "amethyst_geode",
+   "proposed_um": [
+    0,
+    0,
+    0.12070228518918169,
+    0.6035114259459079,
+    1.2070228518918158,
+    2.4140457037836316
+   ],
+   "shape": [
+    0.10000000000000009,
+    0.5
+   ],
+   "linear_in_excess": true
+  }
+ },
+ "part2": [
+  {
+   "scenario": "mvt",
+   "mineral": "galena",
+   "zones": 101,
+   "sigma_min": 1.4043776803737285,
+   "sigma_median": 1.5361282417594249,
+   "sigma_max": 1.5710688961157844,
+   "below_1_05": 0,
+   "below_1_25": 0,
+   "excess_law_share": 0.3441653075555059,
+   "largest_mm": 11.530824871947255,
+   "reproducesBaseline": true
+  },
+  {
+   "scenario": "porphyry",
+   "mineral": "galena",
+   "zones": 126,
+   "sigma_min": 1.2245440757432042,
+   "sigma_median": 2.945001795041935,
+   "sigma_max": 4.485717607373948,
+   "below_1_05": 0,
+   "below_1_25": 0.02288000874589264,
+   "excess_law_share": 0.6279084154264992,
+   "largest_mm": 11.105218443148159,
+   "reproducesBaseline": true
+  },
+  {
+   "scenario": "porphyry",
+   "mineral": "molybdenite",
+   "zones": 108,
+   "sigma_min": 10.860497552062492,
+   "sigma_median": 13.543227715326625,
+   "sigma_max": 20.160807434321526,
+   "below_1_05": 0,
+   "below_1_25": 0,
+   "excess_law_share": 0.9298763710909389,
+   "largest_mm": 33.44382662956789,
+   "reproducesBaseline": true
+  },
+  {
+   "scenario": "radioactive_pegmatite",
+   "mineral": "uraninite",
+   "zones": 233,
+   "sigma_min": 3.7747293177793346,
+   "sigma_median": 3.906062522501523,
+   "sigma_max": 4.154529475036268,
+   "below_1_05": 0,
+   "below_1_25": 0,
+   "excess_law_share": 0.745537645285818,
+   "largest_mm": 6.947603199103604,
+   "reproducesBaseline": true
+  },
+  {
+   "scenario": "reactivated_fluorite_vein",
+   "mineral": "galena",
+   "zones": 98,
+   "sigma_min": 1.1398484045186503,
+   "sigma_median": 1.1527068585068128,
+   "sigma_max": 1.3168818810537175,
+   "below_1_05": 0,
+   "below_1_25": 0.9634457774855678,
+   "excess_law_share": 0.14208752042077635,
+   "largest_mm": 8.48073315969454,
+   "reproducesBaseline": true
+  },
+  {
+   "scenario": "reactive_wall",
+   "mineral": "galena",
+   "zones": 51,
+   "sigma_min": 1.0000852327881422,
+   "sigma_median": 1.013292675640495,
+   "sigma_max": 1.1144208532380473,
+   "below_1_05": 0.8775404043835117,
+   "below_1_25": 1,
+   "excess_law_share": 0.022266029113634164,
+   "largest_mm": 3.891377833226939,
+   "reproducesBaseline": true
+  },
+  {
+   "scenario": "roughten_gill",
+   "mineral": "galena",
+   "zones": 218,
+   "sigma_min": 2.764684596998126,
+   "sigma_median": 2.970892501660901,
+   "sigma_max": 7.9419592080625625,
+   "below_1_05": 0,
+   "below_1_25": 0,
+   "excess_law_share": 0.6833267981809487,
+   "largest_mm": 14.67908280268037,
+   "reproducesBaseline": true
+  },
+  {
+   "scenario": "schneeberg",
+   "mineral": "uraninite",
+   "zones": 257,
+   "sigma_min": 1.3327831144528355,
+   "sigma_median": 2.5190887211013973,
+   "sigma_max": 2.767072727447124,
+   "below_1_05": 0,
+   "below_1_25": 0,
+   "excess_law_share": 0.5840222833884041,
+   "largest_mm": 8.272521781183475,
+   "reproducesBaseline": true
+  },
+  {
+   "scenario": "sunnyside_american_tunnel",
+   "mineral": "galena",
+   "zones": 374,
+   "sigma_min": 1.000249277221898,
+   "sigma_median": 1.0284239688900707,
+   "sigma_max": 6.577594645739447,
+   "below_1_05": 0.47971645609946745,
+   "below_1_25": 0.47971645609946745,
+   "excess_law_share": 0.36048189624546156,
+   "largest_mm": 15.445105229734413,
+   "reproducesBaseline": true
+  }
+ ],
+ "shape": {
+  "driven": 174,
+  "linearInExcess": 169,
+  "tolerance": 0.005
+ },
+ "part2_integrity": {
+  "runs": 8,
+  "reproduced": 8
+ }
+}

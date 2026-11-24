@@ -1,0 +1,38 @@
+[scenarios] loaded 41 from ./data/scenarios.json5
+[spec] loaded 184 minerals from ./data/minerals.json
+[thermo] loaded 15 carbonate entries from ./data/thermo-carbonates.json
+[thermo] loaded 4 sulfate entries from ./data/thermo-sulfates.json
+[narratives] loaded 94 species
+probe-clamp-value --shape-seeds — SIM 286; gem_pegmatite at 10 shape seeds, growth seed 42; the clamp written inside the engine; time scale 5
+controls at seed 42 in the scenario's own cavity (shape seed 8, 69.3 cm3): the shipped run reproduces the baseline; the clamp at Infinity is the shipped run
+floors of the lines: tourmaline 5.0 mm, topaz 1.0, quartz 5.0, feldspar 15.0, albite 20.0
+
+C — the values 5 to 9 at shape seeds 1 / 2 / 3 / 7 / 13 / 42 / 99 / 2024 / 123456789 / 987654321, growth seed 42; each run stepped on until its fill reaches 0.7 or 400 steps have run
+  the cavity holds 63.2 / 73.0 / 68.6 / 62.9 / 67.8 / 78.3 / 66.7 / 73.9 / 72.2 / 69.8 cm3; the shape seed on the wall is the one asked for in every run
+  shipped: full at every one of them: yes; species with solid 7 / 7 / 7 / 7 / 7 / 7 / 7 / 7 / 7 / 7
+  E = 5   largest fill of the run 30.0 / 26.6 / 28.1 / 30.2 / 28.5 / 24.2 / 28.7 / 26.1 / 26.3 / 27.1 %; fill >= 0.7 first at step 264 / 269 / 267 / 264 / 267 / 272 / 266 / 271 / 269 / 267, which is 34 / 39 / 37 / 34 / 37 / 42 / 36 / 41 / 39 / 37 steps after the run's last, 230 (a negative number is inside the run)
+          feldspar 17.3 / 17.3 / 17.5 / 17.2 / 17.5 / 17.2 / 17.5 / 17.5 / 17.2 / 17.3 mm; albite 23.0 / 23.1 / 23.0 / 23.0 / 23.0 / 23.2 / 22.9 / 23.0 / 23.0 / 23.0; quartz 36.9 / 37.9 / 37.5 / 36.8 / 37.5 / 37.0 / 37.7 / 37.5 / 36.8 / 36.9; tourmaline 12.1 / 12.0 / 12.0 / 12.1 / 12.0 / 12.1 / 12.0 / 12.0 / 12.1 / 12.1; topaz 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5; last step anything grew 230 / 230 / 230 / 230 / 230 / 230 / 230 / 230 / 230 / 230
+          the first line is met at 10 of 10 shape seeds; the quartz line at 10 of 10; the pair line at 10 of 10
+          all three lines are met at 10 of 10 shape seeds; margin 34 to 42 steps
+  E = 6   largest fill of the run 36.4 / 32.3 / 34.2 / 36.8 / 34.6 / 29.5 / 34.8 / 31.7 / 32.0 / 33.0 %; fill >= 0.7 first at step 260 / 265 / 263 / 260 / 263 / 269 / 262 / 267 / 265 / 264, which is 30 / 35 / 33 / 30 / 33 / 39 / 32 / 37 / 35 / 34 steps after the run's last, 230 (a negative number is inside the run)
+          feldspar 20.7 / 20.8 / 20.9 / 20.6 / 20.9 / 20.7 / 20.9 / 20.9 / 20.6 / 20.7 mm; albite 27.6 / 27.7 / 27.6 / 27.6 / 27.6 / 27.9 / 27.5 / 27.6 / 27.6 / 27.6; quartz 36.9 / 37.9 / 37.5 / 36.8 / 37.5 / 37.0 / 37.7 / 37.5 / 36.8 / 36.9; tourmaline 12.1 / 12.0 / 12.0 / 12.1 / 12.0 / 12.1 / 12.0 / 12.0 / 12.1 / 12.1; topaz 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5; last step anything grew 230 / 230 / 230 / 230 / 230 / 230 / 230 / 230 / 230 / 230
+          the first line is met at 10 of 10 shape seeds; the quartz line at 10 of 10; the pair line at 10 of 10
+          all three lines are met at 10 of 10 shape seeds; margin 30 to 39 steps
+  E = 7   largest fill of the run 45.4 / 40.2 / 42.6 / 45.9 / 43.1 / 36.8 / 43.4 / 39.5 / 39.9 / 41.1 %; fill >= 0.7 first at step 254 / 259 / 257 / 254 / 257 / 263 / 256 / 261 / 259 / 258, which is 24 / 29 / 27 / 24 / 27 / 33 / 26 / 31 / 29 / 28 steps after the run's last, 230 (a negative number is inside the run)
+          feldspar 24.2 / 24.2 / 24.4 / 24.1 / 24.4 / 24.1 / 24.4 / 24.4 / 24.1 / 24.2 mm; albite 32.1 / 32.4 / 32.2 / 32.2 / 32.2 / 32.5 / 32.1 / 32.2 / 32.2 / 32.1; quartz 36.9 / 37.9 / 37.5 / 36.8 / 37.5 / 37.0 / 37.7 / 37.5 / 36.8 / 36.9; tourmaline 12.1 / 12.0 / 12.0 / 12.1 / 12.0 / 12.1 / 12.0 / 12.0 / 12.1 / 12.1; topaz 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5; last step anything grew 230 / 230 / 230 / 230 / 230 / 230 / 230 / 230 / 230 / 230
+          the first line is met at 10 of 10 shape seeds; the quartz line at 10 of 10; the pair line at 10 of 10
+          all three lines are met at 10 of 10 shape seeds; margin 24 to 33 steps
+  E = 8   largest fill of the run 57.4 / 50.8 / 53.9 / 58.0 / 54.5 / 46.6 / 54.9 / 50.0 / 50.5 / 52.0 %; fill >= 0.7 first at step 244 / 251 / 249 / 243 / 249 / 256 / 247 / 253 / 251 / 250, which is 14 / 21 / 19 / 13 / 19 / 26 / 17 / 23 / 21 / 20 steps after the run's last, 230 (a negative number is inside the run)
+          feldspar 27.6 / 27.7 / 27.9 / 27.5 / 27.9 / 27.6 / 27.9 / 27.9 / 27.5 / 27.6 mm; albite 36.7 / 37.0 / 36.8 / 36.8 / 36.8 / 37.2 / 36.7 / 36.8 / 36.8 / 36.7; quartz 36.9 / 37.9 / 37.5 / 36.8 / 37.5 / 37.0 / 37.7 / 37.5 / 36.8 / 36.9; tourmaline 12.1 / 12.0 / 12.0 / 12.1 / 12.0 / 12.1 / 12.0 / 12.0 / 12.1 / 12.1; topaz 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5; last step anything grew 230 / 230 / 230 / 230 / 230 / 230 / 230 / 230 / 230 / 230
+          the first line is met at 10 of 10 shape seeds; the quartz line at 10 of 10; the pair line at 10 of 10
+          all three lines are met at 10 of 10 shape seeds; margin 13 to 26 steps
+  E = 9   largest fill of the run 72.7 / 64.3 / 68.3 / 73.3 / 69.1 / 59.2 / 69.6 / 63.4 / 64.0 / 66.0 %; fill >= 0.7 first at step 227 / 237 / 233 / 227 / 232 / 244 / 231 / 239 / 237 / 235, which is -3 / 7 / 3 / -3 / 2 / 14 / 1 / 9 / 7 / 5 steps after the run's last, 230 (a negative number is inside the run)
+          feldspar 31.0 / 31.2 / 31.4 / 30.9 / 31.4 / 31.0 / 31.4 / 31.4 / 31.0 / 31.1 mm; albite 41.3 / 41.6 / 41.5 / 41.3 / 41.5 / 41.8 / 41.3 / 41.5 / 41.3 / 41.3; quartz 36.9 / 37.9 / 37.5 / 36.7 / 37.5 / 37.0 / 37.7 / 37.5 / 36.8 / 36.9; tourmaline 12.1 / 12.0 / 12.0 / 12.1 / 12.0 / 12.1 / 12.0 / 12.0 / 12.1 / 12.1; topaz 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5 / 2.5; last step anything grew 230 / 230 / 230 / 230 / 230 / 230 / 230 / 230 / 230 / 230
+          the first line is met at 8 of 10 shape seeds; the quartz line at 10 of 10; the pair line at 10 of 10
+          all three lines are met at 8 of 10 shape seeds; not met: the first line at shape seed 1, 7; margin -3 to 14 steps
+
+  under the clamp every run has the shape seed and the cavity volume of the shipped run it is read against: yes
+  values that meet all three lines at all 10 shape seeds: 5, 6, 7, 8
+  values that fail a line at some shape seed: 9
+
+control at the end: gem_pegmatite's shipped run at seed 42 still reproduces the baseline

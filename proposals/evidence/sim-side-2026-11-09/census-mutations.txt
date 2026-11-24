@@ -1,0 +1,181 @@
+sim-side census mutations — 46 mutants of tools/sim-side-census.mjs (sha256 c5148646a8b5); the census as committed runs once on bisbee, colorado_plateau, cooling, epithermal_telluride, gem_pegmatite, great_salt_plains, mvt, porphyry, radioactive_pegmatite, schneeberg, sunnyside_american_tunnel, tn457_barite_pulses, tormiq_alpine_cleft, zoned_dripstone_cave (seed 42)
+
+the census as committed (14 of 14 runs reproduce the baseline):
+  [PASS] positive competition-log — 64/64/60/60/65 = 313
+  [PASS] positive supply — 268 zones on Au; scenario-wide 268 rationed, 45 budget-cut
+  [PASS] positive supply-share — 1.68 %
+  [PASS] positive two-fluids — 116.8 / 174.0 ppm
+  [PASS] negative two-fluids — 0.006 %
+  [PASS] positive space+end — full at step 9, last growth at step 9 of 230, "pocket full" 100 %
+  [PASS] negative space+end — first step at fill >= 0.7: never; fill at end 8.7 %, last growth at step 120 of 120, "pocket full" 0 %
+  [PASS] positive time — calcite 34.6 mm: still growing on the final step
+  [PASS] negative time — 0 crystal(s)
+  [PASS] positive draw-down — 36.7 % of 71.5 mm stored; through uranophane:U 26.2 mm
+  [PASS] negative draw-down — 0.00 % of 31.2 mm stored
+  [PASS] positive pause — 175 pauses on a cell run short (galena ×156, tetrahedrite ×11, argentite ×4); 0 on a cell that reads saturated
+  [PASS] positive count — 33 steps past sigma_crit, 33 not licensed
+  [PASS] negative count — 101 steps past sigma_crit, 0 not licensed
+  [PASS] positive count-excluded — 150 steps past sigma_crit, 150 excluded
+  [PASS] positive count-window — 60 steps past sigma_crit, 60 outside its window
+  [PASS] positive count-cap — 200 steps past sigma_crit, 183 at the count cap
+  [PASS] positive count-gate — 88 steps past sigma_crit, 87 at its own gate, 87 of them with a side door
+  [PASS] positive count-envelope — 150 of 150 passes under the envelope; aragonite past sigma_crit on the envelope only on 150 steps
+  [PASS] negative count-envelope — 0 of 120 passes under an envelope
+  [PASS] positive strangled — 6 of 18 calls refused; ingredient Pb ×6
+  [PASS] negative strangled — 0 of 300 calls refused
+  [PASS] positive enclosed — 33 enclosed, 33 with the encloser named
+  [PASS] positive vadose — step 110: 10 rings from ring 6 up; bulk O2 1.50 → 1.80
+  [PASS] negative vadose — 0 step(s) on which a ring dried
+  [PASS] positive draw-down-other — 3.93 mm not through the ingredients; uranophane:pH 3.93 mm
+  [PASS] positive big-drawn-down — 3 of 13: uranophane ×3
+  [PASS] positive starved — 1062 crystal-steps (sylvanite ×393, calaverite ×381, galena ×204)
+  [PASS] negative starved — 34 crystal-steps not restored by the ingredients (goethite:O2 ×34); 126 starved
+  [PASS] positive band — 36.2 % of 345 mm stored
+  [PASS] negative band — 0.0 % of 31.2 mm stored; 100.0 % at 0.9 or more
+  [PASS] positive reference-under — 81.3 % of 7.2 mm stored
+  [PASS] negative reference-under — 0.0 % of 85.7 mm stored
+  [PASS] positive wall-min — Cd 0.93, Ca 395.1 ppm
+  [PASS] positive ring-means — bulk handle 1.800; floor ring 1.498, top ring 1.800
+
+mutant                    control it should fail      committed  mutant   what was broken
+log-read-once             positive competition-log    PASS       FAIL     the step log is scanned on the final step only (run_step resets it every step)
+                                                      committed: 64/64/60/60/65 = 313
+                                                      mutant:    0/0/0/0/0 = 0
+ration-receipt-ignored    positive supply             PASS       FAIL     the competition receipt on a zone is not read
+                                                      committed: 268 zones on Au; scenario-wide 268 rationed, 45 budget-cut
+                                                      mutant:    45 zones on Au; scenario-wide 0 rationed, 45 budget-cut
+voxel-mean-is-bulk        positive two-fluids         PASS       FAIL     the voxel mean at run end is read from the bulk handle
+                                                      committed: 116.8 / 174.0 ppm
+                                                      mutant:    0.0 / 0.0 ppm
+gap-is-bulk-value         negative two-fluids         PASS       FAIL     the gap between the two fluids is computed as the bulk value itself
+                                                      committed: 0.006 %
+                                                      mutant:    100.000 %
+fill-reads-zero           positive space+end          PASS       FAIL     the fill series is recorded as 0
+                                                      committed: full at step 9, last growth at step 9 of 230, "pocket full" 100 %
+                                                      mutant:    full at step null, last growth at step 9 of 230, "pocket full" 100 %
+fill-reads-one            negative space+end          PASS       FAIL     the fill series is recorded as 1
+                                                      committed: first step at fill >= 0.7: never; fill at end 8.7 %, last growth at step 120 of 120, "pocket full" 0 %
+                                                      mutant:    first step at fill >= 0.7: 1; fill at end 8.7 %, last growth at step 120 of 120, "pocket full" 0 %
+stop-never-recorded       positive space+end          PASS       FAIL     the END tracker never notes that a crystal grew, so no stop is ever recorded
+                                                      committed: full at step 9, last growth at step 9 of 230, "pocket full" 100 %
+                                                      mutant:    full at step 9, last growth at step 9 of 230, "pocket full" 0 %
+pocket-full-never-read    positive space+end          PASS       FAIL     the END reading never tests the cavity fill, so a full pocket is filed under whatever comes next
+                                                      committed: full at step 9, last growth at step 9 of 230, "pocket full" 100 %
+                                                      mutant:    full at step 9, last growth at step 9 of 230, "pocket full" 0 %
+last-growth-never-noted   negative space+end          PASS       FAIL     the last step on which anything grew is never updated
+                                                      committed: first step at fill >= 0.7: never; fill at end 8.7 %, last growth at step 120 of 120, "pocket full" 0 %
+                                                      mutant:    first step at fill >= 0.7: never; fill at end 8.7 %, last growth at step 0 of 120, "pocket full" 0 %
+budget-cut-ignored        positive supply             PASS       FAIL     the formula-budget receipt on a zone is not read
+                                                      committed: 268 zones on Au; scenario-wide 268 rationed, 45 budget-cut
+                                                      mutant:    268 zones on Au; scenario-wide 268 rationed, 0 budget-cut
+solids-not-summed         positive supply-share       PASS       FAIL     the inventory booked in the solids is never summed
+                                                      committed: 1.68 %
+                                                      mutant:    0.00 %
+final-step-off-by-one     positive time               PASS       FAIL     a crystal counts as still growing only if it grew one step after the run ended
+                                                      committed: calcite 34.6 mm: still growing on the final step
+                                                      mutant:    calcite 34.6 mm: unclassified
+any-growth-is-final       negative time               PASS       FAIL     a crystal counts as still growing if it ever grew
+                                                      committed: 0 crystal(s)
+                                                      mutant:    12 crystal(s)
+cell-reads-bulk           positive draw-down          PASS       FAIL     the crystal's own cell is read from the bulk handle
+                                                      committed: 36.7 % of 71.5 mm stored; through uranophane:U 26.2 mm
+                                                      mutant:    0.0 % of 71.5 mm stored; through nothing
+ingredients-not-restored  positive draw-down          PASS       FAIL     the attribution never sets the ingredient fields to the bulk handle's values
+                                                      committed: 36.7 % of 71.5 mm stored; through uranophane:U 26.2 mm
+                                                      mutant:    0.0 % of 71.5 mm stored; through nothing
+share-reads-zero          negative draw-down          PASS       FAIL     the cell's excess as a share of the reference's is read as 0
+                                                      committed: 0.00 % of 31.2 mm stored
+                                                      mutant:    100.00 % of 31.2 mm stored
+engine-read-after-diffusion positive pause              PASS       FAIL     the engine's view is read after the step's diffusion has refilled the cell, not at the dry run (what census v3 did)
+                                                      committed: 175 pauses on a cell run short (galena ×156, tetrahedrite ×11, argentite ×4); 0 on a cell that reads saturated
+                                                      mutant:    24 pauses on a cell run short (tetrahedrite ×8, galena ×8, argentite ×4); 151 on a cell that reads saturated
+license-not-asked         positive count              PASS       FAIL     the scenario's license is not asked
+                                                      committed: 33 steps past sigma_crit, 33 not licensed
+                                                      mutant:    33 steps past sigma_crit, 0 not licensed
+license-always-refuses    negative count              PASS       FAIL     every species is read as not licensed
+                                                      committed: 101 steps past sigma_crit, 0 not licensed
+                                                      mutant:    101 steps past sigma_crit, 101 not licensed
+exclusion-not-asked       positive count-excluded     PASS       FAIL     the scenario's exclusion list is not asked
+                                                      committed: 150 steps past sigma_crit, 150 excluded
+                                                      mutant:    150 steps past sigma_crit, 0 excluded
+window-not-asked          positive count-window       PASS       FAIL     the scenario's nucleation windows are not asked
+                                                      committed: 60 steps past sigma_crit, 60 outside its window
+                                                      mutant:    60 steps past sigma_crit, 0 outside its window
+cap-never-binding         positive count-cap          PASS       FAIL     the count cap is never tested
+                                                      committed: 200 steps past sigma_crit, 183 at the count cap
+                                                      mutant:    200 steps past sigma_crit, 0 at the count cap
+gate-never-binding        positive count-gate         PASS       FAIL     the function's own count gate is never tested
+                                                      committed: 88 steps past sigma_crit, 87 at its own gate, 87 of them with a side door
+                                                      mutant:    88 steps past sigma_crit, 0 at its own gate, 0 of them with a side door
+side-door-never-read      positive count-gate         PASS       FAIL     a gate is never read as keeping a side door
+                                                      committed: 88 steps past sigma_crit, 87 at its own gate, 87 of them with a side door
+                                                      mutant:    88 steps past sigma_crit, 87 at its own gate, 0 of them with a side door
+envelope-not-put-up       positive count-envelope     PASS       FAIL     the localized-nucleation envelope is not put up for the reading
+                                                      committed: 150 of 150 passes under the envelope; aragonite past sigma_crit on the envelope only on 150 steps
+                                                      mutant:    0 of 150 passes under the envelope; aragonite past sigma_crit on the envelope only on 0 steps
+envelope-read-as-bulk     positive count-envelope     PASS       FAIL     the envelope is put up and the bulk handle is read all the same
+                                                      committed: 150 of 150 passes under the envelope; aragonite past sigma_crit on the envelope only on 150 steps
+                                                      mutant:    150 of 150 passes under the envelope; aragonite past sigma_crit on the envelope only on 0 steps
+envelope-always-claimed   negative count-envelope     PASS       FAIL     every pass is counted as running under an envelope
+                                                      committed: 0 of 120 passes under an envelope
+                                                      mutant:    120 of 120 passes under an envelope
+strangle-verdict-ignored  positive strangled          PASS       FAIL     a refusal by _wallStrangledFor is never counted
+                                                      committed: 6 of 18 calls refused; ingredient Pb ×6
+                                                      mutant:    0 of 18 calls refused; ingredient Pb ×6
+strangle-ingredients-not-tried positive strangled          PASS       FAIL     the attribution of a refusal never tries the mineral's ingredients
+                                                      committed: 6 of 18 calls refused; ingredient Pb ×6
+                                                      mutant:    6 of 18 calls refused; SiO2 ×6
+every-call-a-refusal      negative strangled          PASS       FAIL     every call of _wallStrangledFor is counted as a refusal
+                                                      committed: 0 of 300 calls refused
+                                                      mutant:    300 of 300 calls refused
+enclosure-never-read      positive enclosed           PASS       FAIL     the END reading never tests enclosure
+                                                      committed: 33 enclosed, 33 with the encloser named
+                                                      mutant:    0 enclosed, 0 with the encloser named
+encloser-not-named        positive enclosed           PASS       FAIL     the mineral that enclosed a crystal is never looked up
+                                                      committed: 33 enclosed, 33 with the encloser named
+                                                      mutant:    33 enclosed, 0 with the encloser named
+vadose-read-late          positive vadose             PASS       FAIL     the bulk handle's O2 "before" the vadose override is read after it
+                                                      committed: step 110: 10 rings from ring 6 up; bulk O2 1.50 → 1.80
+                                                      mutant:    step 110: 10 rings from ring 6 up; bulk O2 1.80 → 1.80
+vadose-every-call         negative vadose             PASS       FAIL     every call of the vadose override is recorded as a drying
+                                                      committed: 0 step(s) on which a ring dried
+                                                      mutant:    120 step(s) on which a ring dried
+other-field-not-set       positive draw-down-other    PASS       FAIL     the search for one further field never sets that field to the bulk handle's value
+                                                      committed: 3.93 mm not through the ingredients; uranophane:pH 3.93 mm
+                                                      mutant:    3.93 mm not through the ingredients; uranophane:no one field 3.93 mm
+crystal-share-not-kept    positive big-drawn-down     PASS       FAIL     a crystal's own thickness stored on a drawn-down cell is never added up
+                                                      committed: 3 of 13: uranophane ×3
+                                                      mutant:    0 of 13
+starved-never-counted     positive starved            PASS       FAIL     a starved crystal-step is never counted as one
+                                                      committed: 1062 crystal-steps (sylvanite ×393, calaverite ×381, galena ×204)
+                                                      mutant:    0 crystal-steps
+band-filed-as-near        positive band               PASS       FAIL     thickness stored between 0.5 and 0.9 of the reference's excess is filed with the thickness at 0.9 or more
+                                                      committed: 36.2 % of 345 mm stored
+                                                      mutant:    0.0 % of 345 mm stored
+reference-under-dropped   positive reference-under    PASS       FAIL     thickness stored where the bulk handle is at or under saturation is not filed
+                                                      committed: 81.3 % of 7.2 mm stored
+                                                      mutant:    0.0 % of 7.2 mm stored
+wall-minimum-never-taken  positive wall-min           PASS       FAIL     the lowest wall cell of a field is never recorded
+                                                      committed: Cd 0.93, Ca 395.1 ppm
+                                                      mutant:    Cd not recorded, Ca not recorded ppm
+ring-means-read-bulk      positive ring-means         PASS       FAIL     each ring's mean is read from the bulk handle
+                                                      committed: bulk handle 1.800; floor ring 1.498, top ring 1.800
+                                                      mutant:    bulk handle 1.800; floor ring 1.800, top ring 1.800
+reference-under-takes-everything negative reference-under    PASS       FAIL     every stored zone the dry run read is filed as stored where the bulk handle is at or under saturation
+                                                      committed: 0.0 % of 85.7 mm stored
+                                                      mutant:    100.0 % of 85.7 mm stored
+ring-means-halved         positive ring-means         PASS       FAIL     each ring's mean is taken over twice the voxels it has
+                                                      committed: bulk handle 1.800; floor ring 1.498, top ring 1.800
+                                                      mutant:    bulk handle 1.800; floor ring 0.749, top ring 0.900
+crystal-share-counts-the-band positive big-drawn-down     PASS       FAIL     thickness stored between 0.5 and 0.9 of the reference's excess is also added to a crystal's own drawn-down share
+                                                      committed: 3 of 13: uranophane ×3
+                                                      mutant:    8 of 13: tyuyamunite ×5, uranophane ×3
+near-filed-as-band        negative band               PASS       FAIL     thickness stored at 0.9 or more of the reference's excess is filed in the 0.5 to 0.9 band
+                                                      committed: 0.0 % of 31.2 mm stored; 100.0 % at 0.9 or more
+                                                      mutant:    100.0 % of 31.2 mm stored; 0.0 % at 0.9 or more
+starved-without-the-ingredient-test negative starved            PASS       FAIL     a crystal-step below saturation on the cell only is counted as starved whether or not the ingredients restore it
+                                                      committed: 34 crystal-steps not restored by the ingredients (goethite:O2 ×34); 126 starved
+                                                      mutant:    0 crystal-steps not restored by the ingredients; 160 starved
+
+all 46 mutants: the control passes on the census as committed and fails on the mutant
+controls the census declares: 35; with no mutant aimed at them: none

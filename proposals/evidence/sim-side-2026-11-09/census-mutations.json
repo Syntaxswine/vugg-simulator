@@ -1,0 +1,423 @@
+{
+ "seed": 42,
+ "census_sha256": "c5148646a8b508358be775087451c0780a771d56afeabd8a672cc2c562ca6372",
+ "ok": true,
+ "controlsDeclared": 35,
+ "controlsWithNoMutant": [],
+ "results": [
+  {
+   "mutant": "log-read-once",
+   "what": "the step log is scanned on the final step only (run_step resets it every step)",
+   "control": "competition-log positive",
+   "committed": "PASS",
+   "committedDetail": "64/64/60/60/65 = 313",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "0/0/0/0/0 = 0"
+  },
+  {
+   "mutant": "ration-receipt-ignored",
+   "what": "the competition receipt on a zone is not read",
+   "control": "supply positive",
+   "committed": "PASS",
+   "committedDetail": "268 zones on Au; scenario-wide 268 rationed, 45 budget-cut",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "45 zones on Au; scenario-wide 0 rationed, 45 budget-cut"
+  },
+  {
+   "mutant": "voxel-mean-is-bulk",
+   "what": "the voxel mean at run end is read from the bulk handle",
+   "control": "two-fluids positive",
+   "committed": "PASS",
+   "committedDetail": "116.8 / 174.0 ppm",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "0.0 / 0.0 ppm"
+  },
+  {
+   "mutant": "gap-is-bulk-value",
+   "what": "the gap between the two fluids is computed as the bulk value itself",
+   "control": "two-fluids negative",
+   "committed": "PASS",
+   "committedDetail": "0.006 %",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "100.000 %"
+  },
+  {
+   "mutant": "fill-reads-zero",
+   "what": "the fill series is recorded as 0",
+   "control": "space+end positive",
+   "committed": "PASS",
+   "committedDetail": "full at step 9, last growth at step 9 of 230, \"pocket full\" 100 %",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "full at step null, last growth at step 9 of 230, \"pocket full\" 100 %"
+  },
+  {
+   "mutant": "fill-reads-one",
+   "what": "the fill series is recorded as 1",
+   "control": "space+end negative",
+   "committed": "PASS",
+   "committedDetail": "first step at fill >= 0.7: never; fill at end 8.7 %, last growth at step 120 of 120, \"pocket full\" 0 %",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "first step at fill >= 0.7: 1; fill at end 8.7 %, last growth at step 120 of 120, \"pocket full\" 0 %"
+  },
+  {
+   "mutant": "stop-never-recorded",
+   "what": "the END tracker never notes that a crystal grew, so no stop is ever recorded",
+   "control": "space+end positive",
+   "committed": "PASS",
+   "committedDetail": "full at step 9, last growth at step 9 of 230, \"pocket full\" 100 %",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "full at step 9, last growth at step 9 of 230, \"pocket full\" 0 %"
+  },
+  {
+   "mutant": "pocket-full-never-read",
+   "what": "the END reading never tests the cavity fill, so a full pocket is filed under whatever comes next",
+   "control": "space+end positive",
+   "committed": "PASS",
+   "committedDetail": "full at step 9, last growth at step 9 of 230, \"pocket full\" 100 %",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "full at step 9, last growth at step 9 of 230, \"pocket full\" 0 %"
+  },
+  {
+   "mutant": "last-growth-never-noted",
+   "what": "the last step on which anything grew is never updated",
+   "control": "space+end negative",
+   "committed": "PASS",
+   "committedDetail": "first step at fill >= 0.7: never; fill at end 8.7 %, last growth at step 120 of 120, \"pocket full\" 0 %",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "first step at fill >= 0.7: never; fill at end 8.7 %, last growth at step 0 of 120, \"pocket full\" 0 %"
+  },
+  {
+   "mutant": "budget-cut-ignored",
+   "what": "the formula-budget receipt on a zone is not read",
+   "control": "supply positive",
+   "committed": "PASS",
+   "committedDetail": "268 zones on Au; scenario-wide 268 rationed, 45 budget-cut",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "268 zones on Au; scenario-wide 268 rationed, 0 budget-cut"
+  },
+  {
+   "mutant": "solids-not-summed",
+   "what": "the inventory booked in the solids is never summed",
+   "control": "supply-share positive",
+   "committed": "PASS",
+   "committedDetail": "1.68 %",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "0.00 %"
+  },
+  {
+   "mutant": "final-step-off-by-one",
+   "what": "a crystal counts as still growing only if it grew one step after the run ended",
+   "control": "time positive",
+   "committed": "PASS",
+   "committedDetail": "calcite 34.6 mm: still growing on the final step",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "calcite 34.6 mm: unclassified"
+  },
+  {
+   "mutant": "any-growth-is-final",
+   "what": "a crystal counts as still growing if it ever grew",
+   "control": "time negative",
+   "committed": "PASS",
+   "committedDetail": "0 crystal(s)",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "12 crystal(s)"
+  },
+  {
+   "mutant": "cell-reads-bulk",
+   "what": "the crystal's own cell is read from the bulk handle",
+   "control": "draw-down positive",
+   "committed": "PASS",
+   "committedDetail": "36.7 % of 71.5 mm stored; through uranophane:U 26.2 mm",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "0.0 % of 71.5 mm stored; through nothing"
+  },
+  {
+   "mutant": "ingredients-not-restored",
+   "what": "the attribution never sets the ingredient fields to the bulk handle's values",
+   "control": "draw-down positive",
+   "committed": "PASS",
+   "committedDetail": "36.7 % of 71.5 mm stored; through uranophane:U 26.2 mm",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "0.0 % of 71.5 mm stored; through nothing"
+  },
+  {
+   "mutant": "share-reads-zero",
+   "what": "the cell's excess as a share of the reference's is read as 0",
+   "control": "draw-down negative",
+   "committed": "PASS",
+   "committedDetail": "0.00 % of 31.2 mm stored",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "100.00 % of 31.2 mm stored"
+  },
+  {
+   "mutant": "engine-read-after-diffusion",
+   "what": "the engine's view is read after the step's diffusion has refilled the cell, not at the dry run (what census v3 did)",
+   "control": "pause positive",
+   "committed": "PASS",
+   "committedDetail": "175 pauses on a cell run short (galena ×156, tetrahedrite ×11, argentite ×4); 0 on a cell that reads saturated",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "24 pauses on a cell run short (tetrahedrite ×8, galena ×8, argentite ×4); 151 on a cell that reads saturated"
+  },
+  {
+   "mutant": "license-not-asked",
+   "what": "the scenario's license is not asked",
+   "control": "count positive",
+   "committed": "PASS",
+   "committedDetail": "33 steps past sigma_crit, 33 not licensed",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "33 steps past sigma_crit, 0 not licensed"
+  },
+  {
+   "mutant": "license-always-refuses",
+   "what": "every species is read as not licensed",
+   "control": "count negative",
+   "committed": "PASS",
+   "committedDetail": "101 steps past sigma_crit, 0 not licensed",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "101 steps past sigma_crit, 101 not licensed"
+  },
+  {
+   "mutant": "exclusion-not-asked",
+   "what": "the scenario's exclusion list is not asked",
+   "control": "count-excluded positive",
+   "committed": "PASS",
+   "committedDetail": "150 steps past sigma_crit, 150 excluded",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "150 steps past sigma_crit, 0 excluded"
+  },
+  {
+   "mutant": "window-not-asked",
+   "what": "the scenario's nucleation windows are not asked",
+   "control": "count-window positive",
+   "committed": "PASS",
+   "committedDetail": "60 steps past sigma_crit, 60 outside its window",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "60 steps past sigma_crit, 0 outside its window"
+  },
+  {
+   "mutant": "cap-never-binding",
+   "what": "the count cap is never tested",
+   "control": "count-cap positive",
+   "committed": "PASS",
+   "committedDetail": "200 steps past sigma_crit, 183 at the count cap",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "200 steps past sigma_crit, 0 at the count cap"
+  },
+  {
+   "mutant": "gate-never-binding",
+   "what": "the function's own count gate is never tested",
+   "control": "count-gate positive",
+   "committed": "PASS",
+   "committedDetail": "88 steps past sigma_crit, 87 at its own gate, 87 of them with a side door",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "88 steps past sigma_crit, 0 at its own gate, 0 of them with a side door"
+  },
+  {
+   "mutant": "side-door-never-read",
+   "what": "a gate is never read as keeping a side door",
+   "control": "count-gate positive",
+   "committed": "PASS",
+   "committedDetail": "88 steps past sigma_crit, 87 at its own gate, 87 of them with a side door",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "88 steps past sigma_crit, 87 at its own gate, 0 of them with a side door"
+  },
+  {
+   "mutant": "envelope-not-put-up",
+   "what": "the localized-nucleation envelope is not put up for the reading",
+   "control": "count-envelope positive",
+   "committed": "PASS",
+   "committedDetail": "150 of 150 passes under the envelope; aragonite past sigma_crit on the envelope only on 150 steps",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "0 of 150 passes under the envelope; aragonite past sigma_crit on the envelope only on 0 steps"
+  },
+  {
+   "mutant": "envelope-read-as-bulk",
+   "what": "the envelope is put up and the bulk handle is read all the same",
+   "control": "count-envelope positive",
+   "committed": "PASS",
+   "committedDetail": "150 of 150 passes under the envelope; aragonite past sigma_crit on the envelope only on 150 steps",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "150 of 150 passes under the envelope; aragonite past sigma_crit on the envelope only on 0 steps"
+  },
+  {
+   "mutant": "envelope-always-claimed",
+   "what": "every pass is counted as running under an envelope",
+   "control": "count-envelope negative",
+   "committed": "PASS",
+   "committedDetail": "0 of 120 passes under an envelope",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "120 of 120 passes under an envelope"
+  },
+  {
+   "mutant": "strangle-verdict-ignored",
+   "what": "a refusal by _wallStrangledFor is never counted",
+   "control": "strangled positive",
+   "committed": "PASS",
+   "committedDetail": "6 of 18 calls refused; ingredient Pb ×6",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "0 of 18 calls refused; ingredient Pb ×6"
+  },
+  {
+   "mutant": "strangle-ingredients-not-tried",
+   "what": "the attribution of a refusal never tries the mineral's ingredients",
+   "control": "strangled positive",
+   "committed": "PASS",
+   "committedDetail": "6 of 18 calls refused; ingredient Pb ×6",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "6 of 18 calls refused; SiO2 ×6"
+  },
+  {
+   "mutant": "every-call-a-refusal",
+   "what": "every call of _wallStrangledFor is counted as a refusal",
+   "control": "strangled negative",
+   "committed": "PASS",
+   "committedDetail": "0 of 300 calls refused",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "300 of 300 calls refused"
+  },
+  {
+   "mutant": "enclosure-never-read",
+   "what": "the END reading never tests enclosure",
+   "control": "enclosed positive",
+   "committed": "PASS",
+   "committedDetail": "33 enclosed, 33 with the encloser named",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "0 enclosed, 0 with the encloser named"
+  },
+  {
+   "mutant": "encloser-not-named",
+   "what": "the mineral that enclosed a crystal is never looked up",
+   "control": "enclosed positive",
+   "committed": "PASS",
+   "committedDetail": "33 enclosed, 33 with the encloser named",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "33 enclosed, 0 with the encloser named"
+  },
+  {
+   "mutant": "vadose-read-late",
+   "what": "the bulk handle's O2 \"before\" the vadose override is read after it",
+   "control": "vadose positive",
+   "committed": "PASS",
+   "committedDetail": "step 110: 10 rings from ring 6 up; bulk O2 1.50 → 1.80",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "step 110: 10 rings from ring 6 up; bulk O2 1.80 → 1.80"
+  },
+  {
+   "mutant": "vadose-every-call",
+   "what": "every call of the vadose override is recorded as a drying",
+   "control": "vadose negative",
+   "committed": "PASS",
+   "committedDetail": "0 step(s) on which a ring dried",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "120 step(s) on which a ring dried"
+  },
+  {
+   "mutant": "other-field-not-set",
+   "what": "the search for one further field never sets that field to the bulk handle's value",
+   "control": "draw-down-other positive",
+   "committed": "PASS",
+   "committedDetail": "3.93 mm not through the ingredients; uranophane:pH 3.93 mm",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "3.93 mm not through the ingredients; uranophane:no one field 3.93 mm"
+  },
+  {
+   "mutant": "crystal-share-not-kept",
+   "what": "a crystal's own thickness stored on a drawn-down cell is never added up",
+   "control": "big-drawn-down positive",
+   "committed": "PASS",
+   "committedDetail": "3 of 13: uranophane ×3",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "0 of 13"
+  },
+  {
+   "mutant": "starved-never-counted",
+   "what": "a starved crystal-step is never counted as one",
+   "control": "starved positive",
+   "committed": "PASS",
+   "committedDetail": "1062 crystal-steps (sylvanite ×393, calaverite ×381, galena ×204)",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "0 crystal-steps"
+  },
+  {
+   "mutant": "band-filed-as-near",
+   "what": "thickness stored between 0.5 and 0.9 of the reference's excess is filed with the thickness at 0.9 or more",
+   "control": "band positive",
+   "committed": "PASS",
+   "committedDetail": "36.2 % of 345 mm stored",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "0.0 % of 345 mm stored"
+  },
+  {
+   "mutant": "reference-under-dropped",
+   "what": "thickness stored where the bulk handle is at or under saturation is not filed",
+   "control": "reference-under positive",
+   "committed": "PASS",
+   "committedDetail": "81.3 % of 7.2 mm stored",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "0.0 % of 7.2 mm stored"
+  },
+  {
+   "mutant": "wall-minimum-never-taken",
+   "what": "the lowest wall cell of a field is never recorded",
+   "control": "wall-min positive",
+   "committed": "PASS",
+   "committedDetail": "Cd 0.93, Ca 395.1 ppm",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "Cd not recorded, Ca not recorded ppm"
+  },
+  {
+   "mutant": "ring-means-read-bulk",
+   "what": "each ring's mean is read from the bulk handle",
+   "control": "ring-means positive",
+   "committed": "PASS",
+   "committedDetail": "bulk handle 1.800; floor ring 1.498, top ring 1.800",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "bulk handle 1.800; floor ring 1.800, top ring 1.800"
+  },
+  {
+   "mutant": "reference-under-takes-everything",
+   "what": "every stored zone the dry run read is filed as stored where the bulk handle is at or under saturation",
+   "control": "reference-under negative",
+   "committed": "PASS",
+   "committedDetail": "0.0 % of 85.7 mm stored",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "100.0 % of 85.7 mm stored"
+  },
+  {
+   "mutant": "ring-means-halved",
+   "what": "each ring's mean is taken over twice the voxels it has",
+   "control": "ring-means positive",
+   "committed": "PASS",
+   "committedDetail": "bulk handle 1.800; floor ring 1.498, top ring 1.800",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "bulk handle 1.800; floor ring 0.749, top ring 0.900"
+  },
+  {
+   "mutant": "crystal-share-counts-the-band",
+   "what": "thickness stored between 0.5 and 0.9 of the reference's excess is also added to a crystal's own drawn-down share",
+   "control": "big-drawn-down positive",
+   "committed": "PASS",
+   "committedDetail": "3 of 13: uranophane ×3",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "8 of 13: tyuyamunite ×5, uranophane ×3"
+  },
+  {
+   "mutant": "near-filed-as-band",
+   "what": "thickness stored at 0.9 or more of the reference's excess is filed in the 0.5 to 0.9 band",
+   "control": "band negative",
+   "committed": "PASS",
+   "committedDetail": "0.0 % of 31.2 mm stored; 100.0 % at 0.9 or more",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "100.0 % of 31.2 mm stored; 0.0 % at 0.9 or more"
+  },
+  {
+   "mutant": "starved-without-the-ingredient-test",
+   "what": "a crystal-step below saturation on the cell only is counted as starved whether or not the ingredients restore it",
+   "control": "starved negative",
+   "committed": "PASS",
+   "committedDetail": "34 crystal-steps not restored by the ingredients (goethite:O2 ×34); 126 starved",
+   "mutant_verdict": "FAIL",
+   "mutantDetail": "0 crystal-steps not restored by the ingredients; 160 starved"
+  }
+ ]
+}

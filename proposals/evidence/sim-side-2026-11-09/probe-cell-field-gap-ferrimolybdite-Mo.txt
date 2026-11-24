@@ -1,0 +1,10 @@
+supergene_oxidation, ferrimolybdite: Mo on the bulk handle and on each active crystal's own cell, read when the engines run — SIM 286
+  seed 42 (reproduces the baseline): 1081 crystal-steps, steps 4 to 200
+           Mo on the bulk handle 15.0000 to 40.0000; on the cell 8.2210 to 36.3767; bulk minus cell 0.000000 to 21.951896, median 16.922496
+           sigma on the bulk handle's fluid at the cell's temperature: median 15.97; on the cell: median 6.59
+  seed  1: 1005 crystal-steps, steps 13 to 200
+           Mo on the bulk handle 15.0000 to 40.0000; on the cell 8.2855 to 40.0000; bulk minus cell 0.000000 to 20.508929, median 16.943991
+           sigma on the bulk handle's fluid at the cell's temperature: median 17.11; on the cell: median 7.09
+  seed  2: 1107 crystal-steps, steps 3 to 200
+           Mo on the bulk handle 15.0000 to 40.0000; on the cell 8.0528 to 33.9988; bulk minus cell 0.000000 to 22.013492, median 17.172372
+           sigma on the bulk handle's fluid at the cell's temperature: median 15.97; on the cell: median 6.57
