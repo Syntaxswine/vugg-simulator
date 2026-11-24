@@ -41,15 +41,19 @@ Living list of open work items, captured from session conversations so context s
 > Creative mode's "Radioactive Pegmatite" starter fluid and in Zen runs of the two uraninite
 > scenarios, bulk Pb climbs to 268–286, 621–682 and 1,015–1,035 ppm with every voxel where
 > it started.)
-> **This review has been corrected by each of its review rounds. The doc's §0 says how many times
-> and what each round found, and its §9 lists every correction.**
+> **This review has been corrected by each of its review rounds. The doc's §0 says how many times,
+> and its §9, kept in a file of its own (`REVIEW-SIMULATION-SIDE-2026-11-09-CORRECTIONS.md`), lists
+> what each round found and every correction.**
 > **Awaits the boss:** the eight decisions in the doc's §6. SC1: a clamp on the feldspar pair's
 > rate authored on `gem_pegmatite` ALONE (recommended; one baseline changes), which makes topaz
 > appear at all three locality-gate seeds, so the bump must also PROMOTE TOPAZ out of the
 > aspirational tier and rewrite its rationale by hand (the gate does not check that sentence). Under
 > it the game also names the pocket's quartz smoky quartz, gives it morion as its base colour in the
 > cavity view, and names its two feldspars albite, not sanidine; it shows all of that today in the
-> one cavity setting where this pocket stays open (review rounds' runs, not committed). ITS VALUE IS
+> one cavity setting where this pocket stays open, and in other scenarios at their defaults: both
+> are rules of the engines (a feldspar named albite while its zones debit K, in `shigar_pegmatite`,
+> `ouro_preto` and `bisbee`; a quartz dosed to morion, in `ouro_preto`), and decision 1 asks whether
+> they are meant (review rounds' runs, not committed). ITS VALUE IS
 > A CHOICE IN A RANGE: the bump's acceptance lines are met by every whole value from 5 to 9 and pick
 > none (5: feldspar 17 mm, 37–38 steps to spare; 9: feldspar 31 mm, 3–5
 > steps; the gems are the same throughout). That range is in the scenario's own cavity. At
